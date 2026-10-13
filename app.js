@@ -19,7 +19,6 @@ const ONB = [
 ];
 
 const EMOJIS = ['👤','😎','🧠','🔥','🌅','⚡','🎯','💪','🦁','🌟','🚀','🎨','🧘','🏆','☀️','🍀'];
-const WEEKDAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 
 // ====== ИНИЦИАЛИЗАЦИЯ ======
@@ -179,7 +178,7 @@ function renderBookScreen() {
   document.getElementById('ritualSub').textContent = b.practices.length + ' практик · ~' + Math.round(b.practices.reduce((s, p) => s + p.time, 0) / 60) + ' минут';
 
   renderRings();
-  renderTodayRow();
+  renderLevel();
   renderPractices();
   renderCalendar();
 }
@@ -234,29 +233,31 @@ function animateNumber(el, from, to, suffix, duration) {
   requestAnimationFrame(tick);
 }
 
-// ====== РЯД ПРАКТИК СЕГОДНЯ ======
-function renderTodayRow() {
-  const b = currentBook;
-  const day = currentDay(b.id);
-  const date = dateByDay(b.id, day);
-  const bs = getBookState(b.id);
-  const todayRec = bs.days[date] || { practices: [] };
+// ====== УРОВНИ ======
+function getLevel(closed) {
+  if (closed === 0) return { ico:'🌱', name:'Новичок', desc:'Начни первый день — и путь откроется', cls:'' };
+  if (closed < 3) return { ico:'🌱', name:'Первый шаг', desc:`${closed} ${plural(closed,'день','дня','дней')} — начало положено`, cls:'' };
+  if (closed < 7) return { ico:'🌿', name:'В ритме', desc:`${closed} ${plural(closed,'день','дня','дней')} подряд — ты входишь в поток`, cls:'pro' };
+  if (closed < 14) return { ico:'🔥', name:'Практик', desc:`${closed} ${plural(closed,'день','дня','дней')} — привычка формируется`, cls:'pro' };
+  if (closed < 21) return { ico:'💎', name:'Опытный', desc:`${closed} ${plural(closed,'день','дня','дней')} — ты почти у цели`, cls:'pro' };
+  if (closed < 30) return { ico:'🏆', name:'Мастер', desc:`${closed} ${plural(closed,'день','дня','дней')} — ты легенда`, cls:'master' };
+  return { ico:'👑', name:'Легенда', desc:'Книга пройдена полностью. Уважение.', cls:'master' };
+}
 
-  const existing = document.querySelector('.today-row');
-  if (existing) existing.remove();
+function plural(n, one, few, many) {
+  const mod10 = n % 10, mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  return many;
+}
 
-  const div = document.createElement('div');
-  div.className = 'today-row';
-  div.innerHTML = b.practices.map(p => {
-    const done = todayRec.practices.includes(p.id);
-    return `<div class="today-icon ${done ? 'done' : ''}" onclick="openPractice('${p.id}')" title="${p.title}">
-      <span>${p.ico}</span>
-      <div class="today-check">✓</div>
-    </div>`;
-  }).join('');
-
-  const bigBtn = document.querySelector('.big-btn');
-  bigBtn.parentNode.insertBefore(div, bigBtn);
+function renderLevel() {
+  const closed = countClosedDays(currentBook.id);
+  const lv = getLevel(closed);
+  document.getElementById('levelBadge').textContent = lv.ico;
+  document.getElementById('levelBadge').className = 'level-badge ' + lv.cls;
+  document.getElementById('levelName').textContent = lv.name;
+  document.getElementById('levelDesc').textContent = lv.desc;
 }
 
 // ====== ПОДСЧЁТЫ ======
@@ -280,7 +281,6 @@ function calcStreak(bookId) {
   for (let i = 1; i <= b.days; i++) {
     const d = dateByDay(bookId, i);
     if (bs.days[d] && bs.days[d].closed) streak++;
-    else if (i < currentDay(bookId)) break;
     else break;
   }
   return streak;
@@ -326,42 +326,31 @@ function renderPractices() {
   }).join('');
 }
 
-// ====== КАЛЕНДАРЬ — СЕТКА 7×5 ======
+// ====== КАЛЕНДАРЬ — МИНИАТЮРНЫЙ 15×2 ======
 function renderCalendar() {
   const b = currentBook;
   const bs = getBookState(b.id);
   const today = todayStr();
   const closed = countClosedDays(b.id);
-  const startDate = new Date(bs.start);
-  const startDay = startDate.getDay() === 0 ? 6 : startDate.getDay() - 1;
+  const pct = Math.round(closed / b.days * 100);
 
   let html = `<div class="cal-head">
-    <div class="cal-month">${MONTHS[startDate.getMonth()]} ${startDate.getFullYear()}</div>
-    <div class="cal-progress">${closed} из ${b.days}</div>
+    <div class="label">📅 Прогресс</div>
+    <div class="count">${closed} из ${b.days} · ${pct}%</div>
   </div>`;
 
-  html += `<div class="cal-weekdays">${WEEKDAYS.map(w => `<div class="cal-wd">${w}</div>`).join('')}</div>`;
-  html += `<div class="cal-grid">`;
-
-  for (let i = 0; i < startDay; i++) html += `<div class="cal-day empty"></div>`;
-
+  html += `<div class="cal-mini">`;
   for (let d = 1; d <= b.days; d++) {
     const date = dateByDay(b.id, d);
     const rec = bs.days[date];
-    let cls = 'cal-day';
+    let cls = 'cal-mini-day';
     if (rec && rec.closed) cls += ' done';
     else if (rec && rec.practices && rec.practices.length >= 2) cls += ' partial';
     if (date === today) cls += ' today';
     if (date > today) cls += ' future';
-    html += `<div class="${cls}">${d}</div>`;
+    html += `<div class="${cls}" title="День ${d}">${d}</div>`;
   }
   html += `</div>`;
-
-  html += `<div class="cal-legend">
-    <div class="cal-legend-item"><div class="cal-legend-dot done"></div><span>Сделано</span></div>
-    <div class="cal-legend-item"><div class="cal-legend-dot partial"></div><span>Частично</span></div>
-    <div class="cal-legend-item"><div class="cal-legend-dot today"></div><span>Сегодня</span></div>
-  </div>`;
 
   document.getElementById('calWrap').innerHTML = html;
 }
@@ -373,6 +362,7 @@ function startRitual() {
   document.getElementById('ritualScreen').classList.remove('hidden');
   renderRitualStep();
 }
+
 function renderRitualStep() {
   if (ritualIndex >= ritualQueue.length) { finishRitual(); return; }
   const p = ritualQueue[ritualIndex];
@@ -383,8 +373,8 @@ function renderRitualStep() {
     <div class="ritual-timer">
       <div class="time" id="ritualTime">${formatTime(p.time)}</div>
       <div class="btns">
-        <button class="btn" onclick="toggleRitualTimer(${p.time})" id="ritualTimerBtn">▶ Старт</button>
-        <button class="btn btn-ghost" onclick="nextRitual()">Дальше →</button>
+        <button class="btn" onclick="toggleRitualTimer()" id="ritualTimerBtn">▶ Старт</button>
+        <button class="btn" onclick="nextRitual()" id="ritualNextBtn">Выполнено ✓</button>
       </div>
     </div>
     <div class="ps-block"><h3>💡 Зачем это нужно</h3><p>${p.why}</p></div>
@@ -392,7 +382,8 @@ function renderRitualStep() {
   `;
   timerRemaining = p.time;
 }
-function toggleRitualTimer(sec) {
+
+function toggleRitualTimer() {
   const btn = document.getElementById('ritualTimerBtn');
   if (timerInterval) { stopTimer(); btn.textContent = '▶ Продолжить'; }
   else startTimer('ritualTime', btn);
@@ -409,6 +400,8 @@ function startTimer(displayId, btn) {
 function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterval=null}}
 function formatTime(sec){const m=Math.floor(sec/60),s=sec%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
 function playBeep(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.value=800;gain.gain.setValueAtTime(0.3,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);osc.start();osc.stop(ctx.currentTime+0.5)}catch(e){}if(navigator.vibrate)navigator.vibrate([200,100,200])}
+
+// Отметить текущую практику выполненной и идти дальше
 function nextRitual() {
   stopTimer();
   const p = ritualQueue[ritualIndex];
@@ -416,22 +409,43 @@ function nextRitual() {
   ritualIndex++;
   renderRitualStep();
 }
+
+// Пропустить текущую практику (не отмечать) и идти дальше
+function skipCurrentPractice() {
+  stopTimer();
+  ritualIndex++;
+  if (ritualIndex >= ritualQueue.length) { finishRitual(); return; }
+  renderRitualStep();
+}
+
 function finishRitual() {
   stopTimer();
   const day = currentDay(currentBook.id);
   const date = dateByDay(currentBook.id, day);
   const bs = getBookState(currentBook.id);
   if (!bs.days[date]) bs.days[date] = { practices: [] };
-  if (bs.days[date].practices.length >= 4) {
+  const count = bs.days[date].practices.length;
+  const total = currentBook.practices.length;
+
+  if (count >= 4) {
     bs.days[date].closed = true;
     saveState();
-    showModal('🎉', 'День закрыт!', 'Ты сделал ' + bs.days[date].practices.length + ' практик. День ' + day + ' засчитан.');
+    const percent = Math.round(count / total * 100);
+    let emoji = '🎉', title = 'День закрыт!', text = `Ты сделал ${count} из ${total} практик. День ${day} засчитан!`;
+    if (count === total) { emoji = '🔥'; title = 'Идеальный день!'; text = `Все ${total} практик! Так держать, ты в потоке.`; }
+    else if (count === 4) { emoji = '✅'; title = 'Хороший день!'; text = `${count} из ${total} — этого достаточно. Продолжай.`; }
+    showModal(emoji, title, text);
+  } else if (count >= 2) {
+    saveState();
+    showModal('💪', 'Хорошо идёшь!', `Ты сделал ${count} из ${total}. Закрыть день нужно минимум 4 — попробуй добавить ещё.`);
   } else {
     saveState();
-    closeRitual();
+    showModal('🌱', 'Начало положено', `Сделано ${count} из ${total}. Маленький шаг — тоже шаг. Завтра будет больше.`);
   }
 }
+
 function closeRitual(){document.getElementById('ritualScreen').classList.add('hidden');renderBookScreen()}
+
 function markPracticeDone(pid) {
   const day = currentDay(currentBook.id);
   const date = dateByDay(currentBook.id, day);
