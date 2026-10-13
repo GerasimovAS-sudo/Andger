@@ -10,12 +10,6 @@ let user = null;
 let state = {};
 let onbIndex = 0;
 
-const PRACTICE_COLORS = {
-  silence:'#7c5cff', affirm:'#ff6b9d', visual:'#4da6ff',
-  journal:'#00d68f', read:'#ffb800', sport:'#ff5c5c',
-  'two-min':'#7c5cff', anchor:'#ff6b9d', env:'#4da6ff', track:'#00d68f'
-};
-
 const ONB = [
 {ico:'🌅',title:'Это игра по книге',body:'<p>Хэл Элрод написал книгу о том, как изменить жизнь через утро. Но 95% людей прочитали — и ничего не сделали.</p><p><strong>Здесь по-другому.</strong> Ты не читаешь книгу. Ты играешь в неё.</p><p>Каждое утро ты проходишь практики — и день закрывается сам.</p>'},
 {ico:'⚡',title:'Что даст 30 дней',body:'<p>Если будешь делать практики каждое утро:</p><ul><li>Через 3 дня — начнёшь просыпаться без «стены»</li><li>Через 7 дней — появится ясность, куда идёшь</li><li>Через 14 дней — утро станет любимым временем</li><li>Через 30 дней — ты другой человек</li></ul><p>Это не магия. Это нейропластичность.</p>'},
@@ -190,7 +184,7 @@ function renderBookScreen() {
   renderCalendar();
 }
 
-// ====== ДВОЙНОЕ КОЛЬЦО — APPLE WATCH STYLE ======
+// ====== ДВОЙНОЕ КОЛЬЦО ======
 function renderRings() {
   const b = currentBook;
   const bs = getBookState(b.id);
@@ -203,7 +197,6 @@ function renderRings() {
   const todayCount = (todayRec.practices || []).length;
   const todayPct = todayCount / b.practices.length;
 
-  // Внешнее кольцо — прогресс книги
   const outerC = 2 * Math.PI * 54;
   const outer = document.getElementById('ringOuter');
   if (outer) {
@@ -212,7 +205,6 @@ function renderRings() {
     setTimeout(() => { outer.style.strokeDashoffset = outerC * (1 - bookPct); }, 60);
   }
 
-  // Внутреннее кольцо — прогресс сегодня
   const innerC = 2 * Math.PI * 44;
   const inner = document.getElementById('ringInner');
   if (inner) {
@@ -221,7 +213,6 @@ function renderRings() {
     setTimeout(() => { inner.style.strokeDashoffset = innerC * (1 - todayPct); }, 160);
   }
 
-  // Центр — проценты дня
   const pctEl = document.getElementById('ringPct');
   const dayEl = document.getElementById('ringDay');
   if (pctEl) animateNumber(pctEl, 0, Math.round(todayPct * 100), '%', 900);
@@ -335,15 +326,20 @@ function renderPractices() {
   }).join('');
 }
 
-// ====== КАЛЕНДАРЬ — КОМПАКТНЫЙ ======
+// ====== КАЛЕНДАРЬ — СЕТКА 7×5 ======
 function renderCalendar() {
   const b = currentBook;
   const bs = getBookState(b.id);
   const today = todayStr();
+  const closed = countClosedDays(b.id);
   const startDate = new Date(bs.start);
   const startDay = startDate.getDay() === 0 ? 6 : startDate.getDay() - 1;
 
-  let html = `<div class="cal-head"><div class="cal-month">${MONTHS[startDate.getMonth()]} ${startDate.getFullYear()}</div><div class="cal-progress">${countClosedDays(b.id)} из ${b.days}</div></div>`;
+  let html = `<div class="cal-head">
+    <div class="cal-month">${MONTHS[startDate.getMonth()]} ${startDate.getFullYear()}</div>
+    <div class="cal-progress">${closed} из ${b.days}</div>
+  </div>`;
+
   html += `<div class="cal-weekdays">${WEEKDAYS.map(w => `<div class="cal-wd">${w}</div>`).join('')}</div>`;
   html += `<div class="cal-grid">`;
 
@@ -360,6 +356,12 @@ function renderCalendar() {
     html += `<div class="${cls}">${d}</div>`;
   }
   html += `</div>`;
+
+  html += `<div class="cal-legend">
+    <div class="cal-legend-item"><div class="cal-legend-dot done"></div><span>Сделано</span></div>
+    <div class="cal-legend-item"><div class="cal-legend-dot partial"></div><span>Частично</span></div>
+    <div class="cal-legend-item"><div class="cal-legend-dot today"></div><span>Сегодня</span></div>
+  </div>`;
 
   document.getElementById('calWrap').innerHTML = html;
 }

@@ -91,7 +91,7 @@ input,button,textarea{font-family:inherit}
 .quote-text{font-size:15px;font-style:italic;color:#dcdcf0;line-height:1.6;padding-left:6px}
 .quote-author{font-size:12px;color:var(--muted);margin-top:10px;text-align:right;padding-right:6px}
 
-/* === ПРАКТИКИ СЕГОДНЯ — ряд иконок === */
+/* === ПРАКТИКИ СЕГОДНЯ === */
 .today-row{display:flex;gap:8px;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px;animation:fadeIn .5s .2s both}
 .today-icon{flex:1;aspect-ratio:1;background:var(--card2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;transition:all .4s cubic-bezier(.4,0,.2,1);max-width:48px;cursor:pointer}
 .today-icon:active{transform:scale(.9)}
@@ -125,20 +125,27 @@ input,button,textarea{font-family:inherit}
 .p-sub{font-size:12px;color:var(--muted)}
 .p-arrow{font-size:20px;color:var(--muted);flex-shrink:0}
 
-/* КАЛЕНДАРЬ — КОМПАКТНЫЙ */
-.cal-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:20px;animation:fadeIn .5s .4s both}
-.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+/* === КАЛЕНДАРЬ — КОМПАКТНЫЙ 7×5 === */
+.cal-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:20px;animation:fadeIn .5s .4s both}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .cal-month{font-size:13px;font-weight:700;color:var(--text)}
-.cal-progress{font-size:11px;color:var(--muted)}
-.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
-.cal-wd{text-align:center;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.cal-day{aspect-ratio:1;background:var(--card2);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--muted);transition:.2s;position:relative;cursor:default}
-.cal-day.done{background:linear-gradient(135deg,var(--success),#00b377);color:#fff}
-.cal-day.partial{background:rgba(255,184,0,.3);color:var(--gold);border:1px solid var(--gold)}
-.cal-day.today{border:1.5px solid var(--accent2);color:var(--accent2);font-weight:700}
-.cal-day.future{opacity:.3}
+.cal-progress{font-size:12px;color:var(--accent2);font-weight:700}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:6px}
+.cal-wd{text-align:center;font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal-day{aspect-ratio:1;background:var(--card2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--muted);transition:all .25s cubic-bezier(.4,0,.2,1);position:relative;cursor:default}
+.cal-day.done{background:linear-gradient(135deg,#00d68f,#00b377);color:#fff;box-shadow:0 2px 8px rgba(0,214,143,.3)}
+.cal-day.partial{background:linear-gradient(135deg,rgba(255,184,0,.9),rgba(255,140,0,.9));color:#fff;box-shadow:0 2px 8px rgba(255,184,0,.25)}
+.cal-day.today{box-shadow:0 0 0 1.5px #a78bfa,0 0 12px rgba(167,139,250,.5);color:var(--accent2);font-weight:800}
+.cal-day.done.today,.cal-day.partial.today{color:#fff;box-shadow:0 0 0 1.5px #a78bfa,0 0 12px rgba(167,139,250,.5),0 2px 8px rgba(0,214,143,.3)}
+.cal-day.future{opacity:.25}
 .cal-day.empty{background:transparent}
+.cal-legend{display:flex;gap:14px;justify-content:center;font-size:10px;color:var(--muted);margin-top:14px;flex-wrap:wrap}
+.cal-legend-item{display:flex;align-items:center;gap:5px}
+.cal-legend-dot{width:10px;height:10px;border-radius:3px}
+.cal-legend-dot.done{background:linear-gradient(135deg,#00d68f,#00b377)}
+.cal-legend-dot.partial{background:linear-gradient(135deg,#ffb800,#ff8c00)}
+.cal-legend-dot.today{background:transparent;border:1.5px solid #a78bfa}
 
 /* ЭКРАН ПРАКТИКИ */
 .practice-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:200;overflow-y:auto;padding-bottom:100px}
