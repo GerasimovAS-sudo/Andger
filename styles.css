@@ -3,6 +3,8 @@
 --bg:#0a0a14;--card:#161625;--card2:#1f1f35;--accent:#7c5cff;--accent2:#a78bfa;
 --text:#eceaf5;--muted:#8a8aa5;--success:#00d68f;--border:#26264a;--gold:#ffb800;
 --danger:#ff5c5c;
+--p-silence:#7c5cff;--p-affirm:#ff6b9d;--p-visual:#4da6ff;
+--p-journal:#00d68f;--p-read:#ffb800;--p-sport:#ff5c5c;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
 .hidden{display:none!important}
@@ -29,7 +31,7 @@ input,button,textarea{font-family:inherit}
 .err{color:var(--danger);font-size:13px;text-align:center;margin-top:12px;min-height:18px}
 .auth-hint{text-align:center;color:var(--muted);font-size:12px;margin-top:20px;line-height:1.5}
 
-/* ОБЩИЙ КОНТЕЙНЕР */
+/* КОНТЕЙНЕР */
 .wrap{max-width:640px;margin:0 auto;padding:16px 16px 60px}
 
 /* ВЕРХНЯЯ ПАНЕЛЬ */
@@ -69,14 +71,33 @@ input,button,textarea{font-family:inherit}
 .book-status{font-size:12px;color:var(--accent2);font-weight:600}
 .book-arrow{font-size:24px;color:var(--muted);flex-shrink:0}
 
-/* КОЛЬЦО ПРОГРЕССА */
-.ring-wrap{position:relative;width:200px;height:200px;margin:20px auto}
-.ring{width:100%;height:100%;transform:rotate(-90deg)}
-.ring-bg{fill:none;stroke:var(--card2);stroke-width:8}
-.ring-fill{fill:none;stroke:var(--accent2);stroke-width:8;stroke-linecap:round;stroke-dasharray:327;stroke-dashoffset:327;transition:stroke-dashoffset .8s}
-.ring-text{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.ring-pct{font-size:36px;font-weight:800;color:var(--accent2);line-height:1}
-.ring-day{font-size:13px;color:var(--muted);margin-top:4px}
+/* === КОЛЬЦО — APPLE WATCH STYLE === */
+.ring-wrap{position:relative;width:240px;height:240px;margin:20px auto 24px;filter:drop-shadow(0 8px 32px rgba(124,92,255,.25));animation:ringIn .8s cubic-bezier(.4,0,.2,1)}
+@keyframes ringIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.ring-svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring-bg-outer{fill:none;stroke:rgba(124,92,255,.1);stroke-width:8}
+.ring-fill-outer{fill:none;stroke:url(#gradOuter);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)}
+.ring-bg-inner{fill:none;stroke:rgba(255,255,255,.04);stroke-width:5}
+.ring-fill-inner{fill:none;stroke:url(#gradInner);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.ring-pct{font-size:52px;font-weight:800;line-height:1;background:linear-gradient(135deg,#c4b5fd 0%,#a78bfa 50%,#7c5cff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-2px}
+.ring-day{font-size:11px;color:var(--muted);margin-top:8px;text-transform:uppercase;letter-spacing:2px;font-weight:600}
+.ring-wrap.complete{animation:ringPulse 2s ease infinite}
+@keyframes ringPulse{0%,100%{filter:drop-shadow(0 8px 32px rgba(0,214,143,.3))}50%{filter:drop-shadow(0 8px 48px rgba(0,214,143,.6))}}
+
+/* === ЦИТАТА ДНЯ === */
+.quote-card{background:linear-gradient(135deg,rgba(124,92,255,.12),rgba(167,139,250,.04));border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:20px;position:relative;animation:fadeIn .5s .1s both}
+.quote-card::before{content:'"';position:absolute;top:-10px;left:14px;font-size:60px;color:var(--accent2);opacity:.3;font-family:Georgia,serif;line-height:1}
+.quote-text{font-size:15px;font-style:italic;color:#dcdcf0;line-height:1.6;padding-left:6px}
+.quote-author{font-size:12px;color:var(--muted);margin-top:10px;text-align:right;padding-right:6px}
+
+/* === ПРАКТИКИ СЕГОДНЯ — ряд иконок === */
+.today-row{display:flex;gap:8px;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px;animation:fadeIn .5s .2s both}
+.today-icon{flex:1;aspect-ratio:1;background:var(--card2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;transition:all .4s cubic-bezier(.4,0,.2,1);max-width:48px;cursor:pointer}
+.today-icon:active{transform:scale(.9)}
+.today-icon.done{background:rgba(0,214,143,.12);box-shadow:0 0 0 1px var(--success),0 0 16px rgba(0,214,143,.3)}
+.today-check{position:absolute;bottom:-3px;right:-3px;width:18px;height:18px;background:var(--success);color:#fff;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700;opacity:0;transform:scale(.5);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.today-icon.done .today-check{opacity:1;transform:scale(1)}
 
 /* МИНИ-СТАТИСТИКА */
 .stats-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
@@ -85,22 +106,13 @@ input,button,textarea{font-family:inherit}
 .sm-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
 
 /* БОЛЬШАЯ КНОПКА */
-.big-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:18px;padding:22px;display:flex;align-items:center;gap:16px;cursor:pointer;margin-bottom:20px;transition:.2s;border:none;width:100%;color:#fff;text-align:left}
+.big-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:18px;padding:22px;display:flex;align-items:center;gap:16px;cursor:pointer;margin-bottom:20px;transition:.2s;border:none;width:100%;color:#fff;text-align:left;animation:fadeIn .5s .3s both}
 .big-btn:active{transform:scale(.98)}
 .big-btn .bico{font-size:40px;flex-shrink:0}
 .big-btn h3{font-size:17px;font-weight:800;margin-bottom:3px}
 .big-btn p{font-size:13px;opacity:.9}
 
-/* ЗАГОЛОВКИ СЕКЦИЙ */
 .section-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:24px 0 12px}
-
-/* КАЛЕНДАРЬ */
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:20px}
-.cal-day{aspect-ratio:1;background:var(--card);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:.2s;position:relative}
-.cal-day.done{background:linear-gradient(135deg,var(--success),#00b377);color:#fff;border-color:transparent}
-.cal-day.partial{background:rgba(255,184,0,.25);color:var(--gold);border-color:var(--gold)}
-.cal-day.today{border:2px solid var(--accent2);color:var(--accent2)}
-.cal-day.future{opacity:.35}
 
 /* ПРАКТИКИ */
 .practice{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:10px;cursor:pointer;display:flex;gap:14px;align-items:center;transition:.2s}
@@ -112,6 +124,21 @@ input,button,textarea{font-family:inherit}
 .p-title{font-weight:700;font-size:15px;margin-bottom:3px}
 .p-sub{font-size:12px;color:var(--muted)}
 .p-arrow{font-size:20px;color:var(--muted);flex-shrink:0}
+
+/* КАЛЕНДАРЬ — КОМПАКТНЫЙ */
+.cal-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:20px;animation:fadeIn .5s .4s both}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cal-month{font-size:13px;font-weight:700;color:var(--text)}
+.cal-progress{font-size:11px;color:var(--muted)}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+.cal-wd{text-align:center;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-day{aspect-ratio:1;background:var(--card2);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--muted);transition:.2s;position:relative;cursor:default}
+.cal-day.done{background:linear-gradient(135deg,var(--success),#00b377);color:#fff}
+.cal-day.partial{background:rgba(255,184,0,.3);color:var(--gold);border:1px solid var(--gold)}
+.cal-day.today{border:1.5px solid var(--accent2);color:var(--accent2);font-weight:700}
+.cal-day.future{opacity:.3}
+.cal-day.empty{background:transparent}
 
 /* ЭКРАН ПРАКТИКИ */
 .practice-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:200;overflow-y:auto;padding-bottom:100px}
@@ -144,7 +171,7 @@ input,button,textarea{font-family:inherit}
 .timer-btns{display:flex;gap:10px}
 .timer-btns .btn{margin-top:0}
 
-/* ЭКРАН РИТУАЛА */
+/* РИТУАЛ */
 .ritual{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:250;display:flex;flex-direction:column}
 .ritual-progress{padding:20px 20px 12px;border-bottom:1px solid var(--border)}
 .rp-bar{height:6px;background:var(--card2);border-radius:3px;overflow:hidden;margin-bottom:12px}
@@ -179,9 +206,12 @@ input,button,textarea{font-family:inherit}
 .modal-box h2{font-size:22px;font-weight:800;margin-bottom:8px}
 .modal-box p{color:var(--muted);font-size:14px;margin-bottom:20px;line-height:1.6}
 
+/* АНИМАЦИИ */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.book-card,.practice{animation:fadeIn .4s ease both}
+
 @media(max-width:400px){
-.cal-grid{grid-template-columns:repeat(7,1fr);gap:4px}
+.ring-wrap{width:200px;height:200px}
+.ring-pct{font-size:44px}
 .emoji-row{grid-template-columns:repeat(6,1fr)}
-.ring-wrap{width:170px;height:170px}
-.ring-pct{font-size:30px}
 }

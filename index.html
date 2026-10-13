@@ -69,21 +69,37 @@
       <p id="bookSub">—</p>
     </div>
   </div>
-  <div class="ring-wrap">
-    <svg class="ring" viewBox="0 0 120 120">
-      <circle cx="60" cy="60" r="52" class="ring-bg"/>
-      <circle cx="60" cy="60" r="52" class="ring-fill" id="ringFill"/>
+
+  <div class="ring-wrap" id="ringWrap">
+    <svg class="ring-svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="gradOuter" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#c4b5fd"/>
+          <stop offset="50%" stop-color="#a78bfa"/>
+          <stop offset="100%" stop-color="#7c5cff"/>
+        </linearGradient>
+        <linearGradient id="gradInner" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#00d68f"/>
+          <stop offset="100%" stop-color="#00b377"/>
+        </linearGradient>
+      </defs>
+      <circle class="ring-bg-outer" cx="60" cy="60" r="54"/>
+      <circle class="ring-fill-outer" cx="60" cy="60" r="54" id="ringOuter"/>
+      <circle class="ring-bg-inner" cx="60" cy="60" r="44"/>
+      <circle class="ring-fill-inner" cx="60" cy="60" r="44" id="ringInner"/>
     </svg>
-    <div class="ring-text">
+    <div class="ring-center">
       <div class="ring-pct" id="ringPct">0%</div>
       <div class="ring-day" id="ringDay">День 1</div>
     </div>
   </div>
+
   <div class="stats-mini">
     <div class="stat-mini"><div class="sm-num" id="statDays">0</div><div class="sm-label">дней</div></div>
     <div class="stat-mini"><div class="sm-num" id="statStreak">0</div><div class="sm-label">стрик</div></div>
     <div class="stat-mini"><div class="sm-num" id="statBest">0</div><div class="sm-label">лучший</div></div>
   </div>
+
   <button class="big-btn" onclick="startRitual()">
     <div class="bico">☀️</div>
     <div>
@@ -91,10 +107,12 @@
       <p id="ritualSub">—</p>
     </div>
   </button>
-  <h3 class="section-title">Календарь</h3>
-  <div class="cal-grid" id="calGrid"></div>
+
   <h3 class="section-title">Практики</h3>
   <div id="practiceList"></div>
+
+  <h3 class="section-title">Календарь</h3>
+  <div class="cal-wrap" id="calWrap"></div>
 </div>
 
 <!-- ЭКРАН РИТУАЛА -->
