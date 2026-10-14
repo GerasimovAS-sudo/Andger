@@ -10,7 +10,6 @@
 </head>
 <body>
 
-<!-- ЭКРАН ВХОДА -->
 <div class="auth" id="authScreen">
   <div class="auth-logo">
     <div class="logo">ВНЕДРИ</div>
@@ -30,14 +29,13 @@
   </div>
   <div class="field">
     <label>Пароль</label>
-    <input type="password" id="password" placeholder="Минимум 4 символа">
+    <input type="password" id="password" placeholder="Минимум 6 символов">
   </div>
   <button class="btn" id="authBtn" onclick="doAuth()">Войти</button>
   <div class="err" id="authErr"></div>
-  <div class="auth-hint">Регистрация проходит в твоём браузере.<br>Ничего не отправляется на сервер.</div>
+  <div class="auth-hint">Регистрация защищена Supabase.<br>Данные синхронизируются между устройствами.</div>
 </div>
 
-<!-- ОНБОРДИНГ -->
 <div class="onb hidden" id="onbScreen">
   <div class="onb-step" id="onbContent"></div>
   <div class="onb-dots" id="onbDots"></div>
@@ -47,7 +45,6 @@
   </div>
 </div>
 
-<!-- БИБЛИОТЕКА -->
 <div id="libScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
@@ -67,7 +64,6 @@
   </div>
 </div>
 
-<!-- ГЛАВНЫЙ ЭКРАН (Сегодня) -->
 <div id="todayScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
@@ -123,7 +119,6 @@
   </div>
 </div>
 
-<!-- СТАТИСТИКА -->
 <div id="statsScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
@@ -142,11 +137,9 @@
       </div>
     </div>
 
-    <!-- Карточки книг с кольцами -->
     <h3 class="section-title">📚 Выбери книгу</h3>
     <div class="books-row" id="booksRow"></div>
 
-    <!-- Кольца активной книги -->
     <div class="rings-wrap" id="ringWrap">
       <svg class="rings-svg" viewBox="0 0 120 120">
         <defs>
@@ -219,7 +212,6 @@
   </div>
 </div>
 
-<!-- ДНЕВНИК -->
 <div id="journalScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
@@ -244,7 +236,6 @@
   </div>
 </div>
 
-<!-- СООБЩЕСТВО -->
 <div id="communityScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
@@ -262,7 +253,6 @@
   </div>
 </div>
 
-<!-- ПРОФИЛЬ -->
 <div id="profileScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
@@ -285,21 +275,19 @@
     <h3 class="section-title">Настройки</h3>
     <div class="toggle-row" onclick="toggleSound()">
       <div>
-                <div class="tl">🔊 Звуки и музыка</div>
+        <div class="tl">🔊 Звуки и музыка</div>
         <div class="ts">Клики, отметки, фон во время практик</div>
       </div>
       <div class="toggle-switch on" id="soundToggle"></div>
     </div>
 
     <h3 class="section-title">Данные</h3>
-    <button class="btn btn-ghost" onclick="exportData()">📥 Экспорт данных</button>
-    <button class="btn btn-ghost" onclick="importData()">📤 Импорт данных</button>
+    <button class="btn btn-ghost" onclick="syncNow()">☁️ Синхронизировать</button>
     <button class="btn btn-ghost hidden" id="adminBtnProfile" onclick="showAdmin()" style="margin-top:10px">⚙️ Админ-панель</button>
     <button class="btn btn-ghost" onclick="logout()" style="margin-top:20px;border-color:#ff5c5c;color:#ff5c5c">Выйти</button>
   </div>
 </div>
 
-<!-- АДМИН -->
 <div id="adminScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
@@ -311,7 +299,7 @@
     <div class="admin-card">
       <h3>👥 Пользователи</h3>
       <div class="admin-row"><span>Всего</span><span id="adminUsers">0</span></div>
-      <div class="admin-row"><span>Активных</span><span id="adminActive">0</span></div>
+      <div class="admin-row"><span>Активных (30 дней)</span><span id="adminActive">0</span></div>
       <div class="admin-row"><span>Средний стрик</span><span id="adminAvgStreak">0</span></div>
     </div>
     <div class="admin-card">
@@ -320,18 +308,11 @@
       <div class="admin-row"><span>Записей в дневнике</span><span id="adminJournal">0</span></div>
       <div class="admin-row"><span>Закрыто дней</span><span id="adminClosed">0</span></div>
     </div>
-    <div class="admin-card">
-      <h3>📱 Твой номер</h3>
-      <div class="admin-row"><span>Телефон</span><span>+7 912 432 55 56</span></div>
-      <div class="admin-row"><span>Роль</span><span>Разработчик</span></div>
-      <div class="admin-row"><span>С нами с</span><span id="adminMyDate">—</span></div>
-    </div>
     <h3 class="section-title">👥 Список</h3>
     <div id="adminUserList"></div>
   </div>
 </div>
 
-<!-- РИТУАЛ -->
 <div class="ritual hidden" id="ritualScreen">
   <div class="ritual-progress">
     <div class="rp-bar"><div class="rp-fill" id="rpFill"></div></div>
@@ -343,7 +324,6 @@
   <div class="ritual-body" id="ritualBody"></div>
 </div>
 
-<!-- ПРАКТИКА -->
 <div class="practice-screen hidden" id="practiceScreen">
   <div class="ps-head">
     <button class="ps-back" onclick="closePractice()">←</button>
@@ -355,7 +335,6 @@
   <div class="ps-content" id="psContent"></div>
 </div>
 
-<!-- НИЖНЕЕ МЕНЮ -->
 <div class="bottom-nav hidden" id="bottomNav">
   <button class="nav-btn on" data-page="today" onclick="navTo('today', this)">
     <div class="nav-ico">🏠</div>
@@ -375,7 +354,6 @@
   </button>
 </div>
 
-<!-- МОДАЛКА -->
 <div class="modal hidden" id="modal">
   <div class="modal-box">
     <div class="emoji" id="modalEmoji">🎉</div>
@@ -386,15 +364,15 @@
   </div>
 </div>
 
-<!-- КОНФЕТТИ -->
 <div class="confetti hidden" id="confetti"></div>
+
+<!-- SUPABASE SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <!-- КНИГИ -->
 <script src="books/magic-morning.js"></script>
 <script src="books/atomic-habits.js"></script>
 <script src="books/transurfing.js"></script>
-
-<!-- РЕЕСТР (только эту строку менять при добавлении книги) -->
 <script src="books/registry.js"></script>
 
 <!-- ЛОГИКА -->
