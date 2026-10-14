@@ -10,7 +10,13 @@
 </head>
 <body>
 
-<div class="auth" id="authScreen">
+<div class="splash" id="splashScreen">
+  <div class="splash-logo">ВНЕДРИ</div>
+  <div class="splash-sub">Не читай книгу — внедри её в жизнь</div>
+  <div class="splash-spinner"></div>
+</div>
+
+<div class="auth hidden" id="authScreen">
   <div class="auth-logo">
     <div class="logo">ВНЕДРИ</div>
     <p>Не читай книгу — внедри её в жизнь</p>
@@ -33,6 +39,7 @@
   </div>
   <button class="btn" id="authBtn" onclick="doAuth()">Войти</button>
   <div class="err" id="authErr"></div>
+  <div class="forgot-link" onclick="showForgot()">Забыли пароль?</div>
   <div class="auth-hint">Регистрация защищена Supabase.<br>Данные синхронизируются между устройствами.</div>
 </div>
 
@@ -49,7 +56,10 @@
   <div class="main-head">
     <div class="top-row">
       <div class="date" id="libDate">Сегодня</div>
-      <div class="avatar" id="libAvatar" onclick="showProfile()">👤</div>
+      <div class="head-actions">
+        <div class="icon-btn" id="soundBtnLib" onclick="toggleSound()">🔊</div>
+        <div class="avatar" id="libAvatar" onclick="showProfile()">👤</div>
+      </div>
     </div>
     <div class="hi">Привет,<span class="name" id="libName">Друг</span></div>
   </div>
@@ -73,15 +83,20 @@
         <div class="avatar" id="todayAvatar" onclick="showProfile()">👤</div>
       </div>
     </div>
-    <div class="hi"><span class="sub-name" id="todayBookTitle">—</span><span class="name" id="todayName">Друг</span></div>
+    <div class="hi"><span class="sub-name">🏠 Сегодня</span><span class="name" id="todayName">Друг</span></div>
   </div>
   <div class="wrap">
-    <div class="week-row" id="weekRow"></div>
-    <div class="prog-badge" id="progBadge" style="display:none">
-      <div class="dot"></div>
-      <span id="progBadgeText">День 1 из 30</span>
-      <span class="pct" id="progBadgePct">0%</span>
+    <h3 class="section-title">📚 Мои книги <span class="count" id="todayBooksCount"></span></h3>
+    <div class="today-books" id="todayBooks"></div>
+    <div class="today-book-info">
+      <h2 id="todayBookTitle">—</h2>
+      <div class="prog-badge" id="progBadge" style="display:none">
+        <div class="dot"></div>
+        <span id="progBadgeText">День 1 из 30</span>
+        <span class="pct" id="progBadgePct">0%</span>
+      </div>
     </div>
+    <div class="week-row" id="weekRow"></div>
     <div id="hintCard"></div>
     <div class="hero-scroll" id="heroScroll"></div>
     <div class="hero-dots" id="heroDots"></div>
@@ -123,21 +138,24 @@
   <div class="main-head">
     <div class="top-row">
       <button class="back-top" onclick="showLibrary()">←</button>
-      <div class="avatar" id="statsAvatar" onclick="showProfile()">👤</div>
+      <div class="head-actions">
+        <div class="icon-btn" id="soundBtnStats" onclick="toggleSound()">🔊</div>
+        <div class="avatar" id="statsAvatar" onclick="showProfile()">👤</div>
+      </div>
     </div>
-    <div class="hi"><span class="sub-name">📊 Статистика</span><span class="name">Все книги</span></div>
+    <div class="hi"><span class="sub-name">📊 Статистика</span><span class="name" id="statsBookTitle">Все книги</span></div>
   </div>
   <div class="wrap">
     <div class="global-stats">
       <h3>🌍 Общий прогресс</h3>
       <div class="row">
         <div class="item"><div class="num" id="globalBooks">0</div><div class="lbl">Книг</div></div>
-        <div class="item"><div class="num" id="globalClosed">0</div><div class="lbl">Дней всего</div></div>
+        <div class="item"><div class="num" id="globalClosed">0</div><div class="lbl">Дней</div></div>
         <div class="item"><div class="num" id="globalPractices">0</div><div class="lbl">Практик</div></div>
       </div>
     </div>
 
-    <h3 class="section-title">📚 Выбери книгу</h3>
+    <h3 class="section-title">📚 Книги</h3>
     <div class="books-row" id="booksRow"></div>
 
     <div class="rings-wrap" id="ringWrap">
@@ -181,23 +199,27 @@
       </div>
     </div>
 
-    <div class="rings-legend">
-      <div class="ring-item"><div class="ring-dot days"></div><span>Дни: <b id="legendDays">0</b></span></div>
-      <div class="ring-item"><div class="ring-dot streak"></div><span>Подряд: <b id="legendStreak">0</b></span></div>
-      <div class="ring-item"><div class="ring-dot record"></div><span>Рекорд: <b id="legendRecord">0</b></span></div>
-    </div>
-
-    <div class="stat-big">
-      <div class="stat-ico">🔥</div>
-      <div class="stat-info"><div class="num" id="statStreakBig">0</div><div class="lbl">Дней подряд</div></div>
-    </div>
-    <div class="stat-big">
-      <div class="stat-ico">🏆</div>
-      <div class="stat-info"><div class="num" id="statBestBig">0</div><div class="lbl">Рекорд</div></div>
-    </div>
-    <div class="stat-big">
-      <div class="stat-ico">✅</div>
-      <div class="stat-info"><div class="num" id="statClosedBig">0</div><div class="lbl">Закрыто дней</div></div>
+    <div class="stats-row">
+      <div class="stats-row-item">
+        <div class="sri-ico">🔥</div>
+        <div class="sri-num" id="statStreakBig">0</div>
+        <div class="sri-lbl">подряд</div>
+      </div>
+      <div class="stats-row-item">
+        <div class="sri-ico">🏆</div>
+        <div class="sri-num" id="statBestBig">0</div>
+        <div class="sri-lbl">рекорд</div>
+      </div>
+      <div class="stats-row-item">
+        <div class="sri-ico">✅</div>
+        <div class="sri-num" id="statClosedBig">0</div>
+        <div class="sri-lbl">закрыто</div>
+      </div>
+      <div class="stats-row-item">
+        <div class="sri-ico">📅</div>
+        <div class="sri-num" id="statDaysBig">0</div>
+        <div class="sri-lbl">дней</div>
+      </div>
     </div>
 
     <h2 class="section-title">🏆 Награды</h2>
@@ -216,7 +238,10 @@
   <div class="main-head">
     <div class="top-row">
       <button class="back-top" onclick="showTodayScreen()">←</button>
-      <div class="avatar" id="journalAvatar" onclick="showProfile()">👤</div>
+      <div class="head-actions">
+        <div class="icon-btn" id="soundBtnJournal" onclick="toggleSound()">🔊</div>
+        <div class="avatar" id="journalAvatar" onclick="showProfile()">👤</div>
+      </div>
     </div>
     <div class="hi"><span class="sub-name">✍️ Дневник</span><span class="name" id="journalBookTitle">—</span></div>
   </div>
@@ -240,7 +265,10 @@
   <div class="main-head">
     <div class="top-row">
       <button class="back-top" onclick="showLibrary()">←</button>
-      <div class="avatar" id="communityAvatar" onclick="showProfile()">👤</div>
+      <div class="head-actions">
+        <div class="icon-btn" id="soundBtnCommunity" onclick="toggleSound()">🔊</div>
+        <div class="avatar" id="communityAvatar" onclick="showProfile()">👤</div>
+      </div>
     </div>
     <div class="hi"><span class="sub-name">💬 Сообщество</span><span class="name">Общение</span></div>
   </div>
@@ -257,6 +285,9 @@
   <div class="main-head">
     <div class="top-row">
       <button class="back-top" onclick="showLibrary()">←</button>
+      <div class="head-actions">
+        <div class="icon-btn" id="soundBtnProfile" onclick="toggleSound()">🔊</div>
+      </div>
     </div>
     <div class="hi"><span class="sub-name">Настройки</span><span class="name">Профиль</span></div>
   </div>
@@ -268,11 +299,12 @@
         <div class="profile-phone" id="profilePhone">+7 ***</div>
       </div>
     </div>
-    <button class="btn" onclick="saveName()" style="margin-top:4px">Сохранить имя</button>
-    <h3 class="section-title">Эмодзи-аватар</h3>
+    <button class="btn" onclick="saveName()" style="margin-top:4px">💾 Сохранить имя</button>
+
+    <h3 class="section-title">🎨 Аватар</h3>
     <div class="emoji-row" id="emojiRow"></div>
 
-    <h3 class="section-title">Настройки</h3>
+    <h3 class="section-title">⚙️ Настройки</h3>
     <div class="toggle-row" onclick="toggleSound()">
       <div>
         <div class="tl">🔊 Звуки и музыка</div>
@@ -281,10 +313,24 @@
       <div class="toggle-switch on" id="soundToggle"></div>
     </div>
 
-    <h3 class="section-title">Данные</h3>
-    <button class="btn btn-ghost" onclick="syncNow()">☁️ Синхронизировать</button>
-    <button class="btn btn-ghost hidden" id="adminBtnProfile" onclick="showAdmin()" style="margin-top:10px">⚙️ Админ-панель</button>
-    <button class="btn btn-ghost" onclick="logout()" style="margin-top:20px;border-color:#ff5c5c;color:#ff5c5c">Выйти</button>
+    <h3 class="section-title">📖 О приложении</h3>
+    <button class="btn btn-ghost" onclick="shareApp()">📤 Поделиться с друзьями</button>
+    <button class="btn btn-ghost" onclick="contactDev()">💬 Написать разработчику</button>
+    <button class="btn btn-ghost" onclick="showAbout()">ℹ️ О ВНЕДРИ</button>
+
+    <div id="adminBlock" class="hidden">
+      <h3 class="section-title">👑 Управление</h3>
+      <button class="btn btn-ghost" onclick="showAdmin()">⚙️ Админ-панель</button>
+    </div>
+
+    <div id="syncBlock" class="hidden">
+      <h3 class="section-title">☁️ Данные</h3>
+      <button class="btn btn-ghost" onclick="syncNow()">🔄 Принудительная синхронизация</button>
+    </div>
+
+    <h3 class="section-title">🚪 Аккаунт</h3>
+    <button class="btn btn-ghost" onclick="logout()" style="border-color:#ff5c5c;color:#ff5c5c">Выйти</button>
+    <button class="btn btn-ghost" onclick="deleteAccount()" style="margin-top:8px;border-color:#ff5c5c;color:#ff5c5c">🗑 Удалить аккаунт</button>
   </div>
 </div>
 
@@ -318,7 +364,10 @@
     <div class="rp-bar"><div class="rp-fill" id="rpFill"></div></div>
     <div class="rp-text">
       <span id="rpStep">1 из 6</span>
-      <button class="rp-close" onclick="closeRitual()">✕</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="rp-sound" id="soundBtnRitual" onclick="toggleSound()">🔊</div>
+        <button class="rp-close" onclick="closeRitual()">✕</button>
+      </div>
     </div>
   </div>
   <div class="ritual-body" id="ritualBody"></div>
@@ -331,6 +380,7 @@
       <h2 id="psTitle">Практика</h2>
       <p id="psSub">—</p>
     </div>
+    <div class="rp-sound" id="soundBtnPractice" onclick="toggleSound()">🔊</div>
   </div>
   <div class="ps-content" id="psContent"></div>
 </div>
@@ -354,6 +404,33 @@
   </button>
 </div>
 
+<div class="modal hidden" id="forgotModal">
+  <div class="modal-box">
+    <div class="emoji">🔐</div>
+    <h2>Забыли пароль?</h2>
+    <p>Сбросить можно через разработчика. Напиши — помогу в течение дня.</p>
+    <button class="btn" onclick="contactDev()">💬 Написать в Telegram</button>
+    <button class="btn btn-ghost" onclick="closeForgot()">Закрыть</button>
+  </div>
+</div>
+
+<div class="modal hidden" id="aboutModal">
+  <div class="modal-box">
+    <div class="emoji">📖</div>
+    <h2>ВНЕДРИ</h2>
+    <p style="text-align:left;line-height:1.7">
+      <strong>Версия 1.0</strong><br><br>
+      Приложение для внедрения книг в жизнь.<br>
+      Не читай — делай.<br><br>
+      Каждое утро — цепочка практик.<br>
+      4+ практик = день закрыт.<br>
+      Собирай серию. Расти в уровнях.<br><br>
+      <em style="color:var(--muted);font-size:13px">Сделано Андреем Герасимовым<br>с любовью к утренним ритуалам</em>
+    </p>
+    <button class="btn" onclick="closeAbout()">Закрыть</button>
+  </div>
+</div>
+
 <div class="modal hidden" id="modal">
   <div class="modal-box">
     <div class="emoji" id="modalEmoji">🎉</div>
@@ -366,16 +443,13 @@
 
 <div class="confetti hidden" id="confetti"></div>
 
-<!-- SUPABASE SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- КНИГИ -->
 <script src="books/magic-morning.js"></script>
 <script src="books/atomic-habits.js"></script>
 <script src="books/transurfing.js"></script>
 <script src="books/registry.js"></script>
 
-<!-- ЛОГИКА -->
 <script src="app.js"></script>
 </body>
 </html>
