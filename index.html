@@ -4,18 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ВНЕДРИ">
 <meta name="theme-color" content="#0d0a18">
-<title>ВНЕДРИ — внедри книгу в жизнь</title>
+<meta name="description" content="Не читай книгу — внедри её в жизнь">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="manifest.json">
+<title>ВНЕДРИ</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<div class="splash" id="splashScreen">
-  <div class="splash-logo">ВНЕДРИ</div>
-  <div class="splash-sub">Не читай книгу — внедри её в жизнь</div>
-  <div class="splash-spinner"></div>
+<!-- ЛОАДЕР -->
+<div id="appLoader">
+  <div class="ld-logo">ВНЕДРИ</div>
+  <div class="ld-spin"></div>
 </div>
 
+<!-- ЭКРАН ВХОДА -->
 <div class="auth hidden" id="authScreen">
   <div class="auth-logo">
     <div class="logo">ВНЕДРИ</div>
@@ -39,10 +46,11 @@
   </div>
   <button class="btn" id="authBtn" onclick="doAuth()">Войти</button>
   <div class="err" id="authErr"></div>
-  <div class="forgot-link" onclick="showForgot()">Забыли пароль?</div>
-  <div class="auth-hint">Регистрация защищена Supabase.<br>Данные синхронизируются между устройствами.</div>
+  <div class="forgot-link" onclick="showForgotPassword()">Забыли пароль?</div>
+  <div class="auth-hint">Данные синхронизируются между устройствами</div>
 </div>
 
+<!-- ОНБОРДИНГ -->
 <div class="onb hidden" id="onbScreen">
   <div class="onb-step" id="onbContent"></div>
   <div class="onb-dots" id="onbDots"></div>
@@ -52,51 +60,56 @@
   </div>
 </div>
 
+<!-- БИБЛИОТЕКА -->
 <div id="libScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
-      <div class="date" id="libDate">Сегодня</div>
+      <div class="page-label" id="libDate">📚 БИБЛИОТЕКА</div>
       <div class="head-actions">
         <div class="icon-btn" id="soundBtnLib" onclick="toggleSound()">🔊</div>
         <div class="avatar" id="libAvatar" onclick="showProfile()">👤</div>
       </div>
     </div>
-    <div class="hi">Привет,<span class="name" id="libName">Друг</span></div>
+    <div class="hi"><span class="name" id="libName">Друг</span></div>
   </div>
   <div class="wrap">
     <div class="lib-stats">
       <div class="lib-stat"><div class="num" id="libBooks">0</div><div class="lbl">Книг</div></div>
-      <div class="lib-stat"><div class="num" id="libDays">0</div><div class="lbl">Дней в игре</div></div>
+      <div class="lib-stat"><div class="num" id="libDays">0</div><div class="lbl">Дней</div></div>
       <div class="lib-stat"><div class="num" id="libPractices">0</div><div class="lbl">Практик</div></div>
     </div>
-    <h2 class="section-title">📚 Библиотека</h2>
+    <h2 class="section-title">📚 Все книги</h2>
     <div id="bookList"></div>
   </div>
 </div>
 
+<!-- ГЛАВНАЯ -->
 <div id="todayScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
-      <button class="back-top" onclick="showLibrary()">←</button>
+      <div class="page-label">🏠 ГЛАВНАЯ</div>
       <div class="head-actions">
-        <div class="icon-btn" id="soundBtn" onclick="toggleSound()">🔊</div>
+        <div class="icon-btn" id="soundBtnToday" onclick="toggleSound()">🔊</div>
         <div class="avatar" id="todayAvatar" onclick="showProfile()">👤</div>
       </div>
     </div>
-    <div class="hi"><span class="sub-name">🏠 Сегодня</span><span class="name" id="todayName">Друг</span></div>
-  </div>
-  <div class="wrap">
-    <h3 class="section-title">📚 Мои книги <span class="count" id="todayBooksCount"></span></h3>
-    <div class="today-books" id="todayBooks"></div>
-    <div class="today-book-info">
-      <h2 id="todayBookTitle">—</h2>
-      <div class="prog-badge" id="progBadge" style="display:none">
-        <div class="dot"></div>
-        <span id="progBadgeText">День 1 из 30</span>
-        <span class="pct" id="progBadgePct">0%</span>
+    <div class="hi">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <span class="name" id="todayName">Друг</span>
+        <span class="status-badge" id="statusBadge">🌱 Новичок</span>
       </div>
     </div>
+  </div>
+  <div class="wrap">
+    <h2 class="section-title">📚 Мои книги <span id="myBooksCount" style="color:var(--accent-2)"></span></h2>
+    <div class="my-books-row" id="myBooksRow"></div>
+
     <div class="week-row" id="weekRow"></div>
+    <div class="prog-badge" id="progBadge" style="display:none">
+      <div class="dot"></div>
+      <span id="progBadgeText">День 1 из 30</span>
+      <span class="pct" id="progBadgePct">0%</span>
+    </div>
     <div id="hintCard"></div>
     <div class="hero-scroll" id="heroScroll"></div>
     <div class="hero-dots" id="heroDots"></div>
@@ -123,31 +136,24 @@
         </div>
       </div>
     </div>
-    <div class="level-card" id="levelCard">
-      <div class="level-badge" id="levelBadge">🌱</div>
-      <div class="level-info">
-        <h4 id="levelName">Новичок</h4>
-        <p id="levelDesc">Начни первый день</p>
-      </div>
-    </div>
     <div class="cal-wrap" id="calWrap"></div>
   </div>
 </div>
 
+<!-- СТАТИСТИКА -->
 <div id="statsScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
-      <button class="back-top" onclick="showLibrary()">←</button>
+      <div class="page-label">📊 СТАТИСТИКА</div>
       <div class="head-actions">
         <div class="icon-btn" id="soundBtnStats" onclick="toggleSound()">🔊</div>
         <div class="avatar" id="statsAvatar" onclick="showProfile()">👤</div>
       </div>
     </div>
-    <div class="hi"><span class="sub-name">📊 Статистика</span><span class="name" id="statsBookTitle">Все книги</span></div>
+    <div class="hi"><span class="name">За всё время</span></div>
   </div>
   <div class="wrap">
-    <div class="global-stats">
-      <h3>🌍 Общий прогресс</h3>
+    <div class="stats-global">
       <div class="row">
         <div class="item"><div class="num" id="globalBooks">0</div><div class="lbl">Книг</div></div>
         <div class="item"><div class="num" id="globalClosed">0</div><div class="lbl">Дней</div></div>
@@ -155,72 +161,28 @@
       </div>
     </div>
 
-    <h3 class="section-title">📚 Книги</h3>
-    <div class="books-row" id="booksRow"></div>
+    <h2 class="section-title">📚 Выбери книгу</h2>
+    <div class="stats-book-tabs" id="statsBookTabs"></div>
 
-    <div class="rings-wrap" id="ringWrap">
-      <svg class="rings-svg" viewBox="0 0 120 120">
-        <defs>
-          <linearGradient id="gradDays" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#a78bfa"/>
-            <stop offset="100%" stop-color="#7c5cff"/>
-          </linearGradient>
-          <linearGradient id="gradStreak" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#ffb800"/>
-            <stop offset="100%" stop-color="#ff9a56"/>
-          </linearGradient>
-          <linearGradient id="gradRecord" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#3ecf8e"/>
-            <stop offset="100%" stop-color="#2eb078"/>
-          </linearGradient>
-          <linearGradient id="gradBook" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#a78bfa"/>
-            <stop offset="100%" stop-color="#7c5cff"/>
-          </linearGradient>
-          <linearGradient id="gradBookWarm" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#ff9a56"/>
-            <stop offset="100%" stop-color="#ffb800"/>
-          </linearGradient>
-          <linearGradient id="gradBookGold" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#ffb800"/>
-            <stop offset="100%" stop-color="#e67e22"/>
-          </linearGradient>
-        </defs>
-        <circle class="ring-bg" cx="60" cy="60" r="54" stroke="#7c5cff"/>
-        <circle class="ring-fill" cx="60" cy="60" r="54" id="ringDays" stroke="url(#gradDays)"/>
-        <circle class="ring-bg" cx="60" cy="60" r="42" stroke="#ff9a56"/>
-        <circle class="ring-fill" cx="60" cy="60" r="42" id="ringStreak" stroke="url(#gradStreak)"/>
-        <circle class="ring-bg" cx="60" cy="60" r="30" stroke="#3ecf8e"/>
-        <circle class="ring-fill" cx="60" cy="60" r="30" id="ringRecord" stroke="url(#gradRecord)"/>
-      </svg>
-      <div class="rings-center">
-        <div class="rings-today" id="ringsToday">0</div>
-        <div class="rings-today-label" id="ringsLabel">ПРИГОТОВЬТЕСЬ</div>
+    <div class="streak-row">
+      <div class="streak-item">
+        <div class="si-ico">🔥</div>
+        <div class="si-num" id="statStreakBig">0</div>
+        <div class="si-lbl">Подряд</div>
+      </div>
+      <div class="streak-item">
+        <div class="si-ico">🏆</div>
+        <div class="si-num" id="statBestBig">0</div>
+        <div class="si-lbl">Рекорд</div>
+      </div>
+      <div class="streak-item">
+        <div class="si-ico">✅</div>
+        <div class="si-num" id="statClosedBig">0</div>
+        <div class="si-lbl">Закрыто</div>
       </div>
     </div>
 
-    <div class="stats-row">
-      <div class="stats-row-item">
-        <div class="sri-ico">🔥</div>
-        <div class="sri-num" id="statStreakBig">0</div>
-        <div class="sri-lbl">подряд</div>
-      </div>
-      <div class="stats-row-item">
-        <div class="sri-ico">🏆</div>
-        <div class="sri-num" id="statBestBig">0</div>
-        <div class="sri-lbl">рекорд</div>
-      </div>
-      <div class="stats-row-item">
-        <div class="sri-ico">✅</div>
-        <div class="sri-num" id="statClosedBig">0</div>
-        <div class="sri-lbl">закрыто</div>
-      </div>
-      <div class="stats-row-item">
-        <div class="sri-ico">📅</div>
-        <div class="sri-num" id="statDaysBig">0</div>
-        <div class="sri-lbl">дней</div>
-      </div>
-    </div>
+    <div class="cal-wrap" id="calWrapStats"></div>
 
     <h2 class="section-title">🏆 Награды</h2>
     <div class="ach-header">
@@ -234,18 +196,28 @@
   </div>
 </div>
 
+<!-- ДНЕВНИК -->
 <div id="journalScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
-      <button class="back-top" onclick="showTodayScreen()">←</button>
+      <div class="page-label">✍️ ДНЕВНИК</div>
       <div class="head-actions">
         <div class="icon-btn" id="soundBtnJournal" onclick="toggleSound()">🔊</div>
         <div class="avatar" id="journalAvatar" onclick="showProfile()">👤</div>
       </div>
     </div>
-    <div class="hi"><span class="sub-name">✍️ Дневник</span><span class="name" id="journalBookTitle">—</span></div>
+    <div class="hi"><span class="name" id="journalBookTitle">—</span></div>
   </div>
   <div class="wrap">
+    <div class="journal-stats">
+      <div><div class="js-num" id="jsCount">0</div><div class="js-lbl">Записей</div></div>
+      <div><div class="js-num" id="jsStreak">0</div><div class="js-lbl">Дней подряд</div></div>
+      <div><div class="js-num" id="jsWords">0</div><div class="js-lbl">Всего слов</div></div>
+    </div>
+    <div class="journal-words" id="journalWords" style="display:none">
+      <div class="jw-title">🌟 Часто пишешь про</div>
+      <div class="jw-list" id="journalWordsList"></div>
+    </div>
     <div class="journal">
       <div class="journal-q">🌟 Что сегодня получилось?</div>
       <textarea id="jq1" placeholder="Пиши как есть..."></textarea>
@@ -261,50 +233,58 @@
   </div>
 </div>
 
+<!-- СООБЩЕСТВО -->
 <div id="communityScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
-      <button class="back-top" onclick="showLibrary()">←</button>
+      <div class="page-label">💬 СООБЩЕСТВО</div>
       <div class="head-actions">
         <div class="icon-btn" id="soundBtnCommunity" onclick="toggleSound()">🔊</div>
         <div class="avatar" id="communityAvatar" onclick="showProfile()">👤</div>
       </div>
     </div>
-    <div class="hi"><span class="sub-name">💬 Сообщество</span><span class="name">Общение</span></div>
+    <div class="hi"><span class="name">Общение</span></div>
   </div>
-  <div class="wrap">
-    <div class="coming-soon">
-      <span class="ico">💬</span>
-      <h3>Скоро откроется</h3>
-      <p>Чат сообщества появится после подключения сервера.<br>Здесь вы сможете делиться успехами, задавать вопросы и поддерживать друг друга.</p>
+  <div class="wrap" style="padding-bottom:140px">
+    <div class="chat-rooms" id="chatRooms">
+      <div class="chat-room on" data-room="general" onclick="switchRoom('general', this)">💬 Общий чат</div>
+      <div class="chat-room" data-room="magic-morning" onclick="switchRoom('magic-morning', this)">🌅 Магия утра</div>
+      <div class="chat-room" data-room="atomic-habits" onclick="switchRoom('atomic-habits', this)">⚛️ Атомные</div>
+      <div class="chat-room" data-room="transurfing" onclick="switchRoom('transurfing', this)">🌌 Трансёрфинг</div>
     </div>
+    <div class="chat-messages" id="chatMessages"></div>
+  </div>
+  <div class="chat-input-wrap">
+    <input type="text" class="chat-input" id="chatInput" placeholder="Написать сообщение..." maxlength="500" onkeydown="if(event.key==='Enter')sendMessage()">
+    <button class="chat-send" onclick="sendMessage()">➤</button>
   </div>
 </div>
 
+<!-- ПРОФИЛЬ -->
 <div id="profileScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
-      <button class="back-top" onclick="showLibrary()">←</button>
+      <div class="page-label">👤 ПРОФИЛЬ</div>
       <div class="head-actions">
         <div class="icon-btn" id="soundBtnProfile" onclick="toggleSound()">🔊</div>
       </div>
     </div>
-    <div class="hi"><span class="sub-name">Настройки</span><span class="name">Профиль</span></div>
+    <div class="hi"><span class="name">Настройки</span></div>
   </div>
   <div class="wrap">
     <div class="profile-card">
-      <div class="avatar" id="profileAva">👤</div>
+      <div class="avatar-big" id="profileAva">👤</div>
       <div class="profile-info">
         <input type="text" id="profileName" class="profile-name-input" placeholder="Имя" maxlength="30">
         <div class="profile-phone" id="profilePhone">+7 ***</div>
       </div>
     </div>
-    <button class="btn" onclick="saveName()" style="margin-top:4px">💾 Сохранить имя</button>
+    <button class="btn" onclick="saveName()" style="margin-top:4px">Сохранить имя</button>
 
-    <h3 class="section-title">🎨 Аватар</h3>
+    <h3 class="section-title">Эмодзи-аватар</h3>
     <div class="emoji-row" id="emojiRow"></div>
 
-    <h3 class="section-title">⚙️ Настройки</h3>
+    <h3 class="section-title">Настройки</h3>
     <div class="toggle-row" onclick="toggleSound()">
       <div>
         <div class="tl">🔊 Звуки и музыка</div>
@@ -313,66 +293,53 @@
       <div class="toggle-switch on" id="soundToggle"></div>
     </div>
 
-    <h3 class="section-title">📖 О приложении</h3>
-    <button class="btn btn-ghost" onclick="shareApp()">📤 Поделиться с друзьями</button>
+    <h3 class="section-title">О приложении</h3>
     <button class="btn btn-ghost" onclick="contactDev()">💬 Написать разработчику</button>
-    <button class="btn btn-ghost" onclick="showAbout()">ℹ️ О ВНЕДРИ</button>
+    <button class="btn btn-ghost" onclick="shareApp()">📤 Поделиться приложением</button>
 
-    <div id="adminBlock" class="hidden">
-      <h3 class="section-title">👑 Управление</h3>
-      <button class="btn btn-ghost" onclick="showAdmin()">⚙️ Админ-панель</button>
-    </div>
+    <h3 class="section-title">Данные</h3>
+    <button class="btn btn-ghost" onclick="syncNow()">☁️ Синхронизировать</button>
+    <button class="btn btn-ghost hidden" id="adminBtnProfile" onclick="showAdmin()" style="margin-top:10px">⚙️ Админ-панель</button>
 
-    <div id="syncBlock" class="hidden">
-      <h3 class="section-title">☁️ Данные</h3>
-      <button class="btn btn-ghost" onclick="syncNow()">🔄 Принудительная синхронизация</button>
-    </div>
-
-    <h3 class="section-title">🚪 Аккаунт</h3>
-    <button class="btn btn-ghost" onclick="logout()" style="border-color:#ff5c5c;color:#ff5c5c">Выйти</button>
-    <button class="btn btn-ghost" onclick="deleteAccount()" style="margin-top:8px;border-color:#ff5c5c;color:#ff5c5c">🗑 Удалить аккаунт</button>
+    <h3 class="section-title" style="color:var(--danger)">Опасная зона</h3>
+    <button class="btn btn-danger" onclick="logout()">🚪 Выйти</button>
   </div>
 </div>
 
+<!-- АДМИН -->
 <div id="adminScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
       <button class="back-top" onclick="showProfile()">←</button>
+      <div class="page-label">⚙️ АДМИН</div>
     </div>
-    <div class="hi"><span class="sub-name">Для разработчика</span><span class="name">⚙️ Админ</span></div>
+    <div class="hi"><span class="name">Пользователи</span></div>
   </div>
   <div class="wrap">
-    <div class="admin-card">
-      <h3>👥 Пользователи</h3>
-      <div class="admin-row"><span>Всего</span><span id="adminUsers">0</span></div>
-      <div class="admin-row"><span>Активных (30 дней)</span><span id="adminActive">0</span></div>
-      <div class="admin-row"><span>Средний стрик</span><span id="adminAvgStreak">0</span></div>
+    <div class="admin-summary">
+      <div><div class="as-num" id="adminUsers">0</div><div class="as-lbl">Всего</div></div>
+      <div><div class="as-num" id="adminActive">0</div><div class="as-lbl">Активных</div></div>
+      <div><div class="as-num" id="adminJournal">0</div><div class="as-lbl">Записей</div></div>
     </div>
-    <div class="admin-card">
-      <h3>📊 Общая статистика</h3>
-      <div class="admin-row"><span>Сессий</span><span id="adminSessions">0</span></div>
-      <div class="admin-row"><span>Записей в дневнике</span><span id="adminJournal">0</span></div>
-      <div class="admin-row"><span>Закрыто дней</span><span id="adminClosed">0</span></div>
-    </div>
-    <h3 class="section-title">👥 Список</h3>
-    <div id="adminUserList"></div>
+    <input type="text" class="admin-search" id="adminSearch" placeholder="🔍 Поиск по имени или номеру" oninput="filterAdmin()">
+    <div class="admin-list" id="adminUserList"></div>
+    <div id="adminDetailWrap"></div>
   </div>
 </div>
 
+<!-- РИТУАЛ -->
 <div class="ritual hidden" id="ritualScreen">
   <div class="ritual-progress">
-    <div class="rp-bar"><div class="rp-fill" id="rpFill"></div></div>
-    <div class="rp-text">
-      <span id="rpStep">1 из 6</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <div class="rp-sound" id="soundBtnRitual" onclick="toggleSound()">🔊</div>
-        <button class="rp-close" onclick="closeRitual()">✕</button>
-      </div>
+    <div class="rp-left">
+      <div class="rp-bar"><div class="rp-fill" id="rpFill"></div></div>
+      <div class="rp-text" id="rpStep">1 из 6</div>
     </div>
+    <button class="rp-close" onclick="closeRitual()">✕</button>
   </div>
   <div class="ritual-body" id="ritualBody"></div>
 </div>
 
+<!-- ПРАКТИКА -->
 <div class="practice-screen hidden" id="practiceScreen">
   <div class="ps-head">
     <button class="ps-back" onclick="closePractice()">←</button>
@@ -380,21 +347,22 @@
       <h2 id="psTitle">Практика</h2>
       <p id="psSub">—</p>
     </div>
-    <div class="rp-sound" id="soundBtnPractice" onclick="toggleSound()">🔊</div>
+    <div class="icon-btn" id="soundBtnPractice" onclick="toggleSound()">🔊</div>
   </div>
   <div class="ps-content" id="psContent"></div>
 </div>
 
+<!-- НИЖНЕЕ МЕНЮ -->
 <div class="bottom-nav hidden" id="bottomNav">
   <button class="nav-btn on" data-page="today" onclick="navTo('today', this)">
     <div class="nav-ico">🏠</div>
-    <div>Сегодня</div>
+    <div>Главная</div>
   </button>
   <button class="nav-btn" data-page="lib" onclick="navTo('lib', this)">
     <div class="nav-ico">📚</div>
     <div>Библиотека</div>
   </button>
-  <button class="nav-btn" data-page="community" onclick="navTo('community', this)">
+  <button class="nav-btn" data-page="community" onclick="navTo('community', this)" style="position:relative">
     <div class="nav-ico">💬</div>
     <div>Сообщество</div>
   </button>
@@ -404,33 +372,7 @@
   </button>
 </div>
 
-<div class="modal hidden" id="forgotModal">
-  <div class="modal-box">
-    <div class="emoji">🔐</div>
-    <h2>Забыли пароль?</h2>
-    <p>Сбросить можно через разработчика. Напиши — помогу в течение дня.</p>
-    <button class="btn" onclick="contactDev()">💬 Написать в Telegram</button>
-    <button class="btn btn-ghost" onclick="closeForgot()">Закрыть</button>
-  </div>
-</div>
-
-<div class="modal hidden" id="aboutModal">
-  <div class="modal-box">
-    <div class="emoji">📖</div>
-    <h2>ВНЕДРИ</h2>
-    <p style="text-align:left;line-height:1.7">
-      <strong>Версия 1.0</strong><br><br>
-      Приложение для внедрения книг в жизнь.<br>
-      Не читай — делай.<br><br>
-      Каждое утро — цепочка практик.<br>
-      4+ практик = день закрыт.<br>
-      Собирай серию. Расти в уровнях.<br><br>
-      <em style="color:var(--muted);font-size:13px">Сделано Андреем Герасимовым<br>с любовью к утренним ритуалам</em>
-    </p>
-    <button class="btn" onclick="closeAbout()">Закрыть</button>
-  </div>
-</div>
-
+<!-- МОДАЛКА -->
 <div class="modal hidden" id="modal">
   <div class="modal-box">
     <div class="emoji" id="modalEmoji">🎉</div>
@@ -441,15 +383,44 @@
   </div>
 </div>
 
+<!-- ОВЕРЛЕЙ ЗАВЕРШЕНИЯ ПРАКТИКИ -->
+<div class="complete-overlay hidden" id="completeOverlay">
+  <div class="complete-box">
+    <div class="co-ico">✓</div>
+    <h2 id="completeTitle">Практика завершена</h2>
+    <div class="co-sub" id="completeSub">Тишина · 5 минут</div>
+    <button class="btn" id="completeBtn" onclick="completePracticeDone()">✓ Отметить выполненным</button>
+    <div class="co-secondary">
+      <button class="btn btn-ghost" onclick="addFiveMinutes()">+5 минут</button>
+      <button class="btn btn-ghost" onclick="completePracticeSkip()">Пропустить</button>
+    </div>
+  </div>
+</div>
+
+<!-- МОДАЛКА "ЗАБЫЛИ ПАРОЛЬ" -->
+<div class="modal hidden" id="forgotModal">
+  <div class="modal-box">
+    <div class="emoji">🔑</div>
+    <h2>Сброс пароля</h2>
+    <p>Напиши разработчику в Telegram — он сбросит пароль вручную. Отвечает обычно в течение дня.</p>
+    <button class="btn" onclick="openTelegramDev()">💬 Написать в Telegram</button>
+    <button class="btn btn-ghost" onclick="closeForgotModal()" style="margin-top:10px">Закрыть</button>
+  </div>
+</div>
+
+<!-- КОНФЕТТИ -->
 <div class="confetti hidden" id="confetti"></div>
 
+<!-- SUPABASE SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<!-- КНИГИ -->
 <script src="books/magic-morning.js"></script>
 <script src="books/atomic-habits.js"></script>
 <script src="books/transurfing.js"></script>
 <script src="books/registry.js"></script>
 
+<!-- ЛОГИКА -->
 <script src="app.js"></script>
 </body>
 </html>

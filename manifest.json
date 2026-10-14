@@ -1,0 +1,19 @@
+{
+  "name": "ВНЕДРИ — внедри книгу в жизнь",
+  "short_name": "ВНЕДРИ",
+  "description": "Не читай книгу — внедри её в жизнь. Программа по книгам на каждый день.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0a18",
+  "theme_color": "#0d0a18",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
