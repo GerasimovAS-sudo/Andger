@@ -49,15 +49,20 @@
 
 <!-- БИБЛИОТЕКА -->
 <div id="libScreen" class="hidden">
-  <div class="lib-header">
-    <div class="lib-topbar">
+  <div class="main-head">
+    <div class="top-row">
       <div class="date" id="libDate">Сегодня</div>
-      <div class="lib-avatar" id="libAvatar" onclick="showProfile()">👤</div>
+      <div class="avatar" id="libAvatar" onclick="showProfile()">👤</div>
     </div>
     <div class="hi">Привет,<span class="name" id="libName">Друг</span></div>
   </div>
   <div class="wrap">
-    <h2 class="page-title">📚 Моя библиотека</h2>
+    <div class="lib-stats">
+      <div class="lib-stat"><div class="num" id="libBooks">0</div><div class="lbl">Книг</div></div>
+      <div class="lib-stat"><div class="num" id="libDays">0</div><div class="lbl">Дней в игре</div></div>
+      <div class="lib-stat"><div class="num" id="libPractices">0</div><div class="lbl">Практик</div></div>
+    </div>
+    <h2 class="section-title">📚 Библиотека</h2>
     <div id="bookList"></div>
     <button class="btn btn-ghost hidden" id="adminBtnLib" onclick="showAdmin()" style="margin-top:20px">⚙️ Админ-панель</button>
   </div>
@@ -65,12 +70,12 @@
 
 <!-- ГЛАВНЫЙ ЭКРАН (Сегодня) -->
 <div id="todayScreen" class="hidden">
-  <div class="lib-header">
-    <div class="lib-topbar">
-      <div class="date" id="todayDate">Сегодня</div>
-      <div class="lib-avatar" id="todayAvatar" onclick="showProfile()">👤</div>
+  <div class="main-head">
+    <div class="top-row">
+      <button class="back-top" onclick="showLibrary()">←</button>
+      <div class="avatar" id="todayAvatar" onclick="showProfile()">👤</div>
     </div>
-    <div class="hi">Привет,<span class="name" id="todayName">Друг</span></div>
+    <div class="hi"><span id="todayBookTitle" style="color:var(--lime);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px">—</span><span class="name" id="todayName">Друг</span></div>
   </div>
   <div class="wrap">
     <!-- Пилюли дней недели -->
@@ -104,41 +109,33 @@
         <p id="levelDesc">Начни первый день</p>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- ЭКРАН ПРОГРАММЫ (книга) -->
-<div id="bookScreen" class="hidden">
-  <div class="ps-head" style="position:static;border-bottom:1px solid var(--border)">
-    <button class="ps-back" onclick="backToToday()">←</button>
-    <div class="ps-head-text">
-      <h2 id="bookTitle">—</h2>
-      <p id="bookSub">—</p>
-    </div>
-  </div>
-  <div class="wrap">
-
-    <!-- Прогресс 1→30 -->
+    <!-- Прогресс пути -->
     <div class="cal-wrap" id="calWrap"></div>
-
-    <!-- Список практик -->
-    <h3 class="section-title">📋 Практики</h3>
-    <div id="practiceList"></div>
   </div>
 </div>
 
 <!-- ЭКРАН СТАТИСТИКИ -->
 <div id="statsScreen" class="hidden">
-  <div class="ps-head" style="position:static;border-bottom:1px solid var(--border)">
-    <button class="ps-back" onclick="backToToday()">←</button>
-    <div class="ps-head-text">
-      <h2>📊 Статистика</h2>
-      <p>Твой прогресс</p>
+  <div class="main-head">
+    <div class="top-row">
+      <button class="back-top" onclick="showLibrary()">←</button>
+      <div class="avatar" id="statsAvatar" onclick="showProfile()">👤</div>
     </div>
+    <div class="hi"><span style="color:var(--lime);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px">📊 Статистика</span><span class="name" id="statsBookTitle">—</span></div>
   </div>
   <div class="wrap">
+    <!-- Общая статистика по всем книгам -->
+    <div class="global-stats">
+      <h3>🌍 Общий прогресс</h3>
+      <div class="row">
+        <div class="item"><div class="num" id="globalBooks">0</div><div class="lbl">Книг</div></div>
+        <div class="item"><div class="num" id="globalClosed">0</div><div class="lbl">Дней всего</div></div>
+        <div class="item"><div class="num" id="globalPractices">0</div><div class="lbl">Практик</div></div>
+      </div>
+    </div>
 
-    <!-- Кольца -->
+    <!-- Кольца по текущей книге -->
     <div class="rings-wrap" id="ringWrap">
       <svg class="rings-svg" viewBox="0 0 120 120">
         <defs>
@@ -174,42 +171,40 @@
       <div class="ring-item"><div class="ring-dot record"></div><span>Рекорд: <b id="legendRecord">0</b></span></div>
     </div>
 
-    <!-- Большие карточки -->
     <div class="stat-big">
       <div class="stat-ico">🔥</div>
-      <div class="stat-info">
-        <div class="num" id="statStreakBig">0</div>
-        <div class="lbl">Дней подряд</div>
-      </div>
+      <div class="stat-info"><div class="num" id="statStreakBig">0</div><div class="lbl">Дней подряд</div></div>
     </div>
     <div class="stat-big">
       <div class="stat-ico">🏆</div>
-      <div class="stat-info">
-        <div class="num" id="statBestBig">0</div>
-        <div class="lbl">Рекорд</div>
-      </div>
+      <div class="stat-info"><div class="num" id="statBestBig">0</div><div class="lbl">Рекорд</div></div>
     </div>
     <div class="stat-big">
       <div class="stat-ico">✅</div>
-      <div class="stat-info">
-        <div class="num" id="statClosedBig">0</div>
-        <div class="lbl">Закрыто дней</div>
-      </div>
+      <div class="stat-info"><div class="num" id="statClosedBig">0</div><div class="lbl">Закрыто дней</div></div>
     </div>
 
-    <h3 class="section-title">🏆 Награды</h3>
-    <div class="ach-grid" id="achGrid"></div>
+    <!-- Награды с шапкой -->
+    <h2 class="section-title">🏆 Награды</h2>
+    <div class="ach-header">
+      <div class="top">
+        <span class="title">Прогресс наград</span>
+        <span class="count" id="achCount">0 из 10</span>
+      </div>
+      <div class="bar"><div class="bar-fill" id="achBar" style="width:0%"></div></div>
+    </div>
+    <div id="achContainer"></div>
   </div>
 </div>
 
 <!-- ЭКРАН ДНЕВНИКА -->
 <div id="journalScreen" class="hidden">
-  <div class="ps-head" style="position:static;border-bottom:1px solid var(--border)">
-    <button class="ps-back" onclick="backToToday()">←</button>
-    <div class="ps-head-text">
-      <h2>✍️ Дневник</h2>
-      <p>День <span id="journalDay">1</span></p>
+  <div class="main-head">
+    <div class="top-row">
+      <button class="back-top" onclick="showLibrary()">←</button>
+      <div class="avatar" id="journalAvatar" onclick="showProfile()">👤</div>
     </div>
+    <div class="hi"><span style="color:var(--lime);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px">✍️ Дневник</span><span class="name" id="journalBookTitle">—</span></div>
   </div>
   <div class="wrap">
     <div class="journal">
@@ -222,19 +217,18 @@
       <button class="btn" onclick="saveJournal()" style="margin-top:20px">Сохранить</button>
       <div class="err" id="journalMsg" style="color:var(--lime)"></div>
     </div>
-    <h3 class="section-title">📖 История</h3>
+    <h2 class="section-title">📖 История</h2>
     <div class="journal-history" id="journalHistory"></div>
   </div>
 </div>
 
 <!-- ПРОФИЛЬ -->
 <div id="profileScreen" class="hidden">
-  <div class="ps-head" style="position:static;border-bottom:1px solid var(--border)">
-    <button class="ps-back" onclick="backToToday()">←</button>
-    <div class="ps-head-text">
-      <h2>Профиль</h2>
-      <p>Настройки</p>
+  <div class="main-head">
+    <div class="top-row">
+      <button class="back-top" onclick="showLibrary()">←</button>
     </div>
+    <div class="hi">Профиль<span class="name">Настройки</span></div>
   </div>
   <div class="wrap">
     <div class="profile-card">
@@ -244,7 +238,7 @@
         <div class="profile-phone" id="profilePhone">+7 ***</div>
       </div>
     </div>
-    <button class="btn" onclick="saveName()" style="margin-top:12px">Сохранить имя</button>
+    <button class="btn" onclick="saveName()" style="margin-top:4px">Сохранить имя</button>
     <h3 class="section-title">Эмодзи-аватар</h3>
     <div class="emoji-row" id="emojiRow"></div>
     <h3 class="section-title">Данные</h3>
@@ -257,12 +251,11 @@
 
 <!-- АДМИН -->
 <div id="adminScreen" class="hidden">
-  <div class="ps-head" style="position:static;border-bottom:1px solid var(--border)">
-    <button class="ps-back" onclick="backToToday()">←</button>
-    <div class="ps-head-text">
-      <h2>⚙️ Админ-панель</h2>
-      <p>Для разработчика</p>
+  <div class="main-head">
+    <div class="top-row">
+      <button class="back-top" onclick="showLibrary()">←</button>
     </div>
+    <div class="hi">⚙️ Админ<span class="name">Для разработчика</span></div>
   </div>
   <div class="wrap">
     <div class="admin-card">
@@ -318,9 +311,9 @@
     <div class="nav-ico">🏠</div>
     <div>Сегодня</div>
   </button>
-  <button class="nav-btn" data-page="book" onclick="navTo('book', this)">
+  <button class="nav-btn" data-page="lib" onclick="navTo('lib', this)">
     <div class="nav-ico">📚</div>
-    <div>Программа</div>
+    <div>Библиотека</div>
   </button>
   <button class="nav-btn" data-page="stats" onclick="navTo('stats', this)">
     <div class="nav-ico">📊</div>

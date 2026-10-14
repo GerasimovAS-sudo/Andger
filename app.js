@@ -9,31 +9,46 @@ let timerRemaining = 0;
 let user = null;
 let state = {};
 let onbIndex = 0;
-let heroCurrentIndex = 0;
 
 const ADMIN_PHONE = '79124325556';
+const DOW = ['ПН','ВТ','СР','ЧТ','ПТ','СБ','ВС'];
+
 const ONB = [
 {ico:'🌅',title:'Это игра по книге',body:'<p>Хэл Элрод написал книгу о том, как изменить жизнь через утро. Но 95% людей прочитали — и ничего не сделали.</p><p><strong>Здесь по-другому.</strong> Ты не читаешь книгу. Ты играешь в неё.</p><p>Каждое утро ты проходишь практики — и день закрывается сам.</p>'},
-{ico:'⚡',title:'Что даст 30 дней',body:'<p>Если будешь делать практики каждое утро:</p><ul><li>Через 3 дня — начнёшь просыпаться без «стены»</li><li>Через 7 дней — появится ясность, куда идёшь</li><li>Через 14 дней — утро станет любимым временем</li><li>Через 30 дней — ты другой человек</li></ul><p>Это не магия. Это нейропластичность.</p>'},
-{ico:'🎮',title:'Как устроена игра',body:'<p>Каждое утро — цепочка практик. Всего ~40 минут.</p><ul><li><strong>Тишина</strong> — 5 минут</li><li><strong>Аффирмации</strong> — 5 минут</li><li><strong>Визуализация</strong> — 5 минут</li><li><strong>Дневник</strong> — 5 минут</li><li><strong>Чтение</strong> — 10 минут</li><li><strong>Спорт</strong> — 10 минут</li></ul><p>Идёшь по цепочке. В конце день закрывается автоматически.</p>'},
-{ico:'🎒',title:'Что понадобится',body:'<p>Ничего особенного:</p><ul><li><strong>40 минут утром</strong></li><li><strong>Блокнот и ручка</strong> — для дневника</li><li><strong>Книга</strong> — любая полезная</li><li><strong>Тишина</strong> — попроси близких не отвлекать</li></ul><p>Можно делать прямо в кровати — главное не заснуть.</p>'},
+{ico:'📚',title:'Библиотека книг',body:'<p>У тебя может быть <strong>несколько книг одновременно</strong>. У каждой — свои практики, свой прогресс, свой дневник.</p><p>Тапни книгу в библиотеке — переключишься на неё. Тапни <strong>←</strong> вверху — вернёшься к списку.</p>'},
+{ico:'⚡',title:'Что даст 30 дней',body:'<p>Если будешь делать практики каждое утро:</p><ul><li>Через 3 дня — начнёшь просыпаться без «стены»</li><li>Через 7 дней — появится ясность, куда идёшь</li><li>Через 14 дней — утро станет любимым временем</li><li>Через 30 дней — ты другой человек</li></ul>'},
+{ico:'🎮',title:'Как играть',body:'<p>Каждое утро — цепочка практик. Всего ~40 минут.</p><p><strong>Правила:</strong></p><ul><li>Отмечай то, что сделал</li><li>4+ практик = день закрыт</li><li>6 из 6 = идеальный день</li><li>Не разрывай серию дней</li></ul><p>Собирай награды. Расти в уровнях.</p>'},
 {ico:'🚀',title:'Готов?',body:'<p>Не делай всё идеально. Начни с 2 практик — тишины и аффирмаций.</p><p><strong>Правило игры:</strong> отмечай то, что сделал. Не то, что «должен был».</p><p>Жми «Начать» — вперёд.</p>'}
 ];
 
 const EMOJIS = ['👤','😎','🧠','🔥','🌅','⚡','🎯','💪','🦁','🌟','🚀','🎨','🧘','🏆','☀️','🍀'];
-const DOW = ['ПН','ВТ','СР','ЧТ','ПТ','СБ','ВС'];
 
-const ACHIEVEMENTS = [
-  { id:'first', ico:'🌟', name:'Первый шаг', desc:'Открыл книгу и начал', check:(c,s,e)=>c>=1 },
-  { id:'three', ico:'🔥', name:'Три дня', desc:'3 дня подряд', check:(c,s)=>s>=3 },
-  { id:'week', ico:'⚡', name:'Неделя силы', desc:'7 дней подряд', check:(c,s)=>s>=7 },
-  { id:'half', ico:'💎', name:'Половина', desc:'15 закрытых дней', check:(c,s)=>c>=15 },
-  { id:'month', ico:'👑', name:'Мастер утра', desc:'30 дней — книга пройдена', check:(c,s)=>c>=30 },
-  { id:'perfect', ico:'🎯', name:'Идеальный день', desc:'Все практики за день', check:(c,s,e)=>e.perfect },
-  { id:'journal10', ico:'📖', name:'Философ', desc:'10 записей в дневнике', check:(c,s,e)=>e.journal>=10 },
-  { id:'early', ico:'🌅', name:'Ранняя пташка', desc:'5 дней подряд', check:(c,s)=>s>=5 },
-  { id:'century', ico:'💯', name:'Сотка', desc:'100 практик', check:(c,s,e)=>e.practices>=100 },
-  { id:'master', ico:'🏅', name:'Гуру', desc:'Все остальные награды', check:(c,s,e)=>e.otherAch>=9 }
+const ACHIEVEMENTS_GROUPS = [
+  {
+    title:'📅 Прогресс по дням',
+    items: [
+      { id:'first', ico:'🌟', name:'Первый шаг', desc:'1 день', check:(c,s,e)=>c>=1, showProgress:false, gold:false },
+      { id:'three', ico:'🔥', name:'Три дня', desc:'3 подряд', check:(c,s)=>s>=3, showProgress:false, gold:false },
+      { id:'early', ico:'🌅', name:'Ранняя пташка', desc:'5 подряд', check:(c,s)=>s>=5, showProgress:false, gold:false },
+      { id:'week', ico:'⚡', name:'Неделя силы', desc:'7 подряд', check:(c,s)=>s>=7, showProgress:false, gold:false },
+      { id:'half', ico:'💎', name:'Половина', desc:'15 дней', check:(c,s)=>c>=15, showProgress:true, progress:(c,s)=>c+'/15', gold:false },
+      { id:'month', ico:'👑', name:'Мастер утра', desc:'30 дней', check:(c,s)=>c>=30, showProgress:true, progress:(c,s)=>c+'/30', gold:true }
+    ]
+  },
+  {
+    title:'🎯 За старание',
+    items: [
+      { id:'perfect', ico:'🎯', name:'Идеальный день', desc:'Все практики', check:(c,s,e)=>e.perfect, showProgress:false, gold:false },
+      { id:'journal10', ico:'📖', name:'Философ', desc:'10 записей', check:(c,s,e)=>e.journal>=10, showProgress:true, progress:(c,s,e)=>e.journal+'/10', gold:false },
+      { id:'century', ico:'💯', name:'Сотка', desc:'100 практик', check:(c,s,e)=>e.practices>=100, showProgress:true, progress:(c,s,e)=>e.practices+'/100', gold:false }
+    ]
+  },
+  {
+    title:'🏅 Легенда',
+    items: [
+      { id:'master', ico:'🏅', name:'Гуру', desc:'Все награды', check:(c,s,e)=>e.otherAch>=9, showProgress:true, progress:(c,s,e)=>e.otherAch+'/9', gold:true }
+    ]
+  }
 ];
 
 // ====== ИНИЦИАЛИЗАЦИЯ ======
@@ -44,7 +59,7 @@ window.addEventListener('DOMContentLoaded', () => {
     user = JSON.parse(saved);
     loadUserState();
     if (!state.onboarded) showOnboarding();
-    else openBook(BOOKS[0].id, true);
+    else showLibrary();
   } else {
     showAuth();
   }
@@ -52,28 +67,28 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // ====== ЭКРАНЫ ======
 function hideAll() {
-  ['authScreen','onbScreen','libScreen','todayScreen','bookScreen','statsScreen','journalScreen','profileScreen','adminScreen','ritualScreen','practiceScreen'].forEach(id => {
+  ['authScreen','onbScreen','libScreen','todayScreen','statsScreen','journalScreen','profileScreen','adminScreen','ritualScreen','practiceScreen'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
   document.getElementById('bottomNav').classList.add('hidden');
+  window.scrollTo(0, 0);
 }
+
 function showAuth(){hideAll();document.getElementById('authScreen').classList.remove('hidden')}
 function showOnboarding(){hideAll();onbIndex=0;renderOnb();document.getElementById('onbScreen').classList.remove('hidden')}
-function showLibrary(){hideAll();document.getElementById('libScreen').classList.remove('hidden');renderLibrary();checkAdminAccess()}
-function showProfile(){hideAll();document.getElementById('profileScreen').classList.remove('hidden');renderProfile();checkAdminAccess()}
 
-function navTo(page, btn) {
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
-  if (btn) btn.classList.add('on');
-  const wasNav = !document.getElementById('bottomNav').classList.contains('hidden');
-  if (page === 'today') { showTodayScreen(); }
-  else if (page === 'book') { showBookScreen(); }
-  else if (page === 'stats') { showStatsScreen(); }
-  else if (page === 'journal') { showJournalScreen(); }
+function showLibrary() {
+  hideAll();
+  document.getElementById('libScreen').classList.remove('hidden');
+  document.getElementById('bottomNav').classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('on', i===1));
+  renderLibrary();
+  checkAdminAccess();
 }
 
 function showTodayScreen() {
+  if (!currentBook) return showLibrary();
   hideAll();
   document.getElementById('todayScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
@@ -81,15 +96,8 @@ function showTodayScreen() {
   renderToday();
 }
 
-function showBookScreen() {
-  hideAll();
-  document.getElementById('bookScreen').classList.remove('hidden');
-  document.getElementById('bottomNav').classList.remove('hidden');
-  document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('on', i===1));
-  renderBookScreen();
-}
-
 function showStatsScreen() {
+  if (!currentBook) return showLibrary();
   hideAll();
   document.getElementById('statsScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
@@ -98,6 +106,7 @@ function showStatsScreen() {
 }
 
 function showJournalScreen() {
+  if (!currentBook) return showLibrary();
   hideAll();
   document.getElementById('journalScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
@@ -105,9 +114,20 @@ function showJournalScreen() {
   renderJournal();
 }
 
-function backToToday() { showTodayScreen(); }
+function showProfile() {
+  hideAll();
+  document.getElementById('profileScreen').classList.remove('hidden');
+  renderProfile();
+  checkAdminAccess();
+}
 
-function showAch() { navTo('stats', document.querySelector('[data-page="stats"]')); }
+function navTo(page, btn) {
+  if (page === 'lib') { showLibrary(); return; }
+  if (!currentBook) { showLibrary(); return; }
+  if (page === 'today') showTodayScreen();
+  else if (page === 'stats') showStatsScreen();
+  else if (page === 'journal') showJournalScreen();
+}
 
 // ====== ВХОД ======
 let authMode = 'login';
@@ -160,10 +180,10 @@ function doAuth() {
     user = { phone, name: users[phone].name || 'Друг' };
     localStorage.setItem('vnedri_user', JSON.stringify(user));
     loadUserState();
-    if (!state.onboarded) showOnboarding(); else openBook(BOOKS[0].id, true);
+    if (!state.onboarded) showOnboarding(); else showLibrary();
   }
 }
-function logout(){if(!confirm('Выйти? Прогресс сохранится.'))return;localStorage.removeItem('vnedri_user');user=null;state={};showAuth()}
+function logout(){if(!confirm('Выйти? Прогресс сохранится.'))return;localStorage.removeItem('vnedri_user');user=null;state={};currentBook=null;showAuth()}
 
 function isAdmin() { return user && user.phone === ADMIN_PHONE; }
 function checkAdminAccess() {
@@ -193,7 +213,7 @@ function renderOnb() {
   document.getElementById('onbBack').classList.toggle('hidden', onbIndex === 0);
   document.getElementById('onbNext').textContent = onbIndex === ONB.length - 1 ? 'Начать путь 🚀' : 'Далее';
 }
-function onbNext(){if(onbIndex<ONB.length-1){onbIndex++;renderOnb()}else{state.onboarded=true;saveState();openBook(BOOKS[0].id, true)}}
+function onbNext(){if(onbIndex<ONB.length-1){onbIndex++;renderOnb()}else{state.onboarded=true;saveState();showLibrary()}}
 function onbPrev(){if(onbIndex>0){onbIndex--;renderOnb()}}
 
 // ====== БИБЛИОТЕКА ======
@@ -202,17 +222,34 @@ function renderLibrary() {
   document.getElementById('libAvatar').textContent = state.avatar || '👤';
   const d = new Date();
   document.getElementById('libDate').textContent = d.toLocaleDateString('ru-RU', {weekday:'long', day:'numeric', month:'long'});
+
+  // Общая статистика
+  let totalClosed = 0, totalPractices = 0, booksStarted = 0;
+  BOOKS.forEach(b => {
+    const bs = getBookState(b.id);
+    if (bs.start) booksStarted++;
+    totalClosed += countClosedDays(b.id);
+    Object.values(bs.days).forEach(rec => {
+      if (rec.practices) totalPractices += rec.practices.length;
+    });
+  });
+  document.getElementById('libBooks').textContent = booksStarted;
+  document.getElementById('libDays').textContent = totalClosed;
+  document.getElementById('libPractices').textContent = totalPractices;
+
+  // Список книг
   document.getElementById('bookList').innerHTML = BOOKS.map(b => {
     const bs = getBookState(b.id);
     const closed = countClosedDays(b.id);
     const pct = Math.round(closed / b.days * 100);
     const started = bs.start !== null;
-    return `<div class="book-card" onclick="openBook('${b.id}')">
+    const isDone = closed >= b.days;
+    return `<div class="book-card ${isDone ? 'done' : ''}" onclick="openBook('${b.id}')">
       <div class="book-ico">${b.emoji}</div>
       <div class="book-info">
-        <h3>${b.title}</h3>
+        <h3>${b.title} ${isDone ? '👑' : ''}</h3>
         <p>${b.author} · ${b.days} дней</p>
-        ${started ? `<div class="book-progress"><div class="book-progress-fill" style="width:${pct}%"></div></div><div class="book-status">${pct}% · ${closed} из ${b.days}</div>` : `<div class="book-status">Не начата · Нажми чтобы начать</div>`}
+        ${started ? `<div class="book-progress"><div class="book-progress-fill" style="width:${pct}%"></div></div><div class="book-status">${isDone ? '✓ Пройдена' : pct + '% · ' + closed + ' из ' + b.days}</div>` : `<div class="book-status">Не начата · Нажми</div>`}
       </div>
       <div class="book-arrow">›</div>
     </div>`;
@@ -220,13 +257,13 @@ function renderLibrary() {
 }
 
 // ====== ОТКРЫТЬ КНИГУ ======
-function openBook(id, skipConfirm) {
+function openBook(id) {
   const b = BOOKS.find(x => x.id === id);
   if (!b) return;
   currentBook = b;
   const bs = getBookState(b.id);
   if (!bs.start) {
-    if (skipConfirm || confirm('Начать книгу "' + b.title + '"?\nОтсчёт начнётся сегодня.')) {
+    if (confirm('Начать книгу "' + b.title + '"?\nОтсчёт начнётся сегодня.')) {
       bs.start = new Date().toISOString().split('T')[0];
       saveState();
     } else return;
@@ -234,46 +271,37 @@ function openBook(id, skipConfirm) {
   showTodayScreen();
 }
 
-// ====== ГЛАВНЫЙ ЭКРАН (Сегодня) ======
+// ====== ГЛАВНЫЙ ЭКРАН ======
 function renderToday() {
   if (!currentBook) return;
   const b = currentBook;
   const bs = getBookState(b.id);
   const day = currentDay(b.id);
   const closed = countClosedDays(b.id);
-  const streak = calcStreak(b.id);
-  const best = calcBest(b.id);
 
   document.getElementById('todayName').textContent = user.name || 'Друг';
+  document.getElementById('todayBookTitle').textContent = b.emoji + ' ' + b.title;
   document.getElementById('todayAvatar').textContent = state.avatar || '👤';
-  const d = new Date();
-  document.getElementById('todayDate').textContent = d.toLocaleDateString('ru-RU', {weekday:'long', day:'numeric', month:'long'});
 
-  // Пилюли недели
   renderWeekRow();
 
-  // Бейдж прогресса
   const badge = document.getElementById('progBadge');
   badge.style.display = 'inline-flex';
   document.getElementById('progBadgeText').textContent = 'День ' + day + ' из ' + b.days;
   document.getElementById('progBadgePct').textContent = Math.round(closed/b.days*100) + '%';
 
-  // Hero-карточки практик
   renderHeroCards();
-
-  // Кнопка ритуала
   document.getElementById('ritualSub').textContent = b.practices.length + ' практик · ~' + Math.round(b.practices.reduce((s, p) => s + p.time, 0) / 60) + ' минут';
-
-  // Уровень
   renderLevel();
+  renderCalendar();
 }
 
-// ====== ДНИ НЕДЕЛИ — ПИЛЮЛИ ======
+// ====== ПИЛЮЛИ НЕДЕЛИ ======
 function renderWeekRow() {
   const b = currentBook;
   const bs = getBookState(b.id);
   const today = new Date();
-  const dow = today.getDay() === 0 ? 6 : today.getDay() - 1; // ПН=0
+  const dow = today.getDay() === 0 ? 6 : today.getDay() - 1;
   const monday = new Date(today);
   monday.setDate(today.getDate() - dow);
   const todayStr = today.toISOString().split('T')[0];
@@ -316,8 +344,8 @@ function renderHeroCards() {
     const done = todayRec.practices && todayRec.practices.includes(p.id);
     const cls = done ? 'hero-card hero-done' : 'hero-card ' + (classMap[p.id] || 'hero-silence');
     html += `<div class="${cls}">
-      <div class="hero-ico">${p.ico}</div>
-      <div class="hero-badge">● Практика ${i+1} из ${b.practices.length}</div>
+      <div class="hero-icon-bg">${p.ico}</div>
+      <div class="hero-badge">● ${i+1} из ${b.practices.length}</div>
       ${done ? '<div class="hero-done-badge">✓</div>' : ''}
       <div class="hero-content">
         <div class="hero-title">${p.title}</div>
@@ -336,17 +364,7 @@ function renderHeroCards() {
   }).join('');
 }
 
-// ====== ЭКРАН ПРОГРАММЫ (книга) ======
-function renderBookScreen() {
-  if (!currentBook) return;
-  const b = currentBook;
-  document.getElementById('bookTitle').textContent = b.title;
-  document.getElementById('bookSub').textContent = b.author + ' · ' + b.days + ' дней';
-  renderCalendar();
-  renderPractices();
-}
-
-// ====== КАЛЕНДАРЬ 1→30 ======
+// ====== КАЛЕНДАРЬ ======
 function renderCalendar() {
   const b = currentBook;
   const bs = getBookState(b.id);
@@ -369,29 +387,8 @@ function renderCalendar() {
     html += `<div class="${cls}"></div>`;
   }
   html += `</div>`;
-  html += `<div class="cal-nums"><span>1</span><span>10</span><span>20</span><span>30</span></div>`;
+  html += `<div class="cal-nums"><span>1</span><span>10</span><span>20</span><span>${b.days}</span></div>`;
   document.getElementById('calWrap').innerHTML = html;
-}
-
-// ====== ПРАКТИКИ (список) ======
-function renderPractices() {
-  const b = currentBook;
-  const day = currentDay(b.id);
-  const date = dateByDay(b.id, day);
-  const bs = getBookState(b.id);
-  const todayRec = bs.days[date] || { practices: [] };
-
-  document.getElementById('practiceList').innerHTML = b.practices.map(p => {
-    const done = todayRec.practices && todayRec.practices.includes(p.id);
-    return `<div class="practice ${done ? 'done' : ''}" onclick="openPractice('${p.id}')">
-      <div class="p-ico">${p.ico}</div>
-      <div class="p-body">
-        <div class="p-title">${p.title}</div>
-        <div class="p-sub">${p.sub}</div>
-      </div>
-      <div class="p-arrow">›</div>
-    </div>`;
-  }).join('');
 }
 
 // ====== СТАТИСТИКА ======
@@ -404,6 +401,24 @@ function renderStatsScreen() {
   const streak = calcStreak(b.id);
   const best = calcBest(b.id);
 
+  document.getElementById('statsBookTitle').textContent = b.emoji + ' ' + b.title;
+  document.getElementById('statsAvatar').textContent = state.avatar || '👤';
+
+  // Общая статистика
+  let totalClosed = 0, totalPractices = 0, booksStarted = 0;
+  BOOKS.forEach(bb => {
+    const bbs = getBookState(bb.id);
+    if (bbs.start) booksStarted++;
+    totalClosed += countClosedDays(bb.id);
+    Object.values(bbs.days).forEach(rec => {
+      if (rec.practices) totalPractices += rec.practices.length;
+    });
+  });
+  document.getElementById('globalBooks').textContent = booksStarted;
+  document.getElementById('globalClosed').textContent = totalClosed;
+  document.getElementById('globalPractices').textContent = totalPractices;
+
+  // Кольца по текущей книге
   const date = dateByDay(b.id, day);
   const todayRec = bs.days[date] || { practices: [] };
   const todayCount = (todayRec.practices || []).length;
@@ -453,7 +468,7 @@ function animateNumber(el, from, to, suffix, duration) {
   requestAnimationFrame(tick);
 }
 
-// ====== НАГРАДЫ ======
+// ====== НАГРАДЫ С ГРУППАМИ ======
 function renderAchievements() {
   if (!currentBook) return;
   const closed = countClosedDays(currentBook.id);
@@ -467,16 +482,42 @@ function renderAchievements() {
     if (rec.practices) practices += rec.practices.length;
     if (rec.practices && rec.practices.length === currentBook.practices.length) perfect = true;
   });
-  const extra = { journal, practices, perfect, otherAch: 0 };
 
-  document.getElementById('achGrid').innerHTML = ACHIEVEMENTS.map(a => {
-    const unlocked = a.check(closed, streak, extra);
-    return `<div class="ach-card ${unlocked ? 'unlocked' : 'locked'}">
-      <div class="ach-badge">${unlocked ? a.ico : '🔒'}</div>
-      <div class="ach-name">${a.name}</div>
-      <div class="ach-desc">${a.desc}</div>
-    </div>`;
-  }).join('');
+  let unlockedCount = 0;
+  const allItems = [];
+  ACHIEVEMENTS_GROUPS.forEach(g => g.items.forEach(a => allItems.push(a)));
+
+  // Считаем сколько открыто (без "Гуру")
+  const otherAch = ACHIEVEMENTS_GROUPS.slice(0,2).reduce((sum, g) => {
+    return sum + g.items.filter(a => a.check(closed, streak, { journal, practices, perfect, otherAch: 0 })).length;
+  }, 0);
+
+  const extra = { journal, practices, perfect, otherAch };
+
+  // Общий счётчик
+  allItems.forEach(a => { if (a.check(closed, streak, extra)) unlockedCount++; });
+  document.getElementById('achCount').textContent = unlockedCount + ' из ' + allItems.length;
+  document.getElementById('achBar').style.width = Math.round(unlockedCount / allItems.length * 100) + '%';
+
+  // Рендер групп
+  let html = '';
+  ACHIEVEMENTS_GROUPS.forEach(g => {
+    html += `<div class="ach-group-title">${g.title}</div><div class="ach-grid">`;
+    g.items.forEach(a => {
+      const unlocked = a.check(closed, streak, extra);
+      const gold = a.gold && unlocked;
+      const progress = !unlocked && a.showProgress ? `<div class="ach-progress">${a.progress(closed, streak, extra)}</div>` : '';
+      html += `<div class="ach-card ${unlocked ? 'unlocked' : 'locked'} ${gold ? 'gold' : ''}">
+        <div class="ach-badge">${unlocked ? a.ico : '🔒'}</div>
+        <div class="ach-name">${a.name}</div>
+        <div class="ach-desc">${a.desc}</div>
+        ${progress}
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  document.getElementById('achContainer').innerHTML = html;
 }
 
 // ====== УРОВНИ ======
@@ -548,11 +589,33 @@ function dateByDay(bookId, day) {
 }
 function todayStr(){return new Date().toISOString().split('T')[0]}
 
+// ====== ПРАКТИКИ ======
+function renderPractices() {
+  const b = currentBook;
+  const day = currentDay(b.id);
+  const date = dateByDay(b.id, day);
+  const bs = getBookState(b.id);
+  const todayRec = bs.days[date] || { practices: [] };
+
+  const el = document.getElementById('practiceList');
+  if (!el) return;
+  el.innerHTML = b.practices.map(p => {
+    const done = todayRec.practices && todayRec.practices.includes(p.id);
+    return `<div class="practice ${done ? 'done' : ''}" onclick="openPractice('${p.id}')">
+      <div class="p-ico">${p.ico}</div>
+      <div class="p-body"><div class="p-title">${p.title}</div><div class="p-sub">${p.sub}</div></div>
+      <div class="p-arrow">›</div>
+    </div>`;
+  }).join('');
+}
+
 // ====== ДНЕВНИК ======
 function renderJournal() {
   if (!currentBook) return showLibrary();
   const day = currentDay(currentBook.id);
-  document.getElementById('journalDay').textContent = day;
+  document.getElementById('journalBookTitle').textContent = currentBook.emoji + ' ' + currentBook.title;
+  document.getElementById('journalAvatar').textContent = state.avatar || '👤';
+
   const bs = getBookState(currentBook.id);
   const date = dateByDay(currentBook.id, day);
   const today = bs.journal[date] || {};
@@ -602,6 +665,7 @@ function startRitual() {
   ritualQueue = currentBook.practices.slice();
   ritualIndex = 0;
   document.getElementById('ritualScreen').classList.remove('hidden');
+  window.scrollTo(0, 0);
   renderRitualStep();
 }
 function renderRitualStep() {
@@ -622,6 +686,7 @@ function renderRitualStep() {
     <div class="ps-block"><h3>🎬 Как делать</h3><ol class="steps">${p.how.map(s => `<li>${s}</li>`).join('')}</ol></div>
   `;
   timerRemaining = p.time;
+  document.querySelector('.ritual-body').scrollTop = 0;
 }
 function toggleRitualTimer() {
   const btn = document.getElementById('ritualTimerBtn');
@@ -680,7 +745,7 @@ function markPracticeDone(pid) {
   saveState();
 }
 
-// ====== ПРАКТИКА (полный экран) ======
+// ====== ЭКРАН ПРАКТИКИ ======
 function openPractice(id) {
   const p = currentBook.practices.find(x => x.id === id);
   if (!p) return;
@@ -700,6 +765,8 @@ function openPractice(id) {
   `;
   document.getElementById('practiceScreen').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+  window.scrollTo(0, 0);
+  document.querySelector('.ps-content').scrollTop = 0;
   timerRemaining = p.time;
 }
 function closePractice(){document.getElementById('practiceScreen').classList.add('hidden');document.body.style.overflow='';stopTimer();currentPractice=null;showTodayScreen()}
@@ -737,12 +804,14 @@ function renderAdmin() {
     const u = users[phone];
     const uState = JSON.parse(localStorage.getItem('vnedri_state_' + phone) || '{}');
     const books = uState.books || {};
-    const mb = books['magic-morning'] || { days: {}, journal: {} };
-    const closed = Object.keys(mb.days || {}).filter(k => mb.days[k].closed).length;
-    const streak = calcStreakFromState(mb);
-    const journalCount = Object.keys(mb.journal || {}).filter(k => {
-      const j = mb.journal[k]; return j.q1 || j.q2 || j.q3;
-    }).length;
+    let closed = 0, journalCount = 0, streak = 0;
+    Object.values(books).forEach(mb => {
+      closed += Object.keys(mb.days || {}).filter(k => mb.days[k].closed).length;
+      journalCount += Object.keys(mb.journal || {}).filter(k => {
+        const j = mb.journal[k]; return j.q1 || j.q2 || j.q3;
+      }).length;
+    });
+    if (books['magic-morning']) streak = calcStreakFromState(books['magic-morning']);
     if (u.lastSeen && Date.now() - u.lastSeen < 30 * 86400000) active++;
     totalStreak += streak;
     totalJournal += journalCount;
@@ -800,7 +869,7 @@ function fireConfetti() {
 function showModal(emoji,title,text){document.getElementById('modalEmoji').textContent=emoji;document.getElementById('modalTitle').textContent=title;document.getElementById('modalText').textContent=text;document.getElementById('modal').classList.remove('hidden')}
 function closeModal(){document.getElementById('modal').classList.add('hidden');closeRitual()}
 
-// Инициализация hero-скролла
+// Hero scroll indicator
 document.addEventListener('scroll', (e) => {
   if (e.target && e.target.id === 'heroScroll') {
     const idx = Math.round(e.target.scrollLeft / e.target.offsetWidth);
