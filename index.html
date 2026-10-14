@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0a0a14">
+<meta name="theme-color" content="#0d0a18">
 <title>ВНЕДРИ — внедри книгу в жизнь</title>
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -64,7 +64,6 @@
     </div>
     <h2 class="section-title">📚 Библиотека</h2>
     <div id="bookList"></div>
-    <button class="btn btn-ghost hidden" id="adminBtnLib" onclick="showAdmin()" style="margin-top:20px">⚙️ Админ-панель</button>
   </div>
 </div>
 
@@ -73,26 +72,23 @@
   <div class="main-head">
     <div class="top-row">
       <button class="back-top" onclick="showLibrary()">←</button>
-      <div class="avatar" id="todayAvatar" onclick="showProfile()">👤</div>
+      <div class="head-actions">
+        <div class="icon-btn" id="soundBtn" onclick="toggleSound()">🔊</div>
+        <div class="avatar" id="todayAvatar" onclick="showProfile()">👤</div>
+      </div>
     </div>
-    <div class="hi"><span id="todayBookTitle" style="color:var(--lime);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px">—</span><span class="name" id="todayName">Друг</span></div>
+    <div class="hi"><span class="sub-name" id="todayBookTitle">—</span><span class="name" id="todayName">Друг</span></div>
   </div>
   <div class="wrap">
-    <!-- Пилюли дней недели -->
     <div class="week-row" id="weekRow"></div>
-
-    <!-- Бейдж прогресса -->
     <div class="prog-badge" id="progBadge" style="display:none">
       <div class="dot"></div>
       <span id="progBadgeText">День 1 из 30</span>
       <span class="pct" id="progBadgePct">0%</span>
     </div>
-
-    <!-- Hero-карточки практик -->
+    <div id="hintCard"></div>
     <div class="hero-scroll" id="heroScroll"></div>
     <div class="hero-dots" id="heroDots"></div>
-
-    <!-- Кнопка ритуала -->
     <button class="big-btn" onclick="startRitual()">
       <div class="bico">☀️</div>
       <div>
@@ -100,8 +96,22 @@
         <p id="ritualSub">—</p>
       </div>
     </button>
-
-    <!-- Уровень -->
+    <div class="secondary-actions">
+      <div class="sec-btn" onclick="showJournalScreen()">
+        <div class="sico">✍️</div>
+        <div>
+          <div class="sname">Дневник</div>
+          <div class="ssub">Записать мысли</div>
+        </div>
+      </div>
+      <div class="sec-btn" onclick="showStatsScreen()">
+        <div class="sico">📊</div>
+        <div>
+          <div class="sname">Статистика</div>
+          <div class="ssub">Прогресс книги</div>
+        </div>
+      </div>
+    </div>
     <div class="level-card" id="levelCard">
       <div class="level-badge" id="levelBadge">🌱</div>
       <div class="level-info">
@@ -109,23 +119,20 @@
         <p id="levelDesc">Начни первый день</p>
       </div>
     </div>
-
-    <!-- Прогресс пути -->
     <div class="cal-wrap" id="calWrap"></div>
   </div>
 </div>
 
-<!-- ЭКРАН СТАТИСТИКИ -->
+<!-- СТАТИСТИКА -->
 <div id="statsScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
       <button class="back-top" onclick="showLibrary()">←</button>
       <div class="avatar" id="statsAvatar" onclick="showProfile()">👤</div>
     </div>
-    <div class="hi"><span style="color:var(--lime);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px">📊 Статистика</span><span class="name" id="statsBookTitle">—</span></div>
+    <div class="hi"><span class="sub-name">📊 Статистика</span><span class="name">Все книги</span></div>
   </div>
   <div class="wrap">
-    <!-- Общая статистика по всем книгам -->
     <div class="global-stats">
       <h3>🌍 Общий прогресс</h3>
       <div class="row">
@@ -135,28 +142,44 @@
       </div>
     </div>
 
-    <!-- Кольца по текущей книге -->
+    <!-- Карточки книг с кольцами -->
+    <h3 class="section-title">📚 Выбери книгу</h3>
+    <div class="books-row" id="booksRow"></div>
+
+    <!-- Кольца активной книги -->
     <div class="rings-wrap" id="ringWrap">
       <svg class="rings-svg" viewBox="0 0 120 120">
         <defs>
           <linearGradient id="gradDays" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#B8FF2E"/>
-            <stop offset="100%" stop-color="#8fc921"/>
+            <stop offset="0%" stop-color="#a78bfa"/>
+            <stop offset="100%" stop-color="#7c5cff"/>
           </linearGradient>
           <linearGradient id="gradStreak" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="#ffb800"/>
-            <stop offset="100%" stop-color="#ff8c00"/>
+            <stop offset="100%" stop-color="#ff9a56"/>
           </linearGradient>
           <linearGradient id="gradRecord" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#00d68f"/>
-            <stop offset="100%" stop-color="#00b377"/>
+            <stop offset="0%" stop-color="#3ecf8e"/>
+            <stop offset="100%" stop-color="#2eb078"/>
+          </linearGradient>
+          <linearGradient id="gradBook" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#a78bfa"/>
+            <stop offset="100%" stop-color="#7c5cff"/>
+          </linearGradient>
+          <linearGradient id="gradBookWarm" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ff9a56"/>
+            <stop offset="100%" stop-color="#ffb800"/>
+          </linearGradient>
+          <linearGradient id="gradBookGold" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#e67e22"/>
           </linearGradient>
         </defs>
-        <circle class="ring-bg" cx="60" cy="60" r="54" stroke="#B8FF2E"/>
+        <circle class="ring-bg" cx="60" cy="60" r="54" stroke="#7c5cff"/>
         <circle class="ring-fill" cx="60" cy="60" r="54" id="ringDays" stroke="url(#gradDays)"/>
-        <circle class="ring-bg" cx="60" cy="60" r="42" stroke="#ff8c00"/>
+        <circle class="ring-bg" cx="60" cy="60" r="42" stroke="#ff9a56"/>
         <circle class="ring-fill" cx="60" cy="60" r="42" id="ringStreak" stroke="url(#gradStreak)"/>
-        <circle class="ring-bg" cx="60" cy="60" r="30" stroke="#00d68f"/>
+        <circle class="ring-bg" cx="60" cy="60" r="30" stroke="#3ecf8e"/>
         <circle class="ring-fill" cx="60" cy="60" r="30" id="ringRecord" stroke="url(#gradRecord)"/>
       </svg>
       <div class="rings-center">
@@ -184,12 +207,11 @@
       <div class="stat-info"><div class="num" id="statClosedBig">0</div><div class="lbl">Закрыто дней</div></div>
     </div>
 
-    <!-- Награды с шапкой -->
     <h2 class="section-title">🏆 Награды</h2>
     <div class="ach-header">
       <div class="top">
         <span class="title">Прогресс наград</span>
-        <span class="count" id="achCount">0 из 10</span>
+        <span class="count" id="achCount">0 из 11</span>
       </div>
       <div class="bar"><div class="bar-fill" id="achBar" style="width:0%"></div></div>
     </div>
@@ -197,14 +219,14 @@
   </div>
 </div>
 
-<!-- ЭКРАН ДНЕВНИКА -->
+<!-- ДНЕВНИК -->
 <div id="journalScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
-      <button class="back-top" onclick="showLibrary()">←</button>
+      <button class="back-top" onclick="showTodayScreen()">←</button>
       <div class="avatar" id="journalAvatar" onclick="showProfile()">👤</div>
     </div>
-    <div class="hi"><span style="color:var(--lime);font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1px">✍️ Дневник</span><span class="name" id="journalBookTitle">—</span></div>
+    <div class="hi"><span class="sub-name">✍️ Дневник</span><span class="name" id="journalBookTitle">—</span></div>
   </div>
   <div class="wrap">
     <div class="journal">
@@ -215,10 +237,28 @@
       <div class="journal-q">🔍 Что замечаю в себе?</div>
       <textarea id="jq3" placeholder="Мысли, ощущения..."></textarea>
       <button class="btn" onclick="saveJournal()" style="margin-top:20px">Сохранить</button>
-      <div class="err" id="journalMsg" style="color:var(--lime)"></div>
+      <div class="err" id="journalMsg" style="color:var(--success)"></div>
     </div>
     <h2 class="section-title">📖 История</h2>
     <div class="journal-history" id="journalHistory"></div>
+  </div>
+</div>
+
+<!-- СООБЩЕСТВО -->
+<div id="communityScreen" class="hidden">
+  <div class="main-head">
+    <div class="top-row">
+      <button class="back-top" onclick="showLibrary()">←</button>
+      <div class="avatar" id="communityAvatar" onclick="showProfile()">👤</div>
+    </div>
+    <div class="hi"><span class="sub-name">💬 Сообщество</span><span class="name">Общение</span></div>
+  </div>
+  <div class="wrap">
+    <div class="coming-soon">
+      <span class="ico">💬</span>
+      <h3>Скоро откроется</h3>
+      <p>Чат сообщества появится после подключения сервера.<br>Здесь вы сможете делиться успехами, задавать вопросы и поддерживать друг друга.</p>
+    </div>
   </div>
 </div>
 
@@ -228,7 +268,7 @@
     <div class="top-row">
       <button class="back-top" onclick="showLibrary()">←</button>
     </div>
-    <div class="hi">Профиль<span class="name">Настройки</span></div>
+    <div class="hi"><span class="sub-name">Настройки</span><span class="name">Профиль</span></div>
   </div>
   <div class="wrap">
     <div class="profile-card">
@@ -241,6 +281,16 @@
     <button class="btn" onclick="saveName()" style="margin-top:4px">Сохранить имя</button>
     <h3 class="section-title">Эмодзи-аватар</h3>
     <div class="emoji-row" id="emojiRow"></div>
+
+    <h3 class="section-title">Настройки</h3>
+    <div class="toggle-row" onclick="toggleSound()">
+      <div>
+                <div class="tl">🔊 Звуки и музыка</div>
+        <div class="ts">Клики, отметки, фон во время практик</div>
+      </div>
+      <div class="toggle-switch on" id="soundToggle"></div>
+    </div>
+
     <h3 class="section-title">Данные</h3>
     <button class="btn btn-ghost" onclick="exportData()">📥 Экспорт данных</button>
     <button class="btn btn-ghost" onclick="importData()">📤 Импорт данных</button>
@@ -253,9 +303,9 @@
 <div id="adminScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
-      <button class="back-top" onclick="showLibrary()">←</button>
+      <button class="back-top" onclick="showProfile()">←</button>
     </div>
-    <div class="hi">⚙️ Админ<span class="name">Для разработчика</span></div>
+    <div class="hi"><span class="sub-name">Для разработчика</span><span class="name">⚙️ Админ</span></div>
   </div>
   <div class="wrap">
     <div class="admin-card">
@@ -293,7 +343,7 @@
   <div class="ritual-body" id="ritualBody"></div>
 </div>
 
-<!-- ЭКРАН ПРАКТИКИ -->
+<!-- ПРАКТИКА -->
 <div class="practice-screen hidden" id="practiceScreen">
   <div class="ps-head">
     <button class="ps-back" onclick="closePractice()">←</button>
@@ -315,13 +365,13 @@
     <div class="nav-ico">📚</div>
     <div>Библиотека</div>
   </button>
+  <button class="nav-btn" data-page="community" onclick="navTo('community', this)">
+    <div class="nav-ico">💬</div>
+    <div>Сообщество</div>
+  </button>
   <button class="nav-btn" data-page="stats" onclick="navTo('stats', this)">
     <div class="nav-ico">📊</div>
     <div>Статистика</div>
-  </button>
-  <button class="nav-btn" data-page="journal" onclick="navTo('journal', this)">
-    <div class="nav-ico">✍️</div>
-    <div>Дневник</div>
   </button>
 </div>
 
@@ -330,6 +380,7 @@
   <div class="modal-box">
     <div class="emoji" id="modalEmoji">🎉</div>
     <h2 id="modalTitle">Поздравляем!</h2>
+    <div id="modalAchList"></div>
     <p id="modalText">—</p>
     <button class="btn" onclick="closeModal()">Продолжить</button>
   </div>
@@ -338,8 +389,15 @@
 <!-- КОНФЕТТИ -->
 <div class="confetti hidden" id="confetti"></div>
 
+<!-- КНИГИ -->
 <script src="books/magic-morning.js"></script>
 <script src="books/atomic-habits.js"></script>
+<script src="books/transurfing.js"></script>
+
+<!-- РЕЕСТР (только эту строку менять при добавлении книги) -->
+<script src="books/registry.js"></script>
+
+<!-- ЛОГИКА -->
 <script src="app.js"></script>
 </body>
 </html>
