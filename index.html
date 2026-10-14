@@ -48,204 +48,259 @@
 </div>
 
 <!-- БИБЛИОТЕКА -->
-<div class="wrap hidden" id="libScreen">
-  <div class="topbar">
-    <div>
-      <div class="hi" id="libHi">Привет</div>
-      <div class="sub" id="libSub">Твоя библиотека</div>
+<div id="libScreen" class="hidden">
+  <div class="lib-header">
+    <div class="lib-topbar">
+      <div class="date" id="libDate">Сегодня</div>
+      <div class="lib-avatar" id="libAvatar" onclick="showProfile()">👤</div>
     </div>
-    <button class="logout" onclick="showProfile()">Профиль</button>
+    <div class="hi">Привет,<span class="name" id="libName">Друг</span></div>
   </div>
-  <h2 class="page-title">📚 Моя библиотека</h2>
-  <div id="bookList"></div>
-  <button class="btn btn-ghost hidden" id="adminBtnLib" onclick="showAdmin()" style="margin-top:20px">⚙️ Админ-панель</button>
+  <div class="wrap">
+    <h2 class="page-title">📚 Моя библиотека</h2>
+    <div id="bookList"></div>
+    <button class="btn btn-ghost hidden" id="adminBtnLib" onclick="showAdmin()" style="margin-top:20px">⚙️ Админ-панель</button>
+  </div>
 </div>
 
-<!-- ЭКРАН КНИГИ -->
-<div class="wrap hidden" id="bookScreen">
-  <div class="topbar">
-    <button class="back" onclick="backToLib()">←</button>
-    <div class="head-text">
-      <h3 id="bookTitle">—</h3>
+<!-- ГЛАВНЫЙ ЭКРАН (Сегодня) -->
+<div id="todayScreen" class="hidden">
+  <div class="lib-header">
+    <div class="lib-topbar">
+      <div class="date" id="todayDate">Сегодня</div>
+      <div class="lib-avatar" id="todayAvatar" onclick="showProfile()">👤</div>
+    </div>
+    <div class="hi">Привет,<span class="name" id="todayName">Друг</span></div>
+  </div>
+  <div class="wrap">
+    <!-- Пилюли дней недели -->
+    <div class="week-row" id="weekRow"></div>
+
+    <!-- Бейдж прогресса -->
+    <div class="prog-badge" id="progBadge" style="display:none">
+      <div class="dot"></div>
+      <span id="progBadgeText">День 1 из 30</span>
+      <span class="pct" id="progBadgePct">0%</span>
+    </div>
+
+    <!-- Hero-карточки практик -->
+    <div class="hero-scroll" id="heroScroll"></div>
+    <div class="hero-dots" id="heroDots"></div>
+
+    <!-- Кнопка ритуала -->
+    <button class="big-btn" onclick="startRitual()">
+      <div class="bico">☀️</div>
+      <div>
+        <h3>Начать ритуал</h3>
+        <p id="ritualSub">—</p>
+      </div>
+    </button>
+
+    <!-- Уровень -->
+    <div class="level-card" id="levelCard">
+      <div class="level-badge" id="levelBadge">🌱</div>
+      <div class="level-info">
+        <h4 id="levelName">Новичок</h4>
+        <p id="levelDesc">Начни первый день</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ЭКРАН ПРОГРАММЫ (книга) -->
+<div id="bookScreen" class="hidden">
+  <div class="ps-head" style="position:static;border-bottom:1px solid var(--border)">
+    <button class="ps-back" onclick="backToToday()">←</button>
+    <div class="ps-head-text">
+      <h2 id="bookTitle">—</h2>
       <p id="bookSub">—</p>
     </div>
   </div>
+  <div class="wrap">
 
-  <!-- 3 КОЛЬЦА -->
-  <div class="rings-wrap" id="ringWrap">
-    <svg class="rings-svg" viewBox="0 0 120 120">
-      <defs>
-        <linearGradient id="gradDays" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#c4b5fd"/>
-          <stop offset="100%" stop-color="#7c5cff"/>
-        </linearGradient>
-        <linearGradient id="gradStreak" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#ffb800"/>
-          <stop offset="100%" stop-color="#ff8c00"/>
-        </linearGradient>
-        <linearGradient id="gradRecord" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#00d68f"/>
-          <stop offset="100%" stop-color="#00b377"/>
-        </linearGradient>
-      </defs>
-      <!-- Внешнее — Дни -->
-      <circle class="ring-bg" cx="60" cy="60" r="54" stroke="#7c5cff"/>
-      <circle class="ring-fill" cx="60" cy="60" r="54" id="ringDays" stroke="url(#gradDays)"/>
-      <!-- Среднее — Подряд -->
-      <circle class="ring-bg" cx="60" cy="60" r="42" stroke="#ff8c00"/>
-      <circle class="ring-fill" cx="60" cy="60" r="42" id="ringStreak" stroke="url(#gradStreak)"/>
-      <!-- Внутреннее — Рекорд -->
-      <circle class="ring-bg" cx="60" cy="60" r="30" stroke="#00d68f"/>
-      <circle class="ring-fill" cx="60" cy="60" r="30" id="ringRecord" stroke="url(#gradRecord)"/>
-    </svg>
-    <div class="rings-center">
-      <div class="rings-today" id="ringsToday">0</div>
-      <div class="rings-today-label" id="ringsLabel">ПРИГОТОВЬТЕСЬ</div>
-    </div>
+    <!-- Прогресс 1→30 -->
+    <div class="cal-wrap" id="calWrap"></div>
+
+    <!-- Список практик -->
+    <h3 class="section-title">📋 Практики</h3>
+    <div id="practiceList"></div>
   </div>
-
-  <!-- ЛЕГЕНДА -->
-  <div class="rings-legend">
-    <div class="ring-item"><div class="ring-dot days"></div><span>Дни: <b id="legendDays">0</b></span></div>
-    <div class="ring-item"><div class="ring-dot streak"></div><span>Подряд: <b id="legendStreak">0</b></span></div>
-    <div class="ring-item"><div class="ring-dot record"></div><span>Рекорд: <b id="legendRecord">0</b></span></div>
-  </div>
-
-  <!-- КАЛЕНДАРЬ 1→30 -->
-  <div class="cal-wrap" id="calWrap"></div>
-
-  <!-- УРОВЕНЬ -->
-  <div class="level-card" id="levelCard">
-    <div class="level-badge" id="levelBadge">🌱</div>
-    <div class="level-info">
-      <h4 id="levelName">Новичок</h4>
-      <p id="levelDesc">Начни первый день — и путь откроется</p>
-    </div>
-  </div>
-
-  <!-- КНОПКА РИТУАЛА -->
-  <button class="big-btn" onclick="startRitual()">
-    <div class="bico">☀️</div>
-    <div>
-      <h3>Начать утренний ритуал</h3>
-      <p id="ritualSub">—</p>
-    </div>
-  </button>
-
-  <h3 class="section-title">📋 Практики сегодня</h3>
-  <div id="practiceList"></div>
 </div>
 
-<!-- ЭКРАН НАГРАД -->
-<div class="wrap hidden" id="achScreen">
-  <div class="topbar">
-    <button class="back" onclick="backToLib()">←</button>
-    <div class="head-text">
-      <h3>🏆 Награды</h3>
-      <p>Твои победы</p>
+<!-- ЭКРАН СТАТИСТИКИ -->
+<div id="statsScreen" class="hidden">
+  <div class="ps-head" style="position:static;border-bottom:1px solid var(--border)">
+    <button class="ps-back" onclick="backToToday()">←</button>
+    <div class="ps-head-text">
+      <h2>📊 Статистика</h2>
+      <p>Твой прогресс</p>
     </div>
   </div>
-  <div class="ach-grid" id="achGrid"></div>
+  <div class="wrap">
+
+    <!-- Кольца -->
+    <div class="rings-wrap" id="ringWrap">
+      <svg class="rings-svg" viewBox="0 0 120 120">
+        <defs>
+          <linearGradient id="gradDays" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#B8FF2E"/>
+            <stop offset="100%" stop-color="#8fc921"/>
+          </linearGradient>
+          <linearGradient id="gradStreak" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff8c00"/>
+          </linearGradient>
+          <linearGradient id="gradRecord" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#00d68f"/>
+            <stop offset="100%" stop-color="#00b377"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-bg" cx="60" cy="60" r="54" stroke="#B8FF2E"/>
+        <circle class="ring-fill" cx="60" cy="60" r="54" id="ringDays" stroke="url(#gradDays)"/>
+        <circle class="ring-bg" cx="60" cy="60" r="42" stroke="#ff8c00"/>
+        <circle class="ring-fill" cx="60" cy="60" r="42" id="ringStreak" stroke="url(#gradStreak)"/>
+        <circle class="ring-bg" cx="60" cy="60" r="30" stroke="#00d68f"/>
+        <circle class="ring-fill" cx="60" cy="60" r="30" id="ringRecord" stroke="url(#gradRecord)"/>
+      </svg>
+      <div class="rings-center">
+        <div class="rings-today" id="ringsToday">0</div>
+        <div class="rings-today-label" id="ringsLabel">ПРИГОТОВЬТЕСЬ</div>
+      </div>
+    </div>
+
+    <div class="rings-legend">
+      <div class="ring-item"><div class="ring-dot days"></div><span>Дни: <b id="legendDays">0</b></span></div>
+      <div class="ring-item"><div class="ring-dot streak"></div><span>Подряд: <b id="legendStreak">0</b></span></div>
+      <div class="ring-item"><div class="ring-dot record"></div><span>Рекорд: <b id="legendRecord">0</b></span></div>
+    </div>
+
+    <!-- Большие карточки -->
+    <div class="stat-big">
+      <div class="stat-ico">🔥</div>
+      <div class="stat-info">
+        <div class="num" id="statStreakBig">0</div>
+        <div class="lbl">Дней подряд</div>
+      </div>
+    </div>
+    <div class="stat-big">
+      <div class="stat-ico">🏆</div>
+      <div class="stat-info">
+        <div class="num" id="statBestBig">0</div>
+        <div class="lbl">Рекорд</div>
+      </div>
+    </div>
+    <div class="stat-big">
+      <div class="stat-ico">✅</div>
+      <div class="stat-info">
+        <div class="num" id="statClosedBig">0</div>
+        <div class="lbl">Закрыто дней</div>
+      </div>
+    </div>
+
+    <h3 class="section-title">🏆 Награды</h3>
+    <div class="ach-grid" id="achGrid"></div>
+  </div>
 </div>
 
 <!-- ЭКРАН ДНЕВНИКА -->
-<div class="wrap hidden" id="journalScreen">
-  <div class="topbar">
-    <button class="back" onclick="backToLib()">←</button>
-    <div class="head-text">
-      <h3>✍️ Дневник</h3>
+<div id="journalScreen" class="hidden">
+  <div class="ps-head" style="position:static;border-bottom:1px solid var(--border)">
+    <button class="ps-back" onclick="backToToday()">←</button>
+    <div class="ps-head-text">
+      <h2>✍️ Дневник</h2>
       <p>День <span id="journalDay">1</span></p>
     </div>
   </div>
-  <div class="journal">
-    <div class="journal-q">🌟 Что сегодня получилось?</div>
-    <textarea id="jq1" placeholder="Пиши как есть..."></textarea>
-    <div class="journal-q">💭 Что было сложно?</div>
-    <textarea id="jq2" placeholder="Честно с собой..."></textarea>
-    <div class="journal-q">🔍 Что замечаю в себе?</div>
-    <textarea id="jq3" placeholder="Мысли, ощущения..."></textarea>
-    <button class="btn" onclick="saveJournal()" style="margin-top:20px">Сохранить запись</button>
-    <div class="err" id="journalMsg" style="color:#00d68f"></div>
+  <div class="wrap">
+    <div class="journal">
+      <div class="journal-q">🌟 Что сегодня получилось?</div>
+      <textarea id="jq1" placeholder="Пиши как есть..."></textarea>
+      <div class="journal-q">💭 Что было сложно?</div>
+      <textarea id="jq2" placeholder="Честно с собой..."></textarea>
+      <div class="journal-q">🔍 Что замечаю в себе?</div>
+      <textarea id="jq3" placeholder="Мысли, ощущения..."></textarea>
+      <button class="btn" onclick="saveJournal()" style="margin-top:20px">Сохранить</button>
+      <div class="err" id="journalMsg" style="color:var(--lime)"></div>
+    </div>
+    <h3 class="section-title">📖 История</h3>
+    <div class="journal-history" id="journalHistory"></div>
   </div>
-
-  <h3 class="section-title" style="margin-top:32px">📖 История записей</h3>
-  <div class="journal-history" id="journalHistory"></div>
 </div>
 
-<!-- ЭКРАН ПРОФИЛЯ -->
-<div class="wrap hidden" id="profileScreen">
-  <div class="topbar">
-    <button class="back" onclick="backToLib()">←</button>
-    <div class="head-text">
-      <h3>Профиль</h3>
+<!-- ПРОФИЛЬ -->
+<div id="profileScreen" class="hidden">
+  <div class="ps-head" style="position:static;border-bottom:1px solid var(--border)">
+    <button class="ps-back" onclick="backToToday()">←</button>
+    <div class="ps-head-text">
+      <h2>Профиль</h2>
       <p>Настройки</p>
     </div>
   </div>
-  <div class="profile-card">
-    <div class="avatar" id="profileAva">👤</div>
-    <div class="profile-info">
-      <input type="text" id="profileName" class="profile-name-input" placeholder="Имя" maxlength="30">
-      <div class="profile-phone" id="profilePhone">+7 ***</div>
+  <div class="wrap">
+    <div class="profile-card">
+      <div class="avatar" id="profileAva">👤</div>
+      <div class="profile-info">
+        <input type="text" id="profileName" class="profile-name-input" placeholder="Имя" maxlength="30">
+        <div class="profile-phone" id="profilePhone">+7 ***</div>
+      </div>
     </div>
+    <button class="btn" onclick="saveName()" style="margin-top:12px">Сохранить имя</button>
+    <h3 class="section-title">Эмодзи-аватар</h3>
+    <div class="emoji-row" id="emojiRow"></div>
+    <h3 class="section-title">Данные</h3>
+    <button class="btn btn-ghost" onclick="exportData()">📥 Экспорт данных</button>
+    <button class="btn btn-ghost" onclick="importData()">📤 Импорт данных</button>
+    <button class="btn btn-ghost hidden" id="adminBtnProfile" onclick="showAdmin()" style="margin-top:10px">⚙️ Админ-панель</button>
+    <button class="btn btn-ghost" onclick="logout()" style="margin-top:20px;border-color:#ff5c5c;color:#ff5c5c">Выйти</button>
   </div>
-  <button class="btn" onclick="saveName()" style="margin-top:12px">Сохранить имя</button>
-  <h3 class="section-title">Эмодзи-аватар</h3>
-  <div class="emoji-row" id="emojiRow"></div>
-  <h3 class="section-title">Данные</h3>
-  <button class="btn btn-ghost" onclick="exportData()">📥 Экспорт данных</button>
-  <button class="btn btn-ghost" onclick="importData()">📤 Импорт данных</button>
-  <button class="btn btn-ghost hidden" id="adminBtnProfile" onclick="showAdmin()" style="margin-top:10px">⚙️ Админ-панель</button>
-  <button class="btn btn-ghost" onclick="logout()" style="margin-top:20px;border-color:#ff5c5c;color:#ff5c5c">Выйти</button>
 </div>
 
-<!-- ЭКРАН АДМИНА -->
-<div class="wrap hidden" id="adminScreen">
-  <div class="topbar">
-    <button class="back" onclick="backToLib()">←</button>
-    <div class="head-text">
-      <h3>⚙️ Админ-панель</h3>
-      <p>Только для разработчика</p>
+<!-- АДМИН -->
+<div id="adminScreen" class="hidden">
+  <div class="ps-head" style="position:static;border-bottom:1px solid var(--border)">
+    <button class="ps-back" onclick="backToToday()">←</button>
+    <div class="ps-head-text">
+      <h2>⚙️ Админ-панель</h2>
+      <p>Для разработчика</p>
     </div>
   </div>
-
-  <div class="admin-card">
-    <h3>👥 Пользователи</h3>
-    <div class="admin-row"><span>Всего зарегистрировано</span><span id="adminUsers">0</span></div>
-    <div class="admin-row"><span>Активных (зашли)</span><span id="adminActive">0</span></div>
-    <div class="admin-row"><span>Средний стрик</span><span id="adminAvgStreak">0</span></div>
+  <div class="wrap">
+    <div class="admin-card">
+      <h3>👥 Пользователи</h3>
+      <div class="admin-row"><span>Всего</span><span id="adminUsers">0</span></div>
+      <div class="admin-row"><span>Активных</span><span id="adminActive">0</span></div>
+      <div class="admin-row"><span>Средний стрик</span><span id="adminAvgStreak">0</span></div>
+    </div>
+    <div class="admin-card">
+      <h3>📊 Общая статистика</h3>
+      <div class="admin-row"><span>Сессий</span><span id="adminSessions">0</span></div>
+      <div class="admin-row"><span>Записей в дневнике</span><span id="adminJournal">0</span></div>
+      <div class="admin-row"><span>Закрыто дней</span><span id="adminClosed">0</span></div>
+    </div>
+    <div class="admin-card">
+      <h3>📱 Твой номер</h3>
+      <div class="admin-row"><span>Телефон</span><span>+7 912 432 55 56</span></div>
+      <div class="admin-row"><span>Роль</span><span>Разработчик</span></div>
+      <div class="admin-row"><span>С нами с</span><span id="adminMyDate">—</span></div>
+    </div>
+    <h3 class="section-title">👥 Список</h3>
+    <div id="adminUserList"></div>
   </div>
-
-  <div class="admin-card">
-    <h3>📊 Общая статистика</h3>
-    <div class="admin-row"><span>Всего сессий</span><span id="adminSessions">0</span></div>
-    <div class="admin-row"><span>Записей в дневнике</span><span id="adminJournal">0</span></div>
-    <div class="admin-row"><span>Закрыто дней</span><span id="adminClosed">0</span></div>
-  </div>
-
-  <div class="admin-card">
-    <h3>📱 Твой номер</h3>
-    <div class="admin-row"><span>Телефон</span><span>+7 912 432 55 56</span></div>
-    <div class="admin-row"><span>Роль</span><span>Разработчик</span></div>
-    <div class="admin-row"><span>Регистрация</span><span id="adminMyDate">—</span></div>
-  </div>
-
-  <h3 class="section-title">👥 Список пользователей</h3>
-  <div id="adminUserList"></div>
 </div>
 
-<!-- ЭКРАН РИТУАЛА -->
+<!-- РИТУАЛ -->
 <div class="ritual hidden" id="ritualScreen">
   <div class="ritual-progress">
     <div class="rp-bar"><div class="rp-fill" id="rpFill"></div></div>
     <div class="rp-text">
       <span id="rpStep">1 из 6</span>
-      <button class="rp-skip" onclick="skipCurrentPractice()">Пропустить →</button>
+      <button class="rp-close" onclick="closeRitual()">✕</button>
     </div>
   </div>
   <div class="ritual-body" id="ritualBody"></div>
 </div>
 
-<!-- ЭКРАН ПРАКТИКИ (из списка) -->
+<!-- ЭКРАН ПРАКТИКИ -->
 <div class="practice-screen hidden" id="practiceScreen">
   <div class="ps-head">
     <button class="ps-back" onclick="closePractice()">←</button>
@@ -259,21 +314,25 @@
 
 <!-- НИЖНЕЕ МЕНЮ -->
 <div class="bottom-nav hidden" id="bottomNav">
-  <button class="nav-btn on" onclick="showBottomPage('home', this)">
+  <button class="nav-btn on" data-page="today" onclick="navTo('today', this)">
     <div class="nav-ico">🏠</div>
-    <div>Главная</div>
+    <div>Сегодня</div>
   </button>
-  <button class="nav-btn" onclick="showBottomPage('ach', this)">
-    <div class="nav-ico">🏆</div>
-    <div>Награды</div>
+  <button class="nav-btn" data-page="book" onclick="navTo('book', this)">
+    <div class="nav-ico">📚</div>
+    <div>Программа</div>
   </button>
-  <button class="nav-btn" onclick="showBottomPage('journal', this)">
+  <button class="nav-btn" data-page="stats" onclick="navTo('stats', this)">
+    <div class="nav-ico">📊</div>
+    <div>Статистика</div>
+  </button>
+  <button class="nav-btn" data-page="journal" onclick="navTo('journal', this)">
     <div class="nav-ico">✍️</div>
     <div>Дневник</div>
   </button>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО -->
+<!-- МОДАЛКА -->
 <div class="modal hidden" id="modal">
   <div class="modal-box">
     <div class="emoji" id="modalEmoji">🎉</div>

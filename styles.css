@@ -2,56 +2,52 @@
 html,body{overflow-x:hidden;max-width:100vw;width:100%}
 
 :root{
---bg:#0a0a14;--bg2:#0d0d1a;--card:#161625;--card2:#1f1f35;--card3:#252540;
---accent:#7c5cff;--accent2:#a78bfa;--text:#eceaf5;--muted:#8a8aa5;
---border:#26264a;--danger:#ff5c5c;
-/* Кольца */
---r-days:#7c5cff;
---r-days-2:#c4b5fd;
---r-streak:#ff8c00;
---r-streak-2:#ffb800;
---r-record:#00d68f;
---r-record-2:#00b377;
+--bg:#0a0a14;
+--card:#161625;
+--card2:#1f1f35;
+--card3:#252540;
+--lime:#B8FF2E;
+--lime-dim:#8fc921;
+--lime-glow:rgba(184,255,46,.35);
+--violet:#7c5cff;
+--violet-2:#a78bfa;
+--gold:#ffb800;
+--orange:#ff8c00;
+--green:#00d68f;
+--text:#eceaf5;
+--muted:#8a8aa5;
+--border:#26264a;
+--danger:#ff5c5c;
 }
 
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:100px}
 .hidden{display:none!important}
 input,button,textarea{font-family:inherit}
 
 /* === ВХОД === */
 .auth{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:30px 24px;max-width:440px;margin:0 auto}
 .auth-logo{text-align:center;margin-bottom:36px}
-.auth-logo .logo{font-size:42px;font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,#c4b5fd,#7c5cff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;animation:logoIn 1s cubic-bezier(.34,1.56,.64,1)}
+.auth-logo .logo{font-size:52px;font-weight:900;letter-spacing:3px;color:var(--lime);text-shadow:0 0 40px var(--lime-glow);margin-bottom:8px;animation:logoIn 1s cubic-bezier(.34,1.56,.64,1)}
 @keyframes logoIn{0%{opacity:0;transform:scale(.8)}100%{opacity:1;transform:scale(1)}}
 .auth-logo p{color:var(--muted);font-size:14px}
 .auth-tabs{display:flex;background:var(--card);border-radius:14px;padding:4px;margin-bottom:20px}
-.auth-tab{flex:1;text-align:center;padding:11px;border-radius:10px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;transition:.2s}
-.auth-tab.on{background:var(--accent);color:#fff}
+.auth-tab{flex:1;text-align:center;padding:11px;border-radius:10px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;transition:.2s}
+.auth-tab.on{background:var(--lime);color:#000}
 .field{margin-bottom:14px}
-.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .field input{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:13px;padding:15px 16px;color:var(--text);font-size:16px;transition:.2s}
-.field input:focus{outline:none;border-color:var(--accent);background:var(--card2)}
+.field input:focus{outline:none;border-color:var(--lime);background:var(--card2)}
 .field input::placeholder{color:#5a5a75}
-.btn{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:16px;border-radius:13px;font-size:16px;font-weight:700;cursor:pointer;transition:.2s;margin-top:6px;box-shadow:0 8px 24px rgba(124,92,255,.3)}
-.btn:active{transform:scale(.97);box-shadow:0 4px 12px rgba(124,92,255,.4)}
-.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text);margin-top:10px;box-shadow:none}
+.btn{width:100%;background:var(--lime);color:#000;border:none;padding:16px;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;transition:.2s;margin-top:6px;box-shadow:0 8px 24px var(--lime-glow);text-transform:uppercase;letter-spacing:.5px}
+.btn:active{transform:scale(.97)}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text);margin-top:10px;box-shadow:none;text-transform:none;letter-spacing:0}
 .btn-ghost:active{background:var(--card)}
 .err{color:var(--danger);font-size:13px;text-align:center;margin-top:12px;min-height:18px}
 .auth-hint{text-align:center;color:var(--muted);font-size:12px;margin-top:20px;line-height:1.5}
 
 /* === ОБЩЕЕ === */
-.wrap{max-width:640px;margin:0 auto;padding:16px 16px 100px;width:100%}
-
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:8px 0 20px;gap:12px}
-.topbar .hi{font-weight:700;font-size:16px}
-.topbar .sub{font-size:12px;color:var(--muted)}
-.topbar .logout{background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:9px;font-size:13px;cursor:pointer}
-.topbar .back{background:var(--card);border:1px solid var(--border);width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--text);flex-shrink:0}
-.topbar .head-text{flex:1;min-width:0}
-.topbar .head-text h3{font-size:17px;font-weight:700;margin-bottom:2px}
-.topbar .head-text p{font-size:12px;color:var(--muted)}
-
-.section-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:24px 0 12px;display:flex;align-items:center;gap:8px}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px 40px;width:100%}
+.section-title{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin:24px 0 12px}
 
 /* === ОНБОРДИНГ === */
 .onb{min-height:100vh;padding:30px 24px;max-width:560px;margin:0 auto;display:flex;flex-direction:column}
@@ -62,215 +58,266 @@ input,button,textarea{font-family:inherit}
 .onb p{font-size:16px;color:#c5c5d8;line-height:1.7;margin-bottom:14px}
 .onb ul{margin:12px 0 14px 0;padding-left:0;list-style:none}
 .onb ul li{font-size:15px;color:#c5c5d8;padding:8px 0 8px 28px;position:relative;line-height:1.6}
-.onb ul li::before{content:'✦';position:absolute;left:4px;color:var(--accent2);font-size:14px}
+.onb ul li::before{content:'✦';position:absolute;left:4px;color:var(--lime);font-size:14px}
 .onb-dots{display:flex;gap:6px;justify-content:center;margin:20px 0}
 .onb-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:.2s}
-.onb-dot.on{background:var(--accent);width:24px;border-radius:4px}
+.onb-dot.on{background:var(--lime);width:24px;border-radius:4px}
 .onb-nav{display:flex;gap:10px}
 
 /* === БИБЛИОТЕКА === */
-.page-title{font-size:20px;font-weight:800;margin:20px 0 16px}
-.book-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:14px;cursor:pointer;transition:.3s;display:flex;gap:16px;align-items:center;position:relative;overflow:hidden}
-.book-card::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at right,var(--accent),transparent 70%);opacity:0;transition:.3s;pointer-events:none}
-.book-card:active{transform:scale(.98);border-color:var(--accent)}
-.book-card:active::after{opacity:.15}
-.book-ico{width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;box-shadow:0 8px 24px rgba(124,92,255,.3)}
+.lib-header{padding:24px 16px 20px;max-width:640px;margin:0 auto}
+.lib-header .hi{font-size:32px;font-weight:900;line-height:1.1;margin-bottom:4px}
+.lib-header .hi .name{color:var(--lime);display:block}
+.lib-header .date{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:2px}
+.lib-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.lib-avatar{width:44px;height:44px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid var(--lime);cursor:pointer}
+
+.page-title{font-size:16px;font-weight:800;margin:20px 0 14px;color:var(--text)}
+
+.book-card{background:var(--card);border-radius:20px;padding:18px;margin-bottom:14px;cursor:pointer;transition:.3s;position:relative;overflow:hidden;display:flex;gap:16px;align-items:center;border:1px solid var(--border)}
+.book-card:active{transform:scale(.98)}
+.book-ico{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#2a2a45,#1a1a2e);display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0}
 .book-info{flex:1;min-width:0}
-.book-info h3{font-size:17px;font-weight:700;margin-bottom:2px}
-.book-info p{font-size:13px;color:var(--muted);margin-bottom:8px}
-.book-progress{height:6px;background:var(--card2);border-radius:3px;overflow:hidden;margin-bottom:6px}
-.book-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width .8s}
-.book-status{font-size:12px;color:var(--accent2);font-weight:600}
-.book-arrow{font-size:24px;color:var(--muted);flex-shrink:0}
+.book-info h3{font-size:16px;font-weight:800;margin-bottom:4px}
+.book-info p{font-size:12px;color:var(--muted);margin-bottom:8px}
+.book-progress{height:5px;background:var(--card3);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.book-progress-fill{height:100%;background:var(--lime);border-radius:3px;box-shadow:0 0 8px var(--lime-glow)}
+.book-status{font-size:11px;color:var(--lime);font-weight:700}
+.book-arrow{font-size:22px;color:var(--muted);flex-shrink:0}
 
-/* === 3 КОЛЬЦА — APPLE WATCH STYLE === */
-.rings-wrap{position:relative;width:280px;height:280px;margin:16px auto 24px;animation:ringIn 1s cubic-bezier(.4,0,.2,1)}
-@keyframes ringIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
-.rings-svg{width:100%;height:100%;transform:rotate(-90deg);filter:drop-shadow(0 12px 40px rgba(124,92,255,.2))}
-.ring-bg{fill:none;stroke-width:10;stroke-linecap:round;opacity:.15}
-.ring-fill{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1),stroke .5s}
-.rings-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
-.rings-today{font-size:64px;font-weight:800;line-height:1;background:linear-gradient(135deg,#fff 0%,#c4b5fd 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-3px;text-shadow:0 4px 20px rgba(196,181,253,.5)}
-.rings-today-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;font-weight:700;margin-top:4px}
-.rings-wrap.complete .rings-today{animation:pulseText 1.5s ease infinite}
-@keyframes pulseText{0%,100%{filter:brightness(1)}50%{filter:brightness(1.4)}}
+/* === ЭКРАН СЕГОДНЯ (главный) === */
+.today-header{padding:24px 0 20px}
+.today-greet{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px}
+.today-name{font-size:34px;font-weight:900;line-height:1.1;margin-bottom:4px}
+.today-name span{color:var(--lime);display:inline-block}
 
-/* Легенда колец */
-.rings-legend{display:flex;justify-content:center;gap:20px;margin-bottom:20px;flex-wrap:wrap}
-.ring-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
-.ring-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.ring-dot.days{background:linear-gradient(135deg,#c4b5fd,#7c5cff);box-shadow:0 0 8px rgba(124,92,255,.6)}
-.ring-dot.streak{background:linear-gradient(135deg,#ffb800,#ff8c00);box-shadow:0 0 8px rgba(255,140,0,.6)}
-.ring-dot.record{background:linear-gradient(135deg,#00d68f,#00b377);box-shadow:0 0 8px rgba(0,214,143,.6)}
-.ring-item b{color:var(--text);font-weight:800}
+/* Дни недели — пилюли */
+.week-row{display:flex;gap:8px;overflow-x:auto;padding:16px 0 20px;scrollbar-width:none;margin:0 -16px;padding-left:16px;padding-right:16px}
+.week-row::-webkit-scrollbar{display:none}
+.day-pill{min-width:48px;height:64px;border-radius:16px;background:var(--card);border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex-shrink:0;transition:.2s;cursor:pointer}
+.day-pill .dow{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.day-pill .dnum{font-size:16px;font-weight:800;color:var(--text)}
+.day-pill.done{background:var(--lime);border-color:var(--lime);box-shadow:0 4px 16px var(--lime-glow)}
+.day-pill.done .dow,.day-pill.done .dnum{color:#000}
+.day-pill.active{border:2px solid var(--lime)}
+.day-pill.active .dnum{color:var(--lime)}
+.day-pill.active.done .dnum{color:#000}
+.day-pill.partial{background:rgba(184,255,46,.15);border-color:var(--lime-dim)}
+.day-pill.future{opacity:.4}
 
-/* === КАЛЕНДАРЬ — КРАСИВАЯ ПОЛОСА 1→30 === */
-.cal-wrap{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:20px;animation:fadeIn .5s .2s both}
-.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.cal-head .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;font-weight:700}
-.cal-head .count{font-size:14px;color:var(--accent2);font-weight:800}
-.cal-bar{display:flex;gap:3px;height:36px;margin-bottom:12px;align-items:flex-end}
-.cal-seg{flex:1;background:var(--card2);border-radius:4px;height:20%;transition:all .6s cubic-bezier(.4,0,.2,1);position:relative;min-width:0}
-.cal-seg.done{background:linear-gradient(180deg,#00d68f,#00b377);height:100%;box-shadow:0 0 10px rgba(0,214,143,.4)}
-.cal-seg.partial{background:linear-gradient(180deg,#ffb800,#ff8c00);height:60%}
-.cal-seg.today{background:linear-gradient(180deg,#c4b5fd,#7c5cff);height:40%;box-shadow:0 0 12px rgba(124,92,255,.6);animation:pulseSeg 2s ease infinite}
-@keyframes pulseSeg{0%,100%{opacity:1}50%{opacity:.6}}
-.cal-seg.future{opacity:.4}
-.cal-info{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px}
-.cal-info b{color:var(--text)}
-.cal-nums{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);opacity:.5}
+/* Бейдж прогресса */
+.prog-badge{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:100px;padding:8px 16px;font-size:13px;font-weight:800;margin-bottom:16px}
+.prog-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime-glow)}
+.prog-badge .pct{color:var(--lime)}
 
-/* === КАРТОЧКА УРОВНЯ === */
-.level-card{background:linear-gradient(135deg,rgba(124,92,255,.15),rgba(167,139,250,.05));border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:20px;display:flex;align-items:center;gap:14px;animation:fadeIn .5s .3s both;position:relative;overflow:hidden}
-.level-card::before{content:'';position:absolute;top:-50%;right:-20%;width:200px;height:200px;background:radial-gradient(circle,rgba(124,92,255,.3),transparent 70%);animation:rotate 20s linear infinite}
-@keyframes rotate{to{transform:rotate(360deg)}}
-.level-badge{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#7c5cff,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:0 0 24px rgba(124,92,255,.5);position:relative;z-index:1}
-.level-badge.master{background:linear-gradient(135deg,#ffb800,#ff8c00);box-shadow:0 0 24px rgba(255,184,0,.6)}
-.level-badge.pro{background:linear-gradient(135deg,#00d68f,#00b377);box-shadow:0 0 24px rgba(0,214,143,.5)}
-.level-info{flex:1;min-width:0;position:relative;z-index:1}
-.level-info h4{font-size:15px;font-weight:800;margin-bottom:2px}
-.level-info p{font-size:12px;color:var(--muted);line-height:1.4}
+/* === HERO-КАРТОЧКИ (TikTok стиль) === */
+.hero-scroll{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;padding:8px 0 24px;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.hero-scroll::-webkit-scrollbar{display:none}
+.hero-card{min-width:calc(100vw - 64px);max-width:400px;height:440px;scroll-snap-align:center;border-radius:24px;position:relative;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;padding:24px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.hero-card::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.1) 0%,rgba(0,0,0,.7) 100%);z-index:1}
+.hero-card.hero-silence{background:linear-gradient(160deg,#3a2d6b 0%,#1a1430 100%)}
+.hero-card.hero-affirm{background:linear-gradient(160deg,#6b2d4e 0%,#30101f 100%)}
+.hero-card.hero-visual{background:linear-gradient(160deg,#2d4e6b 0%,#102030 100%)}
+.hero-card.hero-journal{background:linear-gradient(160deg,#2d6b48 0%,#103020 100%)}
+.hero-card.hero-read{background:linear-gradient(160deg,#6b5d2d 0%,#302a10 100%)}
+.hero-card.hero-sport{background:linear-gradient(160deg,#6b2d2d 0%,#301010 100%)}
+.hero-card.hero-done{background:linear-gradient(160deg,#4d6b2d 0%,#1f3010 100%);box-shadow:0 12px 40px var(--lime-glow)}
+.hero-content{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.hero-badge{position:absolute;top:20px;left:20px;background:rgba(0,0,0,.4);backdrop-filter:blur(10px);padding:6px 14px;border-radius:100px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;z-index:2}
+.hero-ico{font-size:80px;position:absolute;top:30%;left:50%;transform:translateX(-50%);opacity:.15;z-index:0;filter:blur(2px)}
+.hero-title{font-size:38px;font-weight:900;line-height:1;margin-bottom:8px;letter-spacing:-1px}
+.hero-sub{font-size:14px;color:rgba(255,255,255,.7);margin-bottom:20px}
+.hero-play{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--lime);color:#000;border:none;padding:14px;border-radius:14px;font-size:15px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;box-shadow:0 8px 24px var(--lime-glow);transition:.2s}
+.hero-play:active{transform:scale(.96)}
+.hero-done-badge{position:absolute;top:20px;right:20px;background:var(--lime);color:#000;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;z-index:2;animation:popIn .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{0%{transform:scale(0)}100%{transform:scale(1)}}
 
-/* === БОЛЬШАЯ КНОПКА === */
-.big-btn{background:linear-gradient(135deg,#7c5cff,#a78bfa);border-radius:18px;padding:22px;display:flex;align-items:center;gap:16px;cursor:pointer;margin-bottom:20px;transition:.2s;border:none;width:100%;color:#fff;text-align:left;animation:fadeIn .5s .4s both;box-shadow:0 12px 32px rgba(124,92,255,.4);position:relative;overflow:hidden}
-.big-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transform:translateX(-100%);animation:shine 3s infinite}
-@keyframes shine{100%{transform:translateX(100%)}}
-.big-btn:active{transform:scale(.98);box-shadow:0 6px 16px rgba(124,92,255,.5)}
-.big-btn .bico{font-size:40px;flex-shrink:0;position:relative;z-index:1}
-.big-btn div:last-child{position:relative;z-index:1}
-.big-btn h3{font-size:17px;font-weight:800;margin-bottom:3px}
-.big-btn p{font-size:13px;opacity:.9}
+.hero-dots{display:flex;justify-content:center;gap:6px;margin-bottom:20px}
+.hero-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:.2s}
+.hero-dot.on{background:var(--lime);width:20px;border-radius:3px}
+.hero-dot.done{background:var(--lime-dim)}
 
-/* === ПРАКТИКИ === */
-.practice{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:10px;cursor:pointer;display:flex;gap:14px;align-items:center;transition:.2s;position:relative;overflow:hidden}
-.practice:active{transform:scale(.98);border-color:var(--accent)}
-.practice.done{opacity:.55}
+/* === КНОПКА РИТУАЛА === */
+.big-btn{background:var(--lime);border-radius:18px;padding:20px;display:flex;align-items:center;gap:16px;cursor:pointer;margin-bottom:20px;transition:.2s;border:none;width:100%;color:#000;text-align:left;box-shadow:0 12px 32px var(--lime-glow);position:relative;overflow:hidden}
+.big-btn:active{transform:scale(.98)}
+.big-btn .bico{font-size:36px;flex-shrink:0}
+.big-btn h3{font-size:16px;font-weight:900;margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px}
+.big-btn p{font-size:12px;opacity:.7;font-weight:600}
+
+/* === ПРАКТИКИ (список) === */
+.practice{background:var(--card);border-radius:16px;padding:16px;margin-bottom:10px;cursor:pointer;display:flex;gap:14px;align-items:center;transition:.2s;border:1px solid var(--border);position:relative;overflow:hidden}
+.practice:active{transform:scale(.98);border-color:var(--lime)}
+.practice.done{opacity:.5}
 .practice.done .p-title{text-decoration:line-through}
-.practice.done::before{content:'✓';position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:20px;color:#00d68f;font-weight:800;animation:checkIn .4s cubic-bezier(.34,1.56,.64,1)}
-@keyframes checkIn{0%{transform:translateY(-50%) scale(0)}100%{transform:translateY(-50%) scale(1)}}
-.p-ico{font-size:28px;flex-shrink:0}
+.practice.done::after{content:'✓';position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--lime);font-weight:900}
+.p-ico{font-size:26px;flex-shrink:0}
 .p-body{flex:1;min-width:0}
-.p-title{font-weight:700;font-size:15px;margin-bottom:3px}
+.p-title{font-weight:800;font-size:15px;margin-bottom:2px}
 .p-sub{font-size:12px;color:var(--muted)}
 .p-arrow{font-size:20px;color:var(--muted);flex-shrink:0}
+
+/* === КОЛЬЦА (статистика) === */
+.rings-wrap{position:relative;width:260px;height:260px;margin:16px auto 20px;animation:ringIn 1s cubic-bezier(.4,0,.2,1)}
+@keyframes ringIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.rings-svg{width:100%;height:100%;transform:rotate(-90deg);filter:drop-shadow(0 12px 40px rgba(184,255,46,.15))}
+.ring-bg{fill:none;stroke-width:11;stroke-linecap:round;opacity:.12}
+.ring-fill{fill:none;stroke-width:11;stroke-linecap:round;transition:stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1)}
+.rings-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.rings-today{font-size:68px;font-weight:900;line-height:1;color:var(--lime);letter-spacing:-3px;text-shadow:0 0 30px var(--lime-glow)}
+.rings-today-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;font-weight:800;margin-top:4px}
+
+.rings-legend{display:flex;justify-content:center;gap:18px;margin-bottom:24px;flex-wrap:wrap}
+.ring-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.ring-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ring-dot.days{background:var(--lime);box-shadow:0 0 8px var(--lime-glow)}
+.ring-dot.streak{background:var(--orange);box-shadow:0 0 8px rgba(255,140,0,.6)}
+.ring-dot.record{background:var(--green);box-shadow:0 0 8px rgba(0,214,143,.6)}
+.ring-item b{color:var(--text);font-weight:900}
+
+/* Статистика — большие карточки */
+.stat-big{background:var(--card);border-radius:16px;padding:18px;margin-bottom:12px;border:1px solid var(--border);display:flex;align-items:center;gap:14px}
+.stat-ico{font-size:32px;flex-shrink:0}
+.stat-info{flex:1}
+.stat-info .num{font-size:28px;font-weight:900;line-height:1;color:var(--lime)}
+.stat-info .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-top:2px}
+
+/* === ПРОГРЕСС 1-30 (полоса) === */
+.cal-wrap{background:var(--card);border-radius:18px;padding:18px;margin-bottom:20px;border:1px solid var(--border)}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.cal-head .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;font-weight:800}
+.cal-head .count{font-size:14px;color:var(--lime);font-weight:900}
+.cal-bar{display:flex;gap:3px;height:40px;align-items:flex-end;margin-bottom:10px}
+.cal-seg{flex:1;background:var(--card3);border-radius:4px;height:20%;transition:all .6s cubic-bezier(.4,0,.2,1);min-width:0}
+.cal-seg.done{background:var(--lime);height:100%;box-shadow:0 0 8px var(--lime-glow)}
+.cal-seg.partial{background:var(--orange);height:60%}
+.cal-seg.today{background:var(--lime);height:40%;box-shadow:0 0 12px var(--lime-glow);animation:pulseSeg 2s ease infinite}
+@keyframes pulseSeg{0%,100%{opacity:1}50%{opacity:.5}}
+.cal-seg.future{opacity:.4}
+.cal-nums{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);opacity:.6}
+
+/* === КАРТОЧКА УРОВНЯ === */
+.level-card{background:linear-gradient(135deg,rgba(184,255,46,.12),rgba(184,255,46,.02));border:1px solid var(--lime-dim);border-radius:18px;padding:18px;margin-bottom:20px;display:flex;align-items:center;gap:14px}
+.level-badge{width:54px;height:54px;border-radius:50%;background:var(--lime);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:0 0 24px var(--lime-glow)}
+.level-info{flex:1;min-width:0}
+.level-info h4{font-size:15px;font-weight:900;margin-bottom:2px}
+.level-info p{font-size:12px;color:var(--muted);line-height:1.4}
 
 /* === ЭКРАН ПРАКТИКИ === */
 .practice-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:200;overflow-y:auto;padding-bottom:100px}
 .ps-head{position:sticky;top:0;background:var(--bg);padding:16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);z-index:1}
-.ps-back{background:var(--card);border:1px solid var(--border);width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--text)}
+.ps-back{background:var(--card);border:none;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--text)}
 .ps-head-text{flex:1;min-width:0}
-.ps-head-text h2{font-size:18px;font-weight:800}
+.ps-head-text h2{font-size:18px;font-weight:900}
 .ps-head-text p{font-size:12px;color:var(--muted)}
 .ps-content{padding:20px 16px;max-width:640px;margin:0 auto}
-.ps-hero{text-align:center;padding:24px 20px;background:linear-gradient(135deg,rgba(124,92,255,.15),rgba(167,139,250,.08));border-radius:20px;margin-bottom:24px}
+.ps-hero{text-align:center;padding:28px 20px;background:linear-gradient(135deg,rgba(184,255,46,.15),rgba(184,255,46,.02));border-radius:20px;margin-bottom:24px}
 .ps-hero .ico{font-size:56px;margin-bottom:10px}
-.ps-hero .time{display:inline-block;background:rgba(124,92,255,.25);color:var(--accent2);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;margin-top:6px}
+.ps-hero .time{display:inline-block;background:var(--lime);color:#000;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:900;margin-top:6px;text-transform:uppercase;letter-spacing:.5px}
 .ps-block{margin-bottom:26px}
-.ps-block h3{font-size:14px;font-weight:800;color:var(--accent2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+.ps-block h3{font-size:13px;font-weight:900;color:var(--lime);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
 .ps-block p{font-size:15px;color:#c5c5d8;line-height:1.7;margin-bottom:10px}
 .steps{list-style:none;counter-reset:step}
-.steps li{counter-increment:step;padding:14px 14px 14px 52px;background:var(--card);border:1px solid var(--border);border-radius:13px;margin-bottom:8px;position:relative;font-size:15px;line-height:1.6}
-.steps li::before{content:counter(step);position:absolute;left:14px;top:14px;width:26px;height:26px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.steps li{counter-increment:step;padding:14px 14px 14px 52px;background:var(--card);border-radius:13px;margin-bottom:8px;position:relative;font-size:15px;line-height:1.6}
+.steps li::before{content:counter(step);position:absolute;left:14px;top:14px;width:26px;height:26px;background:var(--lime);color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900}
 .affirm-list{list-style:none;display:flex;flex-direction:column;gap:8px}
-.affirm-list li{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent2);border-radius:10px;padding:13px 15px;font-size:15px;font-style:italic;color:#dcdcf0;cursor:pointer;transition:.2s}
+.affirm-list li{background:var(--card);border-left:3px solid var(--lime);border-radius:10px;padding:13px 15px;font-size:15px;font-style:italic;color:#dcdcf0;cursor:pointer}
 .affirm-list li:active{background:var(--card2)}
 .mistakes{list-style:none}
 .mistakes li{padding:10px 0 10px 28px;position:relative;font-size:14px;color:#c5c5d8;line-height:1.6}
-.mistakes li::before{content:'✕';position:absolute;left:0;color:var(--danger);font-weight:700}
-.advice{background:linear-gradient(135deg,rgba(255,184,0,.1),rgba(255,184,0,.03));border:1px solid rgba(255,184,0,.3);border-radius:13px;padding:16px;font-size:14px;line-height:1.7;color:#e8ddc5;font-style:italic}
+.mistakes li::before{content:'✕';position:absolute;left:0;color:var(--danger);font-weight:900}
+.advice{background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.3);border-radius:13px;padding:16px;font-size:14px;line-height:1.7;color:#e8ddc5;font-style:italic}
 
 /* === ТАЙМЕР === */
-.timer-box{text-align:center;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:18px;margin-bottom:22px}
-.timer-display{font-size:52px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2);margin-bottom:14px;letter-spacing:2px}
+.timer-box{text-align:center;padding:24px 20px;background:var(--card);border-radius:18px;margin-bottom:22px;border:1px solid var(--border)}
+.timer-display{font-size:56px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--lime);margin-bottom:16px;letter-spacing:2px;text-shadow:0 0 20px var(--lime-glow)}
 .timer-btns{display:flex;gap:10px}
 .timer-btns .btn{margin-top:0}
 
 /* === РИТУАЛ === */
 .ritual{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:250;display:flex;flex-direction:column}
-.ritual-progress{padding:20px 20px 12px;border-bottom:1px solid var(--border)}
-.rp-bar{height:6px;background:var(--card2);border-radius:3px;overflow:hidden;margin-bottom:12px}
-.rp-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width .4s}
-.rp-text{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
-.rp-skip{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:9px;font-size:12px;cursor:pointer}
+.ritual-progress{padding:20px 20px 12px;border-bottom:1px solid var(--border);background:var(--bg)}
+.rp-bar{height:6px;background:var(--card3);border-radius:3px;overflow:hidden;margin-bottom:12px}
+.rp-fill{height:100%;background:var(--lime);border-radius:3px;transition:width .4s;box-shadow:0 0 10px var(--lime-glow)}
+.rp-text{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800;color:var(--text)}
+.rp-text span{text-transform:uppercase;letter-spacing:.5px}
+.rp-close{background:var(--card);border:none;color:var(--text);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700}
 .ritual-body{flex:1;overflow-y:auto;padding:24px 20px 40px;max-width:600px;margin:0 auto;width:100%}
 .ritual-hero{text-align:center;margin-bottom:26px}
-.ritual-hero .ico{font-size:72px;margin-bottom:14px;animation:bounce 1s cubic-bezier(.34,1.56,.64,1)}
-.ritual-hero h2{font-size:26px;font-weight:800;margin-bottom:6px}
+.ritual-hero .ico{font-size:80px;margin-bottom:14px;animation:bounce 1s cubic-bezier(.34,1.56,.64,1)}
+.ritual-hero h2{font-size:30px;font-weight:900;margin-bottom:6px;letter-spacing:-1px}
 .ritual-hero .sub{font-size:14px;color:var(--muted)}
-.ritual-timer{text-align:center;padding:24px;background:var(--card);border:1px solid var(--border);border-radius:20px;margin-bottom:22px}
-.ritual-timer .time{font-size:64px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2);letter-spacing:2px;line-height:1}
-.ritual-timer .btns{display:flex;gap:10px;margin-top:18px}
+.ritual-timer{text-align:center;padding:28px 20px;background:var(--card);border-radius:22px;margin-bottom:22px;border:1px solid var(--border)}
+.ritual-timer .time{font-size:68px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--lime);letter-spacing:2px;line-height:1;text-shadow:0 0 30px var(--lime-glow)}
+.ritual-timer .btns{display:flex;gap:10px;margin-top:20px}
 
 /* === НИЖНЕЕ МЕНЮ === */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(22,22,37,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px 0 24px;z-index:100}
-.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;cursor:pointer;padding:4px 16px;transition:.2s;background:none;border:none;font-family:inherit;font-weight:600}
-.nav-btn.on{color:var(--accent2)}
-.nav-btn .nav-ico{font-size:22px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,20,.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px 0 24px;z-index:100}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;cursor:pointer;padding:4px 12px;transition:.2s;background:none;border:none;font-family:inherit;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+.nav-btn.on{color:var(--lime)}
+.nav-btn .nav-ico{font-size:22px;filter:grayscale(1);transition:.2s}
+.nav-btn.on .nav-ico{filter:grayscale(0);transform:scale(1.1)}
 
 /* === ДОСТИЖЕНИЯ === */
 .ach-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.ach-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center;transition:.3s;position:relative;overflow:hidden}
-.ach-card.locked{opacity:.4}
-.ach-card.unlocked{background:linear-gradient(135deg,rgba(124,92,255,.15),rgba(167,139,250,.05));border-color:var(--accent)}
-.ach-card.unlocked::before{content:'';position:absolute;inset:-50%;background:conic-gradient(from 0deg,transparent,rgba(255,184,0,.3),transparent 30%);animation:rotate 4s linear infinite;pointer-events:none}
-.ach-badge{width:56px;height:56px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 10px;position:relative;z-index:1;transition:.3s}
-.ach-card.unlocked .ach-badge{background:linear-gradient(135deg,#ffb800,#ff8c00);box-shadow:0 0 24px rgba(255,184,0,.5);animation:achPulse 2s ease infinite}
-@keyframes achPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-.ach-name{font-size:13px;font-weight:800;margin-bottom:4px;position:relative;z-index:1}
-.ach-desc{font-size:11px;color:var(--muted);line-height:1.3;position:relative;z-index:1}
+.ach-card{background:var(--card);border-radius:16px;padding:16px;text-align:center;transition:.3s;border:1px solid var(--border);position:relative;overflow:hidden}
+.ach-card.locked{opacity:.35}
+.ach-card.unlocked{background:linear-gradient(135deg,rgba(184,255,46,.15),rgba(184,255,46,.02));border-color:var(--lime-dim)}
+.ach-badge{width:56px;height:56px;border-radius:50%;background:var(--card3);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 10px}
+.ach-card.unlocked .ach-badge{background:var(--lime);box-shadow:0 0 24px var(--lime-glow);animation:achPulse 2s ease infinite}
+@keyframes achPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.ach-name{font-size:13px;font-weight:900;margin-bottom:4px}
+.ach-desc{font-size:11px;color:var(--muted);line-height:1.3}
 
 /* === ПРОФИЛЬ === */
-.profile-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;display:flex;gap:16px;align-items:center}
-.avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;flex-shrink:0}
+.profile-card{background:var(--card);border-radius:18px;padding:22px;display:flex;gap:16px;align-items:center;border:1px solid var(--border)}
+.avatar{width:64px;height:64px;border-radius:50%;background:var(--lime);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#000;flex-shrink:0}
 .profile-info{flex:1;min-width:0}
-.profile-name-input{width:100%;background:transparent;border:none;color:var(--text);font-size:18px;font-weight:700;font-family:inherit;padding:4px 0;border-bottom:1px solid transparent;transition:.2s}
-.profile-name-input:focus{outline:none;border-bottom-color:var(--accent)}
+.profile-name-input{width:100%;background:transparent;border:none;color:var(--text);font-size:18px;font-weight:900;font-family:inherit;padding:4px 0;border-bottom:1px solid transparent;transition:.2s}
+.profile-name-input:focus{outline:none;border-bottom-color:var(--lime)}
 .profile-phone{font-size:13px;color:var(--muted);margin-top:6px}
 .emoji-row{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
 .emoji-pick{aspect-ratio:1;background:var(--card);border:1.5px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:.2s}
-.emoji-pick:active{transform:scale(.95)}
-.emoji-pick.on{border-color:var(--accent);background:rgba(124,92,255,.15)}
-
-/* === АДМИН === */
-.admin-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:12px}
-.admin-card h3{font-size:14px;font-weight:800;color:var(--accent2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
-.admin-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px}
-.admin-row:last-child{border-bottom:none}
-.admin-row span:first-child{color:var(--muted)}
-.admin-row span:last-child{color:var(--text);font-weight:700}
+.emoji-pick.on{border-color:var(--lime);background:rgba(184,255,46,.1)}
 
 /* === ДНЕВНИК === */
-.journal-q{font-size:14px;font-weight:700;color:var(--accent2);margin-bottom:8px;margin-top:16px;display:flex;align-items:center;gap:6px}
+.journal-q{font-size:13px;font-weight:800;color:var(--lime);margin-bottom:8px;margin-top:16px;text-transform:uppercase;letter-spacing:.5px}
 .journal textarea{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:13px;padding:14px;color:var(--text);font-size:14px;resize:vertical;min-height:90px;line-height:1.6}
-.journal textarea:focus{outline:none;border-color:var(--accent)}
+.journal textarea:focus{outline:none;border-color:var(--lime)}
 .journal-history{margin-top:24px}
-.jh-entry{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px}
-.jh-day{font-size:12px;color:var(--accent2);font-weight:800;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
-.jh-q{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-top:8px;margin-bottom:3px}
+.jh-entry{background:var(--card);border-radius:14px;padding:16px;margin-bottom:10px;border:1px solid var(--border)}
+.jh-day{font-size:11px;color:var(--lime);font-weight:900;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.jh-q{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:800;margin-top:10px;margin-bottom:3px}
 .jh-a{font-size:14px;color:#dcdcf0;line-height:1.5}
 
-/* === МОДАЛКА + КОНФЕТТИ === */
-.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.9);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .3s}
-.modal-box{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:30px 26px;max-width:400px;width:100%;text-align:center;animation:modalIn .5s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden}
-.modal-box::before{content:'';position:absolute;inset:-100%;background:conic-gradient(from 0deg,transparent,rgba(255,184,0,.2),transparent 30%);animation:rotate 3s linear infinite}
-@keyframes modalIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
-.modal-box .emoji{font-size:72px;margin-bottom:14px;display:block;animation:bounce 1s cubic-bezier(.34,1.56,.64,1);position:relative;z-index:1}
-.modal-box h2{font-size:24px;font-weight:800;margin-bottom:10px;position:relative;z-index:1}
-.modal-box p{color:#c5c5d8;font-size:15px;margin-bottom:24px;line-height:1.6;position:relative;z-index:1}
-.modal-box .btn{position:relative;z-index:1}
+/* === АДМИН === */
+.admin-card{background:var(--card);border-radius:16px;padding:18px;margin-bottom:12px;border:1px solid var(--border)}
+.admin-card h3{font-size:13px;font-weight:900;color:var(--lime);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.admin-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.admin-row:last-child{border-bottom:none}
+.admin-row span:first-child{color:var(--muted)}
+.admin-row span:last-child{color:var(--text);font-weight:800}
 
-/* Конфетти */
+/* === МОДАЛКА === */
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.9);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .3s}
+.modal-box{background:var(--card);border-radius:24px;padding:32px 26px;max-width:400px;width:100%;text-align:center;animation:modalIn .5s cubic-bezier(.34,1.56,.64,1);border:1px solid var(--border)}
+@keyframes modalIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+.modal-box .emoji{font-size:80px;margin-bottom:14px;display:block;animation:bounce 1s cubic-bezier(.34,1.56,.64,1)}
+.modal-box h2{font-size:26px;font-weight:900;margin-bottom:10px;letter-spacing:-.5px}
+.modal-box p{color:#c5c5d8;font-size:15px;margin-bottom:24px;line-height:1.6}
+
+/* === КОНФЕТТИ === */
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:299;overflow:hidden}
 .conf-piece{position:absolute;width:10px;height:10px;top:-20px;animation:confFall linear forwards}
 @keyframes confFall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
 
 /* === АНИМАЦИИ === */
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.book-card,.practice{animation:fadeIn .4s ease both}
+.book-card,.practice,.hero-card,.stat-big,.cal-wrap,.level-card{animation:fadeIn .5s ease both}
 
 @media(max-width:400px){
-.rings-wrap{width:240px;height:240px}
-.rings-today{font-size:52px}
-.emoji-row{grid-template-columns:repeat(6,1fr)}
-.cal-bar{height:30px}
+.rings-wrap{width:220px;height:220px}
+.rings-today{font-size:56px}
+.hero-card{height:400px;min-width:calc(100vw - 48px)}
+.hero-title{font-size:32px}
+.today-name{font-size:30px}
 }

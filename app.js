@@ -9,6 +9,7 @@ let timerRemaining = 0;
 let user = null;
 let state = {};
 let onbIndex = 0;
+let heroCurrentIndex = 0;
 
 const ADMIN_PHONE = '79124325556';
 const ONB = [
@@ -20,19 +21,19 @@ const ONB = [
 ];
 
 const EMOJIS = ['👤','😎','🧠','🔥','🌅','⚡','🎯','💪','🦁','🌟','🚀','🎨','🧘','🏆','☀️','🍀'];
+const DOW = ['ПН','ВТ','СР','ЧТ','ПТ','СБ','ВС'];
 
-// Достижения
 const ACHIEVEMENTS = [
-  { id:'first', ico:'🌟', name:'Первый шаг', desc:'Открыл книгу и начал', check:(c,s)=>c>=1 },
-  { id:'three', ico:'🔥', name:'Три дня', desc:'3 дня подряд без пропуска', check:(c,s)=>s>=3 },
+  { id:'first', ico:'🌟', name:'Первый шаг', desc:'Открыл книгу и начал', check:(c,s,e)=>c>=1 },
+  { id:'three', ico:'🔥', name:'Три дня', desc:'3 дня подряд', check:(c,s)=>s>=3 },
   { id:'week', ico:'⚡', name:'Неделя силы', desc:'7 дней подряд', check:(c,s)=>s>=7 },
   { id:'half', ico:'💎', name:'Половина', desc:'15 закрытых дней', check:(c,s)=>c>=15 },
   { id:'month', ico:'👑', name:'Мастер утра', desc:'30 дней — книга пройдена', check:(c,s)=>c>=30 },
-  { id:'perfect', ico:'🎯', name:'Идеальный день', desc:'Все практики за день', check:(c,s,extra)=>extra.perfect },
-  { id:'journal10', ico:'📖', name:'Философ', desc:'10 записей в дневнике', check:(c,s,extra)=>extra.journal>=10 },
-  { id:'early', ico:'🌅', name:'Ранняя пташка', desc:'5 закрытых дней подряд', check:(c,s)=>s>=5 },
-  { id:'century', ico:'💯', name:'Сотка', desc:'100 выполненных практик', check:(c,s,extra)=>extra.practices>=100 },
-  { id:'master', ico:'🏅', name:'Гуру', desc:'Все остальные награды', check:(c,s,extra)=>extra.otherAch>=9 }
+  { id:'perfect', ico:'🎯', name:'Идеальный день', desc:'Все практики за день', check:(c,s,e)=>e.perfect },
+  { id:'journal10', ico:'📖', name:'Философ', desc:'10 записей в дневнике', check:(c,s,e)=>e.journal>=10 },
+  { id:'early', ico:'🌅', name:'Ранняя пташка', desc:'5 дней подряд', check:(c,s)=>s>=5 },
+  { id:'century', ico:'💯', name:'Сотка', desc:'100 практик', check:(c,s,e)=>e.practices>=100 },
+  { id:'master', ico:'🏅', name:'Гуру', desc:'Все остальные награды', check:(c,s,e)=>e.otherAch>=9 }
 ];
 
 // ====== ИНИЦИАЛИЗАЦИЯ ======
@@ -43,7 +44,7 @@ window.addEventListener('DOMContentLoaded', () => {
     user = JSON.parse(saved);
     loadUserState();
     if (!state.onboarded) showOnboarding();
-    else showLibrary();
+    else openBook(BOOKS[0].id, true);
   } else {
     showAuth();
   }
@@ -51,7 +52,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // ====== ЭКРАНЫ ======
 function hideAll() {
-  ['authScreen','onbScreen','libScreen','bookScreen','achScreen','journalScreen','profileScreen','adminScreen','ritualScreen','practiceScreen'].forEach(id => {
+  ['authScreen','onbScreen','libScreen','todayScreen','bookScreen','statsScreen','journalScreen','profileScreen','adminScreen','ritualScreen','practiceScreen'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
@@ -61,32 +62,52 @@ function showAuth(){hideAll();document.getElementById('authScreen').classList.re
 function showOnboarding(){hideAll();onbIndex=0;renderOnb();document.getElementById('onbScreen').classList.remove('hidden')}
 function showLibrary(){hideAll();document.getElementById('libScreen').classList.remove('hidden');renderLibrary();checkAdminAccess()}
 function showProfile(){hideAll();document.getElementById('profileScreen').classList.remove('hidden');renderProfile();checkAdminAccess()}
-function backToLib(){showLibrary()}
 
-function showBottomPage(page, btn) {
+function navTo(page, btn) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
   if (btn) btn.classList.add('on');
-  if (page === 'ach') { showAch(); }
-  else if (page === 'journal') { showJournal(); }
-  else { backToLib(); }
+  const wasNav = !document.getElementById('bottomNav').classList.contains('hidden');
+  if (page === 'today') { showTodayScreen(); }
+  else if (page === 'book') { showBookScreen(); }
+  else if (page === 'stats') { showStatsScreen(); }
+  else if (page === 'journal') { showJournalScreen(); }
 }
 
-function showAch() {
-  if (!currentBook) return showLibrary();
-  document.getElementById('bookScreen').classList.add('hidden');
-  document.getElementById('journalScreen').classList.add('hidden');
-  document.getElementById('achScreen').classList.remove('hidden');
+function showTodayScreen() {
+  hideAll();
+  document.getElementById('todayScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
-  renderAchievements();
+  document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('on', i===0));
+  renderToday();
 }
 
-function showJournal() {
-  document.getElementById('bookScreen').classList.add('hidden');
-  document.getElementById('achScreen').classList.add('hidden');
+function showBookScreen() {
+  hideAll();
+  document.getElementById('bookScreen').classList.remove('hidden');
+  document.getElementById('bottomNav').classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('on', i===1));
+  renderBookScreen();
+}
+
+function showStatsScreen() {
+  hideAll();
+  document.getElementById('statsScreen').classList.remove('hidden');
+  document.getElementById('bottomNav').classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('on', i===2));
+  renderStatsScreen();
+}
+
+function showJournalScreen() {
+  hideAll();
   document.getElementById('journalScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('on', i===3));
   renderJournal();
 }
+
+function backToToday() { showTodayScreen(); }
+
+function showAch() { navTo('stats', document.querySelector('[data-page="stats"]')); }
 
 // ====== ВХОД ======
 let authMode = 'login';
@@ -139,7 +160,7 @@ function doAuth() {
     user = { phone, name: users[phone].name || 'Друг' };
     localStorage.setItem('vnedri_user', JSON.stringify(user));
     loadUserState();
-    if (!state.onboarded) showOnboarding(); else showLibrary();
+    if (!state.onboarded) showOnboarding(); else openBook(BOOKS[0].id, true);
   }
 }
 function logout(){if(!confirm('Выйти? Прогресс сохранится.'))return;localStorage.removeItem('vnedri_user');user=null;state={};showAuth()}
@@ -172,13 +193,15 @@ function renderOnb() {
   document.getElementById('onbBack').classList.toggle('hidden', onbIndex === 0);
   document.getElementById('onbNext').textContent = onbIndex === ONB.length - 1 ? 'Начать путь 🚀' : 'Далее';
 }
-function onbNext(){if(onbIndex<ONB.length-1){onbIndex++;renderOnb()}else{state.onboarded=true;saveState();showLibrary()}}
+function onbNext(){if(onbIndex<ONB.length-1){onbIndex++;renderOnb()}else{state.onboarded=true;saveState();openBook(BOOKS[0].id, true)}}
 function onbPrev(){if(onbIndex>0){onbIndex--;renderOnb()}}
 
 // ====== БИБЛИОТЕКА ======
 function renderLibrary() {
-  document.getElementById('libHi').textContent = 'Привет, ' + (user.name || 'Друг');
-  document.getElementById('libSub').textContent = 'Твоя библиотека';
+  document.getElementById('libName').textContent = user.name || 'Друг';
+  document.getElementById('libAvatar').textContent = state.avatar || '👤';
+  const d = new Date();
+  document.getElementById('libDate').textContent = d.toLocaleDateString('ru-RU', {weekday:'long', day:'numeric', month:'long'});
   document.getElementById('bookList').innerHTML = BOOKS.map(b => {
     const bs = getBookState(b.id);
     const closed = countClosedDays(b.id);
@@ -196,47 +219,24 @@ function renderLibrary() {
   }).join('');
 }
 
-// ====== ЭКРАН КНИГИ ======
-function openBook(id) {
+// ====== ОТКРЫТЬ КНИГУ ======
+function openBook(id, skipConfirm) {
   const b = BOOKS.find(x => x.id === id);
   if (!b) return;
   currentBook = b;
   const bs = getBookState(b.id);
   if (!bs.start) {
-    if (confirm('Начать книгу "' + b.title + '"?\nОтсчёт начнётся сегодня.')) {
+    if (skipConfirm || confirm('Начать книгу "' + b.title + '"?\nОтсчёт начнётся сегодня.')) {
       bs.start = new Date().toISOString().split('T')[0];
       saveState();
     } else return;
   }
-  hideAll();
-  document.getElementById('bookScreen').classList.remove('hidden');
-  document.getElementById('bottomNav').classList.remove('hidden');
-  document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('on', i===0));
-  renderBookScreen();
+  showTodayScreen();
 }
 
-function renderBookScreen() {
-  const b = currentBook;
-  const day = currentDay(b.id);
-  const closed = countClosedDays(b.id);
-  const streak = calcStreak(b.id);
-  const best = calcBest(b.id);
-
-  document.getElementById('bookTitle').textContent = b.title;
-  document.getElementById('bookSub').textContent = b.author + ' · ' + b.days + ' дней';
-  document.getElementById('legendDays').textContent = closed;
-  document.getElementById('legendStreak').textContent = streak;
-  document.getElementById('legendRecord').textContent = best;
-  document.getElementById('ritualSub').textContent = b.practices.length + ' практик · ~' + Math.round(b.practices.reduce((s, p) => s + p.time, 0) / 60) + ' минут';
-
-  renderRings();
-  renderCalendar();
-  renderLevel();
-  renderPractices();
-}
-
-// ====== 3 КОЛЬЦА ======
-function renderRings() {
+// ====== ГЛАВНЫЙ ЭКРАН (Сегодня) ======
+function renderToday() {
+  if (!currentBook) return;
   const b = currentBook;
   const bs = getBookState(b.id);
   const day = currentDay(b.id);
@@ -244,52 +244,106 @@ function renderRings() {
   const streak = calcStreak(b.id);
   const best = calcBest(b.id);
 
+  document.getElementById('todayName').textContent = user.name || 'Друг';
+  document.getElementById('todayAvatar').textContent = state.avatar || '👤';
+  const d = new Date();
+  document.getElementById('todayDate').textContent = d.toLocaleDateString('ru-RU', {weekday:'long', day:'numeric', month:'long'});
+
+  // Пилюли недели
+  renderWeekRow();
+
+  // Бейдж прогресса
+  const badge = document.getElementById('progBadge');
+  badge.style.display = 'inline-flex';
+  document.getElementById('progBadgeText').textContent = 'День ' + day + ' из ' + b.days;
+  document.getElementById('progBadgePct').textContent = Math.round(closed/b.days*100) + '%';
+
+  // Hero-карточки практик
+  renderHeroCards();
+
+  // Кнопка ритуала
+  document.getElementById('ritualSub').textContent = b.practices.length + ' практик · ~' + Math.round(b.practices.reduce((s, p) => s + p.time, 0) / 60) + ' минут';
+
+  // Уровень
+  renderLevel();
+}
+
+// ====== ДНИ НЕДЕЛИ — ПИЛЮЛИ ======
+function renderWeekRow() {
+  const b = currentBook;
+  const bs = getBookState(b.id);
+  const today = new Date();
+  const dow = today.getDay() === 0 ? 6 : today.getDay() - 1; // ПН=0
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - dow);
+  const todayStr = today.toISOString().split('T')[0];
+
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const dateStr = d.toISOString().split('T')[0];
+    const rec = bs.days[dateStr];
+    let cls = 'day-pill';
+    if (rec && rec.closed) cls += ' done';
+    else if (rec && rec.practices && rec.practices.length >= 2) cls += ' partial';
+    if (dateStr === todayStr) cls += ' active';
+    if (dateStr > todayStr) cls += ' future';
+    html += `<div class="${cls}">
+      <div class="dow">${DOW[i]}</div>
+      <div class="dnum">${d.getDate()}</div>
+    </div>`;
+  }
+  document.getElementById('weekRow').innerHTML = html;
+}
+
+// ====== HERO-КАРТОЧКИ ======
+function renderHeroCards() {
+  const b = currentBook;
+  const bs = getBookState(b.id);
+  const day = currentDay(b.id);
   const date = dateByDay(b.id, day);
   const todayRec = bs.days[date] || { practices: [] };
-  const todayCount = (todayRec.practices || []).length;
-  const total = b.practices.length;
 
-  // Дни — от 0 до 30
-  setRing('ringDays', 54, closed / b.days);
-  // Подряд — от 0 до 30
-  setRing('ringStreak', 42, Math.min(streak / b.days, 1));
-  // Рекорд — от 0 до 30
-  setRing('ringRecord', 30, Math.min(best / b.days, 1));
+  const classMap = {
+    silence:'hero-silence', affirm:'hero-affirm', visual:'hero-visual',
+    journal:'hero-journal', read:'hero-read', sport:'hero-sport',
+    'two-min':'hero-silence', anchor:'hero-affirm', env:'hero-visual', track:'hero-journal'
+  };
 
-  const todayEl = document.getElementById('ringsToday');
-  const labelEl = document.getElementById('ringsLabel');
-  if (todayEl) animateNumber(todayEl, 0, todayCount, '', 900);
+  let html = '';
+  b.practices.forEach((p, i) => {
+    const done = todayRec.practices && todayRec.practices.includes(p.id);
+    const cls = done ? 'hero-card hero-done' : 'hero-card ' + (classMap[p.id] || 'hero-silence');
+    html += `<div class="${cls}">
+      <div class="hero-ico">${p.ico}</div>
+      <div class="hero-badge">● Практика ${i+1} из ${b.practices.length}</div>
+      ${done ? '<div class="hero-done-badge">✓</div>' : ''}
+      <div class="hero-content">
+        <div class="hero-title">${p.title}</div>
+        <div class="hero-sub">${p.sub}</div>
+        <button class="hero-play" onclick="event.stopPropagation();openPractice('${p.id}')">
+          ${done ? '✓ ВЫПОЛНЕНО' : '▶ НАЧАТЬ'}
+        </button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('heroScroll').innerHTML = html;
 
-  if (labelEl) {
-    if (todayCount === 0) labelEl.textContent = 'ПРИГОТОВЬТЕСЬ';
-    else if (todayCount < 4) labelEl.textContent = 'В ПРОЦЕССЕ';
-    else if (todayCount < total) labelEl.textContent = 'ХОРОШО ИДЁШЬ';
-    else labelEl.textContent = 'ДЕНЬ ЗАКРЫТ ✓';
-  }
-
-  const wrap = document.getElementById('ringWrap');
-  if (wrap) wrap.classList.toggle('complete', todayCount === total);
+  document.getElementById('heroDots').innerHTML = b.practices.map((p, i) => {
+    const done = todayRec.practices && todayRec.practices.includes(p.id);
+    return `<div class="hero-dot ${done ? 'done' : ''}" data-i="${i}"></div>`;
+  }).join('');
 }
 
-function setRing(id, radius, pct) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const c = 2 * Math.PI * radius;
-  el.style.strokeDasharray = c;
-  el.style.strokeDashoffset = c;
-  setTimeout(() => { el.style.strokeDashoffset = c * (1 - Math.min(pct, 1)); }, 100);
-}
-
-function animateNumber(el, from, to, suffix, duration) {
-  const start = performance.now();
-  function tick(now) {
-    const t = Math.min((now - start) / duration, 1);
-    const eased = 1 - Math.pow(1 - t, 3);
-    const val = Math.round(from + (to - from) * eased);
-    el.textContent = val + (suffix || '');
-    if (t < 1) requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
+// ====== ЭКРАН ПРОГРАММЫ (книга) ======
+function renderBookScreen() {
+  if (!currentBook) return;
+  const b = currentBook;
+  document.getElementById('bookTitle').textContent = b.title;
+  document.getElementById('bookSub').textContent = b.author + ' · ' + b.days + ' дней';
+  renderCalendar();
+  renderPractices();
 }
 
 // ====== КАЛЕНДАРЬ 1→30 ======
@@ -303,8 +357,6 @@ function renderCalendar() {
     <div class="label">📅 Прогресс пути</div>
     <div class="count">${closed} из ${b.days}</div>
   </div>`;
-
-  html += `<div class="cal-info"><span>День 1</span><span><b>${Math.round(closed/b.days*100)}%</b></span><span>День ${b.days}</span></div>`;
   html += `<div class="cal-bar">`;
   for (let d = 1; d <= b.days; d++) {
     const date = dateByDay(b.id, d);
@@ -317,33 +369,136 @@ function renderCalendar() {
     html += `<div class="${cls}"></div>`;
   }
   html += `</div>`;
-
   html += `<div class="cal-nums"><span>1</span><span>10</span><span>20</span><span>30</span></div>`;
-
   document.getElementById('calWrap').innerHTML = html;
+}
+
+// ====== ПРАКТИКИ (список) ======
+function renderPractices() {
+  const b = currentBook;
+  const day = currentDay(b.id);
+  const date = dateByDay(b.id, day);
+  const bs = getBookState(b.id);
+  const todayRec = bs.days[date] || { practices: [] };
+
+  document.getElementById('practiceList').innerHTML = b.practices.map(p => {
+    const done = todayRec.practices && todayRec.practices.includes(p.id);
+    return `<div class="practice ${done ? 'done' : ''}" onclick="openPractice('${p.id}')">
+      <div class="p-ico">${p.ico}</div>
+      <div class="p-body">
+        <div class="p-title">${p.title}</div>
+        <div class="p-sub">${p.sub}</div>
+      </div>
+      <div class="p-arrow">›</div>
+    </div>`;
+  }).join('');
+}
+
+// ====== СТАТИСТИКА ======
+function renderStatsScreen() {
+  if (!currentBook) return;
+  const b = currentBook;
+  const bs = getBookState(b.id);
+  const day = currentDay(b.id);
+  const closed = countClosedDays(b.id);
+  const streak = calcStreak(b.id);
+  const best = calcBest(b.id);
+
+  const date = dateByDay(b.id, day);
+  const todayRec = bs.days[date] || { practices: [] };
+  const todayCount = (todayRec.practices || []).length;
+  const total = b.practices.length;
+
+  setRing('ringDays', 54, closed / b.days);
+  setRing('ringStreak', 42, Math.min(streak / b.days, 1));
+  setRing('ringRecord', 30, Math.min(best / b.days, 1));
+
+  const todayEl = document.getElementById('ringsToday');
+  const labelEl = document.getElementById('ringsLabel');
+  if (todayEl) animateNumber(todayEl, 0, todayCount, '', 900);
+  if (labelEl) {
+    if (todayCount === 0) labelEl.textContent = 'ПРИГОТОВЬТЕСЬ';
+    else if (todayCount < 4) labelEl.textContent = 'В ПРОЦЕССЕ';
+    else if (todayCount < total) labelEl.textContent = 'ХОРОШО ИДЁШЬ';
+    else labelEl.textContent = 'ДЕНЬ ЗАКРЫТ ✓';
+  }
+
+  document.getElementById('legendDays').textContent = closed;
+  document.getElementById('legendStreak').textContent = streak;
+  document.getElementById('legendRecord').textContent = best;
+  document.getElementById('statStreakBig').textContent = streak;
+  document.getElementById('statBestBig').textContent = best;
+  document.getElementById('statClosedBig').textContent = closed;
+
+  renderAchievements();
+}
+
+function setRing(id, radius, pct) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const c = 2 * Math.PI * radius;
+  el.style.strokeDasharray = c;
+  el.style.strokeDashoffset = c;
+  setTimeout(() => { el.style.strokeDashoffset = c * (1 - Math.min(pct, 1)); }, 100);
+}
+function animateNumber(el, from, to, suffix, duration) {
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const val = Math.round(from + (to - from) * eased);
+    el.textContent = val + (suffix || '');
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ====== НАГРАДЫ ======
+function renderAchievements() {
+  if (!currentBook) return;
+  const closed = countClosedDays(currentBook.id);
+  const streak = calcStreak(currentBook.id);
+  const bs = getBookState(currentBook.id);
+  const journal = Object.keys(bs.journal || {}).filter(k => {
+    const j = bs.journal[k]; return j.q1 || j.q2 || j.q3;
+  }).length;
+  let practices = 0, perfect = false;
+  Object.values(bs.days).forEach(rec => {
+    if (rec.practices) practices += rec.practices.length;
+    if (rec.practices && rec.practices.length === currentBook.practices.length) perfect = true;
+  });
+  const extra = { journal, practices, perfect, otherAch: 0 };
+
+  document.getElementById('achGrid').innerHTML = ACHIEVEMENTS.map(a => {
+    const unlocked = a.check(closed, streak, extra);
+    return `<div class="ach-card ${unlocked ? 'unlocked' : 'locked'}">
+      <div class="ach-badge">${unlocked ? a.ico : '🔒'}</div>
+      <div class="ach-name">${a.name}</div>
+      <div class="ach-desc">${a.desc}</div>
+    </div>`;
+  }).join('');
 }
 
 // ====== УРОВНИ ======
 function getLevel(closed) {
-  if (closed === 0) return { ico:'🌱', name:'Новичок', desc:'Начни первый день — и путь откроется', cls:'' };
-  if (closed < 3) return { ico:'🌱', name:'Первый шаг', desc:`${closed} ${plural(closed,'день','дня','дней')} — начало положено`, cls:'' };
-  if (closed < 7) return { ico:'🌿', name:'В ритме', desc:`${closed} ${plural(closed,'день','дня','дней')} — ты входишь в поток`, cls:'pro' };
-  if (closed < 14) return { ico:'🔥', name:'Практик', desc:`${closed} ${plural(closed,'день','дня','дней')} — привычка формируется`, cls:'pro' };
-  if (closed < 21) return { ico:'💎', name:'Опытный', desc:`${closed} ${plural(closed,'день','дня','дней')} — ты почти у цели`, cls:'pro' };
-  if (closed < 30) return { ico:'🏆', name:'Мастер', desc:`${closed} ${plural(closed,'день','дня','дней')} — ты легенда`, cls:'master' };
-  return { ico:'👑', name:'Легенда', desc:'Книга пройдена полностью. Уважение.', cls:'master' };
+  if (closed === 0) return { ico:'🌱', name:'Новичок', desc:'Начни первый день' };
+  if (closed < 3) return { ico:'🌱', name:'Первый шаг', desc:`${closed} ${plural(closed,'день','дня','дней')} — начало положено` };
+  if (closed < 7) return { ico:'🌿', name:'В ритме', desc:`${closed} ${plural(closed,'день','дня','дней')} — ты в потоке` };
+  if (closed < 14) return { ico:'🔥', name:'Практик', desc:`${closed} ${plural(closed,'день','дня','дней')} — привычка формируется` };
+  if (closed < 21) return { ico:'💎', name:'Опытный', desc:`${closed} ${plural(closed,'день','дня','дней')} — ты почти у цели` };
+  if (closed < 30) return { ico:'🏆', name:'Мастер', desc:`${closed} ${plural(closed,'день','дня','дней')} — ты легенда` };
+  return { ico:'👑', name:'Легенда', desc:'Книга пройдена полностью' };
 }
 function plural(n, one, few, many) {
-  const mod10 = n % 10, mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return one;
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
   return many;
 }
 function renderLevel() {
   const closed = countClosedDays(currentBook.id);
   const lv = getLevel(closed);
   document.getElementById('levelBadge').textContent = lv.ico;
-  document.getElementById('levelBadge').className = 'level-badge ' + lv.cls;
   document.getElementById('levelName').textContent = lv.name;
   document.getElementById('levelDesc').textContent = lv.desc;
 }
@@ -393,66 +548,11 @@ function dateByDay(bookId, day) {
 }
 function todayStr(){return new Date().toISOString().split('T')[0]}
 
-// ====== ПРАКТИКИ ======
-function renderPractices() {
-  const b = currentBook;
-  const day = currentDay(b.id);
-  const date = dateByDay(b.id, day);
-  const bs = getBookState(b.id);
-  const todayRec = bs.days[date] || { practices: [] };
-
-  document.getElementById('practiceList').innerHTML = b.practices.map(p => {
-    const done = todayRec.practices && todayRec.practices.includes(p.id);
-    return `<div class="practice ${done ? 'done' : ''}" onclick="openPractice('${p.id}')">
-      <div class="p-ico">${p.ico}</div>
-      <div class="p-body">
-        <div class="p-title">${p.title}</div>
-        <div class="p-sub">${p.sub}</div>
-      </div>
-      <div class="p-arrow">›</div>
-    </div>`;
-  }).join('');
-}
-
-// ====== НАГРАДЫ ======
-function renderAchievements() {
-  if (!currentBook) return;
-  const closed = countClosedDays(currentBook.id);
-  const streak = calcStreak(currentBook.id);
-  const bs = getBookState(currentBook.id);
-
-  const journal = Object.keys(bs.journal || {}).filter(k => {
-    const j = bs.journal[k];
-    return j.q1 || j.q2 || j.q3;
-  }).length;
-
-  let practices = 0;
-  let perfect = false;
-  Object.values(bs.days).forEach(rec => {
-    if (rec.practices) practices += rec.practices.length;
-    if (rec.practices && rec.practices.length === currentBook.practices.length) perfect = true;
-  });
-
-  const extra = { journal, practices, perfect, otherAch: 0 };
-
-  const list = ACHIEVEMENTS.map(a => {
-    const unlocked = a.check(closed, streak, extra);
-    return `<div class="ach-card ${unlocked ? 'unlocked' : 'locked'}">
-      <div class="ach-badge">${unlocked ? a.ico : '🔒'}</div>
-      <div class="ach-name">${a.name}</div>
-      <div class="ach-desc">${a.desc}</div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('achGrid').innerHTML = list;
-}
-
 // ====== ДНЕВНИК ======
 function renderJournal() {
   if (!currentBook) return showLibrary();
   const day = currentDay(currentBook.id);
   document.getElementById('journalDay').textContent = day;
-
   const bs = getBookState(currentBook.id);
   const date = dateByDay(currentBook.id, day);
   const today = bs.journal[date] || {};
@@ -465,15 +565,13 @@ function renderJournal() {
     if (!j.q1 && !j.q2 && !j.q3) return '';
     return `<div class="jh-entry">
       <div class="jh-day">День ${dateToDay(currentBook.id, d)}</div>
-      ${j.q1 ? `<div class="jh-q">🌟 Что получилось</div><div class="jh-a">${escapeHtml(j.q1)}</div>` : ''}
-      ${j.q2 ? `<div class="jh-q">💭 Что было сложно</div><div class="jh-a">${escapeHtml(j.q2)}</div>` : ''}
-      ${j.q3 ? `<div class="jh-q">🔍 Что замечаю</div><div class="jh-a">${escapeHtml(j.q3)}</div>` : ''}
+      ${j.q1 ? `<div class="jh-q">🌟 Получилось</div><div class="jh-a">${escapeHtml(j.q1)}</div>` : ''}
+      ${j.q2 ? `<div class="jh-q">💭 Сложно</div><div class="jh-a">${escapeHtml(j.q2)}</div>` : ''}
+      ${j.q3 ? `<div class="jh-q">🔍 Замечаю</div><div class="jh-a">${escapeHtml(j.q3)}</div>` : ''}
     </div>`;
   }).join('');
-
   document.getElementById('journalHistory').innerHTML = history || '<div class="jh-entry" style="text-align:center;color:var(--muted);padding:24px">Пока пусто. Сделай первую запись.</div>';
 }
-
 function dateToDay(bookId, date) {
   const bs = getBookState(bookId);
   if (!bs.start) return '?';
@@ -482,7 +580,6 @@ function dateToDay(bookId, date) {
   return Math.floor((d - start) / 86400000) + 1;
 }
 function escapeHtml(s){return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-
 function saveJournal() {
   if (!currentBook) return;
   const day = currentDay(currentBook.id);
@@ -518,7 +615,7 @@ function renderRitualStep() {
       <div class="time" id="ritualTime">${formatTime(p.time)}</div>
       <div class="btns">
         <button class="btn" onclick="toggleRitualTimer()" id="ritualTimerBtn">▶ Старт</button>
-        <button class="btn" onclick="nextRitual()" id="ritualNextBtn" style="background:linear-gradient(135deg,#00d68f,#00b377)">Выполнено ✓</button>
+        <button class="btn" onclick="nextRitual()" style="background:var(--lime);color:#000">Выполнено ✓</button>
       </div>
     </div>
     <div class="ps-block"><h3>💡 Зачем это нужно</h3><p>${p.why}</p></div>
@@ -543,7 +640,6 @@ function startTimer(displayId, btn) {
 function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterval=null}}
 function formatTime(sec){const m=Math.floor(sec/60),s=sec%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
 function playBeep(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.value=800;gain.gain.setValueAtTime(0.3,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);osc.start();osc.stop(ctx.currentTime+0.5)}catch(e){}if(navigator.vibrate)navigator.vibrate([200,100,200])}
-
 function nextRitual() {
   stopTimer();
   const p = ritualQueue[ritualIndex];
@@ -551,12 +647,7 @@ function nextRitual() {
   ritualIndex++;
   renderRitualStep();
 }
-function skipCurrentPractice() {
-  stopTimer();
-  ritualIndex++;
-  if (ritualIndex >= ritualQueue.length) { finishRitual(); return; }
-  renderRitualStep();
-}
+function closeRitual(){document.getElementById('ritualScreen').classList.add('hidden');showTodayScreen()}
 function finishRitual() {
   stopTimer();
   const day = currentDay(currentBook.id);
@@ -565,24 +656,21 @@ function finishRitual() {
   if (!bs.days[date]) bs.days[date] = { practices: [] };
   const count = bs.days[date].practices.length;
   const total = currentBook.practices.length;
-
   if (count >= 4) {
     const wasClosed = bs.days[date].closed;
     bs.days[date].closed = true;
     saveState();
     if (!wasClosed) fireConfetti();
-    if (count === total) showModal('🔥', 'Идеальный день!', `Все ${total} практик! Так держать, ты в потоке.`);
-    else if (count === 4) showModal('✅', 'День закрыт!', `${count} из ${total} — этого достаточно. День ${day} засчитан!`);
-    else showModal('🎉', 'День закрыт!', `${count} из ${total}. День ${day} засчитан!`);
+    if (count === total) showModal('🔥', 'Идеальный день!', `Все ${total} практик! Так держать.`);
+    else showModal('✅', 'День закрыт!', `${count} из ${total}. День ${day} засчитан!`);
   } else if (count >= 2) {
     saveState();
-    showModal('💪', 'Хорошо идёшь!', `Ты сделал ${count} из ${total}. Для закрытия дня нужно 4 — добавь ещё.`);
+    showModal('💪', 'Хорошо идёшь!', `${count} из ${total}. Для закрытия дня нужно 4.`);
   } else {
     saveState();
-    showModal('🌱', 'Начало положено', `Сделано ${count} из ${total}. Маленький шаг — тоже шаг.`);
+    showModal('🌱', 'Начало положено', `${count} из ${total}. Маленький шаг — тоже шаг.`);
   }
 }
-function closeRitual(){document.getElementById('ritualScreen').classList.add('hidden');renderBookScreen()}
 function markPracticeDone(pid) {
   const day = currentDay(currentBook.id);
   const date = dateByDay(currentBook.id, day);
@@ -592,7 +680,7 @@ function markPracticeDone(pid) {
   saveState();
 }
 
-// ====== ЭКРАН ПРАКТИКИ ======
+// ====== ПРАКТИКА (полный экран) ======
 function openPractice(id) {
   const p = currentBook.practices.find(x => x.id === id);
   if (!p) return;
@@ -603,10 +691,10 @@ function openPractice(id) {
     <div class="ps-hero"><div class="ico">${p.ico}</div><div class="time">⏱ ${Math.round(p.time / 60)} минут</div></div>
     <div class="ps-block"><h3>💡 Зачем это нужно</h3><p>${p.why}</p></div>
     <div class="ps-block"><h3>🎬 Как делать</h3><ol class="steps">${p.how.map(s => `<li>${s}</li>`).join('')}</ol></div>
-    ${p.affirm ? `<div class="ps-block"><h3>✨ Готовые аффирмации</h3><ul class="affirm-list">${p.affirm.map(a => `<li onclick="copyAffirm(this)">«${a}»</li>`).join('')}</ul></div>` : ''}
+    ${p.affirm ? `<div class="ps-block"><h3>✨ Аффирмации</h3><ul class="affirm-list">${p.affirm.map(a => `<li onclick="copyAffirm(this)">«${a}»</li>`).join('')}</ul></div>` : ''}
     <div class="ps-block"><h3>⏱ Таймер</h3><div class="timer-box"><div class="timer-display" id="timerDisplay">${formatTime(p.time)}</div><div class="timer-btns"><button class="btn" id="timerBtn" onclick="toggleTimerP()">▶ Старт</button><button class="btn btn-ghost" onclick="resetTimerP()">↺ Сброс</button></div></div></div>
-    <div class="ps-block"><h3>🎯 Что должно получиться</h3><p>${p.result}</p></div>
-    <div class="ps-block"><h3>⚠️ Частые ошибки</h3><ul class="mistakes">${p.mistakes.map(m => `<li>${m}</li>`).join('')}</ul></div>
+    <div class="ps-block"><h3>🎯 Результат</h3><p>${p.result}</p></div>
+    <div class="ps-block"><h3>⚠️ Ошибки</h3><ul class="mistakes">${p.mistakes.map(m => `<li>${m}</li>`).join('')}</ul></div>
     <div class="ps-block"><h3>💬 Совет</h3><div class="advice">${p.advice}</div></div>
     <button class="btn" style="margin-top:20px" onclick="markPracticeFromScreen('${p.id}')">✓ Отметить выполненным</button>
   `;
@@ -614,32 +702,11 @@ function openPractice(id) {
   document.body.style.overflow = 'hidden';
   timerRemaining = p.time;
 }
-function closePractice(){document.getElementById('practiceScreen').classList.add('hidden');document.body.style.overflow='';stopTimer();currentPractice=null;renderBookScreen()}
+function closePractice(){document.getElementById('practiceScreen').classList.add('hidden');document.body.style.overflow='';stopTimer();currentPractice=null;showTodayScreen()}
 function toggleTimerP(){const btn=document.getElementById('timerBtn');if(timerInterval){stopTimer();btn.textContent='▶ Продолжить'}else startTimer('timerDisplay',btn)}
 function resetTimerP(){stopTimer();if(currentPractice){timerRemaining=currentPractice.time;document.getElementById('timerDisplay').textContent=formatTime(timerRemaining);document.getElementById('timerBtn').textContent='▶ Старт'}}
 function markPracticeFromScreen(id){markPracticeDone(id);closePractice()}
-function copyAffirm(el){const text=el.textContent.replace(/[«»]/g,'');if(navigator.clipboard){navigator.clipboard.writeText(text);el.style.background='rgba(0,214,143,.2)';setTimeout(()=>el.style.background='',500)}}
-
-// ====== КОНФЕТТИ ======
-function fireConfetti() {
-  const box = document.getElementById('confetti');
-  box.classList.remove('hidden');
-  const colors = ['#7c5cff','#a78bfa','#00d68f','#ffb800','#ff6b9d','#4da6ff'];
-  for (let i = 0; i < 40; i++) {
-    const el = document.createElement('div');
-    el.className = 'conf-piece';
-    el.style.left = Math.random() * 100 + '%';
-    el.style.background = colors[Math.floor(Math.random() * colors.length)];
-    el.style.animationDuration = (2 + Math.random() * 2) + 's';
-    el.style.animationDelay = (Math.random() * 0.3) + 's';
-    if (Math.random() > 0.5) el.style.borderRadius = '50%';
-    box.appendChild(el);
-  }
-  setTimeout(() => {
-    box.innerHTML = '';
-    box.classList.add('hidden');
-  }, 4500);
-}
+function copyAffirm(el){const text=el.textContent.replace(/[«»]/g,'');if(navigator.clipboard){navigator.clipboard.writeText(text);el.style.background='rgba(184,255,46,.15)';setTimeout(()=>el.style.background='',500)}}
 
 // ====== ПРОФИЛЬ ======
 function renderProfile() {
@@ -658,13 +725,13 @@ function showAdmin() {
   if (!isAdmin()) return;
   hideAll();
   document.getElementById('adminScreen').classList.remove('hidden');
+  document.getElementById('bottomNav').classList.remove('hidden');
   renderAdmin();
 }
 function renderAdmin() {
   const users = JSON.parse(localStorage.getItem('vnedri_users') || '{}');
   const phones = Object.keys(users);
-
-  let active = 0, totalStreak = 0, totalJournal = 0, totalClosed = 0, totalSessions = 0;
+  let active = 0, totalStreak = 0, totalJournal = 0, totalClosed = 0;
 
   const userList = phones.map(phone => {
     const u = users[phone];
@@ -676,49 +743,67 @@ function renderAdmin() {
     const journalCount = Object.keys(mb.journal || {}).filter(k => {
       const j = mb.journal[k]; return j.q1 || j.q2 || j.q3;
     }).length;
-
     if (u.lastSeen && Date.now() - u.lastSeen < 30 * 86400000) active++;
     totalStreak += streak;
     totalJournal += journalCount;
     totalClosed += closed;
-    totalSessions++;
-
     return `<div class="admin-card">
       <h3>${u.name || 'Без имени'} ${phone === ADMIN_PHONE ? '👑' : ''}</h3>
       <div class="admin-row"><span>Телефон</span><span>+7 ${phone.slice(1,4)} *** ${phone.slice(7)}</span></div>
-      <div class="admin-row"><span>Регистрация</span><span>${u.created ? new Date(u.created).toLocaleDateString('ru') : '—'}</span></div>
-      <div class="admin-row"><span>Закрыто дней</span><span>${closed}</span></div>
+      <div class="admin-row"><span>С нами с</span><span>${u.created ? new Date(u.created).toLocaleDateString('ru') : '—'}</span></div>
+      <div class="admin-row"><span>Закрыто</span><span>${closed}</span></div>
       <div class="admin-row"><span>Подряд</span><span>${streak}</span></div>
-      <div class="admin-row"><span>Записей в дневнике</span><span>${journalCount}</span></div>
+      <div class="admin-row"><span>Записей</span><span>${journalCount}</span></div>
     </div>`;
   }).join('');
 
   document.getElementById('adminUsers').textContent = phones.length;
   document.getElementById('adminActive').textContent = active;
   document.getElementById('adminAvgStreak').textContent = phones.length ? Math.round(totalStreak / phones.length) : 0;
-  document.getElementById('adminSessions').textContent = totalSessions;
+  document.getElementById('adminSessions').textContent = phones.length;
   document.getElementById('adminJournal').textContent = totalJournal;
   document.getElementById('adminClosed').textContent = totalClosed;
-
-  if (users[ADMIN_PHONE]) {
-    document.getElementById('adminMyDate').textContent = new Date(users[ADMIN_PHONE].created).toLocaleDateString('ru');
-  }
-
+  if (users[ADMIN_PHONE]) document.getElementById('adminMyDate').textContent = new Date(users[ADMIN_PHONE].created).toLocaleDateString('ru');
   document.getElementById('adminUserList').innerHTML = userList;
 }
-function calcStreakFromState(bookState) {
-  if (!bookState.start) return 0;
-  let streak = 0;
+function calcStreakFromState(bs) {
+  if (!bs.start) return 0;
+  let s = 0;
   for (let i = 0; i < 30; i++) {
-    const start = new Date(bookState.start);
-    start.setDate(start.getDate() + i);
-    const d = start.toISOString().split('T')[0];
-    if (bookState.days[d] && bookState.days[d].closed) streak++;
+    const st = new Date(bs.start); st.setDate(st.getDate() + i);
+    const d = st.toISOString().split('T')[0];
+    if (bs.days[d] && bs.days[d].closed) s++;
     else break;
   }
-  return streak;
+  return s;
+}
+
+// ====== КОНФЕТТИ ======
+function fireConfetti() {
+  const box = document.getElementById('confetti');
+  box.classList.remove('hidden');
+  const colors = ['#B8FF2E','#ffb800','#7c5cff','#00d68f','#ff6b9d'];
+  for (let i = 0; i < 50; i++) {
+    const el = document.createElement('div');
+    el.className = 'conf-piece';
+    el.style.left = Math.random() * 100 + '%';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDuration = (2 + Math.random() * 2) + 's';
+    el.style.animationDelay = (Math.random() * 0.3) + 's';
+    if (Math.random() > 0.5) el.style.borderRadius = '50%';
+    box.appendChild(el);
+  }
+  setTimeout(() => { box.innerHTML = ''; box.classList.add('hidden'); }, 4500);
 }
 
 // ====== МОДАЛКА ======
 function showModal(emoji,title,text){document.getElementById('modalEmoji').textContent=emoji;document.getElementById('modalTitle').textContent=title;document.getElementById('modalText').textContent=text;document.getElementById('modal').classList.remove('hidden')}
 function closeModal(){document.getElementById('modal').classList.add('hidden');closeRitual()}
+
+// Инициализация hero-скролла
+document.addEventListener('scroll', (e) => {
+  if (e.target && e.target.id === 'heroScroll') {
+    const idx = Math.round(e.target.scrollLeft / e.target.offsetWidth);
+    document.querySelectorAll('.hero-dot').forEach((d,i) => d.classList.toggle('on', i === idx));
+  }
+}, true);
