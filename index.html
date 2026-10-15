@@ -20,7 +20,12 @@
 <div id="appLoader">
   <div class="ld-logo">ВНЕДРИ</div>
   <div class="ld-tagline">НЕ ЧИТАЙ — ВНЕДРИ</div>
+  <div class="ld-quote">
+    «Знать и не делать — значит не знать»
+    <span class="ld-quote-author">— Сократ</span>
+  </div>
   <div class="ld-spin"></div>
+  <div class="ld-dev">Разработано Андреем Герасимовым · ANDGER</div>
 </div>
 
 <!-- ВХОД -->
@@ -96,6 +101,54 @@
   </div>
 </div>
 
+<!-- КАРТОЧКА КНИГИ (подробная) -->
+<div id="bookDetailScreen" class="hidden">
+  <div class="wrap" style="padding-top:0">
+    <div class="main-head" style="padding-left:0;padding-right:0">
+      <div class="top-row">
+        <button class="back-top" onclick="backFromBookDetail()">←</button>
+        <div class="head-actions">
+          <div class="icon-btn" id="soundBtnBookDetail" onclick="toggleSound()">🔊</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="book-hero" style="padding-left:0;padding-right:0">
+      <div class="bh-ico" id="bdEmoji">🌅</div>
+      <h1 id="bdTitle">Магия утра</h1>
+      <div class="bh-author" id="bdAuthor">Хэл Элрод · 30 дней</div>
+      <div class="bh-tags" id="bdTags"></div>
+    </div>
+
+    <div class="book-section">
+      <h3>📖 О книге</h3>
+      <p id="bdAbout">—</p>
+    </div>
+
+    <div class="book-section" id="bdMethodSection">
+      <h3>🎯 Ключевые методики</h3>
+      <div class="book-method" id="bdMethod"></div>
+    </div>
+
+    <div class="book-section" id="bdAuthorSection">
+      <h3>👤 Об авторе</h3>
+      <p id="bdAuthorBio">—</p>
+    </div>
+
+    <div class="book-section" id="bdForWhomSection">
+      <h3>🎓 Для кого</h3>
+      <p id="bdForWhom">—</p>
+    </div>
+
+    <div class="book-section" id="bdResultSection">
+      <h3>🏆 Что даст за курс</h3>
+      <p id="bdResult">—</p>
+    </div>
+
+    <button class="btn" id="bdStartBtn" onclick="startBookFromDetail()" style="margin-top:8px">🚀 Начать путь</button>
+  </div>
+</div>
+
 <!-- ГЛАВНАЯ -->
 <div id="todayScreen" class="hidden">
   <div class="main-head">
@@ -131,7 +184,7 @@
 
     <div id="hintCard"></div>
 
-    <button class="big-btn" onclick="showPickModal()">
+    <button class="big-btn" onclick="startRitual()">
       <div class="bico">☀️</div>
       <div>
         <h3>Начать ритуал</h3>
@@ -167,6 +220,7 @@
 <div id="statsScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
+      <button class="back-top" onclick="backFromStats()">←</button>
       <div class="page-label">📊 СТАТИСТИКА</div>
       <div class="head-actions">
         <div class="icon-btn" id="soundBtnStats" onclick="toggleSound()">🔊</div>
@@ -176,10 +230,9 @@
     <div class="hi"><span class="name">За всё время</span></div>
   </div>
   <div class="wrap">
-    <div class="stats-global" id="statsGlobal">
+    <div class="stats-global">
       <div class="sg-head">
         <span class="sg-title">🌍 Общий прогресс</span>
-        <span class="sg-arrow">›</span>
       </div>
       <div class="row">
         <div class="item"><div class="num" id="globalBooks">0</div><div class="lbl">Книг</div></div>
@@ -188,7 +241,8 @@
       </div>
     </div>
 
-    <div id="statsBooksList"></div>
+    <h2 class="section-title">📚 По книгам</h2>
+    <div class="stats-books-list" id="statsBooksList"></div>
 
     <h2 class="section-title">🏆 Награды</h2>
     <div class="ach-header">
@@ -206,6 +260,7 @@
 <div id="journalScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
+      <button class="back-top" onclick="backFromJournal()">←</button>
       <div class="page-label">✍️ ДНЕВНИК</div>
       <div class="head-actions">
         <div class="icon-btn" id="soundBtnJournal" onclick="toggleSound()">🔊</div>
@@ -224,7 +279,7 @@
     <div class="mood-analysis" id="moodAnalysis" style="display:none">
       <div class="ma-head">
         <span class="ma-title">📈 Твоё состояние</span>
-        <span class="ma-trend" id="maTrend">Растёт ↗</span>
+        <span class="ma-trend" id="maTrend">Стабильно →</span>
       </div>
       <div class="ma-chart" id="maChart"></div>
       <div class="ma-days" id="maDays"></div>
@@ -364,17 +419,6 @@
     <div class="icon-btn" id="soundBtnPractice" onclick="toggleSound()">🔊</div>
   </div>
   <div class="ps-content" id="psContent"></div>
-</div>
-
-<!-- МОДАЛКА ВЫБОРА ПРАКТИКИ -->
-<div class="pick-modal hidden" id="pickModal" onclick="if(event.target===this)closePickModal()">
-  <div class="pick-box">
-    <div class="pick-head">
-      <h3>Что будем делать?</h3>
-      <button class="pick-close" onclick="closePickModal()">✕</button>
-    </div>
-    <div id="pickList"></div>
-  </div>
 </div>
 
 <!-- НИЖНЕЕ МЕНЮ -->
