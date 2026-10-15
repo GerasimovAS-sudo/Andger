@@ -5,34 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ВНЕДРИ">
+<meta name="apple-mobile-web-app-title" content="ANDGER">
 <meta name="theme-color" content="#0d0a18">
-<meta name="description" content="Не читай книгу — внедри её в жизнь">
+<meta name="description" content="Между знанием и жизнью — один шаг. Практикум по книгам.">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="manifest" href="manifest.json">
-<title>ВНЕДРИ</title>
+<title>ANDGER</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <!-- SPLASH -->
 <div id="appLoader">
-  <div class="ld-logo">ВНЕДРИ</div>
-  <div class="ld-tagline">НЕ ЧИТАЙ — ВНЕДРИ</div>
+  <div class="ld-logo"><span>A</span><span>N</span><span>D</span><span>G</span><span>E</span><span>R</span></div>
+  <div class="ld-tagline">МЕЖДУ ЗНАНИЕМ И ЖИЗНЬЮ — ОДИН ШАГ</div>
   <div class="ld-quote">
-    «Знать и не делать — значит не знать»
-    <span class="ld-quote-author">— Сократ</span>
+    «Мы не становимся тем, что читаем. Мы становимся тем, что делаем каждое утро»
+    <span class="ld-quote-author">— Андрей Герасимов</span>
   </div>
   <div class="ld-spin"></div>
-  <div class="ld-dev">Разработано Андреем Герасимовым · ANDGER</div>
 </div>
 
 <!-- ВХОД -->
 <div class="auth hidden" id="authScreen">
   <div class="auth-logo">
-    <div class="logo">ВНЕДРИ</div>
-    <p>Не читай книгу — внедри её в жизнь</p>
+    <div class="logo">ANDGER</div>
+    <p>Практикум по книгам</p>
   </div>
   <div class="auth-tabs">
     <div class="auth-tab on" id="tabLogin" onclick="switchTab('login')">Войти</div>
@@ -65,7 +64,7 @@
   </div>
 </div>
 
-<!-- ПРИВЕТСТВИЕ НОВИЧКА -->
+<!-- ПРИВЕТСТВИЕ -->
 <div class="welcome-screen hidden" id="welcomeScreen">
   <h1 id="welcomeName">Добро пожаловать!</h1>
   <p class="ws-sub">Начнём с первой книги</p>
@@ -76,77 +75,6 @@
   </div>
   <button class="btn" onclick="startFirstBook()">🚀 Начать путь</button>
   <button class="btn btn-ghost" onclick="skipWelcome()">Выбрать другую книгу</button>
-</div>
-
-<!-- БИБЛИОТЕКА -->
-<div id="libScreen" class="hidden">
-  <div class="main-head">
-    <div class="top-row">
-      <div class="page-label">📚 БИБЛИОТЕКА</div>
-      <div class="head-actions">
-        <div class="icon-btn" id="soundBtnLib" onclick="toggleSound()">🔊</div>
-        <div class="avatar" id="libAvatar" onclick="showProfile()">👤</div>
-      </div>
-    </div>
-    <div class="hi"><span class="name" id="libName">Друг</span></div>
-  </div>
-  <div class="wrap">
-    <div class="lib-stats">
-      <div class="lib-stat"><div class="num" id="libBooks">0</div><div class="lbl">Книг</div></div>
-      <div class="lib-stat"><div class="num" id="libDays">0</div><div class="lbl">Дней</div></div>
-      <div class="lib-stat"><div class="num" id="libPractices">0</div><div class="lbl">Практик</div></div>
-    </div>
-    <h2 class="section-title">📚 Все книги</h2>
-    <div id="bookList"></div>
-  </div>
-</div>
-
-<!-- КАРТОЧКА КНИГИ (подробная) -->
-<div id="bookDetailScreen" class="hidden">
-  <div class="wrap" style="padding-top:0">
-    <div class="main-head" style="padding-left:0;padding-right:0">
-      <div class="top-row">
-        <button class="back-top" onclick="backFromBookDetail()">←</button>
-        <div class="head-actions">
-          <div class="icon-btn" id="soundBtnBookDetail" onclick="toggleSound()">🔊</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="book-hero" style="padding-left:0;padding-right:0">
-      <div class="bh-ico" id="bdEmoji">🌅</div>
-      <h1 id="bdTitle">Магия утра</h1>
-      <div class="bh-author" id="bdAuthor">Хэл Элрод · 30 дней</div>
-      <div class="bh-tags" id="bdTags"></div>
-    </div>
-
-    <div class="book-section">
-      <h3>📖 О книге</h3>
-      <p id="bdAbout">—</p>
-    </div>
-
-    <div class="book-section" id="bdMethodSection">
-      <h3>🎯 Ключевые методики</h3>
-      <div class="book-method" id="bdMethod"></div>
-    </div>
-
-    <div class="book-section" id="bdAuthorSection">
-      <h3>👤 Об авторе</h3>
-      <p id="bdAuthorBio">—</p>
-    </div>
-
-    <div class="book-section" id="bdForWhomSection">
-      <h3>🎓 Для кого</h3>
-      <p id="bdForWhom">—</p>
-    </div>
-
-    <div class="book-section" id="bdResultSection">
-      <h3>🏆 Что даст за курс</h3>
-      <p id="bdResult">—</p>
-    </div>
-
-    <button class="btn" id="bdStartBtn" onclick="startBookFromDetail()" style="margin-top:8px">🚀 Начать путь</button>
-  </div>
 </div>
 
 <!-- ГЛАВНАЯ -->
@@ -165,53 +93,125 @@
     </div>
   </div>
   <div class="wrap">
-    <h2 class="section-title">📚 Мои книги <span id="myBooksCount" style="color:var(--accent-2)"></span></h2>
-    <div class="my-books-row" id="myBooksRow"></div>
+    <div id="installBanner"></div>
 
-    <div class="week-row" id="weekRow"></div>
+    <div id="activeBookWrap"></div>
 
-    <div class="progress-combined" id="progressCombined">
-      <div class="pc-head">
-        <div class="pc-title" id="pcBookTitle">Магия утра</div>
-        <div class="pc-day" id="pcDay">День 1 из 30</div>
-      </div>
-      <div class="pc-bar"><div class="pc-fill" id="pcFill" style="width:0%"></div></div>
-      <div class="pc-info">
-        <span>Закрыто: <b id="pcClosed">0</b></span>
-        <span>Прогресс: <b id="pcPct">0%</b></span>
-      </div>
+    <div class="action-row">
+      <button class="action-btn primary" onclick="startRitual()">
+        <div class="ab-ico">☀️</div>
+        <div>
+          <h3>Начать ритуал</h3>
+          <p id="ritualSub">—</p>
+        </div>
+      </button>
+      <button class="action-btn" onclick="showRitualBuilder()">
+        <div class="ab-ico">🎯</div>
+        <div>
+          <h4>Свой ритуал</h4>
+          <p>Собрать из книг</p>
+        </div>
+      </button>
+      <button class="action-btn" onclick="showBreathModal()">
+        <div class="ab-ico">🌬</div>
+        <div>
+          <h4>Дыхание</h4>
+          <p>Успокоиться</p>
+        </div>
+      </button>
     </div>
+
+    <div class="cal-wrap" id="calWrap"></div>
 
     <div id="hintCard"></div>
 
-    <button class="big-btn" onclick="startRitual()">
-      <div class="bico">☀️</div>
-      <div>
-        <h3>Начать ритуал</h3>
-        <p id="ritualSub">—</p>
-      </div>
-    </button>
-    <button class="big-btn secondary" onclick="startQuickRitual()">
-      <div class="bico">⚡</div>
-      <div>
-        <h3>Быстрый ритуал</h3>
-        <p>По 1 практике из каждой книги · ~7 минут</p>
-      </div>
-    </button>
-
-    <h2 class="section-title" style="margin-top:20px">Практики на сегодня</h2>
+    <h2 class="section-title">📋 Практики на сегодня</h2>
     <div class="hero-scroll" id="heroScroll"></div>
     <div class="hero-dots" id="heroDots"></div>
+  </div>
+</div>
 
-    <div class="secondary-actions">
-      <div class="sec-btn" onclick="showJournalScreen()">
-        <div class="sico">✍️</div>
-        <div><div class="sname">Дневник</div><div class="ssub">Записать мысли</div></div>
+<!-- БИБЛИОТЕКА -->
+<div id="libScreen" class="hidden">
+  <div class="main-head">
+    <div class="top-row">
+      <div class="page-label">📚 БИБЛИОТЕКА</div>
+      <div class="head-actions">
+        <div class="icon-btn" id="soundBtnLib" onclick="toggleSound()">🔊</div>
+        <div class="avatar" id="libAvatar" onclick="showProfile()">👤</div>
       </div>
-      <div class="sec-btn" onclick="showStatsScreen()">
-        <div class="sico">📊</div>
-        <div><div class="sname">Статистика</div><div class="ssub">Прогресс книги</div></div>
+    </div>
+    <div class="hi"><span class="name" id="libName">Друг</span></div>
+  </div>
+  <div class="wrap">
+    <input type="text" class="lib-search" id="libSearch" placeholder="🔍 Поиск книг" oninput="renderLibrary()">
+    <div id="bookList"></div>
+  </div>
+</div>
+
+<!-- КАРТОЧКА КНИГИ -->
+<div id="bookDetailScreen" class="hidden">
+  <div class="main-head" style="padding-bottom:0">
+    <div class="top-row">
+      <button class="back-top" onclick="backFromBookDetail()">←</button>
+      <div class="head-actions">
+        <div class="icon-btn" id="soundBtnBookDetail" onclick="toggleSound()">🔊</div>
       </div>
+    </div>
+  </div>
+  <div class="wrap" style="padding:0">
+    <div class="book-detail-hero">
+      <div class="bd-emoji" id="bdEmoji">🌅</div>
+      <h1 id="bdTitle">Магия утра</h1>
+      <div class="bd-author" id="bdAuthor">—</div>
+      <div class="bd-tags" id="bdTags"></div>
+      <div class="bd-stars" id="bdStars"></div>
+    </div>
+    <div style="padding:0 16px 40px">
+      <div class="book-section">
+        <h3>📖 О книге</h3>
+        <p id="bdAbout">—</p>
+      </div>
+      <div class="book-section" id="bdMethodSection">
+        <h3>🎯 Ключевые методики</h3>
+        <div class="book-method" id="bdMethod"></div>
+      </div>
+      <div class="book-section" id="bdAuthorSection">
+        <h3>👤 Об авторе</h3>
+        <p id="bdAuthorBio">—</p>
+      </div>
+      <div class="book-section" id="bdForWhomSection">
+        <h3>🎓 Для кого</h3>
+        <p id="bdForWhom">—</p>
+      </div>
+      <div class="book-section" id="bdResultSection">
+        <h3>🏆 Что даст за курс</h3>
+        <p id="bdResult">—</p>
+      </div>
+      <button class="btn" id="bdStartBtn" onclick="startBookFromDetail()">🚀 Начать путь</button>
+      <button class="btn btn-ghost" onclick="buyBookLink()">📖 Купить книгу</button>
+    </div>
+  </div>
+</div>
+
+<!-- СВОЙ РИТУАЛ (конструктор) -->
+<div id="ritualBuilderScreen" class="hidden">
+  <div class="main-head">
+    <div class="top-row">
+      <button class="back-top" onclick="backFromRitualBuilder()">←</button>
+      <div class="page-label">🎯 СВОЙ РИТУАЛ</div>
+    </div>
+    <div class="hi"><span class="name">Собери практики</span></div>
+  </div>
+  <div class="wrap">
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Отметь практики, которые хочешь делать сегодня. Можно взять из разных книг.</p>
+    <div id="ritualBuilderList"></div>
+    <div class="ritual-builder-summary" id="ritualBuilderSummary" style="display:none">
+      <div class="rbs-info">
+        <h4 id="rbsCount">0 практик</h4>
+        <p id="rbsTime">~0 минут</p>
+      </div>
+      <button class="rbs-btn" onclick="launchCustomRitual()">Запустить</button>
     </div>
   </div>
 </div>
@@ -220,7 +220,6 @@
 <div id="statsScreen" class="hidden">
   <div class="main-head">
     <div class="top-row">
-      <button class="back-top" onclick="backFromStats()">←</button>
       <div class="page-label">📊 СТАТИСТИКА</div>
       <div class="head-actions">
         <div class="icon-btn" id="soundBtnStats" onclick="toggleSound()">🔊</div>
@@ -230,10 +229,7 @@
     <div class="hi"><span class="name">За всё время</span></div>
   </div>
   <div class="wrap">
-    <div class="stats-global">
-      <div class="sg-head">
-        <span class="sg-title">🌍 Общий прогресс</span>
-      </div>
+    <div class="stats-hero">
       <div class="row">
         <div class="item"><div class="num" id="globalBooks">0</div><div class="lbl">Книг</div></div>
         <div class="item"><div class="num" id="globalClosed">0</div><div class="lbl">Дней</div></div>
@@ -241,8 +237,19 @@
       </div>
     </div>
 
-    <h2 class="section-title">📚 По книгам</h2>
-    <div class="stats-books-list" id="statsBooksList"></div>
+    <h2 class="section-title">📚 Книги</h2>
+    <div class="stats-books-swipe" id="statsBooksSwipe"></div>
+
+    <div class="stats-fire">
+      <div class="sf-item">
+        <div class="sf-num" id="statStreakBig">0</div>
+        <div class="sf-lbl">🔥 Огонь</div>
+      </div>
+      <div class="sf-item">
+        <div class="sf-num" id="statBestBig">0</div>
+        <div class="sf-lbl">🏆 Рекорд</div>
+      </div>
+    </div>
 
     <h2 class="section-title">🏆 Награды</h2>
     <div class="ach-header">
@@ -270,20 +277,16 @@
     <div class="hi"><span class="name" id="journalBookTitle">—</span></div>
   </div>
   <div class="wrap">
-    <div class="journal-stats">
-      <div><div class="js-num" id="jsCount">0</div><div class="js-lbl">Записей</div></div>
-      <div><div class="js-num" id="jsStreak">0</div><div class="js-lbl">Дней подряд</div></div>
-      <div><div class="js-num" id="jsWords">0</div><div class="js-lbl">Слов</div></div>
-    </div>
-
-    <div class="mood-analysis" id="moodAnalysis" style="display:none">
-      <div class="ma-head">
-        <span class="ma-title">📈 Твоё состояние</span>
-        <span class="ma-trend" id="maTrend">Стабильно →</span>
+    <div class="mood-tracker">
+      <div class="mt-title">📊 Как ты себя чувствуешь?</div>
+      <div class="mood-row">
+        <div class="mr-label">☀️ Утро</div>
+        <div class="mr-emojis" id="moodMorning"></div>
       </div>
-      <div class="ma-chart" id="maChart"></div>
-      <div class="ma-days" id="maDays"></div>
-      <div class="ma-text" id="maText"></div>
+      <div class="mood-row">
+        <div class="mr-label">🌙 Вечер</div>
+        <div class="mr-emojis" id="moodEvening"></div>
+      </div>
     </div>
 
     <div class="journal">
@@ -297,7 +300,7 @@
       <div class="err" id="journalMsg" style="color:var(--success)"></div>
     </div>
     <h2 class="section-title">📖 История</h2>
-    <div class="journal-history" id="journalHistory"></div>
+    <div id="journalHistory"></div>
   </div>
 </div>
 
@@ -313,18 +316,29 @@
     </div>
     <div class="hi"><span class="name">Общение</span></div>
   </div>
-  <div class="wrap" style="padding-bottom:140px">
-    <div class="chat-rooms" id="chatRooms">
-      <div class="chat-room on" data-room="general" onclick="switchRoom('general', this)">💬 Общий</div>
-      <div class="chat-room" data-room="wins" onclick="switchRoom('wins', this)">🎯 Победы</div>
-      <div class="chat-room" data-room="questions" onclick="switchRoom('questions', this)">❓ Вопросы</div>
-      <div class="chat-room" data-room="tips" onclick="switchRoom('tips', this)">💡 Советы</div>
+  <div class="wrap" style="padding-bottom:160px">
+    <div class="tabs-row">
+      <div class="tab-pill on" onclick="switchCommunityTab('feed', this)">📱 Лента</div>
+      <div class="tab-pill" onclick="switchCommunityTab('chat', this)">💬 Чат</div>
+      <div class="tab-pill" onclick="switchCommunityTab('leaders', this)">🔥 Лидеры</div>
     </div>
-    <div class="chat-messages" id="chatMessages"></div>
+
+    <div id="communityFeed">
+      <div id="feedList"></div>
+    </div>
+
+    <div id="communityChat" class="hidden">
+      <div id="chatList"></div>
+    </div>
+
+    <div id="communityLeaders" class="hidden">
+      <div id="leadersList"></div>
+    </div>
   </div>
-  <div class="chat-input-wrap">
-    <input type="text" class="chat-input" id="chatInput" placeholder="Написать сообщение..." maxlength="500" onkeydown="if(event.key==='Enter')sendMessage()">
-    <button class="chat-send" onclick="sendMessage()">➤</button>
+
+  <div class="feed-input-wrap" id="feedInputWrap">
+    <input type="text" class="feed-input" id="feedInput" placeholder="Что у тебя нового?" maxlength="500">
+    <button class="feed-post-btn" onclick="sendFeedPost()">➤</button>
   </div>
 </div>
 
@@ -357,14 +371,19 @@
     <div class="toggle-row" onclick="toggleSound()">
       <div>
         <div class="tl">🔊 Звуки и музыка</div>
-        <div class="ts">Клики, отметки, фон во время практик</div>
+        <div class="ts">Клики, отметки, фон</div>
       </div>
       <div class="toggle-switch on" id="soundToggle"></div>
     </div>
 
-    <h3 class="section-title">О приложении</h3>
+    <h3 class="section-title">Мой профиль</h3>
+    <button class="btn btn-ghost" onclick="showPublicProfile()">🔗 Публичный профиль</button>
+    <button class="btn btn-ghost" onclick="copyReferral()">🎁 Пригласить друга</button>
+
+    <h3 class="section-title">Приложение</h3>
+    <button class="btn btn-ghost" id="installAppBtn" onclick="showInstallInstructions()">📱 Установить на телефон</button>
     <button class="btn btn-ghost" onclick="showContactMenu()">💬 Связаться с разработчиком</button>
-    <button class="btn btn-ghost" onclick="shareApp()">📤 Поделиться приложением</button>
+    <button class="btn btn-ghost" onclick="shareApp()">📤 Поделиться</button>
 
     <h3 class="section-title">Данные</h3>
     <button class="btn btn-ghost" onclick="syncNow()">☁️ Синхронизировать</button>
@@ -372,6 +391,34 @@
 
     <h3 class="section-title" style="color:var(--danger)">Опасная зона</h3>
     <button class="btn btn-danger" onclick="logout()">🚪 Выйти</button>
+
+    <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:24px">
+      ANDGER · v2.0 · Разработано Андреем Герасимовым
+    </div>
+  </div>
+</div>
+
+<!-- ПУБЛИЧНЫЙ ПРОФИЛЬ -->
+<div id="publicProfileScreen" class="hidden">
+  <div class="main-head">
+    <div class="top-row">
+      <button class="back-top" onclick="backFromPublicProfile()">←</button>
+      <div class="page-label">🔗 ПУБЛИЧНЫЙ ПРОФИЛЬ</div>
+    </div>
+  </div>
+  <div class="wrap" style="padding:0">
+    <div class="public-profile">
+      <div class="pp-ava" id="ppAva">👤</div>
+      <h2 id="ppName">Андрей</h2>
+      <div class="pp-status" id="ppStatus">🌱 Новичок</div>
+      <div class="pp-stats">
+        <div class="pp-stat"><div class="num" id="ppFire">0</div><div class="lbl">🔥 Огонь</div></div>
+        <div class="pp-stat"><div class="num" id="ppRecord">0</div><div class="lbl">🏆 Рекорд</div></div>
+        <div class="pp-stat"><div class="num" id="ppBooks">0</div><div class="lbl">📚 Книг</div></div>
+      </div>
+      <button class="btn" onclick="sharePublicProfile()">📤 Поделиться</button>
+      <button class="btn btn-ghost" onclick="copyPublicLink()">🔗 Скопировать ссылку</button>
+    </div>
   </div>
 </div>
 
@@ -382,17 +429,28 @@
       <button class="back-top" onclick="showProfile()">←</button>
       <div class="page-label">⚙️ АДМИН</div>
     </div>
-    <div class="hi"><span class="name">Пользователи</span></div>
+    <div class="hi"><span class="name">Управление</span></div>
   </div>
   <div class="wrap">
-    <div class="admin-summary">
-      <div><div class="as-num" id="adminUsers">0</div><div class="as-lbl">Всего</div></div>
-      <div><div class="as-num" id="adminActive">0</div><div class="as-lbl">Активных</div></div>
-      <div><div class="as-num" id="adminJournal">0</div><div class="as-lbl">Записей</div></div>
+    <div class="admin-tabs">
+      <div class="admin-tab on" onclick="switchAdminTab('users', this)">👥 Юзеры</div>
+      <div class="admin-tab" onclick="switchAdminTab('analytics', this)">📊 Аналитика</div>
     </div>
-    <input type="text" class="admin-search" id="adminSearch" placeholder="🔍 Поиск по имени или номеру" oninput="filterAdmin()">
-    <div class="admin-list" id="adminUserList"></div>
-    <div id="adminDetailWrap"></div>
+
+    <div id="adminUsers">
+      <div class="admin-summary">
+        <div><div class="as-num" id="adminUsersCount">0</div><div class="as-lbl">Всего</div></div>
+        <div><div class="as-num" id="adminActiveCount">0</div><div class="as-lbl">Активных</div></div>
+        <div><div class="as-num" id="adminTodayCount">0</div><div class="as-lbl">Сегодня</div></div>
+      </div>
+      <input type="text" class="admin-search" id="adminSearch" placeholder="🔍 Поиск по имени или номеру" oninput="filterAdmin()">
+      <div class="admin-list" id="adminUserList"></div>
+      <div id="adminDetailWrap"></div>
+    </div>
+
+    <div id="adminAnalytics" class="hidden">
+      <div id="analyticsContent"></div>
+    </div>
   </div>
 </div>
 
@@ -421,23 +479,30 @@
   <div class="ps-content" id="psContent"></div>
 </div>
 
+<!-- МОДАЛКА ВЫБОРА ПРАКТИК -->
+<div class="pick-modal hidden" id="pickModal" onclick="if(event.target===this)closePickModal()">
+  <div class="pick-box">
+    <div class="pick-head">
+      <h3>Что делаем?</h3>
+      <button class="pick-close" onclick="closePickModal()">✕</button>
+    </div>
+    <div id="pickList"></div>
+  </div>
+</div>
+
 <!-- НИЖНЕЕ МЕНЮ -->
 <div class="bottom-nav hidden" id="bottomNav">
   <button class="nav-btn on" data-page="today" onclick="navTo('today', this)">
-    <div class="nav-ico">🏠</div>
-    <div>Главная</div>
+    <div class="nav-ico">🏠</div><div>Главная</div>
   </button>
   <button class="nav-btn" data-page="lib" onclick="navTo('lib', this)">
-    <div class="nav-ico">📚</div>
-    <div>Библиотека</div>
+    <div class="nav-ico">📚</div><div>Библиотека</div>
   </button>
   <button class="nav-btn" data-page="community" onclick="navTo('community', this)">
-    <div class="nav-ico">💬</div>
-    <div>Сообщество</div>
+    <div class="nav-ico">💬</div><div>Сообщество</div>
   </button>
   <button class="nav-btn" data-page="stats" onclick="navTo('stats', this)">
-    <div class="nav-ico">📊</div>
-    <div>Статистика</div>
+    <div class="nav-ico">📊</div><div>Статистика</div>
   </button>
 </div>
 
@@ -452,7 +517,7 @@
   </div>
 </div>
 
-<!-- МОДАЛКА ДЕТАЛЕЙ НАГРАДЫ -->
+<!-- МОДАЛКА НАГРАДЫ -->
 <div class="modal hidden" id="achModal">
   <div class="modal-box">
     <div class="emoji" id="achModalIco">🏆</div>
@@ -469,7 +534,7 @@
     <div class="co-ico">✓</div>
     <h2 id="completeTitle">Практика завершена</h2>
     <div class="co-sub" id="completeSub">—</div>
-    <button class="btn" id="completeBtn" onclick="completePracticeDone()">✓ Отметить выполненным</button>
+    <button class="btn" onclick="completePracticeDone()">✓ Отметить выполненным</button>
     <div class="co-secondary">
       <button class="btn btn-ghost" onclick="addFiveMinutes()">+5 минут</button>
       <button class="btn btn-ghost" onclick="completePracticeSkip()">Пропустить</button>
@@ -477,14 +542,27 @@
   </div>
 </div>
 
-<!-- МОДАЛКА "ЗАБЫЛИ ПАРОЛЬ" -->
+<!-- МОДАЛКА ДЫХАНИЯ -->
+<div class="modal hidden" id="breathModal">
+  <div class="modal-box">
+    <h2 style="font-size:20px">🌬 Дыхание 4-7-8</h2>
+    <div class="breath-circle" id="breathCircle">
+      <div class="bc-inner" id="breathText">Готов?</div>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Вдох 4 · Задержка 7 · Выдох 8</p>
+    <button class="btn" id="breathBtn" onclick="toggleBreath()">▶ Начать</button>
+    <button class="btn btn-ghost" onclick="closeBreath()">Закрыть</button>
+  </div>
+</div>
+
+<!-- МОДАЛКА ЗАБЫЛИ ПАРОЛЬ -->
 <div class="modal hidden" id="forgotModal">
   <div class="modal-box">
     <div class="emoji">🔑</div>
     <h2>Сброс пароля</h2>
     <p>Свяжись с разработчиком — он сбросит пароль вручную</p>
     <button class="btn" onclick="contactDev()">💬 Написать разработчику</button>
-    <button class="btn btn-ghost" onclick="document.getElementById('forgotModal').classList.add('hidden')" style="margin-top:10px">Закрыть</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('forgotModal').classList.add('hidden')">Закрыть</button>
   </div>
 </div>
 
@@ -498,6 +576,16 @@
     <button class="btn btn-ghost" onclick="contactTelegram()" style="margin-top:0">✈️ Telegram</button>
     <button class="btn btn-ghost" onclick="contactWhatsApp()" style="margin-top:8px">📱 WhatsApp</button>
     <button class="btn btn-ghost" onclick="document.getElementById('contactModal').classList.add('hidden')" style="margin-top:16px">Закрыть</button>
+  </div>
+</div>
+
+<!-- МОДАЛКА УСТАНОВКИ -->
+<div class="modal hidden" id="installModal">
+  <div class="modal-box">
+    <div class="emoji">📱</div>
+    <h2>Установить ANDGER</h2>
+    <div id="installInstructions" style="text-align:left;font-size:14px;line-height:1.8;color:#c5c5d8;margin-bottom:20px"></div>
+    <button class="btn btn-ghost" onclick="document.getElementById('installModal').classList.add('hidden')">Закрыть</button>
   </div>
 </div>
 
