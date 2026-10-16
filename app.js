@@ -242,9 +242,9 @@ window.addEventListener('DOMContentLoaded', async()=>{
   randomSplashQuote();
   setSplashProgress(30);
   
-    // Если открыт /u/{slug} — покажем публичный профиль
-  const isPublic=await handlePublicProfileUrl();
-  if(isPublic){hideLoader();return}
+      // Если открыт /u/{slug} — покажем публичный профиль (отключено, разберёмся позже)
+  // const isPublic=await handlePublicProfileUrl();
+  // if(isPublic){hideLoader();return}
 
   try{
     const{data:{session}}=await sb.auth.getSession();
@@ -2764,7 +2764,7 @@ async function saveBook(published){
 // ═══════════════════════════════════════════════
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/Vnedri/sw.js')
+    navigator.serviceWorker.register('/sw.js')
       .then(reg=>{})
       .catch(err=>console.log('SW error',err));
   });
