@@ -241,6 +241,10 @@ window.addEventListener('DOMContentLoaded', async()=>{
   BOOKS=(typeof BOOK_REGISTRY!=='undefined'?BOOK_REGISTRY:[]).filter(Boolean);
   randomSplashQuote();
   setSplashProgress(30);
+  
+    // Если открыт /u/{slug} — покажем публичный профиль
+  const isPublic=await handlePublicProfileUrl();
+  if(isPublic){hideLoader();return}
 
   try{
     const{data:{session}}=await sb.auth.getSession();
@@ -736,7 +740,7 @@ function checkAdminAccess(){
   if(b)b.classList.toggle('hidden',!isAdmin());  
 }
 function shareApp(){
-  const url='https://gerasimovas-sudo.github.io/Vnedri/';
+  const url='https://andger.netlify.app/';
   if(navigator.share)navigator.share({title:'ANDGER',text:'Практикум по книгам',url});
   else{navigator.clipboard.writeText(url);toast('Ссылка скопирована')}
 }
@@ -1794,7 +1798,7 @@ async function createNotification(userId,type,payload){
 // ─── ПУБЛИЧНЫЙ ПРОФИЛЬ ───
 async function ensureSlug(){
   if(state.slug)return state.slug;
-  const slug=(user.name||'user').toLowerCase().replace(/[^a-z0-9]/g,'')+user.phone.slice(-4);
+  const slug='u'+user.phone.slice(-6);
   await sb.from('profiles').update({public_slug:slug}).eq('id',user.id);
   state.slug=slug;saveState();
   return slug;
@@ -1818,12 +1822,12 @@ async function showPublicProfile(){
   document.getElementById('publicProfileScreen').classList.remove('hidden');
 }
 function copyPublicLink(){
-  const url='https://gerasimovas-sudo.github.io/Vnedri/u/'+(state.slug||'me');
+  const url='https://andger.netlify.app/u/'+(state.slug||'me');
   copyToClipboard(url);
   toast('✓ Ссылка скопирована');
 }
 function sharePublicProfile(){
-  const url='https://gerasimovas-sudo.github.io/Vnedri/u/'+(state.slug||'me');
+  const url='https://andger.netlify.app/u/'+(state.slug||'me');
   if(navigator.share)navigator.share({title:user.name,text:'Мой прогресс в ANDGER',url});
   else copyPublicLink();
 }
@@ -1838,7 +1842,7 @@ async function ensureReferral(){
 }
 async function copyReferral(){
   await ensureReferral();
-  const url='https://gerasimovas-sudo.github.io/Vnedri/?ref='+state.referralCode;
+  const url='https://andger.netlify.app/?ref='+state.referralCode;
   copyToClipboard(url);
   toast('✓ Ссылка приглашения скопирована');
 }
@@ -2885,4 +2889,41 @@ async function deleteQuote(id){
   await loadAdminQuotes();
   await loadQuotes();
   toast('Удалено');
+}
+// ─── Публичный профиль через URL /u/{slug} ───
+async function handlePublicProfileUrl(){
+  const m=location.pathname.match(/^\/u\/([a-zA-Z0-9_-]+)$/);
+  if(!m)return false;
+  const slug=m[1];
+  try{
+    const{data}=await sb.from('profiles').select('id,name,avatar,public_slug').eq('public_slug',slug).single();
+    if(!data){
+      alert('Профиль не найден');
+      return false;
+    }
+    // Показываем публичный профиль
+    document.getElementById('ppAva').textContent=data.avatar||'👤';
+    document.getElementById('ppName').textContent=data.name||'Друг';
+    // Считаем прогресс этого юзера
+    const{data:prog}=await sb.from('progress').select('*').eq('user_id',data.id);
+    let totalFire=0,totalBest=0,booksCount=0;
+    (prog||[]).forEach(row=>{
+      const d=row.data||{};
+      const days=d.days||{};
+      let closed=Object.keys(days).filter(k=>days[k].closed).length;
+      if(closed>0)booksCount++;
+      // Считаем streak грубо
+      if(closed>totalFire)totalFire=closed;
+    });
+    const lv=getLevel(0);
+    document.getElementById('ppStatus').textContent=`${lv.ico} ${lv.name}`;
+    document.getElementById('ppFire').textContent=totalFire;
+    document.getElementById('ppRecord').textContent=totalBest;
+    document.getElementById('ppBooks').textContent=booksCount;
+    hideAll();
+    document.getElementById('publicProfileScreen').classList.remove('hidden');
+    return true;
+  }catch(e){
+    return false;
+  }
 }
