@@ -9,16 +9,16 @@ const CACHE_DYNAMIC = 'andger-dynamic-v2';
 
 // Файлы, которые всегда в кэше
 const STATIC_FILES = [
-  '/Vnedri/',
-  '/Vnedri/index.html',
-  '/Vnedri/styles.css',
-  '/Vnedri/app.js',
-  '/Vnedri/manifest.json',
-  '/Vnedri/icon.svg',
-  '/Vnedri/books/magic-morning.js',
-  '/Vnedri/books/atomic-habits.js',
-  '/Vnedri/books/transurfing.js',
-  '/Vnedri/books/registry.js'
+  '/',
+  '/index.html',
+  '/styles.css',
+  '/app.js',
+  '/manifest.json',
+  '/icon.svg',
+  '/books/magic-morning.js',
+  '/books/atomic-habits.js',
+  '/books/transurfing.js',
+  '/books/registry.js'
 ];
 
 // ─── INSTALL ───
@@ -96,8 +96,8 @@ self.addEventListener('push',(e)=>{
 
   const options={
     body:data.body||'',
-    icon:'/Vnedri/icon-192.png',
-    badge:'/Vnedri/icon-192.png',
+    icon:'/icon-192.png',
+    badge:'/icon-192.png',
     vibrate:[100,50,100],
     tag:data.tag||'andger-notif',
     data:data.data||{},
@@ -113,15 +113,15 @@ self.addEventListener('push',(e)=>{
 self.addEventListener('notificationclick',(e)=>{
   e.notification.close();
   const data=e.notification.data||{};
-  let url='/Vnedri/';
-  if(data.type==='msg'&&data.from)url='/Vnedri/?action=dialog&user='+data.from;
-  else if(data.type==='ritual')url='/Vnedri/?action=ritual';
-  else if(data.type==='journal')url='/Vnedri/?action=journal';
+  let url='/';
+  if(data.type==='msg'&&data.from)url='/?action=dialog&user='+data.from;
+  else if(data.type==='ritual')url='/?action=ritual';
+  else if(data.type==='journal')url='/?action=journal';
 
   e.waitUntil(
     clients.matchAll({type:'window',includeUncontrolled:true}).then(clientList=>{
       for(const client of clientList){
-        if(client.url.includes('/Vnedri/')&&'focus' in client){
+        if(client.url.includes('/')&&'focus' in client){
           client.navigate(url);
           return client.focus();
         }
@@ -151,7 +151,7 @@ self.addEventListener('message',(e)=>{
   if(e.data&&e.data.type==='PUSH_TEST'){
     self.registration.showNotification('Тестовое уведомление',{
       body:'ANDGER push работает 🎉',
-      icon:'/Vnedri/icon-192.png'
+      icon:'/icon-192.png'
     });
   }
 });
