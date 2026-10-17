@@ -427,7 +427,7 @@ async function syncProgress(){
     last_seen:new Date().toISOString()
   }).eq('id',user.id);
 }
-async function syncNow(){await syncProgress();playSuccess();toast('✓ Синхронизировано')}
+async function syncNow(){await syncProgress();playSuccess();toast('Синхронизировано')}
 function saveState(){
   if(syncTimeout)clearTimeout(syncTimeout);
   syncTimeout=setTimeout(()=>syncProgress(),1500);
@@ -481,7 +481,7 @@ function showTodayScreen(){
   hideAll();
   document.getElementById('todayScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('on',b.dataset.page==='today'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('on',b.dataset.page==='journal'));
   renderToday();updateSoundUI();checkInstallBanner();updateNotifBadge();
 }
 function showStatsScreen(){
@@ -567,6 +567,7 @@ function navTo(page,el){
   else if(page==='today')smartHome();
   else if(page==='stats')showStatsScreen();
   else if(page==='community')showCommunityScreen();  
+  else if(page==='journal')showJournalScreen(); // <--- ДОБАВИЛИ ЭТУ СТРОКУ
 }
 
 function smartHome(){
@@ -863,8 +864,18 @@ function renderToday(){
       </div>
     </div>`;
 
-  document.getElementById('ritualSub').textContent =
-    b.practices.length+' практик';
+      const btn = document.querySelector('.hero-action-btn');
+  if (todayRec.closed) {
+    document.getElementById('ritualSub').textContent = '✅ На сегодня всё';
+    btn.querySelector('.hab-title').textContent = 'Утро закрыто';
+    btn.querySelector('.hab-ico').textContent = '🎉';
+    btn.style.background = 'linear-gradient(135deg, var(--success), #2eb87b)'
+  } else {
+    document.getElementById('ritualSub').textContent = total + ' практик';
+    btn.querySelector('.hab-title').textContent = 'Начать утро';
+    btn.querySelector('.hab-ico').textContent = '☀️';
+    btn.style.background = '';
+  }
 
   // Вызовы отрисовки
   renderHeroCards();
@@ -1263,6 +1274,13 @@ function dateByDay(bookId,day){
 // ─── РИТУАЛ ───
 function startRitual(){
   if(!currentBook){toast('Сначала выбери книгу','warm');return}
+  const day = currentDay(currentBook.id);
+  const date = dateByDay(currentBook.id, day);
+  const bs = getBookState(currentBook.id);
+  if (bs.days[date] && bs.days[date].closed) {
+    toast('Вы уже выполнили все практики на сегодня. Ждем завтра!', 'warm');
+    return;
+  }
   const b=currentBook;
   ritualQueue=b.practices.map(p=>({...p,_bookId:b.id,_bookTitle:b.title}));
   ritualIndex=0;
@@ -1506,6 +1524,13 @@ function addFiveMinutes(){
 // ─── ПРАКТИКА ───
 function openPractice(id){
   if(!currentBook){toast('Сначала выбери книгу','warm');return}
+    const day = currentDay(currentBook.id);
+  const date = dateByDay(currentBook.id, day);
+  const bs = getBookState(currentBook.id);
+  if (bs.days[date] && bs.days[date].closed) {
+    toast('Вы уже выполнили все практики на сегодня. Ждем завтра!', 'warm');
+    return;
+  }
   const p=currentBook.practices.find(x=>x.id===id);if(!p)return;
   currentPractice=p;
   document.getElementById('psTitle').textContent=p.title;
@@ -1699,7 +1724,7 @@ async function togglePush(){
     evening_time:state.eveningTime||'21:00'
   },{onConflict:'user_id'});
   renderSettings();
-  toast('Уведомления включены ✓');
+  toast('Включено');
 }
 function urlBase64ToUint8Array(base64String){
   const padding='='.repeat((4-base64String.length%4)%4);
@@ -1852,7 +1877,7 @@ async function showPublicProfile(){
 function copyPublicLink(){
   const url='https://andger.ru/u/'+(state.slug||'me');
   copyToClipboard(url);
-  toast('✓ Ссылка скопирована');
+  toast('Скопировано');
 }
 function sharePublicProfile(){
   const url='https://andger.ru/u/'+(state.slug||'me');
@@ -1872,7 +1897,7 @@ async function copyReferral(){
   await ensureReferral();
   const url='https://andger.ru/?ref='+state.referralCode;
   copyToClipboard(url);
-  toast('✓ Ссылка приглашения скопирована');
+  toast('Скопировано');
 }
 
 // ─── ДНЕВНИК ───
@@ -1999,8 +2024,13 @@ async function loadFeed(){
         </div>
       </div>
       <div class="fp-text">${escapeHtml(m.text)}</div>
-      <div class="fp-actions">
-        <div class="fp-action ${liked?'on':''}" onclick="toggleLike(${m.id},this)">❤️ <span>${postLikes.length}</span></div>
+            <div class="fp-actions" style="display:flex; justify-content:space-between; width:100%;">
+        <div style="display:flex; gap:10px;">
+          <div class="fp-action ${liked?'on':''}" onclick="toggleLike(${m.id},this)">❤️ <span>${postLikes.length}</span></div>
+          <div class="fp-action" onclick="toggleLike(${m.id},this)">🔥</div>
+          <div class="fp-action" onclick="toggleLike(${m.id},this)">💪</div>
+          <div class="fp-action" onclick="toggleLike(${m.id},this)">👏</div>
+        </div>
         <div class="fp-action" onclick="toggleComments(${m.id})">💬 <span>${postComments.length}</span></div>
       </div>
       <div class="feed-comments" id="comments-${m.id}">
