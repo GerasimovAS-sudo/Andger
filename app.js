@@ -740,7 +740,7 @@ function checkAdminAccess(){
   if(b)b.classList.toggle('hidden',!isAdmin());  
 }
 function shareApp(){
-  const url='https://andger.netlify.app/';
+  const url='https://andger.ru/';
   if(navigator.share)navigator.share({title:'ANDGER',text:'Практикум по книгам',url});
   else{navigator.clipboard.writeText(url);toast('Ссылка скопирована')}
 }
@@ -1822,12 +1822,12 @@ async function showPublicProfile(){
   document.getElementById('publicProfileScreen').classList.remove('hidden');
 }
 function copyPublicLink(){
-  const url='https://andger.netlify.app/u/'+(state.slug||'me');
+  const url='https://andger.ru/u/'+(state.slug||'me');
   copyToClipboard(url);
   toast('✓ Ссылка скопирована');
 }
 function sharePublicProfile(){
-  const url='https://andger.netlify.app/u/'+(state.slug||'me');
+  const url='https://andger.ru/u/'+(state.slug||'me');
   if(navigator.share)navigator.share({title:user.name,text:'Мой прогресс в ANDGER',url});
   else copyPublicLink();
 }
@@ -1842,7 +1842,7 @@ async function ensureReferral(){
 }
 async function copyReferral(){
   await ensureReferral();
-  const url='https://andger.netlify.app/?ref='+state.referralCode;
+  const url='https://andger.ru/?ref='+state.referralCode;
   copyToClipboard(url);
   toast('✓ Ссылка приглашения скопирована');
 }
