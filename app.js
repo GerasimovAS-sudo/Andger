@@ -810,7 +810,7 @@ function renderToday(){
   const total=b.practices.length;
 
   document.getElementById('todayName').textContent=user.name||'Друг';
-  document.getElementById('todayAvatar').textContent=state.avatar||'👤';
+  
   const lv=getLevel(closed);
   document.getElementById('statusBadge').textContent=`${lv.ico} ${lv.name}`;
 
@@ -842,10 +842,14 @@ function renderToday(){
       </div>
     </div>`;
 
-  document.getElementById('ritualSub').textContent=
+  document.getElementById('ritualSub').textContent =
     b.practices.length+' практик';
 
-  renderHeroCards();renderCalendar('calWrap',b.id);renderHint();
+  // Вызовы отрисовки
+  renderHeroCards();
+  renderWeekCalendar(); // <-- Новый календарь
+  renderHint();
+  updateSoundUI();
 }
 
 function renderHint(){
@@ -2926,4 +2930,95 @@ async function handlePublicProfileUrl(){
   }catch(e){
     return false;
   }
+}
+// ─── НОВЫЙ КАЛЕНДАРЬ И БЫСТРЫЙ РИТУАЛ ───
+function renderWeekCalendar() {
+  const el = document.getElementById('weekCalendar');
+  if (!el) return;
+  const today = new Date();
+  const currentDayOfWeek = today.getDay() === 0 ? 7 : today.getDay();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - currentDayOfWeek + 1);
+
+  const dows = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+  let html = '';
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    const dateStr = localDate(d);
+    const isToday = dateStr === todayStr();
+
+    let hasActivity = false;
+    BOOKS.forEach(b => {
+      const bs = getBookState(b.id);
+      if (bs.days[dateStr] && bs.days[dateStr].practices && bs.days[dateStr].practices.length > 0) {
+        hasActivity = true;
+      }
+    });
+
+    html += `<div class="cal-day ${isToday ? 'today' : ''} ${hasActivity ? 'active' : ''}" onclick="showDayStats('${dateStr}')">
+      <div class="dow">${dows[i]}</div>
+      <div class="dom">${d.getDate()}</div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+function showDayStats(dateStr) {
+  const modal = document.getElementById('dayStatsModal');
+  const content = document.getElementById('dayStatsContent');
+  const title = document.getElementById('dayStatsTitle');
+  
+  const d = new Date(dateStr);
+  const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+  title.textContent = `${d.getDate()} ${months[d.getMonth()]}`;
+
+  let html = '';
+  let total = 0;
+
+  BOOKS.forEach(b => {
+    const bs = getBookState(b.id);
+    const rec = bs.days[dateStr];
+    if (rec && rec.practices && rec.practices.length > 0) {
+      total += rec.practices.length;
+      const pNames = rec.practices.map(pid => {
+        const p = b.practices.find(x => x.id === pid);
+        return p ? p.title : pid;
+      }).join(', ');
+      
+      html += `<div style="margin-bottom:10px;padding:10px;background:var(--card2);border-radius:10px;">
+        <b>${b.emoji} ${b.title}</b>
+        <div style="color:var(--muted);font-size:12px;margin-top:4px;">Выполнено: ${pNames}</div>
+      </div>`;
+    }
+  });
+
+  if (total === 0) {
+    html = '<div style="text-align:center;color:var(--muted);">В этот день не было практик 🌱</div>';
+  }
+
+  content.innerHTML = html;
+  modal.classList.remove('hidden');
+}
+
+function startFastRitual() {
+  let queue = [];
+  BOOKS.forEach(b => {
+    if (hasBookAccess(b.id) && b.practices.length > 0) {
+      const shortest = b.practices.reduce((prev, curr) => (prev.time < curr.time) ? prev : curr);
+      queue.push({ ...shortest, _bookId: b.id, _bookTitle: b.title });
+    }
+  });
+  if (!queue.length) { toast('Нет доступных книг', 'warm'); return; }
+  
+  ritualQueue = queue;
+  ritualIndex = 0;
+  hideAll();
+  const rEl = document.getElementById('ritualScreen');
+  rEl.className = 'ritual';
+  rEl.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;z-index:9999;display:flex;flex-direction:column;background:var(--bg)';
+  window.scrollTo(0, 0);
+  startMusic();
+  renderRitualStep();
 }

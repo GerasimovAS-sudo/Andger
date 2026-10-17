@@ -13,7 +13,7 @@
 <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="shortcut icon" href="favicon.ico">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-512.png">
 <meta name="apple-mobile-web-app-title" content="ANDGER">
 <link rel="manifest" href="manifest.json">
 
@@ -109,8 +109,9 @@
     <div class="top-row">
       <div class="page-label">🏠 ГЛАВНАЯ</div>
       <div class="head-actions">
-        <div class="icon-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden" id="notifBadge">0</span></div>
-        <div class="avatar" id="todayAvatar" onclick="showProfile()">👤</div>
+        <div class="icon-btn sound-btn" onclick="toggleSound()">🔊</div>
+        <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
+        <div class="avatar user-avatar" onclick="showProfile()">👤</div>
       </div>
     </div>
     <div class="hi">
@@ -121,7 +122,7 @@
   <div class="wrap">
     <div id="installBanner"></div>
 
-    <!-- Крупный счётчик дня -->
+    <!-- Счётчик дня -->
     <div class="today-counter-card" id="todayCounterCard">
       <div class="tcc-head">
         <div>
@@ -135,8 +136,16 @@
       <div class="tcc-bar"><div class="tcc-bar-fill" id="tccBarFill"></div></div>
     </div>
 
-    <div id="activeBookWrap"></div>
+    <!-- Цитата дня (теперь выше) -->
+    <div id="hintCard" style="margin-top:12px"></div>
 
+    <!-- Новый календарь на неделю -->
+    <div class="week-calendar" id="weekCalendar" style="margin-top:16px"></div>
+
+    <!-- Карточка активной книги -->
+    <div id="activeBookWrap" style="margin-top:12px"></div>
+
+    <!-- Кнопки ритуала -->
     <button class="hero-action-btn" onclick="startRitual()">
       <div class="hab-ico">☀️</div>
       <div class="hab-text">
@@ -146,29 +155,28 @@
       <div class="hab-arrow">▶</div>
     </button>
 
+    <button class="action-btn-compact" onclick="startFastRitual()" style="width:100%;margin-bottom:10px;">
+      <div class="abc-ico">⚡</div>
+      <div>
+        <h4>Быстрый ритуал</h4>
+        <p>По 1 практике из каждой книги · ~7 минут</p>
+      </div>
+    </button>
+
     <div class="action-row-2">
       <button class="action-btn-compact" onclick="showRitualBuilder()">
         <div class="abc-ico">🎯</div>
-        <div>
-          <h4>Собрать свой</h4>
-          <p>Из разных книг</p>
-        </div>
+        <div><h4>Собрать свой</h4><p>Из разных книг</p></div>
       </button>
       <button class="action-btn-compact" onclick="showBreathModal()">
         <div class="abc-ico">🌬</div>
-        <div>
-          <h4>Успокоиться</h4>
-          <p>Дыхание 4-7-8</p>
-        </div>
+        <div><h4>Успокоиться</h4><p>Дыхание 4-7-8</p></div>
       </button>
     </div>
 
     <h2 class="section-title">📋 Практики на сегодня</h2>
     <div class="hero-scroll" id="heroScroll"></div>
     <div class="hero-dots" id="heroDots"></div>
-
-    <div class="cal-wrap" id="calWrap"></div>
-    <div id="hintCard"></div>
   </div>
 </div>
 
@@ -825,6 +833,16 @@
     <h2>Установить ANDGER</h2>
     <div id="installInstructions" style="text-align:left;font-size:14px;line-height:1.8;color:#c5c5d8;margin-bottom:20px"></div>
     <button class="btn btn-ghost" onclick="document.getElementById('installModal').classList.add('hidden')">Закрыть</button>
+  </div>
+</div>
+
+<!-- Статистика дня -->
+<div class="modal hidden" id="dayStatsModal">
+  <div class="modal-box">
+    <div class="emoji">📅</div>
+    <h2 id="dayStatsTitle">Итоги дня</h2>
+    <div id="dayStatsContent" style="text-align:left; margin-top:15px; font-size:14px; line-height:1.6"></div>
+    <button class="btn" onclick="document.getElementById('dayStatsModal').classList.add('hidden')" style="margin-top:20px">Закрыть</button>
   </div>
 </div>
 

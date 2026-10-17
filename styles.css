@@ -1196,3 +1196,21 @@ html.light body, body.light body{
 .admin-filters::-webkit-scrollbar{display:none}
 .admin-filter{padding:7px 14px;border-radius:100px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;white-space:nowrap;transition:.2s}
 .admin-filter.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-color:transparent;color:#fff}
+/* --- НОВЫЙ КАЛЕНДАРЬ НА НЕДЕЛЮ --- */
+.week-calendar {
+  display: flex; gap: 6px; justify-content: space-between; 
+  overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;
+}
+.week-calendar::-webkit-scrollbar { display: none; }
+.cal-day {
+  flex: 1; min-width: 45px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px 4px; text-align: center; cursor: pointer; 
+  transition: .2s; display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.cal-day:active { transform: scale(0.95); }
+.cal-day .dow { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+.cal-day .dom { font-size: 16px; font-weight: 900; color: var(--text); }
+.cal-day.today { border-color: var(--warm); background: rgba(255, 154, 86, 0.1); }
+.cal-day.today .dom { color: var(--warm); }
+.cal-day.active { background: rgba(124,92,255,0.15); border-color: var(--accent-2); }
+.cal-day.active .dom { color: var(--accent-2); }
