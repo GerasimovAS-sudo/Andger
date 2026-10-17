@@ -246,21 +246,18 @@ window.addEventListener('DOMContentLoaded', async()=>{
   // const isPublic=await handlePublicProfileUrl();
   // if(isPublic){hideLoader();return}
 
-  try{
+    try{
     const{data:{session}}=await sb.auth.getSession();
     if(session){
       await handleSession(session);
-      setSplashProgress(100);
       await waitSplash(t0);
       hideLoader();
     }else{
-      setSplashProgress(100);
       await waitSplash(t0);
       hideLoader();
       showAuth();
     }
   }catch(e){
-    setSplashProgress(100);
     await waitSplash(t0);
     hideLoader();
     showAuth();
@@ -268,9 +265,27 @@ window.addEventListener('DOMContentLoaded', async()=>{
 });
 
 async function waitSplash(t0){
-  const elapsed=performance.now()-t0;
-  const minTime=1800;
-  if(elapsed<minTime)await new Promise(r=>setTimeout(r,minTime-elapsed));
+  const elapsed = performance.now() - t0;
+  const minTime = 5000; // Ждем ровно 5 секунд
+  
+  if (elapsed < minTime) {
+    const remaining = minTime - elapsed;
+    // Берем текущий процент заполнения (на котором остановилась загрузка)
+    const currentEl = document.getElementById('ldProgress');
+    const startPct = currentEl ? (parseFloat(currentEl.style.width) || 10) : 10;
+    
+    // Плавно доливаем оставшийся процент
+    const steps = 40; 
+    const stepTime = remaining / steps;
+    
+    for (let i = 1; i <= steps; i++) {
+      const pct = startPct + ((100 - startPct) * (i / steps));
+      setSplashProgress(pct);
+      await new Promise(r => setTimeout(r, stepTime));
+    }
+  } else {
+    setSplashProgress(100);
+  }
 }
 
 sb.auth.onAuthStateChange((event)=>{
@@ -606,8 +621,14 @@ function toggleSound(){
   }else stopMusic();
 }
 function updateSoundUI(){
-  const tog=document.getElementById('soundToggle');
-  if(tog)tog.classList.toggle('on',state.soundOn!==false);
+  const tog = document.getElementById('soundToggle');
+  if(tog) tog.classList.toggle('on', state.soundOn !== false);
+  
+  // Меняем иконку на всех экранах
+  const soundBtns = document.querySelectorAll('.sound-btn');
+  soundBtns.forEach(btn => {
+    btn.textContent = state.soundOn === false ? '🔇' : '🔊';
+  });
 }
 
 // ─── ОНБОРДИНГ ───
@@ -1744,13 +1765,16 @@ async function loadNotifications(){
   }catch(e){notifications=[]}
 }
 function updateNotifBadge(){
-  const unread=notifications.filter(n=>!n.read).length;
-  const badge=document.getElementById('notifBadge');
-  if(!badge)return;
-  if(unread>0){
-    badge.textContent=unread>9?'9+':unread;
-    badge.classList.remove('hidden');
-  }else badge.classList.add('hidden');
+  const unread = notifications.filter(n => !n.read).length;
+  const badges = document.querySelectorAll('.notif-badge'); // Ищем ВСЕ бейджи
+  badges.forEach(badge => {
+    if(unread > 0){
+      badge.textContent = unread > 9 ? '9+' : unread;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  });
 }
 function renderNotifications(){
   const el=document.getElementById('notifList');

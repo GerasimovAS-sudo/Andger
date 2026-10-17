@@ -186,6 +186,8 @@
     <div class="top-row">
       <div class="page-label">📚 БИБЛИОТЕКА</div>
       <div class="head-actions">
+        <div class="icon-btn sound-btn" onclick="toggleSound()">🔊</div>
+        <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
         <div class="avatar" id="libAvatar" onclick="showProfile()">👤</div>
       </div>
     </div>
@@ -271,7 +273,9 @@
   <div class="main-head">
     <div class="top-row">
       <div class="page-label">📊 СТАТИСТИКА</div>
-      <div class="head-actions">
+            <div class="head-actions">
+        <div class="icon-btn sound-btn" onclick="toggleSound()">🔊</div>
+        <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
         <div class="avatar" id="statsAvatar" onclick="showProfile()">👤</div>
       </div>
     </div>
@@ -315,7 +319,9 @@
     <div class="top-row">
       <button class="back-top" onclick="backFromJournal()">←</button>
       <div class="page-label">✍️ ДНЕВНИК</div>
-      <div class="head-actions">
+            <div class="head-actions">
+        <div class="icon-btn sound-btn" onclick="toggleSound()">🔊</div>
+        <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
         <div class="avatar" id="journalAvatar" onclick="showProfile()">👤</div>
       </div>
     </div>
@@ -353,7 +359,9 @@
   <div class="main-head">
     <div class="top-row">
       <div class="page-label">💬 СООБЩЕСТВО</div>
-      <div class="head-actions">
+            <div class="head-actions">
+        <div class="icon-btn sound-btn" onclick="toggleSound()">🔊</div>
+        <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
         <div class="avatar" id="communityAvatar" onclick="showProfile()">👤</div>
       </div>
     </div>
@@ -363,7 +371,7 @@
     <div class="tabs-row">
       <div class="tab-pill on" onclick="switchCommunityTab('feed', this)">📱 Лента</div>
       <div class="tab-pill" onclick="switchCommunityTab('chats', this)">💬 Сообщения</div>
-      <div class="tab-pill" onclick="switchCommunityTab('people', this)">🏆 Люди</div>
+      <div class="tab-pill" onclick="switchCommunityTab('people', this)">🏆 Сообщество</div>
     </div>
     <div id="communityFeed">
       <div id="feedList"></div>
@@ -787,24 +795,6 @@
     <button class="btn btn-ghost" onclick="contactTelegram()" style="margin-top:0">✈️ Telegram</button>
     <button class="btn btn-ghost" onclick="contactWhatsApp()" style="margin-top:8px">📱 WhatsApp</button>
     <button class="btn btn-ghost" onclick="document.getElementById('contactModal').classList.add('hidden')" style="margin-top:16px">Закрыть</button>
-  </div>
-</div>
-
-<!-- Цитаты -->
-<div class="modal hidden" id="quoteModal">
-  <div class="modal-box">
-    <div class="emoji">✨</div>
-    <h2 id="quoteModalTitle">Новая цитата</h2>
-    <div class="field" style="text-align:left;margin-top:16px">
-      <label>Текст цитаты</label>
-      <textarea id="quoteText" rows="4" placeholder="Мы становимся тем, что делаем каждое утро..." style="width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;padding:12px;color:var(--text);font-size:14px;resize:vertical;font-family:inherit"></textarea>
-    </div>
-    <div class="field" style="text-align:left">
-      <label>Автор</label>
-      <input type="text" id="quoteAuthor" value="Андрей Герасимов" style="width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;padding:12px;color:var(--text);font-size:14px">
-    </div>
-    <button class="btn" onclick="saveQuote()">Сохранить</button>
-    <button class="btn btn-ghost" onclick="closeQuoteEditor()">Отмена</button>
   </div>
 </div>
 
