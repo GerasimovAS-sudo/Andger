@@ -844,15 +844,39 @@ function renderToday(){
   document.getElementById('statusBadge').textContent=`${lv.ico} ${lv.name}`;
 
   // Крупный счётчик дня
-  const pct=Math.round(todayCount/total*100);
-  document.getElementById('todayCount').textContent=`${todayCount} из ${total}`;
-  const tccFill=document.getElementById('tccFill');
-  if(tccFill){
-    const circ=2*Math.PI*26;
-    tccFill.style.strokeDashoffset=circ-(circ*pct/100);
+    // Обновляем кольца
+  const pctPractices = Math.round(todayCount/total*100);
+  document.getElementById('todayCount').textContent = `${todayCount}/${total}`;
+  
+  // Кольцо 1: Практики (r=40, длина = 251)
+  const ring1 = document.getElementById('ringPractices');
+  if(ring1) ring1.style.strokeDashoffset = 251 - (251 * pctPractices / 100);
+
+  // Кольцо 2: Огонь (r=30, длина = 188)
+    const streak = calcStreak(b.id);
+  const streakMax = b.days; 
+  // Проверяем, была ли использована заморозка (если пропущен 1 день)
+  let hasFreeze = false;
+  for(let i=1;i<=b.days;i++){
+    const d=dateByDay(b.id,i);
+    if(d < todayStr() && (!bs.days[d] || !bs.days[d].closed)) {
+       hasFreeze = true;
+    }
   }
-  const tccBar=document.getElementById('tccBarFill');
-  if(tccBar)tccBar.style.width=pct+'%';
+  // Меняем цвет кольца, если серия заморожена
+  const ringStreak = document.getElementById('ringStreak');
+  if(ringStreak) {
+    ringStreak.style.stroke = hasFreeze ? '#1e5cff' : '#3ecf8e'; // Синий если заморожен, зеленый если нет
+  }
+  const pctStreak = Math.min(100, Math.round(streak / streakMax * 100));
+  const ring2 = document.getElementById('ringStreak');
+  if(ring2) ring2.style.strokeDashoffset = 188 - (188 * pctStreak / 100);
+
+  // Кольцо 3: Дневник (r=20, длина = 125). Если есть запись - 100%.
+  const hasJournal = bs.journal[date] && (bs.journal[date].q1 || bs.journal[date].q2 || bs.journal[date].q3);
+  const pctJournal = hasJournal ? 100 : 0;
+  const ring3 = document.getElementById('ringJournal');
+  if(ring3) ring3.style.strokeDashoffset = 125 - (125 * pctJournal / 100);
 
   // Карточка активной книги
   document.getElementById('activeBookWrap').innerHTML=`
@@ -960,6 +984,15 @@ function setLibFilter(f,el){
   renderLibrary();
 }
 function renderLibrary(){
+    const bookListEl = document.getElementById('bookList');
+  if(bookListEl) {
+    bookListEl.innerHTML = `
+      <div class="skeleton skeleton-book"><div class="skeleton skeleton-emoji"></div><div style="flex:1"><div class="skeleton skeleton-text-1"></div><div class="skeleton skeleton-text-2"></div></div></div>
+      <div class="skeleton skeleton-book"><div class="skeleton skeleton-emoji"></div><div style="flex:1"><div class="skeleton skeleton-text-1"></div><div class="skeleton skeleton-text-2"></div></div></div>
+      <div class="skeleton skeleton-book"><div class="skeleton skeleton-emoji"></div><div style="flex:1"><div class="skeleton skeleton-text-1"></div><div class="skeleton skeleton-text-2"></div></div></div>
+    `;
+  }
+  // Остальной код функции renderLibrary продолжается ниже...
   document.getElementById('libName').textContent=user.name||'Друг';
   document.getElementById('libAvatar').textContent=state.avatar||'👤';
   const q=(document.getElementById('libSearch')?.value||'').toLowerCase().trim();
@@ -1255,10 +1288,19 @@ function currentDay(bookId){
 function calcStreak(bookId){
   const b=BOOKS.find(x=>x.id===bookId),bs=getBookState(bookId);
   if(!b||!bs.start)return 0;
-  let streak=0;
+  let streak=0, misses=0;
   for(let i=1;i<=b.days;i++){
     const d=dateByDay(bookId,i);
-    if(bs.days[d]&&bs.days[d].closed)streak++;else break;
+    if(bs.days[d]&&bs.days[d].closed){
+      streak++;
+      misses=0; // Если сделал практику, счетчик пропусков сбрасывается
+    } else {
+      // Если день в прошлом (не сегодня) и пропущен
+      if(d < todayStr()) {
+        misses++;
+        if(misses > 1) break; // Если пропустил 2 дня подряд - серия прерывается
+      }
+    }
   }
   return streak;
 }
@@ -1520,9 +1562,10 @@ function completePracticeDone(){
     playCheck();
     ritualIndex++;
     setTimeout(()=>renderRitualStep(),300);
-  }else{
+    }else{
     markPracticeDone(practice.id);
     playCheck();
+    fireConfetti(); // <--- ДОБАВИЛИ КОНФЕТТИ
     closePractice();
   }
 }
@@ -1580,7 +1623,12 @@ function closePractice(){
   currentPractice=null;
   smartHome();
 }
-function markPracticeFromScreen(id){markPracticeDone(id);playCheck();closePractice()}
+function markPracticeFromScreen(id){
+  markPracticeDone(id);
+  playCheck();
+  fireConfetti(); // <--- ДОБАВИЛИ КОНФЕТТИ
+  closePractice();
+}
 function copyAffirm(el){
   const text=el.textContent.replace(/[«»]/g,'');
   if(navigator.clipboard){
@@ -1726,69 +1774,46 @@ async function togglePush(){
     return;
   }
   if(!('Notification' in window)){
-    toast('Уведомления не поддерживаются','danger');return;
+    alert('Ваш браузер не поддерживает уведомления');return;
   }
-  const perm=await Notification.requestPermission();
-  if(perm!=='granted'){
-    toast('Разрешение не получено','warm');return;
-  }
-  try{
-    const reg=await navigator.serviceWorker?.getRegistration();
-    if(reg&&reg.pushManager){
-      const sub=await reg.pushManager.subscribe({
-        userVisibleOnly:true,
-        applicationServerKey:urlBase64ToUint8Array('BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U')
-      });
-      state.pushSubscription=sub.toJSON();
+  
+  try {
+    const perm = await Notification.requestPermission();
+    if(perm !== 'granted'){
+      alert('Вы отклонили разрешение на уведомления. Разрешите их в настройках браузера.');
+      return;
     }
-  }catch(e){}
-  state.pushEnabled=true;
-  await sb.from('profiles').update({push_enabled:true}).eq('id',user.id);
-  await sb.from('notification_prefs').upsert({
-    user_id:user.id,
-    push_enabled:true,
-    push_subscription:state.pushSubscription||null,
-    morning_time:state.morningTime||'07:00',
-    evening_time:state.eveningTime||'21:00'
-  },{onConflict:'user_id'});
-  renderSettings();
-  toast('Включено');
-}
-function urlBase64ToUint8Array(base64String){
-  const padding='='.repeat((4-base64String.length%4)%4);
-  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
-  const rawData=atob(base64);
-  const outputArray=new Uint8Array(rawData.length);
-  for(let i=0;i<rawData.length;++i)outputArray[i]=rawData.charCodeAt(i);
-  return outputArray;
-}
-let editingTimePeriod=null;
-function setNotifTime(period){
-  editingTimePeriod=period;
-  const cur=period==='morning'?(state.morningTime||'07:00'):(state.eveningTime||'21:00');
-  document.getElementById('timeModalTitle').textContent=
-    period==='morning'?'Утреннее напоминание':'Вечернее напоминание';
-  document.getElementById('timeInput').value=cur;
-  document.getElementById('timeModal').classList.remove('hidden');
-}
-function closeTimeModal(){
-  document.getElementById('timeModal').classList.add('hidden');
-  editingTimePeriod=null;
-}
-async function saveTimeFromModal(){
-  if(!editingTimePeriod)return;
-  const val=document.getElementById('timeInput').value;
-  if(!val){toast('Выбери время','danger');return}
-  if(editingTimePeriod==='morning')state.morningTime=val;
-  else state.eveningTime=val;
-  await sb.from('notification_prefs').upsert({
-    user_id:user.id,
-    morning_time:state.morningTime,
-    evening_time:state.eveningTime
-  },{onConflict:'user_id'});
-  closeTimeModal();
-  renderSettings();
-  toast('Время сохранено');
+
+    const reg = await navigator.serviceWorker.getRegistration();
+    if(!reg || !reg.pushManager){
+      alert('На iPhone уведомления работают только если добавить приложение на экран «Домой».');
+      return;
+    }
+
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array('BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U')
+    });
+    
+    state.pushSubscription = sub.toJSON();
+    state.pushEnabled = true;
+    
+    await sb.from('profiles').update({push_enabled:true}).eq('id',user.id);
+    await sb.from('notification_prefs').upsert({
+      user_id:user.id,
+      push_enabled:true,
+      push_subscription:state.pushSubscription,
+      morning_time:state.morningTime||'07:00',
+      evening_time:state.eveningTime||'21:00'
+    },{onConflict:'user_id'});
+
+    renderSettings();
+    toast('Включено');
+    
+  } catch (e) {
+    console.error(e);
+    alert('Ошибка при включении: ' + e.message);
+  }
 }
 
 // ─── ПОМОЩЬ ───
@@ -2104,7 +2129,10 @@ async function loadFeed(){
           <div class="fp-action ${likedMuscle?'on':''}" onclick="toggleLike(${m.id},'muscle',this)">💪 <span>${countMuscle>0?countMuscle:''}</span></div>
           <div class="fp-action ${likedClap?'on':''}" onclick="toggleLike(${m.id},'clap',this)">👏 <span>${countClap>0?countClap:''}</span></div>
         </div>
-        <div class="fp-action" onclick="toggleComments(${m.id})">💬 <span>${postComments.length}</span></div>
+                <div style="display:flex; gap:12px;">
+          <div class="fp-action" onclick="toggleComments(${m.id})">💬 <span>${postComments.length}</span></div>
+          <div class="fp-action" onclick="reportPost(${m.id},'${m.user_id}')" style="color:var(--danger);">🚩</div>
+        </div>
       </div>
       <div class="feed-comments" id="comments-${m.id}">
         ${postComments.map(c=>`<div class="feed-comment"><div class="fc-ava">${c.user_avatar||'👤'}</div><div class="fc-body"><div class="fc-name">${escapeHtml(c.user_name||'Аноним')}</div><div class="fc-text">${escapeHtml(c.text)}</div></div></div>`).join('')}
@@ -3222,4 +3250,13 @@ function startFastRitual() {
   window.scrollTo(0, 0);
   startMusic();
   renderRitualStep();
+}
+async function reportPost(postId, authorId) {
+  if(authorId === user.id) { toast('Нельзя жаловаться на свой пост', 'warm'); return; }
+  const reason = prompt('Укажите причину жалобы (спам, мат, оскорбления):');
+  if(!reason) return;
+  try {
+    await sb.from('reports').insert({ reporter_id: user.id, post_id: postId, reason: reason });
+    toast('Жалоба отправлена модератору', 'success');
+  } catch(e) { toast('Ошибка отправки', 'danger'); }
 }

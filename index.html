@@ -22,6 +22,8 @@
 <meta property="og:title" content="ANDGER — практикум по книгам">
 <meta property="og:description" content="Между знанием и жизнью — один шаг.">
 <meta property="og:image" content="https://andger.ru/icon-512.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="https://andger.ru/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://andger.ru/icon-512.png">
@@ -111,6 +113,7 @@
       <div class="head-actions">
         <div class="icon-btn sound-btn" onclick="toggleSound()">🔊</div>
         <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
+        <div class="icon-btn" onclick="showCommunityScreen()">💬</div>
         <div class="avatar user-avatar" onclick="showProfile()">👤</div>
       </div>
     </div>
@@ -122,18 +125,27 @@
   <div class="wrap">
     <div id="installBanner"></div>
 
-    <!-- Счётчик дня -->
-    <div class="today-counter-card" id="todayCounterCard">
-      <div class="tcc-head">
-        <div>
-          <div class="tcc-label">СЕГОДНЯ</div>
-          <div class="tcc-count" id="todayCount">0 из 6</div>
-        </div>
-        <div class="tcc-ring">
-          <svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" class="tcc-bg"/><circle cx="30" cy="30" r="26" class="tcc-fill" id="tccFill"/></svg>
+        <!-- Кольца активности -->
+    <div class="today-rings-card" id="todayCounterCard">
+      <div class="rings-container">
+        <svg class="ring-svg" viewBox="0 0 100 100">
+          <!-- Кольцо 1 (Практики) -->
+          <circle cx="50" cy="50" r="40" class="ring-bg ring-bg-1"/>
+          <circle cx="50" cy="50" r="40" class="ring-fill ring-fill-1" id="ringPractices"/>
+          
+          <!-- Кольцо 2 (Серия) -->
+          <circle cx="50" cy="50" r="30" class="ring-bg ring-bg-2"/>
+          <circle cx="50" cy="50" r="30" class="ring-fill ring-fill-2" id="ringStreak"/>
+          
+          <!-- Кольцо 3 (Дневник) -->
+          <circle cx="50" cy="50" r="20" class="ring-bg ring-bg-3"/>
+          <circle cx="50" cy="50" r="20" class="ring-fill ring-fill-3" id="ringJournal"/>
+        </svg>
+        <div class="rings-text">
+          <div class="rt-count" id="todayCount">0/6</div>
+          <div class="rt-label">СЕГОДНЯ</div>
         </div>
       </div>
-      <div class="tcc-bar"><div class="tcc-bar-fill" id="tccBarFill"></div></div>
     </div>
 
     <!-- Цитата дня (теперь выше) -->
@@ -184,7 +196,8 @@
       <div class="page-label">📚 БИБЛИОТЕКА</div>
       <div class="head-actions">
         <div class="icon-btn sound-btn" onclick="toggleSound()">🔊</div>
-        <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
+                <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
+        <div class="icon-btn" onclick="showCommunityScreen()">💬</div>
         <div class="avatar" id="libAvatar" onclick="showProfile()">👤</div>
       </div>
     </div>
@@ -272,7 +285,8 @@
       <div class="page-label">📊 СТАТИСТИКА</div>
             <div class="head-actions">
         <div class="icon-btn sound-btn" onclick="toggleSound()">🔊</div>
-        <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
+                <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
+        <div class="icon-btn" onclick="showCommunityScreen()">💬</div>
         <div class="avatar" id="statsAvatar" onclick="showProfile()">👤</div>
       </div>
     </div>
@@ -318,7 +332,8 @@
       <div class="page-label">✍️ ДНЕВНИК</div>
             <div class="head-actions">
         <div class="icon-btn sound-btn" onclick="toggleSound()">🔊</div>
-        <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
+                <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
+        <div class="icon-btn" onclick="showCommunityScreen()">💬</div>
         <div class="avatar" id="journalAvatar" onclick="showProfile()">👤</div>
       </div>
     </div>
@@ -727,10 +742,7 @@
   <button class="nav-btn" data-page="journal" onclick="navTo('journal', this)">
     <div class="nav-ico">📝</div><div>Дневник</div>
   </button>
-
-  <button class="nav-btn" data-page="community" onclick="navTo('community', this)">
-    <div class="nav-ico">💬</div><div>Сообщество</div>
-  </button>
+  
   <button class="nav-btn" data-page="stats" onclick="navTo('stats', this)">
     <div class="nav-ico">📊</div><div>Статистика</div>
   </button>

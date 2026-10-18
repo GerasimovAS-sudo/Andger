@@ -1068,11 +1068,10 @@ body>*{position:relative;z-index:1}
   z-index:100}
 .nav-btn{
   display:flex;flex-direction:column;align-items:center;gap:3px;
-  color:var(--muted);font-size:9px;cursor:pointer;padding:6px 4px;
+  color:var(--muted);font-size:10px;cursor:pointer;padding:6px 8px;
   transition:color .2s;background:none;border:none;font-family:inherit;
   font-weight:800;text-transform:uppercase;letter-spacing:.3px;
   flex:1;min-width:0;border-radius:var(--radius-sm);
-  white-space:nowrap;overflow:hidden;
 }
 .nav-btn.on{color:var(--accent-2)}
 .nav-btn .nav-ico{font-size:20px;filter:grayscale(1);transition:.2s}
@@ -1319,3 +1318,27 @@ html.light body, body.light body{
 .skeleton-post-head { display: flex; gap: 10px; margin-bottom: 12px; }
 .skeleton-avatar { width: 36px; height: 36px; border-radius: 50%; }
 .skeleton-post-text { width: 100%; height: 50px; border-radius: 6px; margin-top: 15px; }
+/* ─── КОЛЬЦА АКТИВНОСТИ (Apple Style) ─── */
+.today-rings-card {
+  background: linear-gradient(135deg,var(--card),var(--card2));
+  border:1px solid var(--border); border-radius:var(--radius-md);
+  padding: 20px; margin-bottom: 12px; display: flex; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.rings-container { width: 140px; height: 140px; position: relative; }
+.ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: var(--card3); stroke-width: 8; }
+.ring-fill { 
+  fill: none; stroke-width: 8; stroke-linecap: round; 
+  stroke-dasharray: 251; stroke-dashoffset: 251; transition: stroke-dashoffset 1s ease-out;
+}
+.ring-fill-1 { stroke: #ff3b30; } /* Красный */
+.ring-fill-2 { stroke: #3ecf8e; } /* Зеленый */
+.ring-fill-3 { stroke: #1e5cff; } /* Синий */
+
+.rings-text {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; transform: rotate(0deg);
+}
+.rt-count { font-size: 24px; font-weight: 900; color: var(--text); line-height: 1; }
+.rt-label { font-size: 9px; font-weight: 800; color: var(--warm); letter-spacing: 1px; margin-top: 4px; }
