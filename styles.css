@@ -221,6 +221,7 @@ body>*{position:relative;z-index:1}
 
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 /* ─── СЧЁТЧИК ДНЯ ─── */
+/* ─── СЧЁТЧИК ДНЯ ─── */
 .today-counter-card{
   background:linear-gradient(135deg,var(--card),var(--card2));
   border:1px solid var(--border);border-radius:var(--radius-md);
@@ -237,8 +238,7 @@ body>*{position:relative;z-index:1}
 .tcc-ring{width:60px;height:60px;position:relative;flex-shrink:0}
 .tcc-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
 .tcc-bg{fill:none;stroke:var(--card3);stroke-width:5}
-.tcc-fill{fill:none;stroke:url(#tccGrad);
-  stroke:var(--accent-2);stroke-width:5;stroke-linecap:round;
+.tcc-fill{fill:none;stroke:var(--accent-2);stroke-width:5;stroke-linecap:round;
   stroke-dasharray:163;stroke-dashoffset:163;transition:stroke-dashoffset .8s}
 .tcc-bar{height:6px;background:var(--card3);border-radius:3px;overflow:hidden;position:relative}
 .tcc-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--warm));
@@ -1318,27 +1318,3 @@ html.light body, body.light body{
 .skeleton-post-head { display: flex; gap: 10px; margin-bottom: 12px; }
 .skeleton-avatar { width: 36px; height: 36px; border-radius: 50%; }
 .skeleton-post-text { width: 100%; height: 50px; border-radius: 6px; margin-top: 15px; }
-/* ─── КОЛЬЦА АКТИВНОСТИ (Apple Style) ─── */
-.today-rings-card {
-  background: linear-gradient(135deg,var(--card),var(--card2));
-  border:1px solid var(--border); border-radius:var(--radius-md);
-  padding: 20px; margin-bottom: 12px; display: flex; justify-content: center;
-  position: relative; overflow: hidden;
-}
-.rings-container { width: 140px; height: 140px; position: relative; }
-.ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring-bg { fill: none; stroke: var(--card3); stroke-width: 8; }
-.ring-fill { 
-  fill: none; stroke-width: 8; stroke-linecap: round; 
-  stroke-dasharray: 251; stroke-dashoffset: 251; transition: stroke-dashoffset 1s ease-out;
-}
-.ring-fill-1 { stroke: #ff3b30; } /* Красный */
-.ring-fill-2 { stroke: #3ecf8e; } /* Зеленый */
-.ring-fill-3 { stroke: #1e5cff; } /* Синий */
-
-.rings-text {
-  position: absolute; inset: 0; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; transform: rotate(0deg);
-}
-.rt-count { font-size: 24px; font-weight: 900; color: var(--text); line-height: 1; }
-.rt-label { font-size: 9px; font-weight: 800; color: var(--warm); letter-spacing: 1px; margin-top: 4px; }

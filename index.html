@@ -125,27 +125,18 @@
   <div class="wrap">
     <div id="installBanner"></div>
 
-        <!-- Кольца активности -->
-    <div class="today-rings-card" id="todayCounterCard">
-      <div class="rings-container">
-        <svg class="ring-svg" viewBox="0 0 100 100">
-          <!-- Кольцо 1 (Практики) -->
-          <circle cx="50" cy="50" r="40" class="ring-bg ring-bg-1"/>
-          <circle cx="50" cy="50" r="40" class="ring-fill ring-fill-1" id="ringPractices"/>
-          
-          <!-- Кольцо 2 (Серия) -->
-          <circle cx="50" cy="50" r="30" class="ring-bg ring-bg-2"/>
-          <circle cx="50" cy="50" r="30" class="ring-fill ring-fill-2" id="ringStreak"/>
-          
-          <!-- Кольцо 3 (Дневник) -->
-          <circle cx="50" cy="50" r="20" class="ring-bg ring-bg-3"/>
-          <circle cx="50" cy="50" r="20" class="ring-fill ring-fill-3" id="ringJournal"/>
-        </svg>
-        <div class="rings-text">
-          <div class="rt-count" id="todayCount">0/6</div>
-          <div class="rt-label">СЕГОДНЯ</div>
+            <!-- Счётчик дня -->
+    <div class="today-counter-card" id="todayCounterCard">
+      <div class="tcc-head">
+        <div>
+          <div class="tcc-label">СЕГОДНЯ</div>
+          <div class="tcc-count" id="todayCount">0 из 6</div>
+        </div>
+        <div class="tcc-ring">
+          <svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" class="tcc-bg"/><circle cx="30" cy="30" r="26" class="tcc-fill" id="tccFill"/></svg>
         </div>
       </div>
+      <div class="tcc-bar"><div class="tcc-bar-fill" id="tccBarFill"></div></div>
     </div>
 
     <!-- Цитата дня (теперь выше) -->

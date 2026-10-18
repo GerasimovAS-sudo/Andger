@@ -843,41 +843,19 @@ function renderToday(){
   const lv=getLevel(closed);
   document.getElementById('statusBadge').textContent=`${lv.ico} ${lv.name}`;
 
-  // Крупный счётчик дня
-    // Обновляем кольца
-  const pctPractices = Math.round(todayCount/total*100);
-  document.getElementById('todayCount').textContent = `${todayCount}/${total}`;
+  // Крупный счётчик дня (1 кольцо)
+  const pct=Math.round(todayCount/total*100);
+  document.getElementById('todayCount').textContent=`${todayCount} из ${total}`;
   
-  // Кольцо 1: Практики (r=40, длина = 251)
-  const ring1 = document.getElementById('ringPractices');
-  if(ring1) ring1.style.strokeDashoffset = 251 - (251 * pctPractices / 100);
-
-  // Кольцо 2: Огонь (r=30, длина = 188)
-    const streak = calcStreak(b.id);
-  const streakMax = b.days; 
-  // Проверяем, была ли использована заморозка (если пропущен 1 день)
-  let hasFreeze = false;
-  for(let i=1;i<=b.days;i++){
-    const d=dateByDay(b.id,i);
-    if(d < todayStr() && (!bs.days[d] || !bs.days[d].closed)) {
-       hasFreeze = true;
-    }
+  const tccFill=document.getElementById('tccFill');
+  if(tccFill){
+    const circ=2*Math.PI*26;
+    tccFill.style.strokeDashoffset=circ-(circ*pct/100);
   }
-  // Меняем цвет кольца, если серия заморожена
-  const ringStreak = document.getElementById('ringStreak');
-  if(ringStreak) {
-    ringStreak.style.stroke = hasFreeze ? '#1e5cff' : '#3ecf8e'; // Синий если заморожен, зеленый если нет
-  }
-  const pctStreak = Math.min(100, Math.round(streak / streakMax * 100));
-  const ring2 = document.getElementById('ringStreak');
-  if(ring2) ring2.style.strokeDashoffset = 188 - (188 * pctStreak / 100);
-
-  // Кольцо 3: Дневник (r=20, длина = 125). Если есть запись - 100%.
-  const hasJournal = bs.journal[date] && (bs.journal[date].q1 || bs.journal[date].q2 || bs.journal[date].q3);
-  const pctJournal = hasJournal ? 100 : 0;
-  const ring3 = document.getElementById('ringJournal');
-  if(ring3) ring3.style.strokeDashoffset = 125 - (125 * pctJournal / 100);
-
+  
+  const tccBar=document.getElementById('tccBarFill');
+  if(tccBar)tccBar.style.width=pct+'%';
+  
   // Карточка активной книги
   document.getElementById('activeBookWrap').innerHTML=`
     <div class="active-book-card" onclick="openBookDetail('${b.id}')">
@@ -895,12 +873,12 @@ function renderToday(){
       </div>
     </div>`;
 
-      const btn = document.querySelector('.hero-action-btn');
+  const btn = document.querySelector('.hero-action-btn');
   if (todayRec.closed) {
     document.getElementById('ritualSub').textContent = 'Возвращайся завтра';
     btn.querySelector('.hab-title').textContent = 'ДЕНЬ ЗАКРЫТ';
     btn.querySelector('.hab-ico').textContent = '🎉';
-    btn.style.background = 'linear-gradient(135deg, var(--success), #2eb87b)'
+    btn.style.background = 'linear-gradient(135deg, var(--success), #2eb87b)';
   } else {
     document.getElementById('ritualSub').textContent = total + ' практик';
     btn.querySelector('.hab-title').textContent = 'Начать утро';
@@ -910,7 +888,7 @@ function renderToday(){
 
   // Вызовы отрисовки
   renderHeroCards();
-  renderWeekCalendar(); // <-- Новый календарь
+  renderWeekCalendar(); // Новый календарь
   renderHint();
   updateSoundUI();
 }
