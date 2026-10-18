@@ -99,6 +99,14 @@ function formatTime(sec){
   const m=Math.floor(sec/60),s=sec%60;
   return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
 }
+function updateBottomNav(activePage) {
+  const nav = document.getElementById('bottomNav');
+  if(nav) nav.classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    if(b.dataset.page === activePage) b.classList.add('on');
+    else b.classList.remove('on');
+  });
+}
 
 // ─── RIPPLE ───
 function attachRipple(el,e){
@@ -471,7 +479,7 @@ function showLibrary(){
   hideAll();
   document.getElementById('libScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('on',b.dataset.page==='lib'));
+  updateBottomNav('lib');
   renderLibrary();updateSoundUI();
 }
 function showTodayScreen(){
@@ -481,7 +489,7 @@ function showTodayScreen(){
   hideAll();
   document.getElementById('todayScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('on',b.dataset.page==='journal'));
+  updateBottomNav('today');
   renderToday();updateSoundUI();checkInstallBanner();updateNotifBadge();
 }
 function showStatsScreen(){
@@ -492,22 +500,21 @@ function showStatsScreen(){
   hideAll();
   document.getElementById('statsScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('on',b.dataset.page==='stats'));
+  updateBottomNav('stats');
   renderStatsScreen();updateSoundUI();
 }
 function showJournalScreen(){
-  if(!currentBook)return showLibrary();
   hideAll();
   document.getElementById('journalScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('on',b.dataset.page==='today'));
+  updateBottomNav('journal');
   renderJournal();updateSoundUI();
 }
 async function showCommunityScreen(){
   hideAll();
   document.getElementById('communityScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('on',b.dataset.page==='community'));
+  updateBottomNav('community');
   document.getElementById('communityAvatar').textContent=state.avatar||'👤';
   document.getElementById('feedInputWrap').style.display='flex';
   updateSoundUI();
@@ -866,8 +873,8 @@ function renderToday(){
 
       const btn = document.querySelector('.hero-action-btn');
   if (todayRec.closed) {
-    document.getElementById('ritualSub').textContent = '✅ На сегодня всё';
-    btn.querySelector('.hab-title').textContent = 'Утро закрыто';
+    document.getElementById('ritualSub').textContent = 'Возвращайся завтра';
+    btn.querySelector('.hab-title').textContent = 'ДЕНЬ ЗАКРЫТ';
     btn.querySelector('.hab-ico').textContent = '🎉';
     btn.style.background = 'linear-gradient(135deg, var(--success), #2eb87b)'
   } else {
@@ -964,7 +971,8 @@ function renderLibrary(){
     list=list.filter(b=>{
       const bs=getBookState(b.id);
       const closed=countClosedDays(b.id);
-      return bs.start&&closed<b.days;
+      // Показываем только те, что начаты и не пройдены до конца
+      return bs.start !== null && closed < b.days; 
     });
   }else if(libFilter==='done'){
     list=list.filter(b=>countClosedDays(b.id)>=b.days);
@@ -982,7 +990,8 @@ function renderLibrary(){
     const pct=Math.round(closed/b.days*100);
     const started=bs.start!==null;
     const isDone=closed>=b.days;
-    const isActive=state.lastBook===b.id&&started&&!isDone;
+        // Оранжевая рамка только у той книги, которую сейчас проходим (и она не закончена)
+    const isActive = state.lastBook === b.id && started && !isDone && getBookState(b.id).start !== null;
     const hasAccess=hasBookAccess(b.id);
     return `<div class="book-row ${isDone?'done':''} ${isActive?'active':''} ${!hasAccess?'locked':''}" onclick="openBookDetail('${b.id}')">
       ${!hasAccess?'<div class="br-lock">🔒</div>':''}
@@ -1318,16 +1327,28 @@ function toggleTimer(ctx){
   }
 }
 function startTimer(ctx){
-  timerInterval=setInterval(()=>{
-    timerRemaining--;
+  // Запоминаем точное время окончания (текущее время + оставшиеся секунды)
+  const targetTime = Date.now() + (timerRemaining * 1000);
+  
+  if(timerInterval) clearInterval(timerInterval);
+  
+  timerInterval = setInterval(()=>{
+    const now = Date.now();
+    // Вычисляем, сколько секунд осталось до цели
+    const remaining = Math.max(0, Math.round((targetTime - now) / 1000));
+    timerRemaining = remaining;
+    
     const el=document.getElementById(ctx==='ritual'?'ritualTime':'timerDisplay');
-    if(el)el.textContent=formatTime(Math.max(0,timerRemaining));
-    if(timerRemaining<=0){
-      stopTimer();timerState='done';playFanfare();
+    if(el)el.textContent=formatTime(timerRemaining);
+    
+    if(timerRemaining <= 0){
+      stopTimer();
+      timerState='done';
+      playFanfare();
       if(ctx==='ritual')showCompleteOverlay(ritualQueue[ritualIndex],'ritual');
       else showCompleteOverlay(currentPractice,'practice');
     }
-  },1000);
+  }, 1000);
 }
 function stopTimer(){
   if(timerInterval){clearInterval(timerInterval);timerInterval=null}
@@ -1341,6 +1362,13 @@ function nextRitual(){
   renderRitualStep();
 }
 function closeRitual(){
+  // Спрашиваем подтверждение, если ритуал еще не завершен
+  if(ritualIndex < ritualQueue.length) {
+    if(!confirm('Вы уверены, что хотите прервать ритуал? Прогресс текущей практики не сохранится.')) {
+      return; // Если нажали "Отмена", ничего не закрываем
+    }
+  }
+
   stopTimer();timerState='idle';stopMusic();
   const rEl=document.getElementById('ritualScreen');
   rEl.classList.add('hidden');
@@ -1901,26 +1929,40 @@ async function copyReferral(){
 }
 
 // ─── ДНЕВНИК ───
-function renderJournal(){
-  if(!currentBook)return showLibrary();
-  document.getElementById('journalBookTitle').textContent=currentBook.emoji+' '+currentBook.title;
-  document.getElementById('journalAvatar').textContent=state.avatar||'👤';
-  const bs=getBookState(currentBook.id);
-  const entries=Object.keys(bs.journal||{}).filter(k=>{
-    const j=bs.journal[k];return j.q1||j.q2||j.q3;
-  });
-  const day=currentDay(currentBook.id),date=dateByDay(currentBook.id,day);
-  const today=bs.journal[date]||{};
-  document.getElementById('jq1').value=today.q1||'';
-  document.getElementById('jq2').value=today.q2||'';
-  document.getElementById('jq3').value=today.q3||'';
-  renderMoodTracker();
-  const history=entries.sort().reverse().map(d=>{
-    const j=bs.journal[d];
-    return `<div class="jh-entry"><div class="jh-day">День ${dateToDay(currentBook.id,d)}</div>${j.q1?`<div class="jh-q">🌟 Получилось</div><div class="jh-a">${escapeHtml(j.q1)}</div>`:''}${j.q2?`<div class="jh-q">💭 Сложно</div><div class="jh-a">${escapeHtml(j.q2)}</div>`:''}${j.q3?`<div class="jh-q">🔍 Замечаю</div><div class="jh-a">${escapeHtml(j.q3)}</div>`:''}</div>`;
+async function renderJournal(){
+  document.getElementById('journalBookTitle').textContent = 'Мой дневник';
+  document.getElementById('journalAvatar').textContent = state.avatar||'👤';
+  
+  const today = todayStr();
+  let todayRec = { q1: '', q2: '', q3: '' };
+  let history = [];
+
+  try {
+    // Получаем запись за сегодня
+    const { data: tData } = await sb.from('journals').select('*').eq('user_id', user.id).eq('date', today).maybeSingle();
+    if (tData) todayRec = tData;
+
+    // Получаем историю (последние 20 записей)
+    const { data: hData } = await sb.from('journals').select('*').eq('user_id', user.id).order('date', { ascending: false }).limit(20);
+    if (hData) history = hData;
+  } catch(e) { console.log(e); }
+
+  document.getElementById('jq1').value = todayRec.q1 || '';
+  document.getElementById('jq2').value = todayRec.q2 || '';
+  document.getElementById('jq3').value = todayRec.q3 || '';
+  
+  renderMoodTracker(); // Оставляем трекер настроения
+
+  const historyHtml = history.filter(h => h.q1 || h.q2 || h.q3).map(h => {
+    return `<div class="jh-entry">
+      <div class="jh-day">${h.date}</div>
+      ${h.q1?`<div class="jh-q">🌟 Получилось</div><div class="jh-a">${escapeHtml(h.q1)}</div>`:''}
+      ${h.q2?`<div class="jh-q">💭 Сложно</div><div class="jh-a">${escapeHtml(h.q2)}</div>`:''}
+      ${h.q3?`<div class="jh-q">🔍 Замечаю</div><div class="jh-a">${escapeHtml(h.q3)}</div>`:''}
+    </div>`;
   }).join('');
-  document.getElementById('journalHistory').innerHTML=
-    history||'<div class="jh-entry" style="text-align:center;color:var(--muted);padding:24px">Пока пусто. Сделай первую запись.</div>';
+
+  document.getElementById('journalHistory').innerHTML = historyHtml || '<div class="jh-entry" style="text-align:center;color:var(--muted);padding:24px">Пока пусто. Сделай первую запись.</div>';
 }
 function dateToDay(bookId,date){
   const bs=getBookState(bookId);
@@ -1929,20 +1971,29 @@ function dateToDay(bookId,date){
   const d=new Date(date+'T00:00:00');
   return Math.floor((d-start)/86400000)+1;
 }
-function saveJournal(){
-  if(!currentBook)return;
-  const day=currentDay(currentBook.id),date=dateByDay(currentBook.id,day);
-  const bs=getBookState(currentBook.id);
-  bs.journal[date]={
-    q1:document.getElementById('jq1').value,
-    q2:document.getElementById('jq2').value,
-    q3:document.getElementById('jq3').value
-  };
-  saveState();playSuccess();
-  const msg=document.getElementById('journalMsg');
-  msg.textContent='✓ Сохранено';
-  setTimeout(()=>msg.textContent='',2000);
-  renderJournal();
+async function saveJournal(){
+  const today = todayStr();
+  const q1 = document.getElementById('jq1').value;
+  const q2 = document.getElementById('jq2').value;
+  const q3 = document.getElementById('jq3').value;
+
+  try {
+    await sb.from('journals').upsert({
+      user_id: user.id,
+      date: today,
+      q1: q1,
+      q2: q2,
+      q3: q3
+    }, { onConflict: 'user_id,date' });
+
+    playSuccess();
+    const msg = document.getElementById('journalMsg');
+    msg.textContent = '✓ Сохранено';
+    setTimeout(() => msg.textContent = '', 2000);
+    renderJournal(); // Перерисовываем, чтобы обновилась история
+  } catch(e) {
+    toast('Ошибка сохранения', 'danger');
+  }
 }
 
 // ─── НАСТРОЕНИЕ ───
@@ -1964,10 +2015,21 @@ async function renderMoodTracker(){
 async function setMood(period,val){
   const today=todayStr();
   playCheck();
+  
+  // 1. Мгновенно красим выбранный эмодзи (чтобы был отклик)
+  const el=document.getElementById('mood'+(period==='morning'?'Morning':'Evening'));
+  if(el){
+    const emojis = el.querySelectorAll('.mood-emoji');
+    emojis.forEach((e, idx) => {
+      if (idx === val - 1) e.classList.add('on');
+      else e.classList.remove('on');
+    });
+  }
+
+  // 2. Сохраняем в базу данных
   try{
     await sb.from('moods').upsert({user_id:user.id,date:today,[period]:val},{onConflict:'user_id,date'});
-    renderMoodTracker();
-  }catch(e){toast('Ошибка','danger')}
+  }catch(e){toast('Ошибка сохранения','danger')}
 }
 
 // ═══════════════════════════════════════════════
@@ -1990,6 +2052,17 @@ function switchCommunityTab(tab,el){
 
 // ─── ЛЕНТА ───
 async function loadFeed(){
+    // Показываем скелетоны, пока грузим данные
+  document.getElementById('feedList').innerHTML = `
+    <div class="skeleton skeleton-post">
+      <div class="skeleton-post-head"><div class="skeleton skeleton-avatar"></div><div style="flex:1"><div class="skeleton skeleton-text-1" style="width:40%"></div><div class="skeleton skeleton-text-2" style="width:20%"></div></div></div>
+      <div class="skeleton skeleton-post-text"></div>
+    </div>
+    <div class="skeleton skeleton-post">
+      <div class="skeleton-post-head"><div class="skeleton skeleton-avatar"></div><div style="flex:1"><div class="skeleton skeleton-text-1" style="width:50%"></div><div class="skeleton skeleton-text-2" style="width:30%"></div></div></div>
+      <div class="skeleton skeleton-post-text"></div>
+    </div>
+  `;
   const{data,error}=await sb.from('messages').select('*').eq('room','feed')
     .order('created_at',{ascending:false}).limit(50);
   if(error){
@@ -2026,10 +2099,10 @@ async function loadFeed(){
       <div class="fp-text">${escapeHtml(m.text)}</div>
             <div class="fp-actions" style="display:flex; justify-content:space-between; width:100%;">
         <div style="display:flex; gap:10px;">
-          <div class="fp-action ${liked?'on':''}" onclick="toggleLike(${m.id},this)">❤️ <span>${postLikes.length}</span></div>
-          <div class="fp-action" onclick="toggleLike(${m.id},this)">🔥</div>
-          <div class="fp-action" onclick="toggleLike(${m.id},this)">💪</div>
-          <div class="fp-action" onclick="toggleLike(${m.id},this)">👏</div>
+          <div class="fp-action ${likedHeart?'on':''}" onclick="toggleLike(${m.id},'heart',this)">❤️ <span>${countHeart>0?countHeart:''}</span></div>
+          <div class="fp-action ${likedFire?'on':''}" onclick="toggleLike(${m.id},'fire',this)">🔥 <span>${countFire>0?countFire:''}</span></div>
+          <div class="fp-action ${likedMuscle?'on':''}" onclick="toggleLike(${m.id},'muscle',this)">💪 <span>${countMuscle>0?countMuscle:''}</span></div>
+          <div class="fp-action ${likedClap?'on':''}" onclick="toggleLike(${m.id},'clap',this)">👏 <span>${countClap>0?countClap:''}</span></div>
         </div>
         <div class="fp-action" onclick="toggleComments(${m.id})">💬 <span>${postComments.length}</span></div>
       </div>
@@ -2059,20 +2132,31 @@ async function sendFeedPost(){
   }catch(e){toast('Ошибка отправки','danger')}
 }
 
-async function toggleLike(msgId,el){
+async function toggleLike(msgId, type, el){
   try{
     const{data:existing}=await sb.from('likes').select('*')
       .eq('message_id',msgId).eq('user_id',user.id).maybeSingle();
+      
     if(existing){
-      await sb.from('likes').delete().eq('message_id',msgId).eq('user_id',user.id);
-    }else{
-      await sb.from('likes').insert({message_id:msgId,user_id:user.id});
+      // Если лайк уже есть
+      if (existing.type === type || (!existing.type && type === 'heart')) {
+        // Если нажали на тот же тип - удаляем
+        await sb.from('likes').delete().eq('message_id',msgId).eq('user_id',user.id);
+      } else {
+        // Если нажали на другой тип - обновляем
+        await sb.from('likes').update({type: type}).eq('message_id',msgId).eq('user_id',user.id);
+        playCheck();
+      }
+    } else {
+      // Если лайка нет - ставим новый
+      await sb.from('likes').insert({message_id:msgId, user_id:user.id, type: type});
       playCheck();
-      // Уведомление автору (если это не свой пост)
+      
+      // Уведомление автору
       const{data:post}=await sb.from('messages').select('user_id').eq('id',msgId).single();
       if(post&&post.user_id!==user.id){
         await createNotification(post.user_id,'like',{
-          text:(user.name||'Кто-то')+' лайкнул твой пост',
+          text:(user.name||'Кто-то')+' отреагировал на твой пост',
           from:user.id,
           msg_id:msgId
         });
@@ -2137,13 +2221,20 @@ function subscribeFeed(){
 async function loadChats(){
   const el=document.getElementById('chatsList');
   if(!el)return;
-  el.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px">Загрузка...</div>';
+
+  // 1. Показываем скелетоны при загрузке
+  el.innerHTML = `
+    <div class="skeleton skeleton-book"><div class="skeleton skeleton-avatar" style="border-radius:50%"></div><div style="flex:1"><div class="skeleton skeleton-text-1"></div><div class="skeleton skeleton-text-2"></div></div></div>
+    <div class="skeleton skeleton-book"><div class="skeleton skeleton-avatar" style="border-radius:50%"></div><div style="flex:1"><div class="skeleton skeleton-text-1"></div><div class="skeleton skeleton-text-2"></div></div></div>
+  `;
+
   try{
     const{data:msgs,error}=await sb.from('private_messages')
       .select('*')
       .or(`from_user.eq.${user.id},to_user.eq.${user.id}`)
       .order('created_at',{ascending:false})
       .limit(200);
+      
     if(error)throw error;
 
     // Группируем по собеседнику — берём последнее сообщение
@@ -2156,7 +2247,7 @@ async function loadChats(){
 
     const ids=Object.keys(dialogs);
     if(!ids.length){
-      el.innerHTML='<div style="color:var(--muted);text-align:center;padding:40px 20px;font-size:14px">Пока нет диалогов.<br><br>Найди человека в разделе «Люди» и напиши ему 👥</div>';
+      el.innerHTML='<div style="color:var(--muted);text-align:center;padding:40px 20px;font-size:14px">Пока нет диалогов.<br><br>Найди человека в разделе «Сообщество» и напиши ему 👥</div>';
       return;
     }
 
@@ -2183,6 +2274,7 @@ async function loadChats(){
     });
     html+='</div>';
     el.innerHTML=html;
+
   }catch(e){
     el.innerHTML='<div style="color:var(--danger);text-align:center;padding:20px">Ошибка загрузки</div>';
   }
@@ -2217,6 +2309,19 @@ async function openDialog(otherId,p){
     const inp=document.getElementById('dialogInput');
     if(inp)inp.focus();
   },300);
+    // Слушаем ввод текста, чтобы отправить сигнал "Печатает..."
+  const inp = document.getElementById('dialogInput');
+  if(inp) {
+    inp.addEventListener('input', () => {
+      if(dialogChannel) {
+        dialogChannel.send({
+          type: 'broadcast',
+          event: 'typing',
+          payload: { user_id: user.id }
+        });
+      }
+    });
+  }
 }
 
 async function loadDialog(){
@@ -2233,10 +2338,23 @@ async function loadDialog(){
       el.innerHTML='<div style="color:var(--muted);text-align:center;padding:40px 20px;font-size:13px">Напиши первым 👋</div>';
       return;
     }
-    el.innerHTML=data.map(m=>{
+        el.innerHTML=data.map(m=>{
       const own=m.from_user===user.id;
       const t=new Date(m.created_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-      return `<div class="msg-bubble ${own?'own':'other'}">${escapeHtml(m.text)}<span class="msg-time">${t}</span></div>`;
+      
+      // Логика галочек: если сообщение мое, показываем статус
+      let tick = '';
+      if (own) {
+        if (m.read) {
+          // Прочитано (две фиолетовые галочки)
+          tick = '<span style="color:#7c5cff; margin-left:4px; font-weight:bold;">✓✓</span>';
+        } else {
+          // Отправлено (одна серая галочка)
+          tick = '<span style="color:rgba(255,255,255,0.4); margin-left:4px;">✓</span>';
+        }
+      }
+
+      return `<div class="msg-bubble ${own?'own':'other'}">${escapeHtml(m.text)}<span class="msg-time">${t} ${tick}</span></div>`;
     }).join('');
     el.scrollTop=el.scrollHeight;
     window.scrollTo(0,document.body.scrollHeight);
@@ -2269,16 +2387,31 @@ async function sendPrivateMessage(){
 function subscribeDialog(){
   if(dialogChannel)sb.removeChannel(dialogChannel);
   if(!currentDialogUserId)return;
+  
   dialogChannel=sb.channel('dialog-'+currentDialogUserId)
     .on('postgres_changes',
       {event:'INSERT',schema:'public',table:'private_messages',filter:`to_user=eq.${user.id}`},
       (payload)=>{
         if(payload.new.from_user===currentDialogUserId){
           loadDialog();
-          // Пометить прочитанным сразу
           sb.from('private_messages').update({read:true}).eq('id',payload.new.id).then(()=>{});
         }
       })
+    // ДОБАВЛЯЕМ СЛУШАТЕЛЬ "ПЕЧАТАЕТ..."
+    .on('broadcast', { event: 'typing' }, (payload) => {
+      if(payload.payload.user_id !== user.id) {
+        const indicator = document.getElementById('typingIndicator');
+        if(indicator) {
+          indicator.style.display = 'block';
+          
+          // Скрываем через 2 секунды после последнего ввода
+          clearTimeout(window.typingTimeout);
+          window.typingTimeout = setTimeout(() => {
+            indicator.style.display = 'none';
+          }, 2000);
+        }
+      }
+    })
     .subscribe();
 }
 
@@ -2712,7 +2845,7 @@ function showBookEditor(id){
   document.getElementById('edEmoji').value=b?.emoji||'';
   document.getElementById('edDays').value=b?.days||30;
   document.getElementById('edAbout').value=b?.about||'';
-  document.getElementById('edPrompt').value='';
+    document.getElementById('edPractices').value = b?.practices ? JSON.stringify(b.practices, null, 2) : '';
   document.getElementById('edErr').textContent='';
   hideAll();
   document.getElementById('bookEditorScreen').classList.remove('hidden');
@@ -2773,19 +2906,23 @@ async function generateBookAI(){
   }
 }
 
-async function saveBookDraft(){
-  const title=document.getElementById('edTitle').value.trim();
-  if(!title){document.getElementById('edErr').textContent='Введи название';return}
-  await saveBook(false);
-}
-async function publishBook(){
-  const title=document.getElementById('edTitle').value.trim();
-  if(!title){document.getElementById('edErr').textContent='Введи название';return}
-  await saveBook(true);
-}
 async function saveBook(published){
   const err=document.getElementById('edErr');
   const id=editingBookId||('book-'+Date.now());
+  
+  // Получаем практики из текстового поля
+  let practicesData = [];
+  const practicesText = document.getElementById('edPractices').value.trim();
+  if(practicesText) {
+    try {
+      practicesData = JSON.parse(practicesText);
+    } catch(e) {
+      err.textContent = '❌ Ошибка в JSON практик. Проверьте кавычки и запятые.';
+      err.style.color = 'var(--danger)';
+      return;
+    }
+  }
+
   const data={
     id,
     title:document.getElementById('edTitle').value.trim(),
@@ -2797,12 +2934,13 @@ async function saveBook(published){
     author_bio:window._aiBook?.authorBio||'',
     for_whom:window._aiBook?.forWhom||'',
     result:window._aiBook?.result||'',
-    practices:window._aiBook?.practices||[],
+    practices: practicesData, // <-- СОХРАНЯЕМ НАШИ ПРАКТИКИ
     quotes:window._aiBook?.quotes||[],
     published,
     created_by:user.id,
     updated_at:new Date().toISOString()
   };
+  
   try{
     const{error}=await sb.from('books').upsert(data,{onConflict:'id'});
     if(error)throw error;
@@ -2818,13 +2956,22 @@ async function saveBook(published){
 }
 
 // ═══════════════════════════════════════════════
-// PWA / SERVICE WORKER
-// ═══════════════════════════════════════════════
+// ─── PWA ОБНОВЛЕНИЯ ───
+let newWorker;
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg=>{})
-      .catch(err=>console.log('SW error',err));
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      reg.addEventListener('updatefound', () => {
+        newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          // Если новый воркер установился и ждет активации
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            const banner = document.getElementById('updateBanner');
+            if(banner) banner.style.display = 'flex'; // Показываем баннер
+          }
+        });
+      });
+    }).catch(err=>console.log('SW error',err));
   });
 }
 

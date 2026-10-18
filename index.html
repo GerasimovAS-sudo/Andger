@@ -155,23 +155,20 @@
       <div class="hab-arrow">▶</div>
     </button>
 
-    <button class="action-btn-compact" onclick="startFastRitual()" style="width:100%;margin-bottom:10px;">
-      <div class="abc-ico">⚡</div>
-      <div>
-        <h4>Быстрый ритуал</h4>
-        <p>По 1 практике из каждой книги · ~7 минут</p>
+        <!-- Компактные быстрые действия -->
+    <div class="quick-actions-row">
+      <div class="quick-action-btn" onclick="startFastRitual()">
+        <div class="qa-ico" style="background:rgba(255,184,0,0.15); color:var(--gold);">⚡</div>
+        <span>Быстрый</span>
       </div>
-    </button>
-
-    <div class="action-row-2">
-      <button class="action-btn-compact" onclick="showRitualBuilder()">
-        <div class="abc-ico">🎯</div>
-        <div><h4>Собрать свой</h4><p>Из разных книг</p></div>
-      </button>
-      <button class="action-btn-compact" onclick="showBreathModal()">
-        <div class="abc-ico">🌬</div>
-        <div><h4>Успокоиться</h4><p>Дыхание 4-7-8</p></div>
-      </button>
+      <div class="quick-action-btn" onclick="showRitualBuilder()">
+        <div class="qa-ico" style="background:rgba(124,92,255,0.15); color:var(--accent-2);">🎯</div>
+        <span>Свой ритуал</span>
+      </div>
+      <div class="quick-action-btn" onclick="showBreathModal()">
+        <div class="qa-ico" style="background:rgba(62,207,142,0.15); color:var(--success);">🌬</div>
+        <span>Дыхание</span>
+      </div>
     </div>
 
     <h2 class="section-title">📋 Практики на сегодня</h2>
@@ -397,8 +394,10 @@
       <div class="page-label" id="dialogName">ЧАТ</div>
     </div>
   </div>
-  <div class="wrap" style="padding-bottom:100px">
+  <div class="wrap" style="padding-bottom:80px">
     <div id="dialogMessages" class="dialog-messages"></div>
+    <!-- ИНДИКАТОР "ПЕЧАТАЕТ..." (вставлен сюда) -->
+    <div id="typingIndicator" style="display:none; font-size:12px; color:var(--muted); padding:0 16px 8px; font-style:italic;">Печатает...</div>
   </div>
   <div class="feed-input-wrap" id="dialogInputWrap">
     <input type="text" class="feed-input" id="dialogInput" placeholder="Написать..." maxlength="1000">
@@ -650,24 +649,42 @@
       <label>Автор</label>
       <input type="text" id="edAuthor" placeholder="Джеймс Клир">
     </div>
-    <div class="field">
-      <label>Эмодзи</label>
-      <input type="text" id="edEmoji" placeholder="⚛️" maxlength="4">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div class="field">
+        <label>Эмодзи</label>
+        <input type="text" id="edEmoji" placeholder="⚛️" maxlength="4">
+      </div>
+      <div class="field">
+        <label>Кол-во дней</label>
+        <input type="number" id="edDays" placeholder="21">
+      </div>
     </div>
     <div class="field">
-      <label>Дней</label>
-      <input type="number" id="edDays" placeholder="21">
-    </div>
-    <div class="field">
-      <label>О книге</label>
+      <label>О книге (Описание)</label>
       <textarea id="edAbout" rows="4" placeholder="Описание..."></textarea>
     </div>
+    
+    <!-- НОВОЕ ПОЛЕ ДЛЯ ПРАКТИК -->
     <div class="field">
-      <label>Промпт для AI (опционально)</label>
-      <textarea id="edPrompt" rows="3" placeholder="Например: сделай акцент на дисциплине"></textarea>
+      <label style="color:var(--warm)">Практики (формат JSON)</label>
+      <textarea id="edPractices" rows="8" placeholder='[
+  {
+    "id": "practice-1",
+    "ico": "🧘",
+    "title": "Название практики",
+    "sub": "Подзаголовок · 5 минут",
+    "time": 300,
+    "why": "Зачем это нужно",
+    "how": ["Шаг 1", "Шаг 2"],
+    "result": "Результат",
+    "mistakes": ["Ошибка 1"],
+    "advice": "Совет"
+  }
+]' style="font-family:monospace; font-size:12px;"></textarea>
+      <p style="font-size:10px;color:var(--muted);margin-top:5px;">Скопируйте структуру из примера выше и заполните своими данными. Можно добавлять сколько угодно практик.</p>
     </div>
-    <button class="btn" onclick="generateBookAI()">✨ Сгенерировать через AI</button>
-    <button class="btn btn-ghost" onclick="saveBookDraft()">💾 Сохранить черновик</button>
+
+    <button class="btn" onclick="saveBookDraft()">💾 Сохранить черновик</button>
     <button class="btn" onclick="publishBook()">🚀 Опубликовать</button>
     <div class="err" id="edErr"></div>
   </div>
@@ -844,6 +861,12 @@
 
 <!-- Конфетти -->
 <div class="confetti hidden" id="confetti"></div>
+
+<!-- Баннер обновления PWA -->
+<div id="updateBanner" style="display:none; position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:var(--accent); color:#fff; padding:12px 24px; border-radius:100px; box-shadow:0 8px 24px rgba(0,0,0,0.5); z-index:9999; font-weight:800; font-size:13px; text-align:center; cursor:pointer; width:90%; max-width:400px; display:none; align-items:center; justify-content:space-between;">
+  <span>Доступно обновление!</span>
+  <button onclick="window.location.reload()" style="background:#fff; color:var(--accent); border:none; padding:6px 12px; border-radius:100px; font-weight:900; font-size:12px; cursor:pointer;">Обновить</button>
+</div>
 
 <!-- Скрипты -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
