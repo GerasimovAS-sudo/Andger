@@ -773,8 +773,13 @@ async function doAuth(){
         else await handleSession(d2.session);
       }
       playSuccess();
-    }else{
-      const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
+        }else{
+      // Добавляем тайм-аут на 10 секунд для входа
+      const loginPromise = sb.auth.signInWithPassword({email,password:pass});
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000));
+      
+      const {data, error} = await Promise.race([loginPromise, timeoutPromise]);
+      
       if(error){
         showError(error.message.includes('Invalid')?'Неверный номер или пароль':'Ошибка входа',phoneEl,passEl);
         btn.disabled=false;btn.textContent='Войти';return;
