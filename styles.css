@@ -1107,13 +1107,6 @@ html.light .main-head, body.light .main-head {
   z-index:100}
 .nav-btn{
   display:flex;flex-direction:column;align-items:center;gap:3px;
-  color:var(--muted);font-size:10px;cursor:pointer;padding:6px 8px;
-  transition:color .2s;background:none;border:none;font-family:inherit;
-  font-weight:800;text-transform:uppercase;letter-spacing:.3px;
-  flex:1;min-width:0;border-radius:var(--radius-sm);
-}
-.nav-btn{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
   color:var(--muted);font-size:9px; /* Уменьшили шрифт с 10 до 9 */
   cursor:pointer;padding:6px 2px; /* Уменьшили отступы по бокам */
   transition:color .2s;background:none;border:none;font-family:inherit;

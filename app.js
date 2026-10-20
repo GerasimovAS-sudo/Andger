@@ -498,7 +498,8 @@ function hideAll(){
   ].forEach(id=>{
     const el=document.getElementById(id);if(el)el.classList.add('hidden');
   });
-  const bn=document.getElementById('bottomNav');if(bn)bn.classList.add('hidden');
+    const bn=document.getElementById('bottomNav');
+  if(bn) { bn.classList.add('hidden'); bn.style.display = ''; }
   const fi=document.getElementById('feedInputWrap');if(fi)fi.style.display='none';
   const di=document.getElementById('dialogInputWrap');if(di)di.style.display='none';
   window.scrollTo(0,0);
@@ -506,9 +507,7 @@ function hideAll(){
 function showAuth(){
   hideAll();
   document.getElementById('authScreen').classList.remove('hidden');
-  // Принудительно прячем нижнее меню на экране входа
-  const bn = document.getElementById('bottomNav');
-  if(bn) bn.style.display = 'none'; 
+  // Убрали жесткое скрытие, теперь работает через классы
 }
 function showWelcome(){
   hideAll();
