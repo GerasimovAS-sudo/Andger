@@ -244,31 +244,52 @@ function randomSplashQuote(){
 
 // ─── ИНИЦИАЛИЗАЦИЯ ───
 window.addEventListener('DOMContentLoaded', async()=>{
-  const t0=performance.now();
-  setSplashProgress(10);
-  BOOKS=(typeof BOOK_REGISTRY!=='undefined'?BOOK_REGISTRY:[]).filter(Boolean);
-  randomSplashQuote();
-  setSplashProgress(30);
-  
-      // Если открыт /u/{slug} — покажем публичный профиль (отключено, разберёмся позже)
-  // const isPublic=await handlePublicProfileUrl();
-  // if(isPublic){hideLoader();return}
+  const t0 = performance.now();
+  console.log('🚀 ANDGER init starting');
 
-    try{
-    const{data:{session}}=await sb.auth.getSession();
-    if(session){
+  // ПРЕДОХРАНИТЕЛЬ: через 12 секунд принудительно спрячем заставку, что бы ни случилось
+  const safetyTimer = setTimeout(() => {
+    console.warn('⚠️ SAFETY: forcing loader hide after 12s');
+    try { hideLoader(); } catch(e) { console.error(e); }
+    // Если ни один экран не показан — покажем авторизацию
+    const anyVisible = document.querySelector('#authScreen:not(.hidden), #todayScreen:not(.hidden), #libScreen:not(.hidden), #onbScreen:not(.hidden), #welcomeScreen:not(.hidden)');
+    if (!anyVisible) {
+      try { showAuth(); } catch(e) { console.error(e); }
+    }
+  }, 12000);
+
+  try {
+    setSplashProgress(10);
+    BOOKS = (typeof BOOK_REGISTRY !== 'undefined' ? BOOK_REGISTRY : []).filter(Boolean);
+    console.log('📚 BOOKS loaded:', BOOKS.length);
+    try { randomSplashQuote(); } catch(e) { console.warn('Quote error:', e); }
+    setSplashProgress(30);
+
+    console.log('🔑 Getting session...');
+    const { data: { session } } = await sb.auth.getSession();
+    console.log('✅ Session:', session ? 'exists' : 'null');
+
+    if (session) {
+      console.log('👤 handleSession starting...');
       await handleSession(session);
+      console.log('✅ handleSession completed');
       await waitSplash(t0);
       hideLoader();
-    }else{
+      console.log('✅ Splash hidden');
+    } else {
       await waitSplash(t0);
       hideLoader();
       showAuth();
+      console.log('✅ Auth shown');
     }
-  }catch(e){
-    await waitSplash(t0);
+  } catch(e) {
+    console.error('❌ Init error:', e);
+    await waitSplash(t0).catch(()=>{});
     hideLoader();
-    showAuth();
+    try { showAuth(); } catch(err) { console.error(err); }
+  } finally {
+    clearTimeout(safetyTimer);
+    console.log('🏁 Init done in', Math.round(performance.now() - t0), 'ms');
   }
 });
 
@@ -409,14 +430,35 @@ async function migrateLocalData(){
 }
 
 async function loadProgress(){
-  const{data,error}=await sb.from('progress').select('*').eq('user_id',user.id);
-  if(error)return;
-  state.books={};
-  (data||[]).forEach(row=>{
-    state.books[row.book_id]=row.data||{start:null,days:{},journal:{}};
-  });
-  if(state.soundOn===undefined)state.soundOn=true;
-  if(state.avatar===undefined)state.avatar='👤';
+  // 1. Сначала берем данные из памяти телефона (LocalStorage) — это мгновенно
+  try {
+    const localState = localStorage.getItem('andger_current_state');
+    if (localState) {
+      const parsed = JSON.parse(localState);
+      if (parsed.books) state.books = parsed.books;
+    }
+  } catch(e) {}
+
+  // 2. Пытаемся обновить с сервера, но ждем не больше 3 секунд
+  try {
+    const fetchPromise = sb.from('progress').select('*').eq('user_id',user.id);
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000));
+    
+    const {data, error} = await Promise.race([fetchPromise, timeoutPromise]);
+    
+    if (!error && data && data.length > 0) {
+      state.books = {};
+      data.forEach(row=>{
+        state.books[row.book_id] = row.data || {start:null, days:{}, journal:{}};
+      });
+    }
+  } catch(e) {
+    console.log('Сервер не ответил за 3 секунды, используем локальные данные');
+  }
+  
+  if(state.soundOn===undefined) state.soundOn=true;
+  if(state.avatar===undefined) state.avatar='👤';
+  if(!state.books) state.books = {};
 }
 
 async function syncProgress(){
@@ -435,8 +477,13 @@ async function syncProgress(){
     last_seen:new Date().toISOString()
   }).eq('id',user.id);
 }
-async function syncNow(){await syncProgress();playSuccess();toast('Синхронизировано')}
 function saveState(){
+  // 1. Сразу сохраняем в память телефона (LocalStorage) — это работает без интернета
+  try {
+    localStorage.setItem('andger_current_state', JSON.stringify(state));
+  } catch(e) { console.log('LocalStorage error', e); }
+
+  // 2. Отправляем на сервер с задержкой
   if(syncTimeout)clearTimeout(syncTimeout);
   syncTimeout=setTimeout(()=>syncProgress(),1500);
 }
@@ -530,13 +577,25 @@ function backFromRitualBuilder(){smartHome()}
 
 let profilePrev='today';
 function showProfile(){
-  const active=document.querySelector('.nav-btn.on');
-  if(active)profilePrev=active.dataset.page||'today';
-  hideAll();
-  document.getElementById('profileScreen').classList.remove('hidden');
-  renderProfile();
-  checkAdminAccess();
-  updateSoundUI();
+  try {
+    console.log('👤 showProfile clicked');
+    const active=document.querySelector('.nav-btn.on');
+    if(active) profilePrev=active.dataset.page||'today';
+    
+    hideAll();
+    console.log('👤 unhiding profileScreen');
+    document.getElementById('profileScreen').classList.remove('hidden');
+    
+    console.log('👤 renderProfile running');
+    renderProfile();
+    checkAdminAccess();
+    updateSoundUI();
+    console.log('✅ showProfile done');
+  } catch(e) {
+    console.error('❌ Profile Error:', e);
+    alert('Ошибка профиля: ' + e.message);
+    smartHome(); // Возвращаем на главную, чтобы не застрять
+  }
 }
 function backFromProfile(){
   if(profilePrev==='lib')showLibrary();
@@ -568,6 +627,7 @@ async function showNotifications(){
 }
 function backFromNotifications(){smartHome()}
 function backFromDialog(){showCommunityScreen()}
+function backFromCommunity(){ smartHome(); }
 
 function navTo(page,el){
   if(page==='lib')showLibrary();
@@ -748,12 +808,12 @@ async function contactInApp(){
   try{
     const{data}=await sb.from('profiles').select('id,name,avatar').eq('is_admin',true).limit(1).single();
     if(data){
-      openDialog(data.id,data);
+      openDialog(data.id, {name: data.name || 'Разработчик', avatar: data.avatar || '👤'});
     }else{
       toast('Разработчик не найден','danger');
     }
   }catch(e){
-    toast('Ошибка','danger');
+    toast('Ошибка соединения','danger');
   }
 }
 function contactDev(){showContactMenu()}
@@ -770,8 +830,12 @@ function checkAdminAccess(){
 }
 function shareApp(){
   const url='https://andger.ru/';
-  if(navigator.share)navigator.share({title:'ANDGER',text:'Практикум по книгам',url});
-  else{navigator.clipboard.writeText(url);toast('Ссылка скопирована')}
+  if(navigator.share) {
+    navigator.share({title:'ANDGER',text:'Практикум по книгам',url});
+  } else {
+    copyToClipboard(url); // Используем нашу универсальную функцию
+    toast('Ссылка скопирована');
+  }
 }
 
 // ─── УСТАНОВКА ───
@@ -856,23 +920,68 @@ function renderToday(){
   const tccBar=document.getElementById('tccBarFill');
   if(tccBar)tccBar.style.width=pct+'%';
   
-  // Карточка активной книги
-  document.getElementById('activeBookWrap').innerHTML=`
-    <div class="active-book-card" onclick="openBookDetail('${b.id}')">
-      <div class="abc-head">
-        <div class="abc-emoji">${b.emoji}</div>
-        <div class="abc-info">
-          <div class="abc-title">${b.title}</div>
-          <div class="abc-day">День ${day} из ${b.days}</div>
+    // ─── СВАЙП-КАРУСЕЛЬ КНИГ ───
+  const activeBooks = BOOKS.filter(bb => {
+    const bbs = getBookState(bb.id);
+    const c = countClosedDays(bb.id);
+    return bbs.start !== null && c < bb.days; // Книги в процессе
+  });
+  
+  // Если текущая книга почему-то не попала в список, добавляем её принудительно
+  if (!activeBooks.find(x => x.id === b.id)) activeBooks.push(b);
+
+  let booksHtml = '';
+  let dotsHtml = '';
+
+  activeBooks.forEach((ab, index) => {
+    const ab_bs = getBookState(ab.id);
+    const ab_closed = countClosedDays(ab.id);
+    const ab_day = currentDay(ab.id);
+    const ab_date = dateByDay(ab.id, ab_day);
+    const ab_todayRec = ab_bs.days[ab_date] || {practices:[]};
+    const ab_todayCount = (ab_todayRec.practices || []).length;
+    const ab_total = ab.practices.length;
+    const isActive = ab.id === b.id;
+
+    booksHtml += `
+      <div class="active-book-card" onclick="switchActiveBook('${ab.id}')" style="${isActive ? '' : 'opacity:0.7;'}">
+        <div class="abc-head">
+          <div class="abc-emoji">${ab.emoji}</div>
+          <div class="abc-info">
+            <div class="abc-title">${ab.title}</div>
+            <div class="abc-day">День ${ab_day} из ${ab.days}</div>
+          </div>
+        </div>
+        <div class="abc-bar"><div class="abc-fill" style="width:${Math.round(ab_closed/ab.days*100)}%"></div></div>
+        <div class="abc-meta">
+          <span>Сегодня: <b>${ab_todayCount} из ${ab_total}</b></span>
+          <span>Прогресс: <b>${Math.round(ab_closed/ab.days*100)}%</b></span>
         </div>
       </div>
-      <div class="abc-bar"><div class="abc-fill" style="width:${Math.round(closed/b.days*100)}%"></div></div>
-      <div class="abc-meta">
-        <span>Сегодня: <b>${todayCount} из ${total}</b></span>
-        <span>Прогресс: <b>${Math.round(closed/b.days*100)}%</b></span>
-      </div>
-    </div>`;
+    `;
 
+    dotsHtml += `<div class="b-dot ${isActive ? 'on' : ''}"></div>`;
+  });
+
+  document.getElementById('activeBookWrap').innerHTML = booksHtml;
+  document.getElementById('booksDots').innerHTML = activeBooks.length > 1 ? dotsHtml : '';
+    // Авто-скролл к активной книге
+  setTimeout(() => {
+    const slider = document.getElementById('activeBookWrap');
+    const activeIndex = activeBooks.findIndex(x => x.id === b.id);
+    if (slider && activeIndex >= 0 && slider.children[activeIndex]) {
+      slider.scrollTo({ left: slider.children[activeIndex].offsetLeft - 16, behavior: 'auto' });
+    }
+  }, 50);
+    // Авто-скролл к активной книге
+  setTimeout(() => {
+    const slider = document.getElementById('activeBookWrap');
+    const activeIndex = activeBooks.findIndex(x => x.id === b.id);
+    if (slider && activeIndex >= 0 && slider.children[activeIndex]) {
+      slider.scrollTo({ left: slider.children[activeIndex].offsetLeft - 16, behavior: 'auto' });
+    }
+  }, 50);
+  
   const btn = document.querySelector('.hero-action-btn');
   if (todayRec.closed) {
     document.getElementById('ritualSub').textContent = 'Возвращайся завтра';
@@ -881,7 +990,7 @@ function renderToday(){
     btn.style.background = 'linear-gradient(135deg, var(--success), #2eb87b)';
   } else {
     document.getElementById('ritualSub').textContent = total + ' практик';
-    btn.querySelector('.hab-title').textContent = 'Начать утро';
+    btn.querySelector('.hab-title').textContent = 'Начать практику';
     btn.querySelector('.hab-ico').textContent = '☀️';
     btn.style.background = '';
   }
@@ -982,7 +1091,7 @@ function renderLibrary(){
     list=list.filter(b=>{
       const bs=getBookState(b.id);
       const closed=countClosedDays(b.id);
-      // Показываем только те, что начаты и не пройдены до конца
+      // Показываем ТОЛЬКО те, у которых есть дата старта и они не закончены
       return bs.start !== null && closed < b.days; 
     });
   }else if(libFilter==='done'){
@@ -1001,9 +1110,11 @@ function renderLibrary(){
     const pct=Math.round(closed/b.days*100);
     const started=bs.start!==null;
     const isDone=closed>=b.days;
-        // Оранжевая рамка только у той книги, которую сейчас проходим (и она не закончена)
-    const isActive = state.lastBook === b.id && started && !isDone && getBookState(b.id).start !== null;
+    
+    // Оранжевая рамка появляется ТОЛЬКО если книга реально начата и это последняя открытая книга
+    const isActive = state.lastBook === b.id && started && !isDone; 
     const hasAccess=hasBookAccess(b.id);
+    
     return `<div class="book-row ${isDone?'done':''} ${isActive?'active':''} ${!hasAccess?'locked':''}" onclick="openBookDetail('${b.id}')">
       ${!hasAccess?'<div class="br-lock">🔒</div>':''}
       <div class="br-emoji">${b.emoji}</div>
@@ -1118,19 +1229,35 @@ async function rateBook(bookId,stars){
 function renderStatsScreen(){
   if(!currentBook)return;
   document.getElementById('statsAvatar').textContent=state.avatar||'👤';
-  let totalClosed=0,totalPractices=0,booksStarted=0;
+  
+  let totalClosed=0,totalPractices=0,booksStarted=0,totalSeconds=0;
+  
   BOOKS.forEach(bb=>{
     const bbs=getBookState(bb.id);
     if(bbs.start)booksStarted++;
     totalClosed+=countClosedDays(bb.id);
+    
+    // Считаем общее количество практик и время
     Object.values(bbs.days).forEach(rec=>{
-      if(rec.practices)totalPractices+=rec.practices.length;
+      if(rec.practices){
+        totalPractices+=rec.practices.length;
+        // Ищем время каждой выполненной практики в книге
+        rec.practices.forEach(pid => {
+          const p = bb.practices.find(x => x.id === pid);
+          if(p && p.time) totalSeconds += p.time;
+        });
+      }
     });
   });
+  
+  const totalMinutes = Math.round(totalSeconds / 60);
+
   document.getElementById('globalBooks').textContent=booksStarted;
   document.getElementById('globalClosed').textContent=totalClosed;
   document.getElementById('globalPractices').textContent=totalPractices;
+  document.getElementById('globalMinutes').textContent=totalMinutes;
 
+  // Отрисовка карточек книг
   document.getElementById('statsBooksSwipe').innerHTML=BOOKS.map(b=>{
     const closed=countClosedDays(b.id);
     const pct=Math.round(closed/b.days*100);
@@ -1138,12 +1265,18 @@ function renderStatsScreen(){
     const isActive=statsBookId===b.id;
     const circ=2*Math.PI*22;
     const offset=circ-(circ*pct/100);
+    
+    // Определяем текущий день для этой книги
+    const dayNum = currentDay(b.id);
+    const dayText = b.start ? `День ${dayNum} из ${b.days}` : `${b.days} дней`;
+
     return `<div class="stats-book-card ${isActive?'active':''} ${isDone?'done':''}" onclick="selectStatsBook('${b.id}')">
       <div class="sbc-ring">
         <svg viewBox="0 0 52 52"><circle class="sbc-bg" cx="26" cy="26" r="22"/><circle class="sbc-fill" cx="26" cy="26" r="22" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/></svg>
         <div class="sbc-pct">${pct}%</div>
       </div>
       <div class="sbc-name">${b.emoji} ${b.title}</div>
+      <div style="font-size:10px; color:var(--muted); font-weight:700; margin-top:2px;">${dayText}</div>
     </div>`;
   }).join('');
 
@@ -1346,15 +1479,33 @@ function toggleTimer(ctx){
     if(btn){btn.textContent='⏸ Пауза';btn.className='timer-big-btn'}
   }
 }
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+    }
+  } catch (err) {
+    console.log('Wake Lock error:', err);
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock !== null) {
+    wakeLock.release();
+    wakeLock = null;
+  }
+}
+
 function startTimer(ctx){
-  // Запоминаем точное время окончания (текущее время + оставшиеся секунды)
+  requestWakeLock(); // <--- ДЕРЖИМ ЭКРАН ВКЛЮЧЕННЫМ
   const targetTime = Date.now() + (timerRemaining * 1000);
   
   if(timerInterval) clearInterval(timerInterval);
   
   timerInterval = setInterval(()=>{
     const now = Date.now();
-    // Вычисляем, сколько секунд осталось до цели
     const remaining = Math.max(0, Math.round((targetTime - now) / 1000));
     timerRemaining = remaining;
     
@@ -1370,6 +1521,11 @@ function startTimer(ctx){
     }
   }, 1000);
 }
+
+function stopTimer(){
+  releaseWakeLock(); // <--- ОТПУСКАЕМ ЭКРАН
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null}
+}
 function stopTimer(){
   if(timerInterval){clearInterval(timerInterval);timerInterval=null}
 }
@@ -1381,21 +1537,63 @@ function nextRitual(){
   ritualIndex++;
   renderRitualStep();
 }
-function closeRitual(){
-  // Спрашиваем подтверждение, если ритуал еще не завершен
-  if(ritualIndex < ritualQueue.length) {
-    if(!confirm('Вы уверены, что хотите прервать ритуал? Прогресс текущей практики не сохранится.')) {
-      return; // Если нажали "Отмена", ничего не закрываем
-    }
-  }
+let confirmActionCallback = null;
 
-  stopTimer();timerState='idle';stopMusic();
-  const rEl=document.getElementById('ritualScreen');
-  rEl.classList.add('hidden');
-  rEl.classList.remove('ritual');
-  rEl.style.cssText='';
-  rEl.className='ritual hidden';
-  smartHome();
+function showCustomConfirm(title, text, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmText').textContent = text;
+  confirmActionCallback = callback;
+  document.getElementById('confirmModal').classList.remove('hidden');
+}
+
+function closeCustomConfirm(isConfirmed) {
+  document.getElementById('confirmModal').classList.add('hidden');
+  if (isConfirmed && confirmActionCallback) {
+    confirmActionCallback();
+  }
+  confirmActionCallback = null;
+}
+
+function closeRitual(){
+  if(ritualIndex < ritualQueue.length) {
+    showCustomConfirm(
+      'Прервать ритуал?', 
+      'Прогресс текущей практики не сохранится. Вы уверены?', 
+      () => {
+        stopTimer();timerState='idle';stopMusic();
+        const rEl=document.getElementById('ritualScreen');
+        rEl.classList.add('hidden'); 
+        rEl.classList.remove('ritual');
+        rEl.style.cssText=''; 
+        rEl.className='ritual hidden';
+        smartHome();
+      }
+    );
+  } else {
+    stopTimer();timerState='idle';stopMusic();
+    const rEl=document.getElementById('ritualScreen');
+    rEl.classList.add('hidden'); 
+    rEl.classList.remove('ritual');
+    rEl.style.cssText=''; 
+    rEl.className='ritual hidden';
+    smartHome();
+  }
+}
+
+function goToJournalFromRitual() {
+  stopTimer();
+  showCustomConfirm(
+    'Перейти в дневник?', 
+    'Текущая практика не сохранится. Вы уверены?', 
+    () => {
+      const rEl=document.getElementById('ritualScreen');
+      rEl.classList.add('hidden'); 
+      rEl.classList.remove('ritual');
+      rEl.style.cssText=''; 
+      rEl.className='ritual hidden';
+      showJournalScreen();
+    }
+  );
 }
 
 function finishRitual(){
@@ -1468,21 +1666,61 @@ function renderRitualBuilder(){
       '<p style="color:var(--muted);text-align:center">Нет доступных книг</p>';
     return;
   }
+  
   let html='';
   activeBooks.forEach(b=>{
     html+=`<div class="ritual-builder-book"><h4>${b.emoji} ${b.title}</h4>`;
     b.practices.forEach(p=>{
       const key=b.id+':'+p.id;
       const on=customRitual.includes(key);
-      html+=`<div class="ritual-builder-item ${on?'on':''}" onclick="toggleCustomPractice('${key}')">
-        <div class="rbi-check">✓</div>
-        <div class="rbi-body"><div class="rbi-title">${p.title}</div><div class="rbi-time">${p.sub}</div></div>
+      
+      // Разделяем клик: галочка = выбор, текст = описание
+      html+=`<div class="ritual-builder-item ${on?'on':''}">
+        <div class="rbi-check" onclick="event.stopPropagation();toggleCustomPractice('${key}')">✓</div>
+        <div class="rbi-body" onclick="event.stopPropagation();previewPractice('${b.id}','${p.id}')">
+          <div class="rbi-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>${p.title}</span>
+            <span style="font-size:16px; color:var(--accent-2); opacity:0.7;">ⓘ</span>
+          </div>
+          <div class="rbi-time">${p.sub}</div>
+        </div>
       </div>`;
     });
     html+='</div>';
   });
   document.getElementById('ritualBuilderList').innerHTML=html;
   updateCustomSummary();
+}
+
+// НОВАЯ ФУНКЦИЯ ДЛЯ ОКНА ОПИСАНИЯ
+function previewPractice(bookId, practiceId) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b) return;
+  const p = b.practices.find(x => x.id === practiceId);
+  if (!p) return;
+
+  document.getElementById('previewContent').innerHTML = `
+    <div style="text-align:center; margin-bottom:15px;">
+      <div style="font-size:50px; margin-bottom:10px;">${p.ico}</div>
+      <h2 style="font-size:20px; margin-bottom:5px;">${p.title}</h2>
+      <div style="color:var(--muted); font-size:13px;">${p.sub}</div>
+    </div>
+    <div style="margin-bottom:15px;">
+      <b style="color:var(--accent-2); text-transform:uppercase; font-size:11px;">Зачем это нужно</b>
+      <p style="margin-top:4px;">${p.why}</p>
+    </div>
+    <div style="margin-bottom:15px;">
+      <b style="color:var(--accent-2); text-transform:uppercase; font-size:11px;">Как делать</b>
+      <ul style="padding-left:16px; margin-top:4px;">
+        ${p.how.map(step => `<li style="margin-bottom:6px;">${step}</li>`).join('')}
+      </ul>
+    </div>
+    <div style="background:rgba(255,184,0,0.1); padding:12px; border-radius:10px; border-left:3px solid var(--gold);">
+      <b style="color:var(--gold); font-size:11px; text-transform:uppercase;">Совет</b>
+      <p style="margin-top:4px; font-size:13px; font-style:italic;">${p.advice}</p>
+    </div>
+  `;
+  document.getElementById('previewPracticeModal').classList.remove('hidden');
 }
 function toggleCustomPractice(key){
   const idx=customRitual.indexOf(key);
@@ -1530,6 +1768,7 @@ function showCompleteOverlay(practice,context){
   document.getElementById('completeOverlay').classList.remove('hidden');
 }
 function completePracticeDone(){
+  stopMusic(); // <--- ДОБАВИЛИ ОСТАНОВКУ МУЗЫКИ
   document.getElementById('completeOverlay').classList.add('hidden');
   if(!completeCallback)return;
   const{practice,context}=completeCallback;completeCallback=null;
@@ -1540,14 +1779,15 @@ function completePracticeDone(){
     playCheck();
     ritualIndex++;
     setTimeout(()=>renderRitualStep(),300);
-    }else{
+  }else{
     markPracticeDone(practice.id);
     playCheck();
-    fireConfetti(); // <--- ДОБАВИЛИ КОНФЕТТИ
+    fireConfetti();
     closePractice();
   }
 }
 function completePracticeSkip(){
+  stopMusic(); // <--- ДОБАВИЛИ ОСТАНОВКУ МУЗЫКИ
   document.getElementById('completeOverlay').classList.add('hidden');
   if(!completeCallback)return;
   const{context}=completeCallback;completeCallback=null;
@@ -1692,13 +1932,27 @@ function stopBreath(){
 }
 // ─── ПРОФИЛЬ ───
 function renderProfile(){
-  document.getElementById('profilePhone').textContent=
-    '+7 '+user.phone.slice(1,4)+' *** '+user.phone.slice(7,9)+' '+user.phone.slice(9);
-  document.getElementById('profileName').value=user.name||'';
-  document.getElementById('profileAva').textContent=state.avatar||'👤';
-  document.getElementById('emojiRow').innerHTML=
-    EMOJIS.map(e=>`<div class="emoji-pick ${state.avatar===e?'on':''}" onclick="setAvatar('${e}')">${e}</div>`).join('');
-  updateSoundUI();
+  try {
+    // Безопасное получение телефона
+    const phone = (user && user.phone) ? user.phone : '79999999999';
+    const phoneEl = document.getElementById('profilePhone');
+    if(phoneEl) phoneEl.textContent = 
+      '+7 ' + phone.slice(1,4) + ' *** ' + phone.slice(7,9) + ' ' + phone.slice(9);
+    
+    const nameEl = document.getElementById('profileName');
+    if(nameEl) nameEl.value = (user && user.name) ? user.name : '';
+    
+    const avaEl = document.getElementById('profileAva');
+    if(avaEl) avaEl.textContent = state.avatar || '👤';
+    
+    const emojiEl = document.getElementById('emojiRow');
+    if(emojiEl) emojiEl.innerHTML = 
+      EMOJIS.map(e => `<div class="emoji-pick ${state.avatar === e ? 'on' : ''}" onclick="setAvatar('${e}')">${e}</div>`).join('');
+      
+    updateSoundUI();
+  } catch(e) {
+    console.error('❌ renderProfile Error:', e);
+  }
 }
 async function saveName(){
   const n=document.getElementById('profileName').value.trim();
@@ -1955,17 +2209,127 @@ async function renderJournal(){
   document.getElementById('jq3').value = todayRec.q3 || '';
   
   renderMoodTracker(); // Оставляем трекер настроения
+    // ─── ГРАФИК НАСТРОЕНИЯ ───
+  try {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    const dateLimit = localDate(sevenDaysAgo); // 7 дней назад
 
-  const historyHtml = history.filter(h => h.q1 || h.q2 || h.q3).map(h => {
+    // Берем настроения за последние 7 дней
+    const { data: mData } = await sb.from('moods').select('*').eq('user_id', user.id).gte('date', dateLimit).order('date', {ascending: true});
+    
+    let mHtml = '';
+    const dows = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+    
+    // Проходимся по каждому из 7 дней
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dStr = localDate(d);
+      const dayName = dows[d.getDay()];
+      
+      // Ищем запись за этот день
+      const dayMood = (mData || []).find(m => m.date === dStr);
+      
+      let val = 0;
+      if (dayMood) {
+        // Берем среднее между утром и вечером, если они есть
+        if (dayMood.morning && dayMood.evening) val = Math.round((dayMood.morning + dayMood.evening) / 2);
+        else if (dayMood.morning) val = dayMood.morning;
+        else if (dayMood.evening) val = dayMood.evening;
+      }
+
+      // Высота столбика (макс 5 баллов = 100%)
+      const heightPct = val > 0 ? (val / 5) * 100 : 0;
+      const barClass = val > 0 ? 'mc-bar' : 'mc-bar empty';
+      
+      mHtml += `
+        <div class="mc-bar-wrap">
+          <div class="mc-val">${val > 0 ? val : ''}</div>
+          <div class="${barClass}" style="height: ${heightPct}%;"></div>
+          <div class="mc-label">${dayName}</div>
+        </div>
+      `;
+    }
+    document.getElementById('moodChartWrap').innerHTML = mHtml;
+  } catch(e) { console.error('Ошибка графика', e); }
+    // ─── ГРАФИК НАСТРОЕНИЯ ───
+  try {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    const dateLimit = localDate(sevenDaysAgo); // 7 дней назад
+
+    // Берем настроения за последние 7 дней
+    const { data: mData } = await sb.from('moods').select('*').eq('user_id', user.id).gte('date', dateLimit).order('date', {ascending: true});
+    
+    let mHtml = '';
+    const dows = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+    
+    // Проходимся по каждому из 7 дней
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dStr = localDate(d);
+      const dayName = dows[d.getDay()];
+      
+      // Ищем запись за этот день
+      const dayMood = (mData || []).find(m => m.date === dStr);
+      
+      let val = 0;
+      if (dayMood) {
+        // Берем среднее между утром и вечером, если они есть
+        if (dayMood.morning && dayMood.evening) val = Math.round((dayMood.morning + dayMood.evening) / 2);
+        else if (dayMood.morning) val = dayMood.morning;
+        else if (dayMood.evening) val = dayMood.evening;
+      }
+
+      // Высота столбика (макс 5 баллов = 100%)
+      const heightPct = val > 0 ? (val / 5) * 100 : 0;
+      const barClass = val > 0 ? 'mc-bar' : 'mc-bar empty';
+      
+      mHtml += `
+        <div class="mc-bar-wrap">
+          <div class="mc-val">${val > 0 ? val : ''}</div>
+          <div class="${barClass}" style="height: ${heightPct}%;"></div>
+          <div class="mc-label">${dayName}</div>
+        </div>
+      `;
+    }
+    document.getElementById('moodChartWrap').innerHTML = mHtml;
+  } catch(e) { console.error('Ошибка графика', e); }
+
+  // Функция для красивого формата даты
+  const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+  const formatDate = (dateStr) => {
+    if(!dateStr) return '';
+    const d = new Date(dateStr);
+    return `${d.getDate()} ${months[d.getMonth()]}`;
+  };
+
+  // Фильтруем пустые записи
+  const validEntries = history.filter(h => h.q1 || h.q2 || h.q3);
+
+  // Сводка
+  const statsHtml = `
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+      <div style="flex:1; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; text-align:center;">
+        <div style="font-size:24px; font-weight:900; color:var(--accent-2);">${validEntries.length}</div>
+        <div style="font-size:10px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px;">Всего записей</div>
+      </div>
+    </div>
+  `;
+
+  const historyHtml = validEntries.map(h => {
     return `<div class="jh-entry">
-      <div class="jh-day">${h.date}</div>
+      <div class="jh-day">${formatDate(h.date)}</div>
       ${h.q1?`<div class="jh-q">🌟 Получилось</div><div class="jh-a">${escapeHtml(h.q1)}</div>`:''}
       ${h.q2?`<div class="jh-q">💭 Сложно</div><div class="jh-a">${escapeHtml(h.q2)}</div>`:''}
       ${h.q3?`<div class="jh-q">🔍 Замечаю</div><div class="jh-a">${escapeHtml(h.q3)}</div>`:''}
     </div>`;
   }).join('');
 
-  document.getElementById('journalHistory').innerHTML = historyHtml || '<div class="jh-entry" style="text-align:center;color:var(--muted);padding:24px">Пока пусто. Сделай первую запись.</div>';
+  // Вставляем сводку и историю
+  document.getElementById('journalHistory').innerHTML = statsHtml + (historyHtml || '<div class="jh-entry" style="text-align:center;color:var(--muted);padding:24px">Пока пусто. Сделай первую запись.</div>');
 }
 function dateToDay(bookId,date){
   const bs=getBookState(bookId);
@@ -2085,12 +2449,21 @@ async function loadFeed(){
     const{data:c}=await sb.from('comments').select('*').in('message_id',ids).order('created_at');
     comments=c||[];
   }catch(e){}
-  document.getElementById('feedList').innerHTML=data.map(m=>{
+    document.getElementById('feedList').innerHTML=data.map(m=>{
     const own=m.user_id===user.id;
     const t=timeAgo(m.created_at);
     const postLikes=likes.filter(l=>l.message_id===m.id);
-    const liked=postLikes.some(l=>l.user_id===user.id);
     const postComments=comments.filter(c=>c.message_id===m.id);
+    
+    // Считаем лайки по типам
+    const myLike = postLikes.find(l => l.user_id === user.id);
+    const myType = myLike ? (myLike.type || 'heart') : null;
+    
+    const countHeart = postLikes.filter(l => (l.type === 'heart' || !l.type)).length;
+    const countFire = postLikes.filter(l => l.type === 'fire').length;
+    const countMuscle = postLikes.filter(l => l.type === 'muscle').length;
+    const countClap = postLikes.filter(l => l.type === 'clap').length;
+    
     return `<div class="feed-post">
       <div class="fp-head" onclick="openUserProfile('${m.user_id}')" style="cursor:pointer">
         <div class="fp-ava">${m.user_avatar||'👤'}</div>
@@ -2102,10 +2475,10 @@ async function loadFeed(){
       <div class="fp-text">${escapeHtml(m.text)}</div>
             <div class="fp-actions" style="display:flex; justify-content:space-between; width:100%;">
         <div style="display:flex; gap:10px;">
-          <div class="fp-action ${likedHeart?'on':''}" onclick="toggleLike(${m.id},'heart',this)">❤️ <span>${countHeart>0?countHeart:''}</span></div>
-          <div class="fp-action ${likedFire?'on':''}" onclick="toggleLike(${m.id},'fire',this)">🔥 <span>${countFire>0?countFire:''}</span></div>
-          <div class="fp-action ${likedMuscle?'on':''}" onclick="toggleLike(${m.id},'muscle',this)">💪 <span>${countMuscle>0?countMuscle:''}</span></div>
-          <div class="fp-action ${likedClap?'on':''}" onclick="toggleLike(${m.id},'clap',this)">👏 <span>${countClap>0?countClap:''}</span></div>
+          <div class="fp-action ${myType === 'heart' ? 'on' : ''}" onclick="toggleLike(${m.id},'heart',this)">❤️ <span>${countHeart>0?countHeart:''}</span></div>
+          <div class="fp-action ${myType === 'fire' ? 'on' : ''}" onclick="toggleLike(${m.id},'fire',this)">🔥 <span>${countFire>0?countFire:''}</span></div>
+          <div class="fp-action ${myType === 'muscle' ? 'on' : ''}" onclick="toggleLike(${m.id},'muscle',this)">💪 <span>${countMuscle>0?countMuscle:''}</span></div>
+          <div class="fp-action ${myType === 'clap' ? 'on' : ''}" onclick="toggleLike(${m.id},'clap',this)">👏 <span>${countClap>0?countClap:''}</span></div>
         </div>
                 <div style="display:flex; gap:12px;">
           <div class="fp-action" onclick="toggleComments(${m.id})">💬 <span>${postComments.length}</span></div>
@@ -2543,6 +2916,9 @@ function switchAdminTab(tab,el){
   }else if(tab==='analytics'){
     document.getElementById('adminAnalytics').classList.remove('hidden');
     renderAnalytics();
+  }else if(tab==='reports'){
+    document.getElementById('adminReports').classList.remove('hidden');
+    loadAdminReports();
   }else if(tab==='system'){
     document.getElementById('adminSystem').classList.remove('hidden');
     renderSystem();
@@ -2589,7 +2965,7 @@ function renderAdminList(list){
   document.getElementById('adminUserList').innerHTML=list.map(p=>{
     const isMe=p.id===user.id;
     const phone=isMe?user.phone:(p.phone||'');
-    const phoneShown=phone?'+7 '+phone.slice(1,4)+' '+phone.slice(4,7)+'-'+phone.slice(7,9)+'-'+phone.slice(9):'—';
+    const phoneShown=phone?'+7 ('+phone.slice(1,4)+') '+phone.slice(4,7)+'-'+phone.slice(7,9)+'-'+phone.slice(9):'—';
     return `<div class="admin-item" onclick="openAdminUser('${p.id}')">
       <div class="ai-ava">${p.avatar||'👤'}</div>
       <div class="ai-info">
@@ -2630,10 +3006,21 @@ function filterAdmin(){
 }
 
 async function openAdminUser(id){
+  const wrap = document.getElementById('adminDetailWrap');
+  
+  // Логика сворачивания профиля при повторном нажатии
+  if (wrap.dataset.openUserId === id && wrap.innerHTML.includes('admin-detail')) {
+    wrap.innerHTML = '';
+    wrap.dataset.openUserId = '';
+    return;
+  }
+  wrap.dataset.openUserId = id;
+
   const p=adminAllUsers.find(x=>x.id===id);if(!p)return;
   const isMe=p.id===user.id;
-  const phone=isMe?user.phone:(p.phone||'');
+  const phone=isMe?user.phone:(p.phone || 'Нет данных');
   const{data:prog}=await sb.from('progress').select('*').eq('user_id',id);
+  
   let closed=0,journal=0;
   (prog||[]).forEach(pr=>{
     const d=pr.data||{},days=d.days||{};
@@ -2643,46 +3030,59 @@ async function openAdminUser(id){
       const x=j[k];return x.q1||x.q2||x.q3;
     }).length;
   });
+  
   const regDate=p.created_at?new Date(p.created_at).toLocaleDateString('ru'):'—';
-  const lastSeen=p.last_seen?new Date(p.last_seen).toLocaleDateString('ru'):'—';
+  // Добавили время к последнему визиту
+  const lastSeen=p.last_seen?new Date(p.last_seen).toLocaleString('ru', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}):'—';
   const access=p.book_access||[];
-      const booksHtml=BOOKS.map(b=>{
-      let has;
-      if(p.is_admin)has=true;
-      else if(bookAccessMode==='everyone')has=true;
-      else has=(access.includes(b.id));
-      return `<div class="admin-book-row">
-        <div class="ab-title"><span>${b.emoji}</span><span>${b.title}</span></div>
-        <div class="toggle-switch ${has?'on':''}" onclick="event.stopPropagation();toggleBookAccess('${id}','${b.id}',${!has})"></div>
-      </div>`;
-    }).join('');
-    const showBulkButtons=bookAccessMode==='individual'&&!p.is_admin;
-    const bulkHtml=showBulkButtons?`
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
-        <button class="admin-action" onclick="event.stopPropagation();setAllBooksAccess('${id}',true)">✓ Открыть все</button>
-        <button class="admin-action warn" onclick="event.stopPropagation();setAllBooksAccess('${id}',false)">✕ Закрыть все</button>
-      </div>`:'';
+  
+  // Блокировка кнопок, если включен режим "Всем открыто"
+  const isToggleDisabled = (bookAccessMode==='everyone' && !p.is_admin);
+  
+  const booksHtml=BOOKS.map(b=>{
+    let has = p.is_admin || bookAccessMode==='everyone' || access.includes(b.id);
+    return `<div class="admin-book-row" style="${isToggleDisabled ? 'opacity:0.5;' : ''}">
+      <div class="ab-title"><span>${b.emoji}</span><span>${b.title}</span></div>
+      <div class="toggle-switch ${has?'on':''}" onclick="${isToggleDisabled ? '' : `event.stopPropagation();toggleBookAccess('${id}','${b.id}',${!has})`}"></div>
+    </div>`;
+  }).join('');
+  
+  const modeWarning = isToggleDisabled ? 
+    `<div style="font-size:11px; color:var(--warm); margin-top:10px;">⚠️ Включен режим «Всем открыто». Чтобы управлять доступом, переключите режим в настройках системы.</div>` : '';
+
+  const showBulkButtons=bookAccessMode==='individual'&&!p.is_admin;
+  const bulkHtml=showBulkButtons?`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+      <button class="admin-action" onclick="event.stopPropagation();setAllBooksAccess('${id}',true)">✓ Открыть все</button>
+      <button class="admin-action warn" onclick="event.stopPropagation();setAllBooksAccess('${id}',false)">✕ Закрыть все</button>
+    </div>`:'';
 
   document.getElementById('adminDetailWrap').innerHTML=`
     <div class="admin-detail">
-      <div class="ad-head">
-        <div class="ad-ava">${p.avatar||'👤'}</div>
-        <div>
-          <h3>${escapeHtml(p.name||'Без имени')} ${p.is_admin?'👑':''}</h3>
-          <p>${isMe?'Это ты':''}${p.blocked?' · 🚫 Заблокирован':''}</p>
+      <div class="ad-head" onclick="openAdminUser('${id}')" style="cursor:pointer; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div class="ad-ava">${p.avatar||'👤'}</div>
+          <div>
+            <h3>${escapeHtml(p.name||'Без имени')} ${p.is_admin?'👑':''}</h3>
+            <p>${isMe?'Это ты':''}${p.blocked?' · 🚫 Заблокирован':''}</p>
+          </div>
         </div>
+        <span style="font-size:24px; color:var(--muted);">︿</span>
       </div>
       <div class="admin-row"><span>Имя</span><span>${escapeHtml(p.name||'—')}</span></div>
-      <div class="admin-row"><span>Телефон</span><span>${phone?'+7 '+phone.slice(1,4)+' *** '+phone.slice(7):'—'}</span></div>
+      <div class="admin-row"><span>Телефон</span><span>${(phone && phone !== 'Нет данных') ? '+7 ('+phone.slice(1,4)+') '+phone.slice(4,7)+'-'+phone.slice(7,9)+'-'+phone.slice(9) : 'Нет данных'}</span></div>
       <div class="admin-row"><span>Регистрация</span><span>${regDate}</span></div>
       <div class="admin-row"><span>Последний визит</span><span>${lastSeen}</span></div>
       <div class="admin-row"><span>Закрыто дней</span><span>${closed}</span></div>
       <div class="admin-row"><span>Записей</span><span>${journal}</span></div>
+      
       <div style="margin-top:16px">
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-bottom:8px">📚 Доступ к книгам</div>
-                <div class="admin-books">${booksHtml}</div>
+        <div class="admin-books">${booksHtml}</div>
+        ${modeWarning}
         ${bulkHtml}
       </div>
+      
       ${!isMe?`<div class="admin-actions">
         <button class="admin-action" onclick="adminSendMessage('${id}')">💬 Написать</button>
         <button class="admin-action ${p.blocked?'':'warn'}" onclick="adminToggleBlock('${id}',${!p.blocked})">${p.blocked?'✓ Разблокировать':'🚫 Заблокировать'}</button>
@@ -2792,7 +3192,20 @@ async function renderSystem(){
   const{data:logs}=await sb.from('admin_logs').select('*').order('created_at',{ascending:false}).limit(20);
   const logsHtml=(logs||[]).map(l=>{
     const t=new Date(l.created_at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-    return `<div class="admin-row"><span>${l.action}</span><span style="font-size:11px;color:var(--muted)">${t}</span></div>`;
+    let actionName = l.action;
+    let details = '';
+    if(l.action === 'grant_book') {
+      const book = BOOKS.find(b => b.id === l.meta?.book);
+      actionName = '📚 Доступ к книге';
+      details = book ? book.title : '';
+    } else if (l.action === 'block') {
+      actionName = l.meta?.blocked ? '🚫 Блокировка' : '🟢 Разблокировка';
+    } else if (l.action === 'admin') {
+      actionName = l.meta?.makeAdmin ? '👑 Выдан админ' : '👤 Снят админ';
+    } else if (l.action === 'delete') {
+      actionName = '🗑 Удаление';
+    }
+    return `<div class="admin-row"><span>${actionName} ${details ? '(' + details + ')' : ''}</span><span style="font-size:11px;color:var(--muted)">${t}</span></div>`;
   }).join('')||'<div style="color:var(--muted);font-size:12px;padding:8px">Пока нет логов</div>';
 
   document.getElementById('systemContent').innerHTML=`
@@ -2846,13 +3259,25 @@ function exportUsers(){
 function showBookEditor(id){
   editingBookId=id||null;
   const b=id?BOOKS.find(x=>x.id===id):null;
-  document.getElementById('edTitle').value=b?.title||'';
-  document.getElementById('edAuthor').value=b?.author||'';
-  document.getElementById('edEmoji').value=b?.emoji||'';
-  document.getElementById('edDays').value=b?.days||30;
-  document.getElementById('edAbout').value=b?.about||'';
-    document.getElementById('edPractices').value = b?.practices ? JSON.stringify(b.practices, null, 2) : '';
-  document.getElementById('edErr').textContent='';
+  
+  // Безопасное присваивание (если элемента нет, приложение не упадёт)
+  const setVal = (elId, val) => { const el = document.getElementById(elId); if(el) el.value = val; };
+  
+  setVal('edTitle', b?.title||'');
+  setVal('edAuthor', b?.author||'');
+  setVal('edEmoji', b?.emoji||'');
+  setVal('edDays', b?.days||30);
+  setVal('edAbout', b?.about||'');
+  setVal('edMethod', (b?.method && Array.isArray(b.method)) ? b.method.join(', ') : '');
+  setVal('edAuthorBio', b?.authorBio || '');
+  setVal('edForWhom', b?.forWhom || '');
+  setVal('edResult', b?.result || '');
+  setVal('edPractices', b?.practices ? JSON.stringify(b.practices, null, 2) : '');
+  
+  window._tempQuotes = b?.quotes || [];
+  const errEl = document.getElementById('edErr');
+  if(errEl) errEl.textContent='';
+  
   hideAll();
   document.getElementById('bookEditorScreen').classList.remove('hidden');
 }
@@ -2998,6 +3423,25 @@ document.addEventListener('scroll',(e)=>{
 window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=>{
   if(state.theme==='auto')applyTheme();
 });
+// ─── СИСТЕМНАЯ КНОПКА "НАЗАД" (Android) ───
+window.addEventListener('popstate', (e) => {
+  // Если открыт ритуал или практика - закрываем их
+  const ritualOpen = !document.getElementById('ritualScreen').classList.contains('hidden');
+  const practiceOpen = !document.getElementById('practiceScreen').classList.contains('hidden');
+  
+  if (ritualOpen) { closeRitual(); history.pushState(null, null, location.href); return; }
+  if (practiceOpen) { closePractice(); history.pushState(null, null, location.href); return; }
+  
+  // Если открыты другие экраны (кроме главной) - возвращаем на главную
+  const activeScreen = document.querySelector('.screen:not(.hidden):not(#todayScreen):not(#authScreen)');
+  if (activeScreen) {
+    smartHome();
+    history.pushState(null, null, location.href);
+  }
+});
+
+// Блокируем закрытие приложения на главном экране (опционально, если хочешь как в PWA)
+history.pushState(null, null, location.href);
 async function toggleBookAccessMode(){
   bookAccessMode=bookAccessMode==='everyone'?'individual':'everyone';
   try{
@@ -3141,35 +3585,49 @@ async function handlePublicProfileUrl(){
 // ─── НОВЫЙ КАЛЕНДАРЬ И БЫСТРЫЙ РИТУАЛ ───
 function renderWeekCalendar() {
   const el = document.getElementById('weekCalendar');
-  if (!el) return;
-  const today = new Date();
-  const currentDayOfWeek = today.getDay() === 0 ? 7 : today.getDay();
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - currentDayOfWeek + 1);
+  if (!el || !currentBook) return;
+
+  const bs = getBookState(currentBook.id);
+  if (!bs.start) {
+    el.innerHTML = '<div style="color:var(--muted); font-size:12px;">Начните книгу, чтобы увидеть календарь</div>';
+    return;
+  }
+
+  const totalDays = currentBook.days;
+  const today = todayStr();
+  const todayDayNum = currentDay(currentBook.id); // Номер сегодняшнего дня в книге
 
   const dows = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
   let html = '';
 
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(startOfWeek);
-    d.setDate(startOfWeek.getDate() + i);
+  // Проходимся по всем дням книги
+  for (let i = 1; i <= totalDays; i++) {
+    const d = new Date(bs.start + 'T00:00:00');
+    d.setDate(d.getDate() + i - 1);
     const dateStr = localDate(d);
-    const isToday = dateStr === todayStr();
+    const isToday = dateStr === today;
+    const dayOfWeek = d.getDay() === 0 ? 6 : d.getDay() - 1; // ПН=0, ВС=6
 
     let hasActivity = false;
-    BOOKS.forEach(b => {
-      const bs = getBookState(b.id);
-      if (bs.days[dateStr] && bs.days[dateStr].practices && bs.days[dateStr].practices.length > 0) {
-        hasActivity = true;
-      }
-    });
+    const rec = bs.days[dateStr];
+    if (rec && rec.practices && rec.practices.length > 0) {
+      hasActivity = true;
+    }
 
-    html += `<div class="cal-day ${isToday ? 'today' : ''} ${hasActivity ? 'active' : ''}" onclick="showDayStats('${dateStr}')">
-      <div class="dow">${dows[i]}</div>
+    html += `<div class="cal-day ${isToday ? 'today' : ''} ${hasActivity ? 'active' : ''}" id="cal-day-${i}" onclick="showDayStats('${dateStr}')">
+      <div class="dow">${dows[dayOfWeek]}</div>
       <div class="dom">${d.getDate()}</div>
     </div>`;
   }
   el.innerHTML = html;
+
+  // Автоматически прокручиваем к сегодняшнему дню
+  setTimeout(() => {
+    const todayEl = document.getElementById('cal-day-' + todayDayNum);
+    if (todayEl) {
+      todayEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, 100);
 }
 
 function showDayStats(dateStr) {
@@ -3229,6 +3687,7 @@ function startFastRitual() {
   startMusic();
   renderRitualStep();
 }
+
 async function reportPost(postId, authorId) {
   if(authorId === user.id) { toast('Нельзя жаловаться на свой пост', 'warm'); return; }
   const reason = prompt('Укажите причину жалобы (спам, мат, оскорбления):');
@@ -3237,4 +3696,259 @@ async function reportPost(postId, authorId) {
     await sb.from('reports').insert({ reporter_id: user.id, post_id: postId, reason: reason });
     toast('Жалоба отправлена модератору', 'success');
   } catch(e) { toast('Ошибка отправки', 'danger'); }
+}
+function switchActiveBook(bookId) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if(!b) return;
+  if(currentBook && currentBook.id === bookId) {
+    // Если нажали на уже активную книгу, открываем её карточку
+    openBookDetail(bookId);
+  } else {
+    // Переключаем книгу
+    currentBook = b;
+    state.lastBook = b.id;
+    saveState();
+    renderToday(); // Перерисовываем весь экран
+    playClick();
+  }
+}
+// Сброс прогресса ОДНОЙ книги
+function resetBookProgress() {
+  if(!bookDetailId) return;
+  const b = BOOKS.find(x => x.id === bookDetailId);
+  if(!b) return;
+
+  showCustomConfirm(
+    'Сбросить прогресс?', 
+    `Все практики, дни и заметки по книге "${b.title}" будут удалены. Вы уверены?`, 
+    () => {
+      const bs = getBookState(b.id);
+      bs.start = null;
+      bs.days = {};
+      bs.journal = {};
+      
+      // Если удалили текущую активную книгу, нужно переключить currentBook
+      if(currentBook && currentBook.id === b.id) {
+        currentBook = null;
+        state.lastBook = null;
+      }
+      
+      saveState();
+      playSuccess();
+      toast('Прогресс книги сброшен');
+      smartHome(); // Возвращаемся на Главную
+    }
+  );
+}
+
+// Сброс ВСЕГО прогресса
+function resetAllProgress() {
+  showCustomConfirm(
+    'Удалить ВСЁ?', 
+    'Весь прогресс, все заметки в дневнике и статистика будут стёрты навсегда. Это действие нельзя отменить.', 
+    () => {
+      state.books = {};
+      state.lastBook = null;
+      currentBook = null;
+      
+      saveState();
+      playSuccess();
+      toast('Весь прогресс сброшен');
+      smartHome();
+    }
+  );
+}
+async function loadAdminReports() {
+  const el = document.getElementById('adminReportsList');
+  el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Загрузка жалоб...</div>';
+  
+  try {
+    const { data: reports, error } = await sb.from('reports').select('*').order('created_at', {ascending: false});
+    if (error) throw error;
+    
+    if (!reports || !reports.length) {
+      el.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted);">Жалоб нет. Все молодцы! 🎉</div>';
+      return;
+    }
+
+    let html = '';
+    for (let r of reports) {
+      // Подтягиваем автора жалобы
+      const { data: prof } = await sb.from('profiles').select('name').eq('id', r.reporter_id).single();
+      // Подтягиваем текст поста
+      const { data: post } = await sb.from('messages').select('text, user_name').eq('id', r.post_id).single();
+      
+      const time = new Date(r.created_at).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+      
+      html += `
+        <div class="admin-detail" style="border-left: 4px solid var(--danger); margin-bottom: 10px;">
+          <div class="admin-row"><span>Автор жалобы</span><span>${prof ? prof.name : 'Неизвестный'}</span></div>
+          <div class="admin-row"><span>Причина</span><span style="color:var(--danger)">${escapeHtml(r.reason)}</span></div>
+          <div class="admin-row"><span>Текст поста</span><span style="font-size:12px; font-style:italic; color:var(--muted); text-align:right; max-width:60%;">"${post ? escapeHtml(post.text) : 'Пост удален'}"</span></div>
+          <div class="admin-row"><span>Автор поста</span><span>${post ? post.user_name : '—'}</span></div>
+          <div class="admin-row"><span>Время</span><span>${time}</span></div>
+        </div>
+      `;
+    }
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div style="color:var(--danger); text-align:center;">Ошибка загрузки жалоб</div>';
+  }
+}
+async function saveBookDraft(){
+  const title=document.getElementById('edTitle').value.trim();
+  if(!title){document.getElementById('edErr').textContent='Введи название';return}
+  await saveBook(false);
+}
+
+async function publishBook(){
+  const title=document.getElementById('edTitle').value.trim();
+  if(!title){document.getElementById('edErr').textContent='Введи название';return}
+  await saveBook(true);
+}
+
+async function saveBook(published){
+  const err=document.getElementById('edErr');
+  const id=editingBookId||('book-'+Date.now());
+  
+  // Получаем практики из текстового поля
+  let practicesData = [];
+  const practicesText = document.getElementById('edPractices').value.trim();
+  if(practicesText) {
+    try {
+      practicesData = JSON.parse(practicesText);
+    } catch(e) {
+      err.textContent = '❌ Ошибка в JSON практик. Проверьте кавычки и запятые.';
+      err.style.color = 'var(--danger)';
+      return;
+    }
+  }
+
+  const data={    method: document.getElementById('edMethod').value.split(',').map(s=>s.trim()).filter(Boolean),
+    author_bio: document.getElementById('edAuthorBio').value.trim(),
+    for_whom: document.getElementById('edForWhom').value.trim(),
+    result: document.getElementById('edResult').value.trim(),
+    quotes: window._tempQuotes || [],
+  };
+  
+  try{
+    const{error}=await sb.from('books').upsert(data,{onConflict:'id'});
+    if(error)throw error;
+    err.textContent=published?'✅ Опубликовано':'💾 Черновик сохранён';
+    err.style.color='var(--success)';
+    window._aiBook=null;
+    toast(published?'Опубликовано ✓':'Черновик сохранён');
+    setTimeout(()=>backFromBookEditor(),800);
+  }catch(e){
+    err.textContent='❌ '+e.message;
+    err.style.color='var(--danger)';
+  }
+}
+function parseSmartJson() {
+  const raw = document.getElementById('edSmartJson').value.trim();
+  if(!raw) return;
+  
+  try {
+    let jsonStr = raw;
+    // Убираем лишние символы, если ИИ добавил ```json ... ```
+    if (raw.includes('```json')) jsonStr = raw.split('```json')[1].split('```')[0];
+    else if (raw.includes('```')) jsonStr = raw.split('```')[1].split('```')[0];
+    
+    // Пытаемся распарсить. Если ИИ выдал массив практик, оборачиваем его.
+    const data = JSON.parse(jsonStr.trim());
+    
+    if(data.title) document.getElementById('edTitle').value = data.title;
+    if(data.author) document.getElementById('edAuthor').value = data.author;
+    if(data.emoji) document.getElementById('edEmoji').value = data.emoji;
+    if(data.days) document.getElementById('edDays').value = data.days;
+    if(data.about) document.getElementById('edAbout').value = data.about;
+    
+    if(data.method) document.getElementById('edMethod').value = Array.isArray(data.method) ? data.method.join(', ') : data.method;
+    if(data.authorBio) document.getElementById('edAuthorBio').value = data.authorBio;
+    if(data.forWhom) document.getElementById('edForWhom').value = data.forWhom;
+    if(data.result) document.getElementById('edResult').value = data.result;
+    
+    // Практики могут быть как в корне, так и внутри массива
+    if(Array.isArray(data)) {
+      document.getElementById('edPractices').value = JSON.stringify(data, null, 2);
+    } else if(data.practices) {
+      document.getElementById('edPractices').value = JSON.stringify(data.practices, null, 2);
+    }
+    
+    if(data.quotes) window._tempQuotes = data.quotes;
+    
+    toast('✅ Данные распознаны!');
+    document.getElementById('edSmartJson').value = ''; // Очищаем поле
+  } catch(e) {
+    toast('Ошибка парсинга JSON. Проверь текст.', 'danger');
+    console.error(e);
+  }
+}
+// ─── УМНЫЙ СБРОС ПРОГРЕССА ───
+function showResetOptions() {
+  const list = document.getElementById('resetBooksList');
+  let html = '';
+  BOOKS.forEach(b => {
+    const bs = getBookState(b.id);
+    const hasProgress = bs.start || Object.keys(bs.days).length > 0;
+    if(hasProgress) {
+      html += `<div class="settings-row" style="border:1px solid var(--border); margin-bottom:8px; border-radius:10px;" onclick="resetSpecificBook('${b.id}')">
+        <div class="sr-left"><span class="sr-ico">${b.emoji}</span>${b.title}</div>
+        <div class="sr-arrow">🗑</div>
+      </div>`;
+    }
+  });
+  if(!html) html = '<div style="text-align:center; color:var(--muted); font-size:13px; padding:20px 0;">Нет активного прогресса по книгам</div>';
+  list.innerHTML = html;
+  document.getElementById('resetProgressModal').classList.remove('hidden');
+}
+
+function resetSpecificBook(bookId) {
+  showCustomConfirm('Сбросить книгу?', 'Прогресс по этой книге будет удален.', () => {
+    const bs = getBookState(bookId);
+    bs.start = null; bs.days = {}; bs.journal = {};
+    if(currentBook && currentBook.id === bookId) { currentBook = null; state.lastBook = null; }
+    saveState(); playSuccess();
+    document.getElementById('resetProgressModal').classList.add('hidden');
+    toast('Прогресс книги сброшен');
+    smartHome();
+  });
+}
+// ─── НАСТРОЙКА ВРЕМЕНИ НАПОМИНАНИЙ ───
+let currentNotifPeriod = 'morning';
+
+function setNotifTime(period) {
+  currentNotifPeriod = period;
+  const title = period === 'morning' ? 'Утреннее напоминание' : 'Вечернее напоминание';
+  document.getElementById('timeModalTitle').textContent = title;
+  
+  // Устанавливаем текущее время в поле
+  const currentTime = period === 'morning' ? (state.morningTime || '07:00') : (state.eveningTime || '21:00');
+  document.getElementById('timeInput').value = currentTime;
+  
+  // Открываем модалку
+  document.getElementById('timeModal').classList.remove('hidden');
+}
+
+function closeTimeModal() {
+  document.getElementById('timeModal').classList.add('hidden');
+}
+
+function saveTimeFromModal() {
+  const time = document.getElementById('timeInput').value;
+  if (!time) return;
+
+  // Сохраняем в состояние
+  if (currentNotifPeriod === 'morning') {
+    state.morningTime = time;
+    document.getElementById('morningTime').textContent = time;
+  } else {
+    state.eveningTime = time;
+    document.getElementById('eveningTime').textContent = time;
+  }
+
+  saveState();
+  playSuccess();
+  toast('Время сохранено');
+  closeTimeModal();
 }
