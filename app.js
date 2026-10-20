@@ -503,11 +503,12 @@ function hideAll(){
   const di=document.getElementById('dialogInputWrap');if(di)di.style.display='none';
   window.scrollTo(0,0);
 }
-function showAuth(){hideAll();document.getElementById('authScreen').classList.remove('hidden')}
-function showOnboarding(){
-  hideAll();onbIndex=0;renderOnb();
-  document.getElementById('onbScreen').classList.remove('hidden');
-  updateSoundUI();
+function showAuth(){
+  hideAll();
+  document.getElementById('authScreen').classList.remove('hidden');
+  // Принудительно прячем нижнее меню на экране входа
+  const bn = document.getElementById('bottomNav');
+  if(bn) bn.style.display = 'none'; 
 }
 function showWelcome(){
   hideAll();
