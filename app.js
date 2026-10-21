@@ -123,7 +123,7 @@ function attachRipple(el,e){
   setTimeout(()=>r.remove(),700);
 }
 document.addEventListener('click',(e)=>{
-  const btn=e.target.closest('button, .book-row, .nav-btn, .hero-play, .action-btn-compact, .ach-card, .admin-item, .tab-pill, .feed-post, .mood-emoji, .lib-filter, .settings-row, .toggle-row');
+  const btn=e.target.closest('button, .book-row, .nav-btn, .hero-play, .action-btn-compact, .ach-card, .admin-item, .tab-pill, .mood-emoji, .lib-filter, .settings-row, .toggle-row, .fp-action');
   if(btn){playClick();attachRipple(btn,e);}
 },true);
 
@@ -1000,6 +1000,7 @@ function renderToday(){
           <div class="abc-emoji">${ab.emoji}</div>
           <div class="abc-info">
             <div class="abc-title">${ab.title}</div>
+            <div class="abc-author" style="font-size:12px; color:var(--muted); margin-bottom:4px;">${ab.author || ''}</div>
             <div class="abc-day">День ${ab_day} из ${ab.days}</div>
           </div>
         </div>
@@ -1221,9 +1222,9 @@ function openBookDetail(id){
   const bs=getBookState(b.id);
   const closed=countClosedDays(b.id);
   const btn=document.getElementById('bdStartBtn');
-  if(bs.start&&closed<b.days)btn.textContent='▶ Продолжить путь';
+  if(bs.start&&closed<b.days)btn.textContent='▶ Продолжить практику';
   else if(closed>=b.days)btn.textContent='🔄 Пройти заново';
-  else btn.textContent='🚀 Начать путь';
+  else btn.textContent='🚀 Начать практику';
 
   hideAll();
   document.getElementById('bookDetailScreen').classList.remove('hidden');
@@ -1736,13 +1737,24 @@ function renderRitualBuilder(){
   }
   
   let html='';
-  activeBooks.forEach(b=>{
-    html+=`<div class="ritual-builder-book"><h4>${b.emoji} ${b.title}</h4>`;
+  activeBooks.forEach((b, index)=>{
+    // Проверяем, есть ли выбранные практики в этой книге
+    const hasSelected = customRitual.some(key => key.startsWith(b.id + ':'));
+    
+    html+=`
+      <div class="builder-book-header ${hasSelected ? 'open' : ''}" onclick="toggleBuilderBook(this)">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span>${b.emoji} ${b.title}</span>
+          ${hasSelected ? '<span style="font-size:10px; background:var(--accent); color:#fff; padding:2px 6px; border-radius:10px;">выбрано</span>' : ''}
+        </div>
+        <span class="arrow-icon" style="transform:rotate(-90deg);">›</span>
+      </div>
+      <div class="builder-book-body ${hasSelected ? 'open' : ''}">
+    `;
+    
     b.practices.forEach(p=>{
       const key=b.id+':'+p.id;
       const on=customRitual.includes(key);
-      
-      // Разделяем клик: галочка = выбор, текст = описание
       html+=`<div class="ritual-builder-item ${on?'on':''}">
         <div class="rbi-check" onclick="event.stopPropagation();toggleCustomPractice('${key}')">✓</div>
         <div class="rbi-body" onclick="event.stopPropagation();previewPractice('${b.id}','${p.id}')">
@@ -1754,10 +1766,19 @@ function renderRitualBuilder(){
         </div>
       </div>`;
     });
-    html+='</div>';
+    
+    html+='</div>'; // закрываем builder-book-body
   });
+  
   document.getElementById('ritualBuilderList').innerHTML=html;
   updateCustomSummary();
+}
+
+// Функция для открытия/закрытия книги в списке
+function toggleBuilderBook(el) {
+  el.classList.toggle('open');
+  const body = el.nextElementSibling;
+  if(body) body.classList.toggle('open');
 }
 
 // НОВАЯ ФУНКЦИЯ ДЛЯ ОКНА ОПИСАНИЯ
@@ -2454,10 +2475,18 @@ function switchCommunityTab(tab,el){
   communityTab=tab;
   document.querySelectorAll('.tab-pill').forEach(t=>t.classList.remove('on'));
   if(el)el.classList.add('on');
+  
+  // Показываем/скрываем контент
   document.getElementById('communityFeed').classList.toggle('hidden',tab!=='feed');
   document.getElementById('communityChats').classList.toggle('hidden',tab!=='chats');
   document.getElementById('communityPeople').classList.toggle('hidden',tab!=='people');
-  document.getElementById('feedInputWrap').style.display=tab==='feed'?'flex':'none';
+  
+  // Окно ввода показываем ТОЛЬКО в Ленте
+  const inputWrap = document.getElementById('feedInputWrap');
+  if(inputWrap) {
+    inputWrap.style.display = (tab === 'feed') ? 'flex' : 'none';
+  }
+
   if(tab==='feed')loadFeed();
   else if(tab==='chats')loadChats();
   else loadPeople();
@@ -2511,7 +2540,7 @@ async function loadFeed(){
     const countClap = postLikes.filter(l => l.type === 'clap').length;
     
     return `<div class="feed-post">
-      <div class="fp-head" onclick="openUserProfile('${m.user_id}')" style="cursor:pointer">
+      <div class="fp-head" onclick="viewUserProfile('${m.user_id}', 'feed')" style="cursor:pointer">
         <div class="fp-ava">${m.user_avatar||'👤'}</div>
         <div class="fp-info">
           <div class="fp-name">${escapeHtml(m.user_name||'Аноним')}${own?' · ты':''}</div>
@@ -2521,14 +2550,14 @@ async function loadFeed(){
       <div class="fp-text">${escapeHtml(m.text)}</div>
             <div class="fp-actions" style="display:flex; justify-content:space-between; width:100%;">
         <div style="display:flex; gap:10px;">
-          <div class="fp-action ${myType === 'heart' ? 'on' : ''}" onclick="toggleLike(${m.id},'heart',this)">❤️ <span>${countHeart>0?countHeart:''}</span></div>
-          <div class="fp-action ${myType === 'fire' ? 'on' : ''}" onclick="toggleLike(${m.id},'fire',this)">🔥 <span>${countFire>0?countFire:''}</span></div>
-          <div class="fp-action ${myType === 'muscle' ? 'on' : ''}" onclick="toggleLike(${m.id},'muscle',this)">💪 <span>${countMuscle>0?countMuscle:''}</span></div>
-          <div class="fp-action ${myType === 'clap' ? 'on' : ''}" onclick="toggleLike(${m.id},'clap',this)">👏 <span>${countClap>0?countClap:''}</span></div>
+                    <div class="fp-action ${myType === 'heart' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'heart',this)">❤️ <span>${countHeart>0?countHeart:''}</span></div>
+          <div class="fp-action ${myType === 'fire' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'fire',this)">🔥 <span>${countFire>0?countFire:''}</span></div>
+          <div class="fp-action ${myType === 'muscle' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'muscle',this)">💪 <span>${countMuscle>0?countMuscle:''}</span></div>
+          <div class="fp-action ${myType === 'clap' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'clap',this)">👏 <span>${countClap>0?countClap:''}</span></div>
         </div>
                 <div style="display:flex; gap:12px;">
-          <div class="fp-action" onclick="toggleComments(${m.id})">💬 <span>${postComments.length}</span></div>
-          <div class="fp-action" onclick="reportPost(${m.id},'${m.user_id}')" style="color:var(--danger);">🚩</div>
+          <div class="fp-action" onclick="event.stopPropagation(); toggleComments(${m.id})">💬 <span>${postComments.length}</span></div>
+          <div class="fp-action" onclick="event.stopPropagation(); reportPost(${m.id},'${m.user_id}')" style="color:var(--danger);">🚩</div>
         </div>
       </div>
       <div class="feed-comments" id="comments-${m.id}">
@@ -2689,7 +2718,7 @@ async function loadChats(){
         <div class="cr-ava" onclick="event.stopPropagation(); viewUserProfile('${id}', 'chats')" style="cursor:pointer;">${p.avatar||'👤'}</div>
         <div class="cr-info" onclick="openDialog('${id}')" style="cursor:pointer;">
           <div class="cr-name">
-            <span onclick="event.stopPropagation(); viewUserProfile('${id}', 'chats')" style="text-decoration:underline;">${escapeHtml(p.name||'Участник')}</span>
+            <span onclick="event.stopPropagation(); viewUserProfile('${id}', 'chats')">${escapeHtml(p.name||'Участник')}</span>
             <span class="cr-time">${timeAgo(d.last.created_at)}</span>
           </div>
           <div class="cr-preview">${preview}${escapeHtml((d.last.text||'').slice(0,40))}</div>
@@ -3070,13 +3099,7 @@ function filterAdmin(){
 
 async function openAdminUser(id){
   const wrap = document.getElementById('adminDetailWrap');
-  
-  // Логика сворачивания профиля при повторном нажатии
-  if (wrap.dataset.openUserId === id && wrap.innerHTML.includes('admin-detail')) {
-    wrap.innerHTML = '';
-    wrap.dataset.openUserId = '';
-    return;
-  }
+    
   wrap.dataset.openUserId = id;
 
   const p=adminAllUsers.find(x=>x.id===id);if(!p)return;
@@ -3111,7 +3134,7 @@ async function openAdminUser(id){
 
   document.getElementById('adminDetailWrap').innerHTML=`
     <div class="admin-detail">
-      <div class="ad-head" onclick="openAdminUser('${id}')" style="cursor:pointer; justify-content:space-between;">
+      <div class="ad-head" style="justify-content:space-between;">
         <div style="display:flex; align-items:center; gap:12px;">
           <div class="ad-ava">${p.avatar||'👤'}</div>
           <div>
@@ -3119,7 +3142,8 @@ async function openAdminUser(id){
             <p>${isMe?'Это ты':''}${p.blocked?' · 🚫 Заблокирован':''}</p>
           </div>
         </div>
-        <span style="font-size:24px; color:var(--muted);">︿</span>
+        <!-- Кнопка сворачивания -->
+                <span onclick="document.getElementById('adminDetailWrap').innerHTML=''" style="color:var(--muted); cursor:pointer; font-size:24px; line-height:1; padding:0 10px;">︿</span>
       </div>
       <div class="admin-row"><span>Имя</span><span>${escapeHtml(p.name||'—')}</span></div>
       <div class="admin-row"><span>Телефон</span><span>${(phone && phone !== 'Нет данных') ? '+7 ('+phone.slice(1,4)+') '+phone.slice(4,7)+'-'+phone.slice(7,9)+'-'+phone.slice(9) : 'Нет данных'}</span></div>
@@ -3413,12 +3437,15 @@ async function saveBook(published){
     emoji:document.getElementById('edEmoji').value.trim()||'📖',
     days:parseInt(document.getElementById('edDays').value)||30,
     about:document.getElementById('edAbout').value.trim(),
-    method:window._aiBook?.method||[],
-    author_bio:window._aiBook?.authorBio||'',
-    for_whom:window._aiBook?.forWhom||'',
-    result:window._aiBook?.result||'',
-    practices: practicesData, // <-- СОХРАНЯЕМ НАШИ ПРАКТИКИ
-    quotes:window._aiBook?.quotes||[],
+    
+    // БЕРЕМ ДАННЫЕ ИЗ ПОЛЕЙ ВВОДА (они уже заполнены из JSON)
+    method: document.getElementById('edMethod').value.split(',').map(s=>s.trim()).filter(Boolean),
+    author_bio: document.getElementById('edAuthorBio').value.trim(),
+    for_whom: document.getElementById('edForWhom').value.trim(),
+    result: document.getElementById('edResult').value.trim(),
+    
+    practices: practicesData, 
+    quotes: window._tempQuotes || [], // Цитаты берем из временной переменной
     published,
     created_by:user.id,
     updated_at:new Date().toISOString()
@@ -3838,18 +3865,26 @@ function resetBookProgress() {
 
 // Сброс ВСЕГО прогресса
 function resetAllProgress() {
+  document.getElementById('resetProgressModal').classList.add('hidden'); // Закрываем меню выбора
   showCustomConfirm(
     'Удалить ВСЁ?', 
-    'Весь прогресс, все заметки в дневнике и статистика будут стёрты навсегда. Это действие нельзя отменить.', 
+    'Весь прогресс, ВСЕ заметки в дневнике и статистика будут стёрты навсегда. Это действие нельзя отменить.', 
     () => {
       state.books = {};
       state.lastBook = null;
       currentBook = null;
       
-      saveState();
-      playSuccess();
-      toast('Весь прогресс сброшен');
-      smartHome();
+      // Очищаем дневник в базе данных
+      sb.from('journals').delete().eq('user_id', user.id).then(() => {
+        saveState();
+        playSuccess();
+        toast('Весь прогресс и дневник сброшены');
+        smartHome();
+      }).catch(() => {
+        saveState();
+        toast('Прогресс сброшен, но дневник не удалился (ошибка сети)', 'danger');
+        smartHome();
+      });
     }
   );
 }

@@ -111,7 +111,7 @@
       <h3 id="welcomeBookTitle">Магия утра</h3>
       <p id="welcomeBookAuthor">Хэл Элрод · 30 дней</p>
     </div>
-    <button class="btn" onclick="startFirstBook()">🚀 Начать путь</button>
+    <button class="btn" onclick="startFirstBook()">🚀 Начать практику</button>
     <button class="btn btn-ghost" onclick="skipWelcome()">Выбрать другую книгу</button>
   </div>
 
@@ -124,7 +124,6 @@
           <div class="icon-btn sound-btn" onclick="toggleSound()">🔊</div>
           <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
           <div class="icon-btn" onclick="showCommunityScreen()">💬</div>
-          <div class="icon-btn" onclick="showHelp()">❓</div>
           <div class="avatar user-avatar" onclick="showProfile()">👤</div>
         </div>
       </div>
@@ -206,7 +205,6 @@
             <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span>
             </div>
             <div class="icon-btn" onclick="showCommunityScreen()">💬</div>
-            <div class="icon-btn" onclick="showHelp()">❓</div>
             <div class="avatar" id="libAvatar" onclick="showProfile()">👤</div>
           </div>
         </div>
@@ -260,7 +258,7 @@
             <h3>🏆 Что даст за курс</h3>
             <p id="bdResult">—</p>
           </div>
-          <button class="btn" id="bdStartBtn" onclick="startBookFromDetail()">🚀 Начать путь</button>
+          <button class="btn" id="bdStartBtn" onclick="startBookFromDetail()">🚀 Начать практику</button>
           <button class="btn btn-ghost" id="bdResetBtn" onclick="resetBookProgress('${bdTitle}')"
             style="color:var(--danger); border-color:var(--danger); margin-top:12px;">🗑 Сбросить прогресс
             книги</button>
@@ -302,7 +300,6 @@
             <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span>
             </div>
             <div class="icon-btn" onclick="showCommunityScreen()">💬</div>
-            <div class="icon-btn" onclick="showHelp()">❓</div>
             <div class="avatar" id="statsAvatar" onclick="showProfile()">👤</div>
           </div>
         </div>
@@ -367,7 +364,6 @@
             <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span>
             </div>
             <div class="icon-btn" onclick="showCommunityScreen()">💬</div>
-            <div class="icon-btn" onclick="showHelp()">❓</div>
             <div class="avatar" id="journalAvatar" onclick="showProfile()">👤</div>
           </div>
         </div>
@@ -412,7 +408,6 @@
             <div class="icon-btn sound-btn" onclick="toggleSound()">🔊</div>
             <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span>
             </div>
-            <div class="icon-btn" onclick="showHelp()">❓</div>
             <div class="avatar" id="communityAvatar" onclick="showProfile()">👤</div>
           </div>
         </div>
@@ -780,23 +775,9 @@
           <button class="btn btn-ghost" onclick="parseSmartJson()" style="margin-top:8px; border-color:var(--success); color:var(--success);">Разобрать текст</button>
         </div>
         
-        <div class="field">
-          <label style="color:var(--warm)">Практики (формат JSON)</label>
-          <textarea id="edPractices" rows="8" placeholder='[
-  {
-    "id": "practice-1",
-    "ico": "🧘",
-    "title": "Название практики",
-    "sub": "Подзаголовок · 5 минут",
-    "time": 300,
-    "why": "Зачем это нужно",
-    "how": ["Шаг 1", "Шаг 2"],
-    "result": "Результат",
-    "mistakes": ["Ошибка 1"],
-    "advice": "Совет"
-  }
-]' style="font-family:monospace; font-size:12px;"></textarea>
-          <p style="font-size:10px;color:var(--muted);margin-top:5px;">Скопируйте структуру из примера выше и заполните своими данными.</p>
+                <!-- Скрытое поле для хранения JSON практик -->
+        <div style="display:none;">
+          <textarea id="edPractices"></textarea>
         </div>
 
         <button class="btn" onclick="saveBookDraft()">💾 Сохранить черновик</button>

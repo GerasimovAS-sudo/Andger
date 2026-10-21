@@ -835,7 +835,7 @@ html.light .main-head, body.light .main-head {
 
 .feed-input-wrap {
   position: fixed;
-  bottom: 0;
+  bottom: calc(80px + var(--safe-bottom));
   left: 16px;
   right: 16px;
   background: rgba(13,10,24,.95);
@@ -1530,8 +1530,7 @@ button:active,
 .action-btn-compact:active, 
 .settings-row:active, 
 .admin-item:active, 
-.tab-pill:active, 
-.feed-post:active {
+.tab-pill:active {
   transform: scale(0.96) !important;
   transition: transform 0.1s ease !important;
 }
@@ -1572,4 +1571,32 @@ button:active,
   background: var(--accent-2);
   width: 20px;
   border-radius: 4px;
+}
+/* Аккордеон для книг */
+.builder-book-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  background: var(--card2);
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  cursor: pointer;
+  font-weight: 800;
+  transition: 0.2s;
+}
+.builder-book-header:active { transform: scale(0.98); }
+.builder-book-header .arrow { transition: transform 0.3s; font-size: 18px; color: var(--accent-2); }
+.builder-book-header.open .arrow { transform: rotate(180deg); }
+.builder-book-body { display: none; padding-left: 10px; margin-bottom: 20px; }
+.builder-book-body.open { display: block; animation: fadeIn 0.3s; }
+/* Единые стрелочки для аккордеонов */
+.arrow-icon {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  color: var(--muted);
+  font-size: 12px;
+}
+.open .arrow-icon {
+  transform: rotate(180deg); /* Переворачивает стрелку вверх */
 }
