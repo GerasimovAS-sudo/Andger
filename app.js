@@ -509,6 +509,13 @@ function showAuth(){
   document.getElementById('authScreen').classList.remove('hidden');
   // Убрали жесткое скрытие, теперь работает через классы
 }
+function showOnboarding(){
+  hideAll();
+  onbIndex=0;
+  renderOnb();
+  document.getElementById('onbScreen').classList.remove('hidden');
+  updateSoundUI();
+}
 function showWelcome(){
   hideAll();
   const b=BOOKS[0];if(!b)return smartHome();
@@ -786,7 +793,16 @@ async function doAuth(){
       }
       playSuccess();await handleSession(data.session);
     }
-  }catch(e){showError('Ошибка соединения')}
+  }catch(e){
+  console.error('Ошибка входа:', e);
+  if (e.message === 'Timeout') {
+    showError('Сервер не отвечает. Проверьте интернет.');
+  } else if (e.message && e.message.includes('not defined')) {
+    showError('Ошибка в коде приложения. Загляните в консоль.');
+  } else {
+    showError('Ошибка соединения или сбой приложения.');
+  }
+}
   btn.disabled=false;
   btn.textContent=authMode==='login'?'Войти':'Зарегистрироваться';
 }
