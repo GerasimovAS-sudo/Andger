@@ -14,7 +14,7 @@
 
   <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96">
   <link rel="shortcut icon" href="favicon.ico">
-  <link rel="apple-touch-icon" sizes="180x180" href="icon-512.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <meta name="apple-mobile-web-app-title" content="ANDGER">
   <link rel="manifest" href="manifest.json">
 
@@ -73,7 +73,11 @@
     </div>
     <div class="field" id="nameField" style="display:none">
       <label>Как тебя зовут</label>
-      <input type="text" id="name" placeholder="Андрей" maxlength="30" autocomplete="name">
+      <input type="text" id="name" placeholder="Андрей" maxlength="30" autocomplete="given-name">
+    </div>
+    <div class="field" id="lastNameField" style="display:none">
+      <label>Твоя фамилия</label>
+      <input type="text" id="lastName" placeholder="Герасимов" maxlength="30" autocomplete="family-name">
     </div>
     <div class="field">
       <label>Номер телефона</label>
@@ -328,7 +332,6 @@
         <h2 class="section-title">📚 Книги</h2>
         <div class="stats-books-swipe" id="statsBooksSwipe"></div>
         <div class="books-dots" id="statsBooksDots" style="margin-top: 4px;"></div>
-        <div class="books-dots" id="statsBooksDots" style="margin-top: 4px;"></div>
         <div class="stats-fire">
           <div class="sf-item">
             <div class="sf-num" id="statStreakBig">0</div>
@@ -439,11 +442,11 @@
 
     <!-- ═══════ ЛИЧНЫЙ ДИАЛОГ ═══════ -->
     <div id="dialogScreen" class="hidden">
-     <div class="main-head">
+<div class="main-head">
         <div class="top-row">
           <button class="back-top" onclick="backFromDialog()">←</button>
-          <div class="page-label" style="cursor:pointer; display:flex; flex-direction:column; align-items:flex-start; justify-content:center;" onclick="viewUserProfile(currentDialogUserId)">
-            <div id="dialogName" style="font-size:14px; letter-spacing:1px; color:var(--text);">ЧАТ</div>
+          <div style="flex:1; cursor:pointer; display:flex; flex-direction:column; align-items:flex-start; padding-left: 10px;" onclick="viewUserProfile(currentDialogUserId, 'chat')">
+            <div id="dialogName" style="font-size:14px; letter-spacing:1px; color:var(--text); font-weight:800;">ЧАТ</div>
             <div id="dialogStatus" style="font-size:10px; color:var(--muted); text-transform:none; letter-spacing:0; margin-top:2px;">Загрузка...</div>
           </div>
         </div>
@@ -476,6 +479,7 @@
         <div class="profile-hero">
           <div class="profile-avatar-lg" id="profileAva">👤</div>
           <input type="text" id="profileName" class="profile-name-input" placeholder="Имя" maxlength="30">
+          <input type="text" id="profileLastName" class="profile-name-input" placeholder="Фамилия" maxlength="30" style="font-size:16px; margin-top:4px; opacity:0.8;">
           <div class="profile-phone" id="profilePhone">+7 ***</div>
           <button class="btn-small-inline" onclick="saveName()">Сохранить</button>
         </div>
@@ -630,10 +634,11 @@
         </div>
       </div>
       <div class="wrap" style="padding:0">
-        <div class="public-profile">
+<div class="public-profile">
           <div class="pp-ava" id="ppAva">👤</div>
           <h2 id="ppName">Андрей</h2>
           <div class="pp-status" id="ppStatus">🌱 Новичок</div>
+          
           <div class="pp-stats">
             <div class="pp-stat">
               <div class="num" id="ppFire">0</div>
@@ -648,6 +653,10 @@
               <div class="lbl">📚 Книг</div>
             </div>
           </div>
+          
+          <h3 class="section-title" style="text-align:left; margin-top: 24px; padding: 0 20px;">🏆 Награды</h3>
+          <div class="ach-grid" id="ppAchievements" style="margin-bottom:24px; padding: 0 20px;"></div>
+          
           <button class="btn" onclick="sharePublicProfile()">📤 Поделиться</button>
           <button class="btn btn-ghost" onclick="copyPublicLink()">🔗 Скопировать ссылку</button>
         </div>
@@ -792,6 +801,10 @@
 
         <button class="btn" onclick="saveBookDraft()">💾 Сохранить черновик</button>
         <button class="btn" onclick="publishBook()">🚀 Опубликовать</button>
+        
+        <!-- КНОПКА УДАЛЕНИЯ (показывается только если книга существует) -->
+        <button class="btn" id="edDeleteBtn" onclick="deleteBookFromEditor()" style="background:rgba(255,92,92,0.1); color:var(--danger); box-shadow:none; border:1px solid var(--danger); margin-top:16px; display:none;">🗑 Удалить книгу</button>
+        
         <div class="err" id="edErr"></div>
       </div>
     </div>
@@ -805,6 +818,9 @@
           </div>
           <div class="rp-text" id="rpStep">1 из 6</div>
         </div>
+        <!-- КНОПКА ЗВУКА -->
+        <button class="rp-close sound-btn" onclick="toggleSound()" style="margin-right: 8px;">🔊</button>
+        <!-- КНОПКА ЗАКРЫТИЯ -->
         <button class="rp-close" onclick="closeRitual()">✕</button>
       </div>
       <div class="ritual-body" id="ritualBody"></div>

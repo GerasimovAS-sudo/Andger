@@ -342,6 +342,7 @@ async function handleSession(session){
       await sb.auth.signOut();return;
     }
     user.name=profile.name||user.name;
+    user.lastName=profile.last_name||'';
     state.avatar=profile.avatar||'👤';
     state.soundOn=profile.sound_on!==false;
     isAdminFlag=profile.is_admin===true;
@@ -592,23 +593,24 @@ function backFromRitualBuilder(){smartHome()}
 let profilePrev='today';
 function showProfile(){
   try {
-    console.log('👤 showProfile clicked');
     const active=document.querySelector('.nav-btn.on');
     if(active) profilePrev=active.dataset.page||'today';
     
     hideAll();
-    console.log('👤 unhiding profileScreen');
     document.getElementById('profileScreen').classList.remove('hidden');
     
-    console.log('👤 renderProfile running');
     renderProfile();
     checkAdminAccess();
     updateSoundUI();
+    
+    window.scrollTo(0,0); // <--- ДОБАВИЛИ ЭТО: принудительно скроллим наверх
+    
     console.log('✅ showProfile done');
+    setTimeout(() => window.scrollTo(0, 0), 10);
   } catch(e) {
     console.error('❌ Profile Error:', e);
     alert('Ошибка профиля: ' + e.message);
-    smartHome(); // Возвращаем на главную, чтобы не застрять
+    smartHome(); 
   }
 }
 function backFromProfile(){
@@ -621,15 +623,25 @@ function backFromProfile(){
 function backFromStats(){smartHome()}
 function backFromJournal(){smartHome()}
 function backFromPublicProfile(){
-  // Если открыт чат, возвращаемся в чат, иначе в профиль
-  if (currentDialogUserId) {
+  // Возвращаем кнопки на место для своего профиля
+  document.querySelector('#publicProfileScreen .btn').style.display = '';
+  document.querySelector('#publicProfileScreen .btn-ghost').style.display = '';
+
+  if (profileSource === 'chat') {
     document.getElementById('publicProfileScreen').classList.add('hidden');
     document.getElementById('dialogScreen').classList.remove('hidden');
-    // Возвращаем кнопки на место для своего профиля
-    document.querySelector('#publicProfileScreen .btn').style.display = '';
-    document.querySelector('#publicProfileScreen .btn-ghost').style.display = '';
-  } else {
+  } else if (profileSource === 'profile') {
     showProfile();
+  } else if (profileSource === 'people') {
+    showCommunityScreen();
+    // Переключаем вкладку на "Сообщество"
+    switchCommunityTab('people', document.querySelectorAll('.tab-pill')[2]);
+  } else if (profileSource === 'chats') {
+    showCommunityScreen();
+    // Переключаем вкладку на "Сообщения"
+    switchCommunityTab('chats', document.querySelectorAll('.tab-pill')[1]);
+  } else {
+    showCommunityScreen(); // Если пришли из ленты
   }
 }
 function showSettings(){
@@ -692,12 +704,8 @@ function getBookState(id){
 let bookAccessMode='everyone'; // 'everyone' или 'individual'
 
 function hasBookAccess(id){
-  if(isAdmin())return true;
-  // Если режим «всем открыто» — доступ есть всегда
-  if(bookAccessMode==='everyone')return true;
-  // Если «индивидуально» — проверяем массив
-  const access=state.bookAccess;
-  if(!access||access.length===0)return false;
+  if(isAdmin()) return true; // Админ видит всё
+  const access = state.bookAccess || [];
   return access.includes(id);
 }
 
@@ -749,7 +757,10 @@ function switchTab(mode){
   document.getElementById('tabReg').classList.toggle('on',mode==='reg');
   document.getElementById('authBtn').textContent=mode==='login'?'Войти':'Зарегистрироваться';
   document.getElementById('authErr').textContent='';
-  document.getElementById('nameField').style.display=mode==='reg'?'block':'none';
+  
+  const isReg = mode === 'reg';
+  document.getElementById('nameField').style.display = isReg ? 'block' : 'none';
+  document.getElementById('lastNameField').style.display = isReg ? 'block' : 'none';
 }
 document.addEventListener('input',(e)=>{
   if(e.target.id==='phone')formatPhoneInput(e.target);
@@ -770,6 +781,7 @@ function formatPhoneInput(el){
 function normalizePhone(v){return v.replace(/\D/g,'')}
 
 async function doAuth(){
+  const lastNameInp = document.getElementById('lastName').value.trim();
   const phoneRaw=document.getElementById('phone').value;
   const pass=document.getElementById('password').value;
   const nameInp=document.getElementById('name').value.trim();
@@ -786,7 +798,7 @@ async function doAuth(){
   btn.disabled=true;btn.textContent='Загрузка...';
   try{
     if(authMode==='reg'){
-      const{data,error}=await sb.auth.signUp({email,password:pass,options:{data:{name:nameInp}}});
+        const{data,error}=await sb.auth.signUp({email,password:pass,options:{data:{name:nameInp, last_name:lastNameInp}}});
       if(error){
         showError(error.message.includes('already')?'Номер уже зарегистрирован':'Ошибка регистрации');
         btn.disabled=false;btn.textContent='Зарегистрироваться';return;
@@ -1995,8 +2007,10 @@ function renderProfile(){
     if(phoneEl) phoneEl.textContent = 
       '+7 ' + phone.slice(1,4) + ' *** ' + phone.slice(7,9) + ' ' + phone.slice(9);
     
-    const nameEl = document.getElementById('profileName');
+const nameEl = document.getElementById('profileName');
     if(nameEl) nameEl.value = (user && user.name) ? user.name : '';
+    const lastEl = document.getElementById('profileLastName');
+    if(lastEl) lastEl.value = (user && user.lastName) ? user.lastName : '';
     
     const avaEl = document.getElementById('profileAva');
     if(avaEl) avaEl.textContent = state.avatar || '👤';
@@ -2012,10 +2026,12 @@ function renderProfile(){
 }
 async function saveName(){
   const n=document.getElementById('profileName').value.trim();
+  const ln=document.getElementById('profileLastName').value.trim();
   if(!n)return;
   user.name=n;
-  await sb.from('profiles').update({name:n}).eq('id',user.id);
-  playSuccess();toast('Имя сохранено');
+  user.lastName=ln;
+  await sb.from('profiles').update({name:n, last_name:ln}).eq('id',user.id);
+  playSuccess();toast('Профиль сохранен');
 }
 function setAvatar(e){
   state.avatar=e;saveState();
@@ -2669,11 +2685,11 @@ async function loadChats(){
       const d=dialogs[id];
       const p=profMap[id]||{name:'Участник',avatar:'👤'};
       const preview=d.last.from_user===user.id?'Ты: ':'';
-      html+=`<div class="chat-row" onclick="openDialog('${id}')">
-        <div class="cr-ava">${p.avatar||'👤'}</div>
-        <div class="cr-info">
+      html+=`<div class="chat-row">
+        <div class="cr-ava" onclick="event.stopPropagation(); viewUserProfile('${id}', 'chats')" style="cursor:pointer;">${p.avatar||'👤'}</div>
+        <div class="cr-info" onclick="openDialog('${id}')" style="cursor:pointer;">
           <div class="cr-name">
-            <span>${escapeHtml(p.name||'Участник')}</span>
+            <span onclick="event.stopPropagation(); viewUserProfile('${id}', 'chats')" style="text-decoration:underline;">${escapeHtml(p.name||'Участник')}</span>
             <span class="cr-time">${timeAgo(d.last.created_at)}</span>
           </div>
           <div class="cr-preview">${preview}${escapeHtml((d.last.text||'').slice(0,40))}</div>
@@ -2882,7 +2898,7 @@ async function loadPeople(){
       top3.forEach((p,i)=>{
         if(p.score<=0)return;
         const medal=['🥇','🥈','🥉'][i];
-        html+=`<div class="admin-item" onclick="openUserProfile('${p.id}')">
+        html+=`<div class="admin-item" onclick="viewUserProfile('${p.id}', 'people')">
           <div class="ai-ava">${p.avatar||'👤'}</div>
           <div class="ai-info">
             <div class="ai-name">${escapeHtml(p.name||'Аноним')}</div>
@@ -2896,7 +2912,7 @@ async function loadPeople(){
     if(rest.length){
       html+='<h3 class="section-title">👥 Все участники</h3>';
       rest.forEach(p=>{
-        html+=`<div class="admin-item" onclick="openUserProfile('${p.id}')">
+        html+=`<div class="admin-item" onclick="viewUserProfile('${p.id}', 'people')">
           <div class="ai-ava">${p.avatar||'👤'}</div>
           <div class="ai-info">
             <div class="ai-name">${escapeHtml(p.name||'Аноним')}</div>
@@ -3079,30 +3095,19 @@ async function openAdminUser(id){
   });
   
   const regDate=p.created_at?new Date(p.created_at).toLocaleDateString('ru'):'—';
-  // Добавили время к последнему визиту
   const lastSeen=p.last_seen?new Date(p.last_seen).toLocaleString('ru', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}):'—';
   const access=p.book_access||[];
   
-  // Блокировка кнопок, если включен режим "Всем открыто"
-  const isToggleDisabled = (bookAccessMode==='everyone' && !p.is_admin);
-  
+  // ТУТ УБРАЛИ ВСЕ ПРОВЕРКИ РЕЖИМОВ. Тумблеры работают всегда.
   const booksHtml=BOOKS.map(b=>{
-    let has = p.is_admin || bookAccessMode==='everyone' || access.includes(b.id);
-    return `<div class="admin-book-row" style="${isToggleDisabled ? 'opacity:0.5;' : ''}">
+    let has = p.is_admin || access.includes(b.id);
+    return `<div class="admin-book-row">
       <div class="ab-title"><span>${b.emoji}</span><span>${b.title}</span></div>
-      <div class="toggle-switch ${has?'on':''}" onclick="${isToggleDisabled ? '' : `event.stopPropagation();toggleBookAccess('${id}','${b.id}',${!has})`}"></div>
+      <div class="toggle-switch ${has?'on':''}" onclick="event.stopPropagation();toggleBookAccess('${id}','${b.id}',${!has})"></div>
     </div>`;
   }).join('');
   
-  const modeWarning = isToggleDisabled ? 
-    `<div style="font-size:11px; color:var(--warm); margin-top:10px;">⚠️ Включен режим «Всем открыто». Чтобы управлять доступом, переключите режим в настройках системы.</div>` : '';
-
-  const showBulkButtons=bookAccessMode==='individual'&&!p.is_admin;
-  const bulkHtml=showBulkButtons?`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
-      <button class="admin-action" onclick="event.stopPropagation();setAllBooksAccess('${id}',true)">✓ Открыть все</button>
-      <button class="admin-action warn" onclick="event.stopPropagation();setAllBooksAccess('${id}',false)">✕ Закрыть все</button>
-    </div>`:'';
+  const modeWarning = ''; // Предупреждение убрано
 
   document.getElementById('adminDetailWrap').innerHTML=`
     <div class="admin-detail">
@@ -3127,7 +3132,6 @@ async function openAdminUser(id){
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-bottom:8px">📚 Доступ к книгам</div>
         <div class="admin-books">${booksHtml}</div>
         ${modeWarning}
-        ${bulkHtml}
       </div>
       
       ${!isMe?`<div class="admin-actions">
@@ -3256,18 +3260,15 @@ async function renderSystem(){
   }).join('')||'<div style="color:var(--muted);font-size:12px;padding:8px">Пока нет логов</div>';
 
   document.getElementById('systemContent').innerHTML=`
-        <div class="admin-detail" style="margin-top:12px">
-      <h3 style="font-size:14px;margin-bottom:10px">📚 Доступ к книгам</h3>
-      <div class="admin-row" style="cursor:pointer;padding:12px 0" onclick="toggleBookAccessMode()">
-        <span>${bookAccessMode==='everyone'?'🟢 Всем открыто':'🟡 Индивидуально'}</span>
-        <span style="color:var(--accent-2)">${bookAccessMode==='everyone'?'по умолчанию':'у каждого свой'}</span>
-      </div>
-    </div>
-    <div class="admin-detail" style="margin-top:12px">
-      <h3 style="font-size:14px;margin-bottom:10px">🛠 Действия</h3>
     <div class="admin-detail" style="margin-top:12px">
       <h3 style="font-size:14px;margin-bottom:10px">📝 Последние действия</h3>
       ${logsHtml}
+    </div>
+    <div class="admin-detail" style="margin-top:12px">
+      <h3 style="font-size:14px;margin-bottom:10px">ℹ️ Информация</h3>
+      <div class="admin-row" style="padding:12px 0">
+        <span style="color:var(--muted); font-size:12px; line-height:1.5;">Управление доступом к книгам теперь осуществляется в профиле каждого пользователя. Зайдите в «Участники», нажмите на нужного человека и включите ему необходимые книги.</span>
+      </div>
     </div>`;
 
   // Проверка количества книг в Supabase
@@ -3325,6 +3326,10 @@ function showBookEditor(id){
   const errEl = document.getElementById('edErr');
   if(errEl) errEl.textContent='';
   
+// Показываем кнопку удаления только для существующих книг
+  const delBtn = document.getElementById('edDeleteBtn');
+  if (delBtn) delBtn.style.display = id ? 'block' : 'none';
+
   hideAll();
   document.getElementById('bookEditorScreen').classList.remove('hidden');
 }
@@ -3674,43 +3679,50 @@ function renderWeekCalendar() {
     return;
   }
 
-  const totalDays = currentBook.days;
-  const today = todayStr();
-  const todayDayNum = currentDay(currentBook.id); // Номер сегодняшнего дня в книге
+  const today = new Date();
+  const todayStr = localDate(today);
+  
+  // Находим понедельник текущей недели
+  const dayOfWeek = today.getDay() === 0 ? 6 : today.getDay() - 1; // ПН=0, ВС=6
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - dayOfWeek);
 
   const dows = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
   let html = '';
 
-  // Проходимся по всем дням книги
-  for (let i = 1; i <= totalDays; i++) {
-    const d = new Date(bs.start + 'T00:00:00');
-    d.setDate(d.getDate() + i - 1);
+  // Рисуем 7 дней текущей недели
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    
     const dateStr = localDate(d);
-    const isToday = dateStr === today;
-    const dayOfWeek = d.getDay() === 0 ? 6 : d.getDay() - 1; // ПН=0, ВС=6
-
+    const isToday = dateStr === todayStr;
+    
+    // Проверяем, есть ли активность в этот день
     let hasActivity = false;
     const rec = bs.days[dateStr];
     if (rec && rec.practices && rec.practices.length > 0) {
       hasActivity = true;
     }
 
-    html += `<div class="cal-day ${isToday ? 'today' : ''} ${hasActivity ? 'active' : ''}" id="cal-day-${i}" onclick="showDayStats('${dateStr}')">
-      <div class="dow">${dows[dayOfWeek]}</div>
-      <div class="dom">${d.getDate()}</div>
+    // Проверяем, не выходит ли этот день за рамки книги (до начала или после конца)
+    const bookStart = new Date(bs.start + 'T00:00:00');
+    const isBeforeStart = d < bookStart;
+    const isAfterEnd = currentDay(currentBook.id) === currentBook.days && d > today; // Если книга пройдена, дни после сегодня не показываем
+
+    let extraClass = '';
+    if (isBeforeStart) extraClass = 'opacity: 0.3;'; // Дни до начала книги бледные
+    if (isToday) extraClass = 'border-color: var(--warm); background: rgba(255, 154, 86, 0.1); color: var(--warm);';
+
+    html += `<div class="cal-day ${hasActivity ? 'active' : ''}" 
+                  style="${extraClass} border: ${hasActivity ? '1px solid var(--accent-2)' : '1px solid var(--border)'}; background: ${hasActivity ? 'rgba(124,92,255,0.15)' : ''}"
+                  onclick="showDayStats('${dateStr}')">
+      <div class="dow">${dows[i]}</div>
+      <div class="dom" style="${isToday ? 'color: var(--warm);' : ''}">${d.getDate()}</div>
     </div>`;
   }
+  
   el.innerHTML = html;
-
-    // Автоматически прокручиваем к сегодняшнему дню
-  setTimeout(() => {
-    const todayEl = document.getElementById('cal-day-' + todayDayNum);
-    const wrap = document.getElementById('weekCalendar');
-    if (todayEl && wrap) {
-      const scrollPos = todayEl.offsetLeft - (wrap.offsetWidth / 2) + (todayEl.offsetWidth / 2);
-      wrap.scrollTo({ left: scrollPos, behavior: 'smooth' });
-    }
-  }, 100);
 }
 
 function showDayStats(dateStr) {
@@ -3890,6 +3902,24 @@ async function publishBook(){
   await saveBook(true);
 }
 
+async function deleteBookFromEditor(){
+  if(!editingBookId) return;
+  if(!confirm('Удалить эту книгу навсегда? Все пользователи потеряют к ней доступ.')) return;
+  
+  try {
+    const { error } = await sb.from('books').delete().eq('id', editingBookId);
+    if (error) throw error;
+    
+    toast('Книга удалена');
+    // Удаляем из локального массива
+    BOOKS = BOOKS.filter(b => b.id !== editingBookId);
+    
+    setTimeout(() => backFromBookEditor(), 500);
+  } catch(e) {
+    toast('Ошибка удаления: ' + e.message, 'danger');
+  }
+}
+
 function parseSmartJson() {
   const raw = document.getElementById('edSmartJson').value.trim();
   if(!raw) return;
@@ -3999,58 +4029,98 @@ function saveTimeFromModal() {
   closeTimeModal();
 }
 // ─── ПРОСМОТР ПРОФИЛЯ ДРУГОГО ПОЛЬЗОВАТЕЛЯ (ИЗ ЧАТА) ───
-async function viewUserProfile(userId) {
+let profileSource = 'feed'; // Откуда пришли
+
+async function viewUserProfile(userId, source = 'feed') {
   if (!userId) return;
-  if (userId === user.id) { showProfile(); return; } // Если свой профиль - открываем настройки
-  
+  if (userId === user.id) { showProfile(); return; }
+  profileSource = source;
+
   try {
-    // 1. Получаем данные профиля
     const { data: p } = await sb.from('profiles').select('*').eq('id', userId).single();
     if (!p) { toast('Пользователь не найден', 'danger'); return; }
 
-    // 2. Получаем прогресс пользователя
     const { data: prog } = await sb.from('progress').select('*').eq('user_id', userId);
 
-    // 3. Считаем статистику
-    let totalClosed = 0;
-    let booksStarted = 0;
-    let totalFire = 0; // Здесь мы не можем точно посчитать стрик, поэтому выведем просто макс. закрытых дней подряд (грубо)
-    
-    // Для точного стрика нужно парсить days, как на главной, но для чужого профиля сделаем упрощенно
-    let bestStreak = 0;
+    let totalFire = 0; 
+    let totalBest = 0; 
+    let booksCount = 0;
+    let totalPractices = 0;
+    let totalJournal = 0;
+    let perfectDays = 0;
 
     (prog || []).forEach(row => {
       const d = row.data || {};
-      const days = d.days || {};
-      let closed = Object.keys(days).filter(k => days[k].closed).length;
+      if (d.start) booksCount++;
       
-      if (closed > 0) booksStarted++;
-      totalClosed += closed;
+      const days = d.days || {};
+      const journal = d.journal || {};
+      
+      totalJournal += Object.keys(journal).filter(k => journal[k].q1 || journal[k].q2 || journal[k].q3).length;
 
-      // Грубый подсчет стрика
-      let cur = 0;
+      let best = 0, cur = 0;
       Object.keys(days).sort().forEach(date => {
-        if (days[date].closed) { cur++; if (cur > bestStreak) bestStreak = cur; } 
-        else { cur = 0; }
+        if (days[date].closed) { 
+          cur++; 
+          if (cur > best) best = cur; 
+        } else { 
+          cur = 0; 
+        }
+        
+        if (days[date].practices) {
+          totalPractices += days[date].practices.length;
+          const b = BOOKS.find(x => x.id === row.book_id);
+          if (b && days[date].practices.length === b.practices.length) perfectDays++;
+        }
       });
+      
+      if (best > totalBest) totalBest = best;
+      if (best > totalFire) totalFire = best;
     });
 
-    // 4. Заполняем экран публичного профиля
+    const fullName = (p.name || 'Друг') + (p.last_name ? ' ' + p.last_name : '');
     document.getElementById('ppAva').textContent = p.avatar || '👤';
-    document.getElementById('ppName').textContent = p.name || 'Друг';
+    document.getElementById('ppName').textContent = fullName;
     document.getElementById('ppStatus').textContent = p.last_seen ? 'Был(а) в сети ' + timeAgo(p.last_seen) : 'Статус скрыт';
     
-    document.getElementById('ppFire').textContent = bestStreak; 
-    document.getElementById('ppRecord').textContent = totalClosed;
-    document.getElementById('ppBooks').textContent = booksStarted;
+    document.getElementById('ppFire').textContent = totalFire; 
+    document.getElementById('ppRecord').textContent = totalBest;
+    document.getElementById('ppBooks').textContent = booksCount;
 
-    // Прячем кнопки "Поделиться" и "Скопировать ссылку", так как это чужой профиль
-    document.querySelector('#publicProfileScreen .btn').style.display = 'none';
-    document.querySelector('#publicProfileScreen .btn-ghost').style.display = 'none';
+    // Считаем награды
+    const extra = { journal: totalJournal, practices: totalPractices, perfect: perfectDays > 0, perfectStreak: perfectDays, otherAch: 99 };
+    let achHtml = '';
+    let allItems = [];
+    ACHIEVEMENTS_GROUPS.forEach(g => g.items.forEach(a => allItems.push(a)));
+    
+    allItems.forEach(a => {
+      if (a.secret) return; 
+      // Передаем totalBest как кол-во закрытых дней, и totalBest как стрик (упрощенно)
+      const unlocked = a.check(totalBest, totalBest, extra); 
+      if (unlocked) {
+        achHtml += `<div class="ach-card unlocked"><div class="ach-badge">${a.ico}</div><div class="ach-name">${a.name}</div></div>`;
+      }
+    });
+    
+    if (!achHtml) achHtml = '<div style="color:var(--muted); font-size:13px; grid-column: 1 / -1; text-align:center;">Пока нет наград</div>';
+    
+    const achEl = document.getElementById('ppAchievements');
+    if (achEl) achEl.innerHTML = achHtml;
 
-    // Открываем экран
+    const mainBtn = document.querySelector('#publicProfileScreen .btn');
+    const ghostBtn = document.querySelector('#publicProfileScreen .btn-ghost');
+    
+    mainBtn.textContent = '💬 Написать сообщение';
+    mainBtn.style.display = '';
+    mainBtn.onclick = () => openDialog(userId, p);
+    ghostBtn.style.display = 'none';
+
     hideAll();
     document.getElementById('publicProfileScreen').classList.remove('hidden');
+    
+    // ПРИНУДИТЕЛЬНО СКРОЛЛИМ НАВЕРХ (исправляет съезжающую шапку)
+    window.scrollTo(0, 0);
+    setTimeout(() => window.scrollTo(0, 0), 10);
     
   } catch(e) {
     console.error(e);

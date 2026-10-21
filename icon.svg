@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- Градиент для кольца -->
+    <linearGradient id="ringGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1e5cff" />
+      <stop offset="28%" stop-color="#7c5cff" />
+      <stop offset="55%" stop-color="#d94aff" />
+      <stop offset="78%" stop-color="#ff7a2a" />
+      <stop offset="100%" stop-color="#ffc233" />
+    </linearGradient>
+    
+    <!-- Градиент для текста -->
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c4b5fd" />
+      <stop offset="50%" stop-color="#7c5cff" />
+      <stop offset="100%" stop-color="#ff9a56" />
+    </linearGradient>
+  </defs>
+
+  <!-- Темный фон -->
+  <rect width="512" height="512" rx="115" fill="#0d0a18" />
+
+  <!-- Градиентное кольцо -->
+  <circle cx="256" cy="256" r="170" fill="none" stroke="url(#ringGrad)" stroke-width="24" stroke-linecap="round" stroke-dasharray="880 188" transform="rotate(-45 256 256)" />
+
+  <!-- Название ANDGER по центру -->
+  <text x="256" y="280" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="60" font-weight="800" fill="url(#textGrad)" text-anchor="middle" letter-spacing="4">ANDGER</text>
+</svg>
