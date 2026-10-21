@@ -369,6 +369,13 @@ async function handleSession(session){
   applyTheme();
   subscribeNotifications();
 
+  // ─── СЕРДЦЕБИЕНИЕ (ОБНОВЛЕНИЕ СТАТУСА "БЫЛ(А) В СЕТИ") ───
+  setInterval(() => {
+    if(user && user.id) {
+      sb.from('profiles').update({last_seen: new Date().toISOString()}).eq('id',user.id).then(()=>{});
+    }
+  }, 60000); // 60000 мс = 1 минута
+
   if(!state.onboarded)showOnboarding();
   else smartHome();
 }
@@ -613,7 +620,18 @@ function backFromProfile(){
 }
 function backFromStats(){smartHome()}
 function backFromJournal(){smartHome()}
-function backFromPublicProfile(){showProfile()}
+function backFromPublicProfile(){
+  // Если открыт чат, возвращаемся в чат, иначе в профиль
+  if (currentDialogUserId) {
+    document.getElementById('publicProfileScreen').classList.add('hidden');
+    document.getElementById('dialogScreen').classList.remove('hidden');
+    // Возвращаем кнопки на место для своего профиля
+    document.querySelector('#publicProfileScreen .btn').style.display = '';
+    document.querySelector('#publicProfileScreen .btn-ghost').style.display = '';
+  } else {
+    showProfile();
+  }
+}
 function showSettings(){
   hideAll();
   document.getElementById('settingsScreen').classList.remove('hidden');
@@ -781,9 +799,9 @@ async function doAuth(){
       }
       playSuccess();
         }else{
-      // Добавляем тайм-аут на 10 секунд для входа
+      // Добавляем тайм-аут на 30 секунд для входа (чтобы сервер успел проснуться)
       const loginPromise = sb.auth.signInWithPassword({email,password:pass});
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000));
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 30000));
       
       const {data, error} = await Promise.race([loginPromise, timeoutPromise]);
       
@@ -1056,10 +1074,9 @@ function renderHeroCards(){
     html+=`<div class="${cls}"><div class="hero-icon-bg">${p.ico}</div><div class="hero-badge">№${i+1} из ${b.practices.length}</div>${done?'<div class="hero-done-badge">✓</div>':''}<div class="hero-content"><div class="hero-title">${p.title}</div><div class="hero-sub">${p.sub}</div><button class="hero-play" onclick="event.stopPropagation();openPractice('${p.id}')">${done?'✓ ГОТОВО':'▶ НАЧАТЬ'}</button></div></div>`;
   });
   document.getElementById('heroScroll').innerHTML=html;
-  document.getElementById('heroDots').innerHTML=
+    document.getElementById('heroDots').innerHTML=
     b.practices.map((p,i)=>{
-      const done=todayRec.practices&&todayRec.practices.includes(p.id);
-      return `<div class="hero-dot ${done?'done':''}" data-i="${i}"></div>`;
+      return `<div class="hero-dot" data-i="${i}"></div>`;
     }).join('');
   const sc=document.getElementById('heroScroll');
   if(sc)sc.scrollLeft=0;
@@ -1278,7 +1295,7 @@ function renderStatsScreen(){
   document.getElementById('globalPractices').textContent=totalPractices;
   document.getElementById('globalMinutes').textContent=totalMinutes;
 
-  // Отрисовка карточек книг
+    // Отрисовка карточек книг
   document.getElementById('statsBooksSwipe').innerHTML=BOOKS.map(b=>{
     const closed=countClosedDays(b.id);
     const pct=Math.round(closed/b.days*100);
@@ -1287,7 +1304,6 @@ function renderStatsScreen(){
     const circ=2*Math.PI*22;
     const offset=circ-(circ*pct/100);
     
-    // Определяем текущий день для этой книги
     const dayNum = currentDay(b.id);
     const dayText = b.start ? `День ${dayNum} из ${b.days}` : `${b.days} дней`;
 
@@ -1300,6 +1316,24 @@ function renderStatsScreen(){
       <div style="font-size:10px; color:var(--muted); font-weight:700; margin-top:2px;">${dayText}</div>
     </div>`;
   }).join('');
+
+  // ДОБАВЛЯЕМ ТОЧКИ ДЛЯ СТАТИСТИКИ
+  const dotsWrap = document.getElementById('statsBooksDots');
+  if (dotsWrap) {
+    if (BOOKS.length > 1) {
+      dotsWrap.innerHTML = BOOKS.map(b => `<div class="b-dot ${statsBookId === b.id ? 'on' : ''}"></div>`).join('');
+      setTimeout(() => {
+        const wrap = document.getElementById('statsBooksSwipe');
+        const activeIndex = BOOKS.findIndex(x => x.id === statsBookId);
+        if (wrap && activeIndex >= 0 && wrap.children[activeIndex]) {
+          const cardWidth = wrap.children[activeIndex].offsetWidth;
+          wrap.scrollTo({ left: wrap.children[activeIndex].offsetLeft - (wrap.offsetWidth / 2) + (cardWidth / 2), behavior: 'smooth' });
+        }
+      }, 50);
+    } else {
+      dotsWrap.innerHTML = '';
+    }
+  }
 
   const b=BOOKS.find(x=>x.id===statsBookId)||currentBook;
   document.getElementById('statStreakBig').textContent=calcStreak(b.id);
@@ -1486,6 +1520,9 @@ function renderRitualStep(){
     `${bookTag}<div class="ritual-hero"><div class="ico">${p.ico}</div><h2>${p.title}</h2><div class="sub">${p.sub}</div></div><div class="ritual-timer"><div class="time" id="ritualTime">${formatTime(p.time)}</div><button class="timer-big-btn" id="ritualTimerBtn" onclick="toggleTimer('ritual')">▶ Старт</button><button class="timer-skip" onclick="nextRitual()">Отметить выполненным →</button></div><div class="ps-block"><h3>💡 Зачем это нужно</h3><p>${p.why}</p></div><div class="ps-block"><h3>🎬 Как делать</h3><ol class="steps">${p.how.map(s=>`<li>${s}</li>`).join('')}</ol></div>`;
   timerRemaining=p.time;
   timerState='idle';
+    if(musicAudio && state.soundOn!==false){
+    nextTrack(); // Переключаем трек на следующий при переходе к новой практике
+  }
 }
 function toggleTimer(ctx){
   const btn=ctx==='ritual'?
@@ -1547,11 +1584,9 @@ function stopTimer(){
   releaseWakeLock(); // <--- ОТПУСКАЕМ ЭКРАН
   if(timerInterval){clearInterval(timerInterval);timerInterval=null}
 }
-function stopTimer(){
-  if(timerInterval){clearInterval(timerInterval);timerInterval=null}
-}
 function nextRitual(){
   stopTimer();timerState='idle';
+  if(musicAudio && state.soundOn!==false) nextTrack(); // Меняем музыку
   const p=ritualQueue[ritualIndex];
   markPracticeDoneForBook(p._bookId,p.id);
   playCheck();
@@ -2018,6 +2053,20 @@ function applyTheme(){
   });
 }
 // ─── PUSH ───
+// Функция для конвертации ключа Push
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 async function togglePush(){
   if(state.pushEnabled){
     state.pushEnabled=false;
@@ -2150,8 +2199,11 @@ async function openNotification(id){
 }
 async function createNotification(userId,type,payload){
   try{
-    await sb.from('notifications').insert({user_id:userId,type,payload});
-  }catch(e){}
+    const {error} = await sb.from('notifications').insert({user_id:userId,type,payload});
+    if(error) console.error('Ошибка уведомления:', error);
+  }catch(e){
+    console.error('Критическая ошибка уведомления:', e);
+  }
 }
 
 // ─── ПУБЛИЧНЫЙ ПРОФИЛЬ ───
@@ -2229,7 +2281,7 @@ async function renderJournal(){
   document.getElementById('jq2').value = todayRec.q2 || '';
   document.getElementById('jq3').value = todayRec.q3 || '';
   
-  renderMoodTracker(); // Оставляем трекер настроения
+  renderMoodTracker(); // Оставляем трекер настроения  
     // ─── ГРАФИК НАСТРОЕНИЯ ───
   try {
     const sevenDaysAgo = new Date();
@@ -2254,58 +2306,15 @@ async function renderJournal(){
       
       let val = 0;
       if (dayMood) {
-        // Берем среднее между утром и вечером, если они есть
-        if (dayMood.morning && dayMood.evening) val = Math.round((dayMood.morning + dayMood.evening) / 2);
-        else if (dayMood.morning) val = dayMood.morning;
-        else if (dayMood.evening) val = dayMood.evening;
+        const m = parseInt(dayMood.morning) || 0;
+        const e = parseInt(dayMood.evening) || 0;
+        if (m && e) val = Math.round((m + e) / 2);
+        else if (m) val = m;
+        else if (e) val = e;
       }
 
       // Высота столбика (макс 5 баллов = 100%)
-      const heightPct = val > 0 ? (val / 5) * 100 : 0;
-      const barClass = val > 0 ? 'mc-bar' : 'mc-bar empty';
-      
-      mHtml += `
-        <div class="mc-bar-wrap">
-          <div class="mc-val">${val > 0 ? val : ''}</div>
-          <div class="${barClass}" style="height: ${heightPct}%;"></div>
-          <div class="mc-label">${dayName}</div>
-        </div>
-      `;
-    }
-    document.getElementById('moodChartWrap').innerHTML = mHtml;
-  } catch(e) { console.error('Ошибка графика', e); }
-    // ─── ГРАФИК НАСТРОЕНИЯ ───
-  try {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-    const dateLimit = localDate(sevenDaysAgo); // 7 дней назад
-
-    // Берем настроения за последние 7 дней
-    const { data: mData } = await sb.from('moods').select('*').eq('user_id', user.id).gte('date', dateLimit).order('date', {ascending: true});
-    
-    let mHtml = '';
-    const dows = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
-    
-    // Проходимся по каждому из 7 дней
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dStr = localDate(d);
-      const dayName = dows[d.getDay()];
-      
-      // Ищем запись за этот день
-      const dayMood = (mData || []).find(m => m.date === dStr);
-      
-      let val = 0;
-      if (dayMood) {
-        // Берем среднее между утром и вечером, если они есть
-        if (dayMood.morning && dayMood.evening) val = Math.round((dayMood.morning + dayMood.evening) / 2);
-        else if (dayMood.morning) val = dayMood.morning;
-        else if (dayMood.evening) val = dayMood.evening;
-      }
-
-      // Высота столбика (макс 5 баллов = 100%)
-      const heightPct = val > 0 ? (val / 5) * 100 : 0;
+      const heightPct = val > 0 ? Math.min(100, (val / 5) * 100) : 0;
       const barClass = val > 0 ? 'mc-bar' : 'mc-bar empty';
       
       mHtml += `
@@ -2333,9 +2342,9 @@ async function renderJournal(){
   // Сводка
   const statsHtml = `
     <div style="display:flex; gap:10px; margin-bottom:20px;">
-      <div style="flex:1; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; text-align:center;">
-        <div style="font-size:24px; font-weight:900; color:var(--accent-2);">${validEntries.length}</div>
-        <div style="font-size:10px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px;">Всего записей</div>
+      <div style="flex:1; background:linear-gradient(135deg, var(--card), var(--card2)); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; text-align:center; box-shadow: var(--shadow-sm);">
+        <div style="font-size:28px; font-weight:900; color:var(--accent-2);">${validEntries.length}</div>
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px; letter-spacing:1px;">Всего записей</div>
       </div>
     </div>
   `;
@@ -2691,6 +2700,23 @@ async function openDialog(otherId,p){
   }
   currentDialogProfile=p;
   document.getElementById('dialogName').textContent=(p.name||'Участник').toUpperCase();
+  
+  // Показываем статус
+  const statusEl = document.getElementById('dialogStatus');
+  if (statusEl) {
+    if (p.last_seen) {
+      const diffMins = Math.floor((Date.now() - new Date(p.last_seen).getTime()) / 60000);
+      if (diffMins < 2) {
+        statusEl.textContent = 'в сети'; // Меньше 2 минут назад
+        statusEl.style.color = 'var(--success)'; // Зеленый
+      } else {
+        statusEl.textContent = 'был(а) ' + timeAgo(p.last_seen);
+        statusEl.style.color = 'var(--muted)';
+      }
+    } else {
+      statusEl.textContent = 'недавно';
+    }
+  }
   document.getElementById('dialogMessages').innerHTML='<div style="color:var(--muted);text-align:center;padding:20px">Загрузка...</div>';
   hideAll();
   document.getElementById('dialogScreen').classList.remove('hidden');
@@ -3433,32 +3459,66 @@ const action=urlParams.get('action');
 if(action==='ritual')setTimeout(()=>startRitual(),1500);
 else if(action==='journal')setTimeout(()=>showJournalScreen(),1500);
 
-// ─── SCROLL-индикатор для hero ───
-document.addEventListener('scroll',(e)=>{
-  if(e.target&&e.target.id==='heroScroll'){
-    const idx=Math.round(e.target.scrollLeft/(e.target.offsetWidth*0.62));
-    document.querySelectorAll('.hero-dot').forEach((d,i)=>d.classList.toggle('on',i===idx));
+// ─── SCROLL-ИНДИКАТОРЫ (КНИГИ И ПРАКТИКИ) ───
+document.addEventListener('scroll', (e) => {
+  // Точки для практик (внизу)
+  if (e.target && e.target.id === 'heroScroll') {
+    const wrap = e.target;
+    const cardWidth = wrap.children[0] ? wrap.children[0].offsetWidth : 1;
+    const idx = Math.round(wrap.scrollLeft / (cardWidth + 10));
+    document.querySelectorAll('.hero-dot').forEach((d, i) => {
+      d.classList.toggle('on', i === idx);
+    });
   }
-},true);
+  
+    // Точки для книг (сверху)
+  if (e.target && e.target.id === 'activeBookWrap') {
+    const wrap = e.target;
+    const cardWidth = wrap.children[0] ? wrap.children[0].offsetWidth : 1;
+    const idx = Math.round(wrap.scrollLeft / (cardWidth + 10));
+    document.querySelectorAll('.books-dots .b-dot').forEach((d, i) => {
+      d.classList.toggle('on', i === idx);
+    });
+  }
+
+  // ДОБАВЛЯЕМ СЛУШАТЕЛЬ ДЛЯ СТАТИСТИКИ
+  if (e.target && e.target.id === 'statsBooksSwipe') {
+    const wrap = e.target;
+    const cardWidth = wrap.children[0] ? wrap.children[0].offsetWidth : 1;
+    const idx = Math.round(wrap.scrollLeft / (cardWidth + 10)); 
+    document.querySelectorAll('#statsBooksDots .b-dot').forEach((d, i) => {
+      d.classList.toggle('on', i === idx);
+    });
+  }
+}, true);
 // ─── Слежение за системной темой (для режима «Авто») ───
 window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=>{
   if(state.theme==='auto')applyTheme();
 });
 // ─── СИСТЕМНАЯ КНОПКА "НАЗАД" (Android) ───
 window.addEventListener('popstate', (e) => {
-  // Если открыт ритуал или практика - закрываем их
   const ritualOpen = !document.getElementById('ritualScreen').classList.contains('hidden');
   const practiceOpen = !document.getElementById('practiceScreen').classList.contains('hidden');
+  const authOpen = !document.getElementById('authScreen').classList.contains('hidden');
   
-  if (ritualOpen) { closeRitual(); history.pushState(null, null, location.href); return; }
-  if (practiceOpen) { closePractice(); history.pushState(null, null, location.href); return; }
-  
-  // Если открыты другие экраны (кроме главной) - возвращаем на главную
-  const activeScreen = document.querySelector('.screen:not(.hidden):not(#todayScreen):not(#authScreen)');
-  if (activeScreen) {
-    smartHome();
-    history.pushState(null, null, location.href);
+  if (ritualOpen) { 
+    closeRitual(); 
+    history.pushState(null, null, location.href); 
+    return; 
   }
+  if (practiceOpen) { 
+    closePractice(); 
+    history.pushState(null, null, location.href); 
+    return; 
+  }
+  
+  // Если мы не на главной и не на экране входа
+  if (currentScreen !== 'today' && !authOpen) {
+    smartHome();
+  }
+  
+  // Всегда блокируем выход из приложения (чтобы не вылетало)
+  history.pushState(null, null, location.href);
 });
 
 // Блокируем закрытие приложения на главном экране (опционально, если хочешь как в PWA)
@@ -3642,11 +3702,13 @@ function renderWeekCalendar() {
   }
   el.innerHTML = html;
 
-  // Автоматически прокручиваем к сегодняшнему дню
+    // Автоматически прокручиваем к сегодняшнему дню
   setTimeout(() => {
     const todayEl = document.getElementById('cal-day-' + todayDayNum);
-    if (todayEl) {
-      todayEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    const wrap = document.getElementById('weekCalendar');
+    if (todayEl && wrap) {
+      const scrollPos = todayEl.offsetLeft - (wrap.offsetWidth / 2) + (todayEl.offsetWidth / 2);
+      wrap.scrollTo({ left: scrollPos, behavior: 'smooth' });
     }
   }, 100);
 }
@@ -3828,43 +3890,6 @@ async function publishBook(){
   await saveBook(true);
 }
 
-async function saveBook(published){
-  const err=document.getElementById('edErr');
-  const id=editingBookId||('book-'+Date.now());
-  
-  // Получаем практики из текстового поля
-  let practicesData = [];
-  const practicesText = document.getElementById('edPractices').value.trim();
-  if(practicesText) {
-    try {
-      practicesData = JSON.parse(practicesText);
-    } catch(e) {
-      err.textContent = '❌ Ошибка в JSON практик. Проверьте кавычки и запятые.';
-      err.style.color = 'var(--danger)';
-      return;
-    }
-  }
-
-  const data={    method: document.getElementById('edMethod').value.split(',').map(s=>s.trim()).filter(Boolean),
-    author_bio: document.getElementById('edAuthorBio').value.trim(),
-    for_whom: document.getElementById('edForWhom').value.trim(),
-    result: document.getElementById('edResult').value.trim(),
-    quotes: window._tempQuotes || [],
-  };
-  
-  try{
-    const{error}=await sb.from('books').upsert(data,{onConflict:'id'});
-    if(error)throw error;
-    err.textContent=published?'✅ Опубликовано':'💾 Черновик сохранён';
-    err.style.color='var(--success)';
-    window._aiBook=null;
-    toast(published?'Опубликовано ✓':'Черновик сохранён');
-    setTimeout(()=>backFromBookEditor(),800);
-  }catch(e){
-    err.textContent='❌ '+e.message;
-    err.style.color='var(--danger)';
-  }
-}
 function parseSmartJson() {
   const raw = document.getElementById('edSmartJson').value.trim();
   if(!raw) return;
@@ -3972,4 +3997,63 @@ function saveTimeFromModal() {
   playSuccess();
   toast('Время сохранено');
   closeTimeModal();
+}
+// ─── ПРОСМОТР ПРОФИЛЯ ДРУГОГО ПОЛЬЗОВАТЕЛЯ (ИЗ ЧАТА) ───
+async function viewUserProfile(userId) {
+  if (!userId) return;
+  if (userId === user.id) { showProfile(); return; } // Если свой профиль - открываем настройки
+  
+  try {
+    // 1. Получаем данные профиля
+    const { data: p } = await sb.from('profiles').select('*').eq('id', userId).single();
+    if (!p) { toast('Пользователь не найден', 'danger'); return; }
+
+    // 2. Получаем прогресс пользователя
+    const { data: prog } = await sb.from('progress').select('*').eq('user_id', userId);
+
+    // 3. Считаем статистику
+    let totalClosed = 0;
+    let booksStarted = 0;
+    let totalFire = 0; // Здесь мы не можем точно посчитать стрик, поэтому выведем просто макс. закрытых дней подряд (грубо)
+    
+    // Для точного стрика нужно парсить days, как на главной, но для чужого профиля сделаем упрощенно
+    let bestStreak = 0;
+
+    (prog || []).forEach(row => {
+      const d = row.data || {};
+      const days = d.days || {};
+      let closed = Object.keys(days).filter(k => days[k].closed).length;
+      
+      if (closed > 0) booksStarted++;
+      totalClosed += closed;
+
+      // Грубый подсчет стрика
+      let cur = 0;
+      Object.keys(days).sort().forEach(date => {
+        if (days[date].closed) { cur++; if (cur > bestStreak) bestStreak = cur; } 
+        else { cur = 0; }
+      });
+    });
+
+    // 4. Заполняем экран публичного профиля
+    document.getElementById('ppAva').textContent = p.avatar || '👤';
+    document.getElementById('ppName').textContent = p.name || 'Друг';
+    document.getElementById('ppStatus').textContent = p.last_seen ? 'Был(а) в сети ' + timeAgo(p.last_seen) : 'Статус скрыт';
+    
+    document.getElementById('ppFire').textContent = bestStreak; 
+    document.getElementById('ppRecord').textContent = totalClosed;
+    document.getElementById('ppBooks').textContent = booksStarted;
+
+    // Прячем кнопки "Поделиться" и "Скопировать ссылку", так как это чужой профиль
+    document.querySelector('#publicProfileScreen .btn').style.display = 'none';
+    document.querySelector('#publicProfileScreen .btn-ghost').style.display = 'none';
+
+    // Открываем экран
+    hideAll();
+    document.getElementById('publicProfileScreen').classList.remove('hidden');
+    
+  } catch(e) {
+    console.error(e);
+    toast('Ошибка загрузки профиля', 'danger');
+  }
 }

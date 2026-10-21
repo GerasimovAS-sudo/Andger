@@ -387,13 +387,19 @@ html.light .main-head, body.light .main-head {
   text-align:right;font-style:normal}
 
 /* ─── HERO-КАРТОЧКИ ПРАКТИК ─── */
-.hero-scroll{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;
-  padding:6px 0 12px;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.hero-scroll{
+  display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:10px;
+  padding:6px 0 12px; margin:0; /* Убрали отрицательные отступы */
+  scrollbar-width:none;
+}
 .hero-scroll::-webkit-scrollbar{display:none}
-.hero-card{min-width:62vw;max-width:240px;height:180px;scroll-snap-align:start;
-  border-radius:var(--radius-md);position:relative;overflow:hidden;
-  flex-shrink:0;display:flex;flex-direction:column;justify-content:flex-end;
-  padding:16px;transition:.2s;border:1px solid transparent}
+.hero-card{
+  min-width:82%; /* Чуть шире */
+  max-width:240px; height:180px; scroll-snap-align:start;
+  border-radius:var(--radius-md); position:relative; overflow:hidden;
+  flex-shrink:0; display:flex; flex-direction:column; justify-content:flex-end;
+  padding:16px; transition:.2s; border:1px solid transparent;
+}
 .hero-card:active{transform:scale(.97)}
 .hero-card::before{content:'';position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(0,0,0,.05) 0%,rgba(0,0,0,.75) 100%);z-index:1}
@@ -706,13 +712,21 @@ html.light .main-head, body.light .main-head {
 }
 .journal textarea:focus{outline:none;border-color:var(--accent)}
 .journal-history{margin-top:20px}
-.jh-entry{background:var(--card);border-radius:var(--radius-sm);
-  padding:14px;margin-bottom:10px;border:1px solid var(--border)}
-.jh-day{font-size:11px;color:var(--accent-2);font-weight:900;
-  margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
-.jh-q{font-size:10px;color:var(--muted);text-transform:uppercase;
-  letter-spacing:.5px;font-weight:800;margin-top:10px;margin-bottom:3px}
-.jh-a{font-size:14px;color:#dcdcf0;line-height:1.5}
+.jh-entry{
+  background:var(--card);
+  border-radius:var(--radius-md);
+  padding:16px;
+  margin-bottom:12px;
+  border:1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.jh-a{
+  font-size:14px;
+  color:#dcdcf0;
+  line-height:1.6;
+  white-space: pre-wrap; /* Сохраняет переносы строк (Enter) */
+  word-break: break-word; /* Чтобы длинные слова не вылезали за край */
+}
 
 /* ─── НАСТРОЕНИЕ ─── */
 .mood-tracker{background:var(--card);border:1px solid var(--border);
@@ -1106,19 +1120,24 @@ html.light .main-head, body.light .main-head {
   justify-content:space-around;padding:8px 0 calc(20px + var(--safe-bottom));
   z-index:100}
 .nav-btn{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  color:var(--muted);font-size:9px; /* Уменьшили шрифт с 10 до 9 */
-  cursor:pointer;padding:6px 2px; /* Уменьшили отступы по бокам */
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  color:var(--muted);font-size:11px;
+  cursor:pointer;padding:6px 2px;
   transition:color .2s;background:none;border:none;font-family:inherit;
-  font-weight:800;text-transform:uppercase;letter-spacing:0; /* Убрали лишнее */
+  font-weight:800;text-transform:uppercase;letter-spacing:0;
   flex:1;min-width:0;border-radius:var(--radius-sm);
-  white-space:nowrap; /* Запрещаем перенос строк */
-  overflow:hidden; /* Скрываем вылезающий текст */
+  white-space:nowrap;overflow:hidden;
+}
+
+.nav-ico {
+  font-size: 22px;
+  margin-bottom: 2px;
+  line-height: 1;
 }
 
 /* ─── МОДАЛКИ ─── */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.9);
-  z-index:600;display:flex;align-items:center;justify-content:center;
+  z-index:10000;display:flex;align-items:center;justify-content:center;
   padding:24px;animation:fadeIn .3s}
 .modal-box{background:var(--card);border-radius:var(--radius-lg);
   padding:28px 24px;max-width:400px;width:100%;text-align:center;
@@ -1461,43 +1480,46 @@ button, input, textarea, select, .tab-pill, .lib-filter, .admin-filter, .nav-btn
   margin-bottom: 2px;
   height: 12px;
 }
-/* ─── СВАЙП КНИГ НА ГЛАВНОЙ ─── */
+/* ─── СВАЙП КНИГ НА ГЛАВНОЙ (ИСПРАВЛЕННЫЙ) ─── */
 .books-slider {
   display: flex;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   gap: 10px;
   padding-bottom: 10px;
-  margin: 0 -16px;
-  padding-left: 16px;
-  padding-right: 16px;
+  margin: 0; /* Убрали растягивание */
   scrollbar-width: none;
 }
 .books-slider::-webkit-scrollbar { display: none; }
+
 .books-slider .active-book-card {
-  min-width: calc(100vw - 32px);
-  max-width: 608px;
+  min-width: 100%;
+  width: 100%;
   scroll-snap-align: center;
   margin-bottom: 0;
 }
-.books-dots {
+
+/* ─── ГЛОБАЛЬНЫЕ ЕДИНЫЕ ТОЧКИ ─── */
+.books-dots, .hero-dots {
   display: flex;
   justify-content: center;
-  gap: 5px;
-  margin-top: 4px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-top: 10px;
+  margin-bottom: 16px;
 }
-.books-dots .b-dot {
+/* Базовый вид ВСЕХ точек (неактивные) */
+.books-dots .b-dot, .hero-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--border);
-  transition: .3s;
+  transition: all 0.3s ease;
 }
-.books-dots .b-dot.on {
-  background: var(--warm);
-  width: 18px;
-  border-radius: 3px;
+/* Активная точка (фиолетовая капсула) для всех */
+.books-dots .b-dot.on, .hero-dot.on {
+  background: var(--accent-2) !important;
+  width: 20px !important;
+  border-radius: 4px !important;
 }
 /* ─── ГЛОБАЛЬНЫЙ ОТКЛИК КНОПОК (iOS Style) ─── */
 button:active, 
@@ -1535,3 +1557,19 @@ button:active,
 .admin-action.danger { color: var(--danger) !important; }
 .admin-action.warn { color: var(--warm) !important; }
 .admin-action.gold { color: var(--text) !important; } /* Убрали золотой цвет */
+.rp-close {
+  position: relative;
+  z-index: 10;
+}
+.books-dots .b-dot, .hero-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all 0.3s ease;
+}
+.books-dots .b-dot.on, .hero-dot.on {
+  background: var(--accent-2);
+  width: 20px;
+  border-radius: 4px;
+}

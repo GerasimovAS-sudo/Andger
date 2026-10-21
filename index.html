@@ -111,85 +111,86 @@
     <button class="btn btn-ghost" onclick="skipWelcome()">Выбрать другую книгу</button>
   </div>
 
-  <!-- ═══════ ГЛАВНАЯ ═══════ -->
+    <!-- ═══════ ГЛАВНАЯ ═══════ -->
   <div id="todayScreen" class="hidden">
-      <div class="main-head">
-    <div class="top-row">
-      <div class="page-label">🏠 ГЛАВНАЯ</div>
-      <div class="head-actions">
-        <div class="icon-btn sound-btn" onclick="toggleSound()">🔊</div>
-        <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
-        <div class="icon-btn" onclick="showCommunityScreen()">💬</div>
-        <div class="icon-btn" onclick="showHelp()">❓</div>
-        <div class="avatar user-avatar" onclick="showProfile()">👤</div>
+    <div class="main-head">
+      <div class="top-row">
+        <div class="page-label">🏠 ГЛАВНАЯ</div>
+        <div class="head-actions">
+          <div class="icon-btn sound-btn" onclick="toggleSound()">🔊</div>
+          <div class="icon-btn notif-btn" onclick="showNotifications()">🔔<span class="notif-badge hidden">0</span></div>
+          <div class="icon-btn" onclick="showCommunityScreen()">💬</div>
+          <div class="icon-btn" onclick="showHelp()">❓</div>
+          <div class="avatar user-avatar" onclick="showProfile()">👤</div>
+        </div>
+      </div>
+      <div class="hi">
+        <span class="name" id="todayName">Друг</span>
+        <span class="status-badge" id="statusBadge">🌱 Новичок</span>
       </div>
     </div>
-    <div class="hi">
-      <span class="name" id="todayName">Друг</span>
-      <span class="status-badge" id="statusBadge">🌱 Новичок</span>
-    </div>
+
+    <div class="wrap"> <!-- ДОБАВИЛИ ОБЕРТКУ -->
+      <!-- Счётчик дня -->
+      <div class="today-counter-card" id="todayCounterCard">
+        <div class="tcc-head">
+          <div>
+            <div class="tcc-label">СЕГОДНЯ</div>
+            <div class="tcc-count" id="todayCount">0 из 6</div>
+          </div>
+          <div class="tcc-ring">
+            <svg viewBox="0 0 60 60">
+              <circle cx="30" cy="30" r="26" class="tcc-bg" />
+              <circle cx="30" cy="30" r="26" class="tcc-fill" id="tccFill" />
+            </svg>
+          </div>
+        </div>
+        <div class="tcc-bar">
+          <div class="tcc-bar-fill" id="tccBarFill"></div>
+        </div>
+      </div>
+
+      <!-- Цитата дня -->
+      <div id="hintCard" style="margin-top:12px"></div>
+
+      <!-- Календарь на неделю -->
+      <div class="week-calendar" id="weekCalendar" style="margin-top:16px"></div>
+
+      <!-- Карточка активной книги -->
+      <div class="books-slider" id="activeBookWrap" style="margin-top:12px"></div>
+      <div class="books-dots" id="booksDots"></div>
+
+      <!-- Кнопки ритуала -->
+      <button class="hero-action-btn" onclick="startRitual()">
+        <div class="hab-ico">☀️</div>
+        <div class="hab-text">
+          <div class="hab-title">Начать практику</div>
+          <div class="hab-sub" id="ritualSub">6 практик</div>
+        </div>
+        <div class="hab-arrow">▶</div>
+      </button>
+
+      <!-- Компактные быстрые действия -->
+      <div class="quick-actions-row">
+        <div class="quick-action-btn" onclick="startFastRitual()">
+          <div class="qa-ico" style="background:rgba(255,184,0,0.15); color:var(--gold);">⚡</div>
+          <span>Быстрый</span>
+        </div>
+        <div class="quick-action-btn" onclick="showRitualBuilder()">
+          <div class="qa-ico" style="background:rgba(124,92,255,0.15); color:var(--accent-2);">🎯</div>
+          <span>Своя практика</span>
+        </div>
+        <div class="quick-action-btn" onclick="showBreathModal()">
+          <div class="qa-ico" style="background:rgba(62,207,142,0.15); color:var(--success);">🌬</div>
+          <span>Дыхание</span>
+        </div>
+      </div>
+
+      <h2 class="section-title">📋 Практики на сегодня</h2>
+      <div class="hero-scroll" id="heroScroll"></div>
+      <div class="hero-dots" id="heroDots"></div>
+    </div> <!-- ЗАКРЫЛИ ОБЕРТКУ -->
   </div>
-
-        <!-- Счётчик дня -->
-        <div class="today-counter-card" id="todayCounterCard">
-          <div class="tcc-head">
-            <div>
-              <div class="tcc-label">СЕГОДНЯ</div>
-              <div class="tcc-count" id="todayCount">0 из 6</div>
-            </div>
-            <div class="tcc-ring">
-              <svg viewBox="0 0 60 60">
-                <circle cx="30" cy="30" r="26" class="tcc-bg" />
-                <circle cx="30" cy="30" r="26" class="tcc-fill" id="tccFill" />
-              </svg>
-            </div>
-          </div>
-          <div class="tcc-bar">
-            <div class="tcc-bar-fill" id="tccBarFill"></div>
-          </div>
-        </div>
-
-        <!-- Цитата дня (теперь выше) -->
-        <div id="hintCard" style="margin-top:12px"></div>
-
-        <!-- Новый календарь на неделю -->
-        <div class="week-calendar" id="weekCalendar" style="margin-top:16px"></div>
-
-        <!-- Карточка активной книги (Свайп) -->
-        <div class="books-slider" id="activeBookWrap" style="margin-top:12px"></div>
-        <div class="books-dots" id="booksDots"></div>
-
-        <!-- Кнопки ритуала -->
-        <button class="hero-action-btn" onclick="startRitual()">
-          <div class="hab-ico">☀️</div>
-          <div class="hab-text">
-            <div class="hab-title">Начать практику</div>
-            <div class="hab-sub" id="ritualSub">6 практик</div>
-          </div>
-          <div class="hab-arrow">▶</div>
-        </button>
-
-        <!-- Компактные быстрые действия -->
-        <div class="quick-actions-row">
-          <div class="quick-action-btn" onclick="startFastRitual()">
-            <div class="qa-ico" style="background:rgba(255,184,0,0.15); color:var(--gold);">⚡</div>
-            <span>Быстрый</span>
-          </div>
-          <div class="quick-action-btn" onclick="showRitualBuilder()">
-            <div class="qa-ico" style="background:rgba(124,92,255,0.15); color:var(--accent-2);">🎯</div>
-            <span>Своя практика</span>
-          </div>
-          <div class="quick-action-btn" onclick="showBreathModal()">
-            <div class="qa-ico" style="background:rgba(62,207,142,0.15); color:var(--success);">🌬</div>
-            <span>Дыхание</span>
-          </div>
-        </div>
-
-        <h2 class="section-title">📋 Практики на сегодня</h2>
-        <div class="hero-scroll" id="heroScroll"></div>
-        <div class="hero-dots" id="heroDots"></div>
-      </div>
-    </div>
 
     <!-- ═══════ БИБЛИОТЕКА ═══════ -->
     <div id="libScreen" class="hidden">
@@ -326,6 +327,8 @@
         </div>
         <h2 class="section-title">📚 Книги</h2>
         <div class="stats-books-swipe" id="statsBooksSwipe"></div>
+        <div class="books-dots" id="statsBooksDots" style="margin-top: 4px;"></div>
+        <div class="books-dots" id="statsBooksDots" style="margin-top: 4px;"></div>
         <div class="stats-fire">
           <div class="sf-item">
             <div class="sf-num" id="statStreakBig">0</div>
@@ -436,10 +439,13 @@
 
     <!-- ═══════ ЛИЧНЫЙ ДИАЛОГ ═══════ -->
     <div id="dialogScreen" class="hidden">
-      <div class="main-head">
+     <div class="main-head">
         <div class="top-row">
           <button class="back-top" onclick="backFromDialog()">←</button>
-          <div class="page-label" id="dialogName">ЧАТ</div>
+          <div class="page-label" style="cursor:pointer; display:flex; flex-direction:column; align-items:flex-start; justify-content:center;" onclick="viewUserProfile(currentDialogUserId)">
+            <div id="dialogName" style="font-size:14px; letter-spacing:1px; color:var(--text);">ЧАТ</div>
+            <div id="dialogStatus" style="font-size:10px; color:var(--muted); text-transform:none; letter-spacing:0; margin-top:2px;">Загрузка...</div>
+          </div>
         </div>
       </div>
       <div class="wrap" style="padding-bottom:80px">
