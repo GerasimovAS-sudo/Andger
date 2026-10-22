@@ -1812,13 +1812,6 @@ button:active,
   max-width: 260px;
   margin: 0 auto; /* Центрируем */
 }
-/* Классы для скрытия шапок при скролле */
-.main-head.hide-ui {
-  transform: translate(-50%, -120%) !important; /* Уезжает наверх */
-}
-.bottom-nav.hide-ui {
-  transform: translateY(120%) !important; /* Уезжает вниз */
-}
 /* ─── КРАСИВЫЙ FAQ (iOS Style) ─── */
 .faq-item {
   background: var(--card);

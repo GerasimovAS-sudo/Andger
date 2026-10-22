@@ -4662,25 +4662,3 @@ async function adminGrantSub(userId, days) {
     toast('Ошибка: ' + e.message, 'danger');
   }
 }
-
-// ─── УМНЫЕ ШАПКИ (СКРЫТИЕ ПРИ СКРОЛЛЕ) ───
-let lastScrollTop = 0;
-window.addEventListener('scroll', function() {
-  let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  
-  // Находим ВСЕ шапки и нижние меню на странице
-  const headers = document.querySelectorAll('.main-head');
-  const bottomNavs = document.querySelectorAll('.bottom-nav');
-
-  if (scrollTop > lastScrollTop && scrollTop > 50) {
-    // Скроллим ВНИЗ -> Скрываем
-    headers.forEach(h => h.classList.add('hide-ui'));
-    bottomNavs.forEach(b => b.classList.add('hide-ui'));
-  } else {
-    // Скроллим ВВЕРХ -> Показываем
-    headers.forEach(h => h.classList.remove('hide-ui'));
-    bottomNavs.forEach(b => b.classList.remove('hide-ui'));
-  }
-  
-  lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-}, { passive: true });
