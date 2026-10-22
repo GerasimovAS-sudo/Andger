@@ -534,6 +534,9 @@ function hideAll(){
   const fi=document.getElementById('feedInputWrap');if(fi)fi.style.display='none';
   const di=document.getElementById('dialogInputWrap');if(di)di.style.display='none';
   window.scrollTo(0,0);
+  // Принудительно удаляем загрузчик, если он завис
+  const loader = document.getElementById('appLoader');
+  if(loader) loader.remove();
 }
 function showAuth(){
   hideAll();
@@ -560,6 +563,7 @@ function startFirstBook(){const b=BOOKS[0];if(!b)return;openBookDetail(b.id)}
 function skipWelcome(){showLibrary()}
 
 function showLibrary(){
+  console.log('Открываем библиотеку...'); 
   currentScreen='lib';
   hideAll();
   document.getElementById('libScreen').classList.remove('hidden');
@@ -621,11 +625,13 @@ function backFromRitualBuilder(){smartHome()}
 let profilePrev='today';
 function showProfile(){
   try {
+    console.log('Открываем профиль...'); // Для отладки
     const active=document.querySelector('.nav-btn.on');
     if(active) profilePrev=active.dataset.page||'today';
     
     hideAll();
     document.getElementById('profileScreen').classList.remove('hidden');
+    document.getElementById('bottomNav').classList.remove('hidden');
     
     renderProfile();
     checkAdminAccess();
