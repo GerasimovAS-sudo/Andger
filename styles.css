@@ -317,8 +317,8 @@ html.light .main-head, body.light .main-head {
 .hero-action-btn:active{transform:scale(.98)}
 .hab-ico{font-size:36px;flex-shrink:0}
 .hab-text{flex:1;text-align:left}
-.hab-title{font-size:17px;font-weight:900;text-transform:uppercase;
-  letter-spacing:.5px;margin-bottom:2px;color:#fff}
+.hab-title{font-size:16px;font-weight:900;text-transform:none;
+  letter-spacing:0;margin-bottom:4px;color:#fff;line-height:1.2;}
 .hab-sub{font-size:12px;color:rgba(255,255,255,.9);font-weight:600}
 .hab-arrow{font-size:20px;opacity:.8}
 
@@ -663,7 +663,9 @@ html.light .main-head, body.light .main-head {
 }
 .settings-row:last-child{border-bottom:none}
 .settings-row:active{background:var(--card2)}
-.settings-row.danger .sr-left{color:var(--danger)}
+.settings-row.danger .sr-left {
+  color: var(--warm);
+}
 .settings-row.danger .sr-ico{filter:grayscale(0)}
 .sr-left{display:flex;align-items:center;gap:12px;
   font-size:14px;font-weight:700;flex:1}
@@ -1599,24 +1601,7 @@ button:active,
   width: 20px;
   border-radius: 4px;
 }
-/* Аккордеон для книг */
-.builder-book-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px;
-  background: var(--card2);
-  border-radius: var(--radius-sm);
-  margin-bottom: 10px;
-  cursor: pointer;
-  font-weight: 800;
-  transition: 0.2s;
-}
-.builder-book-header:active { transform: scale(0.98); }
-.builder-book-header .arrow { transition: transform 0.3s; font-size: 18px; color: var(--accent-2); }
-.builder-book-header.open .arrow { transform: rotate(180deg); }
-.builder-book-body { display: none; padding-left: 10px; margin-bottom: 20px; }
-.builder-book-body.open { display: block; animation: fadeIn 0.3s; }
+
 /* Единые стрелочки для аккордеонов */
 .arrow-icon {
   display: inline-block;
@@ -1880,4 +1865,38 @@ button:active,
 .faq-item.open {
   border-color: var(--accent);
   background: rgba(124,92,255,0.05);
+}
+/* Аккордеон в своей практике */
+.builder-book-body { display: none; }
+.builder-book-body.open { display: block; animation: fadeIn 0.3s; }
+/* ─── ИСПРАВЛЕНИЕ ОСТРЫХ УГЛОВ И ОБРЕЗАННЫХ РАМОК ─── */
+.lib-category-body.open, 
+.builder-book-body.open {
+  border-bottom-left-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+/* Убираем нижнюю рамку у заголовка, чтобы не было двойных линий */
+.lib-category-header.open {
+  border-bottom: 1px solid transparent !important;
+}
+
+/* ─── УНИФИКАЦИЯ ОКНА ВВОДА (ЧАТ И ЛЕНТА) ─── */
+#dialogInputWrap {
+  bottom: calc(16px + var(--safe-bottom)) !important;
+  left: 16px !important;
+  right: 16px !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border) !important;
+  background: rgba(13,10,24,0.95) !important;
+  backdrop-filter: blur(20px);
+  padding: 10px !important;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  max-width: 608px !important;
+  margin: 0 auto !important;
+}
+
+#dialogInputWrap .feed-input {
+  background: var(--card) !important;
 }

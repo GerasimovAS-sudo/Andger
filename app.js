@@ -45,7 +45,7 @@ const FAQ_GROUPS = [
     items: [
       {q:'Что такое «закрыть день»?', a:'Если ты сделал(а) минимум 60% практик из книги — день считается закрытым. Это +1 к огню.'},
       {q:'Что такое «огонь»?', a:'Это твоя серия — сколько дней подряд ты закрывал(а) дни. Если пропустил день — серия прерывается.'},
-      {q:'Что такое «свой ритуал»?', a:'Можно собрать практики из разных книг в один ритуал — то, что нужно именно сегодня.'}
+      {q:'Что такое «свая практика»?', a:'Можно собрать практики из разных книг в одну практику — то, что нужно именно сегодня.'}
     ]
   },
   {
@@ -178,7 +178,7 @@ function nextTrack(){
 }
 function stopMusic(){
   if(!musicAudio)return;
-  fadeAudio(musicAudio,musicAudio.volume,0,1200,()=>{try{musicAudio.pause();musicAudio.currentTime=0}catch(e){}});
+  fadeAudio(musicAudio,musicAudio.volume,0,300,()=>{try{musicAudio.pause();musicAudio.currentTime=0}catch(e){}});
 }
 function fadeAudio(audio,from,to,duration,onEnd){
   const start=performance.now();
@@ -429,6 +429,7 @@ async function loadBooksFromSupabase(){
         id:sbBook.id,emoji:sbBook.emoji,title:sbBook.title,author:sbBook.author,
         days:sbBook.days,about:sbBook.about,method:sbBook.method||[],
         authorBio:sbBook.author_bio,forWhom:sbBook.for_whom,result:sbBook.result,
+        category: sbBook.category || 'Разное', // <--- ДОБАВИЛИ ЭТУ СТРОКУ
         practices:sbBook.practices||[],quotes:sbBook.quotes||[],
         _fromSupabase:true
       };
@@ -592,6 +593,11 @@ function showJournalScreen(){
   document.getElementById('journalScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
   updateBottomNav('journal');
+
+  // --- ДОБАВЛЯЕМ ИМЯ ПОЛЬЗОВАТЕЛЯ ---
+  const nameEl = document.getElementById('journalBookTitle');
+  if (nameEl) nameEl.textContent = user.name || 'Друг';
+  // ----------------------------------
   renderJournal();updateSoundUI();
 }
 async function showCommunityScreen(){
@@ -681,8 +687,26 @@ function backFromHelp(){showProfile()}
 async function showNotifications(){
   hideAll();
   document.getElementById('notificationsScreen').classList.remove('hidden');
+  
+  // Добавляем кнопку "Прочитать всё" в шапку
+  const headActions = document.querySelector('#notificationsScreen .head-actions');
+  if(headActions) {
+    headActions.innerHTML = `<button class="btn-small-inline" style="margin-top:0; font-size:11px; padding:8px 12px;" onclick="markAllNotificationsRead()">Прочитать всё</button>`;
+  }
+
   await loadNotifications();
   renderNotifications();
+}
+async function markAllNotificationsRead() {
+  try {
+    await sb.from('notifications').update({read: true}).eq('user_id', user.id).eq('read', false);
+    await loadNotifications(); // Обновляем бейджик на колокольчике
+    renderNotifications(); // Перерисовываем список
+    playSuccess();
+    toast('Все уведомления прочитаны');
+  } catch(e) {
+    toast('Ошибка', 'danger');
+  }
 }
 function backFromNotifications(){smartHome()}
 function backFromDialog(){showCommunityScreen()}
@@ -1175,11 +1199,12 @@ function renderLibrary(){
   });
 
   if(libFilter==='active'){
-    list=list.filter(b=>getBookState(b.id).start !== null && countClosedDays(b.id) < b.days);
+    list=list.filter(b=>!!getBookState(b.id).start && countClosedDays(b.id) < b.days);
   }else if(libFilter==='done'){
     list=list.filter(b=>countClosedDays(b.id)>=b.days);
   }else if(libFilter==='new'){
-    list=list.filter(b=>!getBookState(b.id).start);
+    // Строгая проверка: нет старта И нет закрытых дней
+    list=list.filter(b=>!getBookState(b.id).start && countClosedDays(b.id) === 0);
   }
 
   if(!list.length){
@@ -1207,14 +1232,14 @@ function renderLibrary(){
           <div style="font-weight:800; font-size:15px;">📁 ${catName} <span style="font-size:11px; opacity:0.6; margin-left:6px;">(${grouped[catName].length})</span></div>
           <div class="arrow-icon" style="font-size:18px;">›</div>
         </div>
-        <div class="lib-category-body ${isOpen ? 'open' : ''}">
+        <div class="lib-category-body ${isOpen ? 'open' : ''}" style="padding-top: 10px;">
     `;
 
     grouped[catName].forEach(b => {
       const bs=getBookState(b.id);
       const closed=countClosedDays(b.id);
       const pct=Math.round(closed/b.days*100);
-      const started=bs.start!==null;
+      const started=!!bs.start; 
       const isDone=closed>=b.days;
       const isActive = state.lastBook === b.id && started && !isDone; 
       const hasAccess=hasBookAccess(b.id);
@@ -1809,7 +1834,7 @@ function closeCustomConfirm(isConfirmed) {
 function closeRitual(){
   if(ritualIndex < ritualQueue.length) {
     showCustomConfirm(
-      'Прервать ритуал?', 
+      'Прервать практику?', 
       'Прогресс текущей практики не сохранится. Вы уверены?', 
       () => {
         stopTimer();timerState='idle';stopMusic();
@@ -1921,18 +1946,23 @@ function renderRitualBuilder(){
   
   let html='';
   activeBooks.forEach((b, index)=>{
-    // Проверяем, есть ли выбранные практики в этой книге
     const hasSelected = customRitual.some(key => key.startsWith(b.id + ':'));
     
+    // Используем класс book-row (как в библиотеке), но делаем его раскрывающимся
     html+=`
-      <div class="builder-book-header ${hasSelected ? 'open' : ''}" onclick="toggleBuilderBook(this)">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span>${b.emoji} ${b.title}</span>
-          ${hasSelected ? '<span style="font-size:10px; background:var(--accent); color:#fff; padding:2px 6px; border-radius:10px;">выбрано</span>' : ''}
+      <div class="book-row" style="display:flex; flex-direction:column; align-items:stretch; padding:0; margin-bottom:10px; gap:0; background:var(--card); border-radius:var(--radius-sm); overflow:hidden; ${hasSelected ? 'border-color:var(--accent);' : ''}">
+        <div style="display:flex; align-items:center; gap:14px; padding:14px; cursor:pointer;" onclick="toggleBuilderBook(this)">
+          <div class="br-emoji">${b.emoji}</div>
+          <div class="br-info">
+            <div class="br-title" style="font-size:15px; font-weight:800; margin-bottom:2px;">${b.title}</div>
+            <div class="br-author" style="font-size:11px; color:var(--muted);">${b.author}</div>
+          </div>
+          ${hasSelected ? '<div style="font-size:10px; background:var(--accent); color:#fff; padding:2px 8px; border-radius:10px; font-weight:800; margin-left:auto; margin-right:8px;">выбрано</div>' : '<div style="margin-left:auto; margin-right:8px;"></div>'}
+          <div class="arrow-icon" style="font-size:20px; color:var(--muted); transition:transform 0.3s; transform:rotate(${hasSelected ? '90deg' : '0deg'});">›</div>
         </div>
-        <span class="arrow-icon">›</span>
-      </div>
-      <div class="builder-book-body ${hasSelected ? 'open' : ''}">
+        
+          <div class="builder-book-body ${hasSelected ? 'open' : ''}" style="padding:0 14px 14px 14px; border-top:1px solid var(--border); background:var(--card2);">
+          <div style="padding-top:10px;">
     `;
     
     b.practices.forEach(p=>{
@@ -1950,7 +1980,11 @@ function renderRitualBuilder(){
       </div>`;
     });
     
-    html+='</div>'; // закрываем builder-book-body
+    html+=`
+          </div>
+        </div>
+      </div>
+    `;
   });
   
   document.getElementById('ritualBuilderList').innerHTML=html;
@@ -1959,9 +1993,14 @@ function renderRitualBuilder(){
 
 // Функция для открытия/закрытия книги в списке
 function toggleBuilderBook(el) {
-  el.classList.toggle('open');
   const body = el.nextElementSibling;
-  if(body) body.classList.toggle('open');
+  const arrow = el.querySelector('.arrow-icon');
+  if(body) {
+    body.classList.toggle('open');
+    if (arrow) {
+      arrow.style.transform = body.classList.contains('open') ? 'rotate(90deg)' : 'rotate(0deg)';
+    }
+  }
 }
 
 // НОВАЯ ФУНКЦИЯ ДЛЯ ОКНА ОПИСАНИЯ
@@ -2548,15 +2587,20 @@ async function showPublicProfile(){
   hideAll();
   document.getElementById('publicProfileScreen').classList.remove('hidden');
 }
-function copyPublicLink(){
+async function copyPublicLink(){
+  await ensureSlug(); // Ждем генерации ссылки
   const url='https://andger.ru/u/'+(state.slug||'me');
   copyToClipboard(url);
   toast('Скопировано');
 }
-function sharePublicProfile(){
+async function sharePublicProfile(){
+  await ensureSlug(); // Ждем генерации ссылки
   const url='https://andger.ru/u/'+(state.slug||'me');
-  if(navigator.share)navigator.share({title:user.name,text:'Мой прогресс в ANDGER',url});
-  else copyPublicLink();
+  if(navigator.share) {
+    navigator.share({title:user.name, text:'Мой прогресс в ANDGER', url});
+  } else {
+    copyPublicLink();
+  }
 }
 
 // ─── РЕФЕРАЛ ───
@@ -2636,6 +2680,7 @@ async function renderJournal(){
 
   document.getElementById('journalHistory').innerHTML = statsHtml + historyHtml;
   renderMoodTracker(); // Оставляем график настроения
+  renderMoodChart();
 }
 
 function setJournalFilter(bookId, el) {
@@ -2699,6 +2744,54 @@ async function renderMoodTracker(){
     ).join('');
   });
 }
+// ─── ГРАФИК НАСТРОЕНИЯ ───
+async function renderMoodChart() {
+  const wrap = document.getElementById('moodChartWrap');
+  if (!wrap) return;
+
+  // Получаем последние 7 дней
+  const days = [];
+  const dows = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ']; // Воскресенье=0
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push({
+      date: localDate(d),
+      dow: dows[d.getDay()]
+    });
+  }
+
+  try {
+    const startDate = days[0].date;
+    const { data } = await sb.from('moods').select('*').eq('user_id', user.id).gte('date', startDate);
+    const moodsMap = {};
+    (data || []).forEach(m => moodsMap[m.date] = m);
+
+    let html = '';
+    days.forEach(day => {
+      const m = moodsMap[day.date] || {};
+      let val = 0;
+      let count = 0;
+      if (m.morning) { val += m.morning; count++; }
+      if (m.evening) { val += m.evening; count++; }
+      
+      const avg = count > 0 ? (val / count) : 0;
+      const heightPct = Math.max(4, (avg / 5) * 100); // Минимальная высота 4%, чтобы полоска была видна
+      const isEmpty = avg === 0;
+
+      html += `
+        <div class="mc-bar-wrap">
+          <div class="mc-val">${isEmpty ? '' : avg.toFixed(1)}</div>
+          <div class="mc-bar ${isEmpty ? 'empty' : ''}" style="height: ${isEmpty ? 4 : heightPct}%"></div>
+          <div class="mc-label">${day.dow}</div>
+        </div>
+      `;
+    });
+    wrap.innerHTML = html;
+  } catch (e) {
+    console.error('Ошибка графика настроения:', e);
+  }
+}
 async function setMood(period,val){
   const today=todayStr();
   playCheck();
@@ -2716,6 +2809,7 @@ async function setMood(period,val){
   // 2. Сохраняем в базу данных
   try{
     await sb.from('moods').upsert({user_id:user.id,date:today,[period]:val},{onConflict:'user_id,date'});
+    renderMoodChart();
   }catch(e){toast('Ошибка сохранения','danger')}
 }
 
@@ -2840,26 +2934,35 @@ async function sendFeedPost(){
 }
 
 async function toggleLike(msgId, type, el){
+  // Мгновенный визуальный отклик (оптимистичный UI)
+  const isCurrentlyOn = el.classList.contains('on');
+  const postEl = el.closest('.feed-post');
+  
+  if (postEl) {
+    // Убираем подсветку у всех реакций в этом посте
+    postEl.querySelectorAll('.fp-action').forEach(btn => btn.classList.remove('on'));
+    // Если реакция не была нажата ранее, подсвечиваем текущую
+    if (!isCurrentlyOn) el.classList.add('on');
+  }
+
   try{
     const{data:existing}=await sb.from('likes').select('*')
       .eq('message_id',msgId).eq('user_id',user.id).maybeSingle();
-      
+
     if(existing){
-      // Если лайк уже есть
       if (existing.type === type || (!existing.type && type === 'heart')) {
-        // Если нажали на тот же тип - удаляем
+        // Удаляем лайк
         await sb.from('likes').delete().eq('message_id',msgId).eq('user_id',user.id);
       } else {
-        // Если нажали на другой тип - обновляем
+        // Меняем тип лайка
         await sb.from('likes').update({type: type}).eq('message_id',msgId).eq('user_id',user.id);
         playCheck();
       }
     } else {
-      // Если лайка нет - ставим новый
+      // Ставим новый лайк
       await sb.from('likes').insert({message_id:msgId, user_id:user.id, type: type});
       playCheck();
       
-      // Уведомление автору
       const{data:post}=await sb.from('messages').select('user_id').eq('id',msgId).single();
       if(post&&post.user_id!==user.id){
         await createNotification(post.user_id,'like',{
@@ -2869,8 +2972,32 @@ async function toggleLike(msgId, type, el){
         });
       }
     }
-    loadFeed();
-  }catch(e){toast('Ошибка','danger')}
+
+    // Обновляем цифры конкретно для этого поста (без перезагрузки всей ленты)
+    if(postEl) {
+      const {data: allLikes} = await sb.from('likes').select('*').eq('message_id', msgId);
+      const actions = postEl.querySelectorAll('.fp-action');
+      const types = ['heart', 'fire', 'muscle', 'clap'];
+      const emojis = ['❤️', '🔥', '💪', '👏'];
+      const myLike = (allLikes || []).find(l => l.user_id === user.id);
+      const myType = myLike ? (myLike.type || 'heart') : null;
+
+      types.forEach((t, i) => {
+        const count = (allLikes || []).filter(l => (l.type === t || (!l.type && t === 'heart'))).length;
+        const actionDiv = Array.from(actions).find(a => a.textContent.includes(emojis[i]));
+        if (actionDiv) {
+          actionDiv.innerHTML = `${emojis[i]} <span>${count > 0 ? count : ''}</span>`;
+          if (myType === t) actionDiv.classList.add('on');
+          else actionDiv.classList.remove('on');
+        }
+      });
+    }
+
+  }catch(e){
+    console.error(e);
+    toast('Ошибка','danger');
+    if(postEl) loadFeed(); // Откат в случае ошибки сети
+  }
 }
 
 function toggleComments(msgId){
@@ -3019,6 +3146,7 @@ async function openDialog(otherId,p){
   hideAll();
   document.getElementById('dialogScreen').classList.remove('hidden');
   document.getElementById('dialogInputWrap').style.display='flex';
+  window.scrollTo(0, document.body.scrollHeight);
   window.scrollTo(0,0);
 
   // Пометить входящие как прочитанные
@@ -3426,7 +3554,13 @@ async function openAdminUser(id){
       </div>
       
       <div style="margin-top:16px">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-bottom:8px">📚 Доступ к книгам</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:800">📚 Доступ к книгам</div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-small-inline" style="margin-top:0; padding:6px 10px; font-size:10px; background:var(--success);" onclick="event.stopPropagation(); setAllBooksAccess('${id}', true)">Включить все</button>
+            <button class="btn-small-inline" style="margin-top:0; padding:6px 10px; font-size:10px; background:var(--danger);" onclick="event.stopPropagation(); setAllBooksAccess('${id}', false)">Выключить все</button>
+          </div>
+        </div>
         <div class="admin-books">${booksHtml}</div>
       </div>
       
@@ -3536,43 +3670,32 @@ async function renderAnalytics(){
 
 // ─── СИСТЕМА ───
 async function renderSystem(){
-  const{data:logs}=await sb.from('admin_logs').select('*').order('created_at',{ascending:false}).limit(20);
-  const logsHtml=(logs||[]).map(l=>{
-    const t=new Date(l.created_at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-    let actionName = l.action;
-    let details = '';
-    if(l.action === 'grant_book') {
-      const book = BOOKS.find(b => b.id === l.meta?.book);
-      actionName = '📚 Доступ к книге';
-      details = book ? book.title : '';
-    } else if (l.action === 'block') {
-      actionName = l.meta?.blocked ? '🚫 Блокировка' : '🟢 Разблокировка';
-    } else if (l.action === 'admin') {
-      actionName = l.meta?.makeAdmin ? '👑 Выдан админ' : '👤 Снят админ';
-    } else if (l.action === 'delete') {
-      actionName = '🗑 Удаление';
-    }
-    return `<div class="admin-row"><span>${actionName} ${details ? '(' + details + ')' : ''}</span><span style="font-size:11px;color:var(--muted)">${t}</span></div>`;
-  }).join('')||'<div style="color:var(--muted);font-size:12px;padding:8px">Пока нет логов</div>';
-
   document.getElementById('systemContent').innerHTML=`
     <div class="admin-detail" style="margin-top:12px">
-      <h3 style="font-size:14px;margin-bottom:10px">📝 Последние действия</h3>
-      ${logsHtml}
-    </div>
-    <div class="admin-detail" style="margin-top:12px">
-      <h3 style="font-size:14px;margin-bottom:10px">ℹ️ Информация</h3>
-      <div class="admin-row" style="padding:12px 0">
-        <span style="color:var(--muted); font-size:12px; line-height:1.5;">Управление доступом к книгам теперь осуществляется в профиле каждого пользователя. Зайдите в «Участники», нажмите на нужного человека и включите ему необходимые книги.</span>
+      <h3 style="font-size:14px;margin-bottom:10px">⚙️ Глобальные настройки</h3>
+      
+      <div class="admin-row" style="padding:14px 0; border-bottom:none; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span style="display:block; font-weight:800; color:var(--text); margin-bottom:4px;">Режим доступа к книгам</span>
+          <span style="font-size:11px; color:var(--muted);">Всем открыто или по подписке</span>
+        </div>
+        <div class="toggle-switch ${bookAccessMode === 'everyone' ? 'on' : ''}" onclick="toggleBookAccessMode()"></div>
       </div>
-    </div>`;
+      
+    </div>
+  `;
+}
 
-  // Проверка количества книг в Supabase
-  try{
-    const{count}=await sb.from('books').select('*',{count:'exact',head:true});
-    const el=document.getElementById('sysBooksCount');
-    if(el)el.textContent=count||0;
-  }catch(e){}
+async function toggleBookAccessMode() {
+  bookAccessMode = bookAccessMode === 'everyone' ? 'individual' : 'everyone';
+  try {
+    await sb.from('app_settings').upsert({key:'book_access_mode', value:bookAccessMode}, {onConflict:'key'});
+    toast(bookAccessMode === 'everyone' ? 'Режим: Всем открыто' : 'Режим: Индивидуально');
+    playCheck();
+    renderSystem(); // Перерисовываем кнопку
+  } catch(e) {
+    toast('Ошибка сохранения', 'danger');
+  }
 }
 
 function exportUsers(){
@@ -3603,6 +3726,13 @@ function exportUsers(){
 function showBookEditor(id){
   editingBookId=id||null;
   const b=id?BOOKS.find(x=>x.id===id):null;
+
+  // --- ДОБАВЛЯЕМ СБОР КАТЕГОРИЙ ---
+  const catList = document.getElementById('edCategoryList');
+  if(catList) {
+    const uniqueCats = [...new Set(BOOKS.map(book => book.category).filter(Boolean))];
+    catList.innerHTML = uniqueCats.map(c => `<option value="${c}"></option>`).join('');
+  }
   
   // Безопасное присваивание (если элемента нет, приложение не упадёт)
   const setVal = (elId, val) => { const el = document.getElementById(elId); if(el) el.value = val; };
@@ -3646,13 +3776,13 @@ async function loadAdminBooks(){
     return;
   }
   el.innerHTML=adminAllBooks.map(b=>`
-    <div class="admin-item" onclick="showBookEditor('${b.id}')">
-      <div class="ai-ava">${b.emoji||'📖'}</div>
-      <div class="ai-info">
-        <div class="ai-name">${escapeHtml(b.title)} ${b.published?'✅':'📝'}</div>
-        <div class="ai-phone">${escapeHtml(b.author||'')} · ${b.days} дней</div>
+    <div class="book-row" onclick="showBookEditor('${b.id}')">
+      <div class="br-emoji">${b.emoji||'📖'}</div>
+      <div class="br-info">
+        <div class="br-title">${escapeHtml(b.title)} ${b.published?'✅':'📝'}</div>
+        <div class="br-author">${escapeHtml(b.author||'')} · ${b.days} дней</div>
       </div>
-      <div class="ai-arrow">›</div>
+      <div class="br-pct">›</div>
     </div>
   `).join('');
 }
@@ -4150,20 +4280,27 @@ function resetAllProgress() {
   document.getElementById('resetProgressModal').classList.add('hidden'); // Закрываем меню выбора
   showCustomConfirm(
     'Удалить ВСЁ?', 
-    'Весь прогресс, ВСЕ заметки в дневнике и статистика будут стёрты навсегда. Это действие нельзя отменить.', 
-    () => {
+    'Весь прогресс, ВСЕ заметки, настроение и статистика будут стёрты навсегда. Это действие нельзя отменить.', 
+    async () => { // Делаем функцию асинхронной
       state.books = {};
       state.lastBook = null;
       currentBook = null;
       
-      // Очищаем дневник в базе данных
-      sb.from('journals').delete().eq('user_id', user.id).then(({error}) => {
-        if(error) console.error('Ошибка удаления дневника:', error);
-        saveState();
-        playSuccess();
-        toast('Весь прогресс и дневник сброшены');
-        smartHome();
-      });
+      try {
+        // Очищаем ВСЕ таблицы с данными пользователя
+        await Promise.all([
+          sb.from('journals').delete().eq('user_id', user.id),
+          sb.from('notes').delete().eq('user_id', user.id),
+          sb.from('moods').delete().eq('user_id', user.id)
+        ]);
+      } catch (error) {
+        console.error('Ошибка удаления данных:', error);
+      }
+      
+      saveState();
+      playSuccess();
+      toast('Весь прогресс и данные очищены');
+      smartHome();
     }
   );
 }
@@ -4314,25 +4451,8 @@ function setNotifTime(period) {
   document.getElementById('timeModalTitle').textContent = title;
   
   const currentTime = period === 'morning' ? (state.morningTime || '07:00') : (state.eveningTime || '21:00');
-  const [h, m] = currentTime.split(':');
-  
-  const hSel = document.getElementById('timeHour');
-  const mSel = document.getElementById('timeMinute');
-  
-  // Заполняем списки, если они пустые
-  if(hSel.options.length === 0) {
-    for(let i=0; i<24; i++) {
-      const val = String(i).padStart(2, '0');
-      hSel.innerHTML += `<option value="${val}">${val}</option>`;
-    }
-    for(let i=0; i<60; i+=5) { // Шаг 5 минут, чтобы не скроллить вечность
-      const val = String(i).padStart(2, '0');
-      mSel.innerHTML += `<option value="${val}">${val}</option>`;
-    }
-  }
-  
-  hSel.value = h;
-  mSel.value = m;
+  const timeInput = document.getElementById('timeInput');
+  if (timeInput) timeInput.value = currentTime;
   
   document.getElementById('timeModal').classList.remove('hidden');
 }
@@ -4342,9 +4462,8 @@ function closeTimeModal() {
 }
 
 function saveTimeFromModal() {
-  const h = document.getElementById('timeHour').value;
-  const m = document.getElementById('timeMinute').value;
-  const time = `${h}:${m}`;
+  const timeInput = document.getElementById('timeInput');
+  const time = timeInput ? timeInput.value : '07:00';
 
   if (currentNotifPeriod === 'morning') {
     state.morningTime = time;
@@ -4514,11 +4633,14 @@ function speakTimerEnd() {
       // Если нет — ждем события загрузки голосов
       window.speechSynthesis.onvoiceschanged = () => {
         playVoice();
-        window.speechSynthesis.onvoiceschanged = null; // Убираем слушатель
+window.speechSynthesis.onvoiceschanged = null; // Убираем слушатель
       };
     }
   }
-  async function adminGrantSub(userId, days) {
+}
+
+// ─── ВЫДАЧА ПОДПИСКИ ───
+async function adminGrantSub(userId, days) {
   try {
     let newDate = null;
     if (days > 0) {
@@ -4540,27 +4662,24 @@ function speakTimerEnd() {
     toast('Ошибка: ' + e.message, 'danger');
   }
 }
-}
+
 // ─── УМНЫЕ ШАПКИ (СКРЫТИЕ ПРИ СКРОЛЛЕ) ───
 let lastScrollTop = 0;
 window.addEventListener('scroll', function() {
-  const header = document.querySelector('.main-head');
-  const bottomNav = document.querySelector('.bottom-nav');
-  
-  // Если шапок нет на экране (например, мы в модалке), ничего не делаем
-  if(!header || !bottomNav) return;
-
   let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  
+  // Находим ВСЕ шапки и нижние меню на странице
+  const headers = document.querySelectorAll('.main-head');
+  const bottomNavs = document.querySelectorAll('.bottom-nav');
 
-  // Если прокрутили вниз больше 50 пикселей (чтобы не дергалось в самом начале)
   if (scrollTop > lastScrollTop && scrollTop > 50) {
     // Скроллим ВНИЗ -> Скрываем
-    header.classList.add('hide-ui');
-    bottomNav.classList.add('hide-ui');
+    headers.forEach(h => h.classList.add('hide-ui'));
+    bottomNavs.forEach(b => b.classList.add('hide-ui'));
   } else {
     // Скроллим ВВЕРХ -> Показываем
-    header.classList.remove('hide-ui');
-    bottomNav.classList.remove('hide-ui');
+    headers.forEach(h => h.classList.remove('hide-ui'));
+    bottomNavs.forEach(b => b.classList.remove('hide-ui'));
   }
   
   lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
