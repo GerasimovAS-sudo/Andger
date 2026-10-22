@@ -39,14 +39,35 @@ const ONB=[
 
 const EMOJIS=['👤','😎','🧠','🔥','🌅','⚡','🎯','💪','🦁','🌟','🚀','🎨','🧘','🏆','☀️','🍀'];
 
-const FAQ=[
-  {q:'Что такое «закрыть день»?',a:'Если ты сделал(а) минимум 60% практик из книги — день считается закрытым. Это +1 к огню.'},
-  {q:'Что такое «огонь»?',a:'Это твоя серия — сколько дней подряд ты закрывал(а) дни. Если пропустил день — серия прерывается.'},
-  {q:'Как добавить книгу?',a:'В библиотеке — кнопка «Все книги». Свой список можно вести через профиль (скоро).'},
-  {q:'Как восстановить пароль?',a:'Кнопка «Забыли пароль?» на экране входа → напиши разработчику в WhatsApp.'},
-  {q:'Как установить на телефон?',a:'iPhone: Safari → Поделиться → На экран Домой. Android: Chrome → ⋮ → Установить приложение.'},
-  {q:'Что такое «свой ритуал»?',a:'Можно собрать практики из разных книг в один ритуал — то, что нужно именно сегодня.'},
-  {q:'Почему не приходят уведомления?',a:'Включи их в Настройках → Уведомления. На iPhone нужно установить приложение на домашний экран.'}
+const FAQ_GROUPS = [
+  {
+    title: "🌱 Основы",
+    items: [
+      {q:'Что такое «закрыть день»?', a:'Если ты сделал(а) минимум 60% практик из книги — день считается закрытым. Это +1 к огню.'},
+      {q:'Что такое «огонь»?', a:'Это твоя серия — сколько дней подряд ты закрывал(а) дни. Если пропустил день — серия прерывается.'},
+      {q:'Что такое «свой ритуал»?', a:'Можно собрать практики из разных книг в один ритуал — то, что нужно именно сегодня.'}
+    ]
+  },
+  {
+    title: "📈 Прогресс",
+    items: [
+      {q:'Как добавить книгу?', a:'В библиотеке — кнопка «Все книги». Свой список можно вести через профиль (скоро).'},
+      {q:'Куда сохраняются заметки?', a:'Все заметки из практик сохраняются в разделе «Дневник» -> «Мои инсайты».'}
+    ]
+  },
+  {
+    title: "👤 Аккаунт",
+    items: [
+      {q:'Как восстановить пароль?', a:'Кнопка «Забыли пароль?» на экране входа → напиши разработчику в WhatsApp.'}
+    ]
+  },
+  {
+    title: "⚙️ Технические",
+    items: [
+      {q:'Как установить на телефон?', a:'iPhone: Safari → Поделиться → На экран Домой. Android: Chrome → ⋮ → Установить приложение.'},
+      {q:'Почему не приходят уведомления?', a:'Включи их в Настройках → Уведомления. На iPhone нужно установить приложение на домашний экран.'}
+    ]
+  }
 ];
 
 const ACHIEVEMENTS_GROUPS=[
@@ -343,6 +364,7 @@ async function handleSession(session){
     }
     user.name=profile.name||user.name;
     user.lastName=profile.last_name||'';
+    user.sub_until = profile.sub_until || null;
     state.avatar=profile.avatar||'👤';
     state.soundOn=profile.sound_on!==false;
     isAdminFlag=profile.is_admin===true;
@@ -704,7 +726,12 @@ function getBookState(id){
 let bookAccessMode='everyone'; // 'everyone' или 'individual'
 
 function hasBookAccess(id){
-  if(isAdmin()) return true; // Админ видит всё
+  if(isAdmin()) return true;
+  
+  if(user && user.sub_until) {
+    if(new Date(user.sub_until) > new Date()) return true;
+  }
+  
   const access = state.bookAccess || [];
   return access.includes(id);
 }
@@ -760,7 +787,6 @@ function switchTab(mode){
   
   const isReg = mode === 'reg';
   document.getElementById('nameField').style.display = isReg ? 'block' : 'none';
-  document.getElementById('lastNameField').style.display = isReg ? 'block' : 'none';
 }
 document.addEventListener('input',(e)=>{
   if(e.target.id==='phone')formatPhoneInput(e.target);
@@ -781,7 +807,6 @@ function formatPhoneInput(el){
 function normalizePhone(v){return v.replace(/\D/g,'')}
 
 async function doAuth(){
-  const lastNameInp = document.getElementById('lastName').value.trim();
   const phoneRaw=document.getElementById('phone').value;
   const pass=document.getElementById('password').value;
   const nameInp=document.getElementById('name').value.trim();
@@ -798,7 +823,10 @@ async function doAuth(){
   btn.disabled=true;btn.textContent='Загрузка...';
   try{
     if(authMode==='reg'){
-        const{data,error}=await sb.auth.signUp({email,password:pass,options:{data:{name:nameInp, last_name:lastNameInp}}});
+        const nameParts = nameInp.split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(' '); // Все, что после первого пробела
+        const{data,error}=await sb.auth.signUp({email,password:pass,options:{data:{name:firstName, last_name:lastName}}});
       if(error){
         showError(error.message.includes('already')?'Номер уже зарегистрирован':'Ошибка регистрации');
         btn.disabled=false;btn.textContent='Зарегистрироваться';return;
@@ -955,8 +983,23 @@ function renderToday(){
 
   document.getElementById('todayName').textContent=user.name||'Друг';
   
-  const lv=getLevel(closed);
-  document.getElementById('statusBadge').textContent=`${lv.ico} ${lv.name}`;
+// Считаем глобальный опыт для статуса на главной
+  let globalXP = 0;
+  BOOKS.forEach(bb => {
+    const bbs = getBookState(bb.id);
+    Object.values(bbs.days).forEach(rec => {
+      if(rec.practices) globalXP += rec.practices.length * 10;
+      if(rec.closed) globalXP += 50;
+    });
+  });
+  let globalLvlName = 'Новичок', globalLvlIco = '🌱';
+  if (globalXP >= 2000) { globalLvlName = 'Легенда'; globalLvlIco = '👑'; }
+  else if (globalXP >= 1000) { globalLvlName = 'Мастер'; globalLvlIco = '🏆'; }
+  else if (globalXP >= 600) { globalLvlName = 'Опытный'; globalLvlIco = '💎'; }
+  else if (globalXP >= 300) { globalLvlName = 'Практик'; globalLvlIco = '🔥'; }
+  else if (globalXP >= 100) { globalLvlName = 'Ученик'; globalLvlIco = '🌿'; }
+  
+  document.getElementById('statusBadge').textContent = `${globalLvlIco} ${globalLvlName}`;
 
   // Крупный счётчик дня (1 кольцо)
   const pct=Math.round(todayCount/total*100);
@@ -998,9 +1041,9 @@ function renderToday(){
       <div class="active-book-card" onclick="switchActiveBook('${ab.id}')" style="${isActive ? '' : 'opacity:0.7;'}">
         <div class="abc-head">
           <div class="abc-emoji">${ab.emoji}</div>
-          <div class="abc-info">
+           <div class="abc-info">
             <div class="abc-title">${ab.title}</div>
-            <div class="abc-author" style="font-size:12px; color:var(--muted); margin-bottom:4px;">${ab.author || ''}</div>
+            <div style="font-size:12px; color:var(--accent-2); font-weight:700; margin-bottom:4px;">${ab.author || 'Неизвестный автор'}</div>
             <div class="abc-day">День ${ab_day} из ${ab.days}</div>
           </div>
         </div>
@@ -1042,7 +1085,7 @@ function renderToday(){
     btn.style.background = 'linear-gradient(135deg, var(--success), #2eb87b)';
   } else {
     document.getElementById('ritualSub').textContent = total + ' практик';
-    btn.querySelector('.hab-title').textContent = 'Начать практику';
+    btn.querySelector('.hab-title').textContent = 'Приступить к практике';
     btn.querySelector('.hab-ico').textContent = '☀️';
     btn.style.background = '';
   }
@@ -1122,61 +1165,81 @@ function setLibFilter(f,el){
   renderLibrary();
 }
 function renderLibrary(){
-    const bookListEl = document.getElementById('bookList');
-  if(bookListEl) {
-    bookListEl.innerHTML = `
-      <div class="skeleton skeleton-book"><div class="skeleton skeleton-emoji"></div><div style="flex:1"><div class="skeleton skeleton-text-1"></div><div class="skeleton skeleton-text-2"></div></div></div>
-      <div class="skeleton skeleton-book"><div class="skeleton skeleton-emoji"></div><div style="flex:1"><div class="skeleton skeleton-text-1"></div><div class="skeleton skeleton-text-2"></div></div></div>
-      <div class="skeleton skeleton-book"><div class="skeleton skeleton-emoji"></div><div style="flex:1"><div class="skeleton skeleton-text-1"></div><div class="skeleton skeleton-text-2"></div></div></div>
-    `;
-  }
-  // Остальной код функции renderLibrary продолжается ниже...
   document.getElementById('libName').textContent=user.name||'Друг';
   document.getElementById('libAvatar').textContent=state.avatar||'👤';
+  
   const q=(document.getElementById('libSearch')?.value||'').toLowerCase().trim();
   let list=BOOKS.filter(b=>{
     if(!q)return true;
     return b.title.toLowerCase().includes(q)||(b.author||'').toLowerCase().includes(q);
   });
+
   if(libFilter==='active'){
-    list=list.filter(b=>{
-      const bs=getBookState(b.id);
-      const closed=countClosedDays(b.id);
-      // Показываем ТОЛЬКО те, у которых есть дата старта и они не закончены
-      return bs.start !== null && closed < b.days; 
-    });
+    list=list.filter(b=>getBookState(b.id).start !== null && countClosedDays(b.id) < b.days);
   }else if(libFilter==='done'){
     list=list.filter(b=>countClosedDays(b.id)>=b.days);
   }else if(libFilter==='new'){
     list=list.filter(b=>!getBookState(b.id).start);
   }
+
   if(!list.length){
-    document.getElementById('bookList').innerHTML=
+    document.getElementById('bookList').innerHTML =
       '<div style="color:var(--muted);text-align:center;padding:40px 20px">Ничего не найдено</div>';
     return;
   }
-  document.getElementById('bookList').innerHTML=list.map(b=>{
-    const bs=getBookState(b.id);
-    const closed=countClosedDays(b.id);
-    const pct=Math.round(closed/b.days*100);
-    const started=bs.start!==null;
-    const isDone=closed>=b.days;
+
+  // Группируем по категориям
+  const grouped = {};
+  list.forEach(b => {
+    const cat = b.category || 'Разное';
+    if(!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(b);
+  });
+
+  let html = '';
+  Object.keys(grouped).forEach((catName, index) => {
+    // Открываем первую категорию по умолчанию
+    const isOpen = index === 0; 
     
-    // Оранжевая рамка появляется ТОЛЬКО если книга реально начата и это последняя открытая книга
-    const isActive = state.lastBook === b.id && started && !isDone; 
-    const hasAccess=hasBookAccess(b.id);
-    
-    return `<div class="book-row ${isDone?'done':''} ${isActive?'active':''} ${!hasAccess?'locked':''}" onclick="openBookDetail('${b.id}')">
-      ${!hasAccess?'<div class="br-lock">🔒</div>':''}
-      <div class="br-emoji">${b.emoji}</div>
-      <div class="br-info">
-        <div class="br-title">${b.title} ${isDone?'👑':''}</div>
-        <div class="br-author">${b.author} · ${b.days} дней</div>
-        ${started?`<div class="br-bar"><div class="br-fill" style="width:${pct}%"></div></div>`:''}
-      </div>
-      <div class="br-pct">${started?pct+'%':'—'}</div>
-    </div>`;
-  }).join('');
+    html += `
+      <div class="lib-category-wrap">
+        <div class="lib-category-header ${isOpen ? 'open' : ''}" onclick="toggleLibCategory(this)">
+          <div style="font-weight:800; font-size:15px;">📁 ${catName} <span style="font-size:11px; opacity:0.6; margin-left:6px;">(${grouped[catName].length})</span></div>
+          <div class="arrow-icon" style="font-size:18px;">›</div>
+        </div>
+        <div class="lib-category-body ${isOpen ? 'open' : ''}">
+    `;
+
+    grouped[catName].forEach(b => {
+      const bs=getBookState(b.id);
+      const closed=countClosedDays(b.id);
+      const pct=Math.round(closed/b.days*100);
+      const started=bs.start!==null;
+      const isDone=closed>=b.days;
+      const isActive = state.lastBook === b.id && started && !isDone; 
+      const hasAccess=hasBookAccess(b.id);
+      
+      html += `<div class="book-row ${isDone?'done':''} ${isActive?'active':''} ${!hasAccess?'locked':''}" onclick="openBookDetail('${b.id}')">
+        ${!hasAccess?'<div class="br-lock">🔒</div>':''}
+        <div class="br-emoji">${b.emoji}</div>
+        <div class="br-info">
+          <div class="br-title">${b.title} ${isDone?'👑':''}</div>
+          <div class="br-author">${b.author} · ${b.days} дней</div>
+          ${started?`<div class="br-bar"><div class="br-fill" style="width:${pct}%"></div></div>`:''}
+        </div>
+        <div class="br-pct">${started?pct+'%':'—'}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  document.getElementById('bookList').innerHTML = html;
+}
+
+function toggleLibCategory(el) {
+  el.classList.toggle('open');
+  const body = el.nextElementSibling;
+  if(body) body.classList.toggle('open');
 }
 
 // ─── КАРТОЧКА КНИГИ ───
@@ -1280,7 +1343,55 @@ async function rateBook(bookId,stars){
 function renderStatsScreen(){
   if(!currentBook)return;
   document.getElementById('statsAvatar').textContent=state.avatar||'👤';
+    // ─── СЧЕТ ОПЫТА И УРОВНЯ ───
+  let totalXP = 0;
+  BOOKS.forEach(bb => {
+    const bbs = getBookState(bb.id);
+    Object.values(bbs.days).forEach(rec => {
+      if(rec.practices) {
+        totalXP += rec.practices.length * 10; // +10 XP за каждую практику
+      }
+      if(rec.closed) {
+        totalXP += 50; // +50 XP за закрытый день
+      }
+    });
+  });
+
+  // Определяем уровень
+  let lvl = 1, lvlName = 'Новичок', lvlIco = '🌱', nextLvlXP = 100;
+  if (totalXP >= 2000) { lvl = 6; lvlName = 'Легенда'; lvlIco = '👑'; nextLvlXP = 2000; }
+  else if (totalXP >= 1000) { lvl = 5; lvlName = 'Мастер'; lvlIco = '🏆'; nextLvlXP = 2000; }
+  else if (totalXP >= 600) { lvl = 4; lvlName = 'Опытный'; lvlIco = '💎'; nextLvlXP = 1000; }
+  else if (totalXP >= 300) { lvl = 3; lvlName = 'Практик'; lvlIco = '🔥'; nextLvlXP = 600; }
+  else if (totalXP >= 100) { lvl = 2; lvlName = 'Ученик'; lvlIco = '🌿'; nextLvlXP = 300; }
+
+  // Считаем прогресс до следующего уровня
+  let prevLvlXP = 0;
+  if (lvl === 2) prevLvlXP = 100;
+  if (lvl === 3) prevLvlXP = 300;
+  if (lvl === 4) prevLvlXP = 600;
+  if (lvl === 5) prevLvlXP = 1000;
+  if (lvl === 6) prevLvlXP = 2000;
+
+  const xpInCurrentLvl = totalXP - prevLvlXP;
+  const xpNeededForNext = nextLvlXP - prevLvlXP;
+  const xpPct = Math.min(100, Math.round((xpInCurrentLvl / xpNeededForNext) * 100)) || 100;
+
+  // Обновляем HTML карточки
+  document.getElementById('lcLevel').textContent = lvl;
+  document.getElementById('lcTitle').textContent = lvlName;
+  document.getElementById('lcIco').textContent = lvlIco;
   
+  if (lvl === 6) {
+    document.getElementById('lcXpText').textContent = totalXP + ' XP (Максимум)';
+    document.getElementById('lcBarFill').style.width = '100%';
+  } else {
+    document.getElementById('lcXpText').textContent = xpInCurrentLvl + ' / ' + xpNeededForNext + ' XP';
+    setTimeout(() => {
+      document.getElementById('lcBarFill').style.width = xpPct + '%';
+    }, 100);
+  }
+  // ─── КОНЕЦ СЧЕТА ОПЫТА ───
   let totalClosed=0,totalPractices=0,booksStarted=0,totalSeconds=0;
   
   BOOKS.forEach(bb=>{
@@ -1530,24 +1641,57 @@ function renderRitualStep(){
   const bookTag=p._bookTitle&&(!currentBook||p._bookTitle!==currentBook.title)?
     `<div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px">📚 ${p._bookTitle}</div>`:'';
   document.getElementById('ritualBody').innerHTML=
-    `${bookTag}<div class="ritual-hero"><div class="ico">${p.ico}</div><h2>${p.title}</h2><div class="sub">${p.sub}</div></div><div class="ritual-timer"><div class="time" id="ritualTime">${formatTime(p.time)}</div><button class="timer-big-btn" id="ritualTimerBtn" onclick="toggleTimer('ritual')">▶ Старт</button><button class="timer-skip" onclick="nextRitual()">Отметить выполненным →</button></div><div class="ps-block"><h3>💡 Зачем это нужно</h3><p>${p.why}</p></div><div class="ps-block"><h3>🎬 Как делать</h3><ol class="steps">${p.how.map(s=>`<li>${s}</li>`).join('')}</ol></div>`;
+    `${bookTag}
+     <div class="ritual-hero"><div class="ico">${p.ico}</div><h2>${p.title}</h2><div class="sub">${p.sub}</div></div>
+     <div class="ps-block"><h3>💡 Зачем это нужно</h3><p>${p.why}</p></div>
+     <div class="ps-block"><h3>🎬 Как делать</h3><ol class="steps">${p.how.map(s=>`<li>${s}</li>`).join('')}</ol></div>
+     
+     <div class="ps-block timer-wrapper" style="margin-top:30px; border-top:1px solid var(--border); padding-top:20px;">
+       <h3>⏱ Время практики</h3>
+       <div class="timer-box">
+         <div class="timer-display" id="ritualTime">${formatTime(p.time)}</div>
+         <button class="timer-big-btn" id="ritualTimerBtn" onclick="toggleTimer('ritual')">▶ Старт</button>
+       </div>
+     </div>
+
+     <div class="ps-block" style="margin-top:20px;">
+       <h3>✍️ Заметка в дневник</h3>
+       <textarea id="ritualNoteInput" placeholder="Что почувствовал? О чем подумал? (Необязательно)" style="width:100%; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; color:var(--text); font-size:14px; min-height:80px; resize:vertical;"></textarea>
+     </div>
+
+     <button class="btn" style="margin-top:20px; margin-bottom:50px;" onclick="nextRitual()">✓ Отметить выполненным</button>`;
   timerRemaining=p.time;
   timerState='idle';
     if(musicAudio && state.soundOn!==false){
     nextTrack(); // Переключаем трек на следующий при переходе к новой практике
   }
-}
+// Плавный скролл наверх при смене практики
+  setTimeout(() => {
+    const rBody = document.getElementById('ritualBody');
+    if(rBody) rBody.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 50);}
 function toggleTimer(ctx){
   const btn=ctx==='ritual'?
     document.getElementById('ritualTimerBtn'):
     document.getElementById('timerBtn');
+    
+  const screen = ctx==='ritual' ? 
+    document.getElementById('ritualScreen') : 
+    document.getElementById('practiceScreen');
+
   if(timerState==='running'){
     stopTimer();timerState='paused';
     if(btn){btn.textContent='▶ Продолжить';btn.className='timer-big-btn paused'}
+    if(screen) screen.classList.remove('focus-mode'); // ВЫКЛЮЧАЕМ ДЗЕН
   }else if(timerState==='done'){}
   else{
+    // Разблокировка голоса для браузера
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+      }
     startTimer(ctx);timerState='running';
     if(btn){btn.textContent='⏸ Пауза';btn.className='timer-big-btn'}
+    if(screen) screen.classList.add('focus-mode'); // ВКЛЮЧАЕМ ДЗЕН
   }
 }
 let wakeLock = null;
@@ -1570,7 +1714,7 @@ function releaseWakeLock() {
 }
 
 function startTimer(ctx){
-  requestWakeLock(); // <--- ДЕРЖИМ ЭКРАН ВКЛЮЧЕННЫМ
+  requestWakeLock(); 
   const targetTime = Date.now() + (timerRemaining * 1000);
   
   if(timerInterval) clearInterval(timerInterval);
@@ -1581,28 +1725,67 @@ function startTimer(ctx){
     timerRemaining = remaining;
     
     const el=document.getElementById(ctx==='ritual'?'ritualTime':'timerDisplay');
-    if(el)el.textContent=formatTime(timerRemaining);
+    if(el){
+      el.textContent=formatTime(timerRemaining);
+      el.classList.add('timer-pulsing'); // Включаем пульсацию
+    }
     
     if(timerRemaining <= 0){
       stopTimer();
       timerState='done';
-      playFanfare();
-      if(ctx==='ritual')showCompleteOverlay(ritualQueue[ritualIndex],'ritual');
+      
+      // Меняем текст кнопки на "Время вышло"
+      const btn = document.getElementById(ctx==='ritual'?'ritualTimerBtn':'timerBtn');
+      if(btn){
+        btn.textContent = '✨ Время вышло';
+        btn.className = 'timer-big-btn done';
+        btn.disabled = true;
+      }
+
+      speakTimerEnd(); // Голос
+      playFanfare();   // Звук
+      
+      if(ctx==='ritual') showCompleteOverlay(ritualQueue[ritualIndex],'ritual');
       else showCompleteOverlay(currentPractice,'practice');
+      // Прокрутка к заметке после окончания таймера
+      setTimeout(() => {
+        const noteId = ctx==='ritual' ? 'ritualNoteInput' : 'practiceNoteInput';
+        const noteInput = document.getElementById(noteId);
+        if(noteInput) {
+          noteInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 500);
     }
   }, 1000);
 }
 
 function stopTimer(){
-  releaseWakeLock(); // <--- ОТПУСКАЕМ ЭКРАН
+  releaseWakeLock(); 
   if(timerInterval){clearInterval(timerInterval);timerInterval=null}
+  
+  const t1 = document.getElementById('timerDisplay');
+  const t2 = document.getElementById('ritualTime');
+  if(t1) t1.classList.remove('timer-pulsing');
+  if(t2) t2.classList.remove('timer-pulsing');
+
+  // Выключаем Дзен-режим у обоих экранов
+  const pScreen = document.getElementById('practiceScreen');
+  const rScreen = document.getElementById('ritualScreen');
+  if(pScreen) pScreen.classList.remove('focus-mode');
+  if(rScreen) rScreen.classList.remove('focus-mode');
 }
-function nextRitual(){
+async function nextRitual(){
   stopTimer();timerState='idle';
   if(musicAudio && state.soundOn!==false) nextTrack(); // Меняем музыку
   const p=ritualQueue[ritualIndex];
-  markPracticeDoneForBook(p._bookId,p.id);
-  playCheck();
+  
+  const noteInput = document.getElementById('ritualNoteInput');
+  const noteText = noteInput ? noteInput.value : '';
+  if (noteText.trim() && p) {
+    await savePracticeNote(p.title, noteText, p._bookId); // ДОБАВИЛИ ID КНИГИ (он хранится в p._bookId)
+  }
+
+  markPracticeDoneForBook(p._bookId, p.id);
   ritualIndex++;
   renderRitualStep();
 }
@@ -1747,7 +1930,7 @@ function renderRitualBuilder(){
           <span>${b.emoji} ${b.title}</span>
           ${hasSelected ? '<span style="font-size:10px; background:var(--accent); color:#fff; padding:2px 6px; border-radius:10px;">выбрано</span>' : ''}
         </div>
-        <span class="arrow-icon" style="transform:rotate(-90deg);">›</span>
+        <span class="arrow-icon">›</span>
       </div>
       <div class="builder-book-body ${hasSelected ? 'open' : ''}">
     `;
@@ -1853,14 +2036,39 @@ function launchCustomRitual(){
 function showCompleteOverlay(practice,context){
   completeCallback={practice,context};
   document.getElementById('completeTitle').textContent='Практика завершена';
-  document.getElementById('completeSub').textContent=practice.title+' · '+Math.round(practice.time/60)+' минут';
+  
+  // Выбираем умную цитату
+  let quoteHtml = '';
+  if(currentBook && currentBook.quotes && currentBook.quotes.length > 0) {
+    const randomQuote = currentBook.quotes[Math.floor(Math.random() * currentBook.quotes.length)];
+    quoteHtml = `<div style="margin-top: 15px; font-style: italic; color: var(--accent-2); font-size: 13px; border-top: 1px solid var(--border); padding-top: 15px;">«${randomQuote.text}»</div>`;
+  }
+
+  document.getElementById('completeSub').innerHTML = `${practice.title}<br>⏱ ${Math.round(practice.time/60)} минут ${quoteHtml}`;
   document.getElementById('completeOverlay').classList.remove('hidden');
 }
-function completePracticeDone(){
-  stopMusic(); // <--- ДОБАВИЛИ ОСТАНОВКУ МУЗЫКИ
+async function completePracticeDone(){
+  stopMusic();
   document.getElementById('completeOverlay').classList.add('hidden');
   if(!completeCallback)return;
+  
   const{practice,context}=completeCallback;completeCallback=null;
+  
+  // Сохраняем заметку из модалки
+  const noteInput = document.getElementById('completeNoteInput');
+  const noteText = noteInput ? noteInput.value : '';
+  
+  if (noteText.trim()) {
+    if (context === 'ritual') {
+      const p = ritualQueue[ritualIndex];
+      if (p) await savePracticeNote(p.title, noteText, p._bookId);
+    } else {
+      await savePracticeNote(practice.title, noteText, currentBook.id);
+    }
+    // Очищаем поле после сохранения
+    if(noteInput) noteInput.value = '';
+  }
+
   if(context==='ritual'){
     stopTimer();timerState='idle';
     const p=ritualQueue[ritualIndex];
@@ -1914,7 +2122,28 @@ function openPractice(id){
   document.getElementById('psTitle').textContent=p.title;
   document.getElementById('psSub').textContent=p.sub;
   document.getElementById('psContent').innerHTML=
-    `<div class="ps-hero"><div class="ico">${p.ico}</div><div class="time">⏱ ${Math.round(p.time/60)} минут</div></div><div class="ps-block"><h3>💡 Зачем это нужно</h3><p>${p.why}</p></div><div class="ps-block"><h3>🎬 Как делать</h3><ol class="steps">${p.how.map(s=>`<li>${s}</li>`).join('')}</ol></div>${p.affirm?`<div class="ps-block"><h3>✨ Аффирмации</h3><ul class="affirm-list">${p.affirm.map(a=>`<li onclick="copyAffirm(this)">«${a}»</li>`).join('')}</ul></div>`:''}<div class="ps-block"><h3>⏱ Таймер</h3><div class="timer-box"><div class="timer-display" id="timerDisplay">${formatTime(p.time)}</div><button class="timer-big-btn" id="timerBtn" onclick="toggleTimer('practice')">▶ Старт</button></div></div><div class="ps-block"><h3>🎯 Результат</h3><p>${p.result}</p></div><div class="ps-block"><h3>⚠️ Ошибки</h3><ul class="mistakes">${p.mistakes.map(m=>`<li>${m}</li>`).join('')}</ul></div><div class="ps-block"><h3>💬 Совет</h3><div class="advice">${p.advice}</div></div><button class="btn" style="margin-top:20px" onclick="markPracticeFromScreen('${p.id}')">✓ Отметить выполненным</button>`;
+    `<div class="ps-hero"><div class="ico">${p.ico}</div><div class="time">⏱ ${Math.round(p.time/60)} минут</div></div>
+     <div class="ps-block"><h3>💡 Зачем это нужно</h3><p>${p.why}</p></div>
+     <div class="ps-block"><h3>🎬 Как делать</h3><ol class="steps">${p.how.map(s=>`<li>${s}</li>`).join('')}</ol></div>
+     ${p.affirm?`<div class="ps-block"><h3>✨ Аффирмации</h3><ul class="affirm-list">${p.affirm.map(a=>`<li onclick="copyAffirm(this)">«${a}»</li>`).join('')}</ul></div>`:''}
+     <div class="ps-block"><h3>🎯 Результат</h3><p>${p.result}</p></div>
+     <div class="ps-block"><h3>⚠️ Ошибки</h3><ul class="mistakes">${p.mistakes.map(m=>`<li>${m}</li>`).join('')}</ul></div>
+     <div class="ps-block"><h3>💬 Совет</h3><div class="advice">${p.advice}</div></div>
+     
+     <div class="ps-block timer-wrapper" style="margin-top:30px; border-top:1px solid var(--border); padding-top:20px;">
+       <h3>⏱ Время практики</h3>
+       <div class="timer-box"><div class="timer-display" id="timerDisplay">${formatTime(p.time)}</div><button class="timer-big-btn" id="timerBtn" onclick="toggleTimer('practice')">▶ Старт</button></div>
+     </div>
+     
+<div class="ps-block" style="margin-top:20px; background:linear-gradient(135deg, rgba(124,92,255,0.1), transparent); padding:16px; border-radius:var(--radius-md); border:1px solid var(--accent);">
+       <h3 style="margin-top:0; color:var(--accent-2);">🎯 Ожидаемый результат</h3>
+       <p style="font-size:14px; color:#dcdcf0; margin-bottom:16px; font-style:italic;">${p.result || 'Новое осознание и спокойствие.'}</p>
+       
+       <h3>✍️ Твоя заметка</h3>
+       <textarea id="practiceNoteInput" placeholder="Что получилось? С какими мыслями столкнулся?..." style="width:100%; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; color:var(--text); font-size:14px; min-height:100px; resize:vertical;"></textarea>
+     </div>
+     
+     <button class="btn" style="margin-top:20px; margin-bottom:50px;" onclick="markPracticeFromScreen('${p.id}')">✓ Отметить выполненным</button>`;
   document.getElementById('practiceScreen').classList.remove('hidden');
   document.body.style.overflow='hidden';
   window.scrollTo(0,0);
@@ -1930,10 +2159,22 @@ function closePractice(){
   currentPractice=null;
   smartHome();
 }
-function markPracticeFromScreen(id){
-  markPracticeDone(id);
+async function markPracticeFromScreen(id){
+  const noteInput = document.getElementById('practiceNoteInput');
+  const noteText = noteInput ? noteInput.value : '';
+  const p = currentBook.practices.find(x => x.id === id);
+  
+  if (noteText.trim() && p) {
+    await savePracticeNote(p.title, noteText, currentBook.id); // ДОБАВИЛИ ID КНИГИ
+  }
+
+markPracticeDone(id);
   playCheck();
-  fireConfetti(); // <--- ДОБАВИЛИ КОНФЕТТИ
+  fireConfetti(); 
+  
+  // ВАУ-ЭФФЕКТ: Опыт и Вибрация
+  toast('🔥 +10 к огоньку!', 'success');
+  if(navigator.vibrate) navigator.vibrate([100, 50, 100]); // Двойная вибрация
   closePractice();
 }
 function copyAffirm(el){
@@ -2028,11 +2269,27 @@ function renderProfile(){
     if(phoneEl) phoneEl.textContent = 
       '+7 ' + phone.slice(1,4) + ' *** ' + phone.slice(7,9) + ' ' + phone.slice(9);
     
-const nameEl = document.getElementById('profileName');
-    if(nameEl) nameEl.value = (user && user.name) ? user.name : '';
-    const lastEl = document.getElementById('profileLastName');
-    if(lastEl) lastEl.value = (user && user.lastName) ? user.lastName : '';
+    const fullEl = document.getElementById('profileFullName');
+    if(fullEl) fullEl.value = ((user && user.name) ? user.name : '') + ((user && user.lastName) ? ' ' + user.lastName : '');
     
+        // Считаем глобальный опыт для профиля
+    let totalXP = 0;
+    BOOKS.forEach(bb => {
+      const bbs = getBookState(bb.id);
+      Object.values(bbs.days).forEach(rec => {
+        if(rec.practices) totalXP += rec.practices.length * 10;
+        if(rec.closed) totalXP += 50;
+      });
+    });
+    let lvlName = 'Новичок', lvlIco = '🌱';
+    if (totalXP >= 2000) { lvlName = 'Легенда'; lvlIco = '👑'; }
+    else if (totalXP >= 1000) { lvlName = 'Мастер'; lvlIco = '🏆'; }
+    else if (totalXP >= 600) { lvlName = 'Опытный'; lvlIco = '💎'; }
+    else if (totalXP >= 300) { lvlName = 'Практик'; lvlIco = '🔥'; }
+    else if (totalXP >= 100) { lvlName = 'Ученик'; lvlIco = '🌿'; }
+    
+    const xpBadge = document.getElementById('profileXpBadge');
+    if(xpBadge) xpBadge.textContent = `${lvlIco} ${lvlName} · ${totalXP} XP`;
     const avaEl = document.getElementById('profileAva');
     if(avaEl) avaEl.textContent = state.avatar || '👤';
     
@@ -2046,11 +2303,15 @@ const nameEl = document.getElementById('profileName');
   }
 }
 async function saveName(){
-  const n=document.getElementById('profileName').value.trim();
-  const ln=document.getElementById('profileLastName').value.trim();
-  if(!n)return;
-  user.name=n;
-  user.lastName=ln;
+  const fullVal = document.getElementById('profileFullName').value.trim();
+  if(!fullVal) return;
+  const nameParts = fullVal.split(' ');
+  const n = nameParts[0];
+  const ln = nameParts.slice(1).join(' ');
+  
+  user.name = n;
+  user.lastName = ln;
+  
   await sb.from('profiles').update({name:n, last_name:ln}).eq('id',user.id);
   playSuccess();toast('Профиль сохранен');
 }
@@ -2159,16 +2420,27 @@ async function togglePush(){
 function renderHelp(){
   const list=document.getElementById('faqList');
   if(!list)return;
-  list.innerHTML=FAQ.map((f,i)=>`
-    <div class="faq-item" onclick="toggleFaq(${i})">
-      <div class="faq-q">${f.q}<span class="fq-arrow">›</span></div>
-      <div class="faq-a">${f.a}</div>
-    </div>
-  `).join('');
+  
+  let html = '';
+  FAQ_GROUPS.forEach(group => {
+    html += `<h3 class="section-title" style="margin-top: 20px;">${group.title}</h3>`;
+    group.items.forEach(item => {
+      // Генерируем уникальный ID для каждого вопроса, чтобы открывать только его
+      const faqId = 'faq_' + Math.random().toString(36).substr(2, 9);
+      html += `
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">${item.q}<span class="fq-arrow">›</span></div>
+          <div class="faq-a">${item.a}</div>
+        </div>
+      `;
+    });
+  });
+  
+  list.innerHTML = html;
 }
-function toggleFaq(i){
-  const items=document.querySelectorAll('.faq-item');
-  if(items[i])items[i].classList.toggle('open');
+
+function toggleFaq(el){
+  el.classList.toggle('open');
 }
 
 // ─── УВЕДОМЛЕНИЯ ───
@@ -2201,7 +2473,10 @@ function renderNotifications(){
     return;
   }
   el.innerHTML=notifications.map(n=>{
-    const p=n.payload||{};
+    let p = n.payload || {};
+    if (typeof p === 'string') {
+      try { p = JSON.parse(p); } catch(e) { p = {}; }
+    }
     let ico='🔔',title='',text='';
     if(n.type==='msg'){ico='💬';title='Новое сообщение';text=p.text||''}
     else if(n.type==='like'){ico='❤️';title='Новый лайк';text=p.text||'Кому-то понравился твой пост'}
@@ -2236,8 +2511,12 @@ async function openNotification(id){
 }
 async function createNotification(userId,type,payload){
   try{
-    const {error} = await sb.from('notifications').insert({user_id:userId,type,payload});
-    if(error) console.error('Ошибка уведомления:', error);
+    const {data, error} = await sb.from('notifications').insert({user_id:userId,type,payload}).select();
+    if(error) {
+      console.error('❌ Ошибка создания уведомления (возможно RLS):', error);
+    } else {
+      console.log('✅ Уведомление создано в БД:', data);
+    }
   }catch(e){
     console.error('Критическая ошибка уведомления:', e);
   }
@@ -2296,107 +2575,81 @@ async function copyReferral(){
 }
 
 // ─── ДНЕВНИК ───
+let journalFilter = 'all'; // Глобальная переменная для фильтра
+
 async function renderJournal(){
-  document.getElementById('journalBookTitle').textContent = 'Мой дневник';
   document.getElementById('journalAvatar').textContent = state.avatar||'👤';
   
-  const today = todayStr();
-  let todayRec = { q1: '', q2: '', q3: '' };
-  let history = [];
-
-  try {
-    // Получаем запись за сегодня
-    const { data: tData } = await sb.from('journals').select('*').eq('user_id', user.id).eq('date', today).maybeSingle();
-    if (tData) todayRec = tData;
-
-    // Получаем историю (последние 20 записей)
-    const { data: hData } = await sb.from('journals').select('*').eq('user_id', user.id).order('date', { ascending: false }).limit(20);
-    if (hData) history = hData;
-  } catch(e) { console.log(e); }
-
-  document.getElementById('jq1').value = todayRec.q1 || '';
-  document.getElementById('jq2').value = todayRec.q2 || '';
-  document.getElementById('jq3').value = todayRec.q3 || '';
+  // 1. Рисуем фильтры по книгам
+  const filterWrap = document.getElementById('journalFilters');
+  let filterHtml = `<div class="lib-filter ${journalFilter==='all'?'on':''}" onclick="setJournalFilter('all', this)">Все книги</div>`;
+  let dotsHtml = `<div class="b-dot ${journalFilter==='all'?'on':''}"></div>`;
   
-  renderMoodTracker(); // Оставляем трекер настроения  
-    // ─── ГРАФИК НАСТРОЕНИЯ ───
-  try {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-    const dateLimit = localDate(sevenDaysAgo); // 7 дней назад
+  BOOKS.forEach(b => {
+    filterHtml += `<div class="lib-filter ${journalFilter===b.id?'on':''}" onclick="setJournalFilter('${b.id}', this)">${b.emoji} ${b.title}</div>`;
+    dotsHtml += `<div class="b-dot ${journalFilter===b.id?'on':''}"></div>`;
+  });
+  filterWrap.innerHTML = filterHtml;
+  document.getElementById('journalDots').innerHTML = dotsHtml;
 
-    // Берем настроения за последние 7 дней
-    const { data: mData } = await sb.from('moods').select('*').eq('user_id', user.id).gte('date', dateLimit).order('date', {ascending: true});
-    
-    let mHtml = '';
-    const dows = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
-    
-    // Проходимся по каждому из 7 дней
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dStr = localDate(d);
-      const dayName = dows[d.getDay()];
-      
-      // Ищем запись за этот день
-      const dayMood = (mData || []).find(m => m.date === dStr);
-      
-      let val = 0;
-      if (dayMood) {
-        const m = parseInt(dayMood.morning) || 0;
-        const e = parseInt(dayMood.evening) || 0;
-        if (m && e) val = Math.round((m + e) / 2);
-        else if (m) val = m;
-        else if (e) val = e;
-      }
+  // 2. Тянем записи из БД
+  let query = sb.from('notes').select('*').eq('user_id', user.id).order('created_at', {ascending: false});
+  if (journalFilter !== 'all') {
+    query = query.eq('book_id', journalFilter);
+  }
+  const { data: notes } = await query;
 
-      // Высота столбика (макс 5 баллов = 100%)
-      const heightPct = val > 0 ? Math.min(100, (val / 5) * 100) : 0;
-      const barClass = val > 0 ? 'mc-bar' : 'mc-bar empty';
+  // 3. Рисуем карточки записей
+  let historyHtml = '';
+  if (!notes || !notes.length) {
+    historyHtml = '<div style="text-align:center; color:var(--muted); padding:40px 20px;">Пока нет записей.<br>Сделай практику и оставь заметку!</div>';
+  } else {
+    historyHtml = notes.map(n => {
+      const d = new Date(n.created_at);
+      const dateStr = `${d.getDate()} ${['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
       
-      mHtml += `
-        <div class="mc-bar-wrap">
-          <div class="mc-val">${val > 0 ? val : ''}</div>
-          <div class="${barClass}" style="height: ${heightPct}%;"></div>
-          <div class="mc-label">${dayName}</div>
+      const b = BOOKS.find(x => x.id === n.book_id);
+      const bookEmoji = b ? b.emoji : '📚';
+
+      return `<div class="jh-entry" style="position:relative;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="font-size:11px; font-weight:800; color:var(--accent-2); text-transform:uppercase;">${bookEmoji} ${n.practice_title}</div>
+          <div style="font-size:10px; color:var(--muted);">${dateStr}</div>
         </div>
-      `;
-    }
-    document.getElementById('moodChartWrap').innerHTML = mHtml;
-  } catch(e) { console.error('Ошибка графика', e); }
+        <div class="jh-a">${escapeHtml(n.text)}</div>
+        <div style="text-align:right; margin-top:8px;">
+          <span style="font-size:16px; color:var(--muted); cursor:pointer;" onclick="deleteNote(${n.id})">🗑</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
 
-  // Функция для красивого формата даты
-  const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-  const formatDate = (dateStr) => {
-    if(!dateStr) return '';
-    const d = new Date(dateStr);
-    return `${d.getDate()} ${months[d.getMonth()]}`;
-  };
-
-  // Фильтруем пустые записи
-  const validEntries = history.filter(h => h.q1 || h.q2 || h.q3);
-
-  // Сводка
+  // 4. Статистика
   const statsHtml = `
     <div style="display:flex; gap:10px; margin-bottom:20px;">
       <div style="flex:1; background:linear-gradient(135deg, var(--card), var(--card2)); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; text-align:center; box-shadow: var(--shadow-sm);">
-        <div style="font-size:28px; font-weight:900; color:var(--accent-2);">${validEntries.length}</div>
-        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px; letter-spacing:1px;">Всего записей</div>
+        <div style="font-size:28px; font-weight:900; color:var(--accent-2);">${notes ? notes.length : 0}</div>
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px; letter-spacing:1px;">Записей</div>
       </div>
     </div>
   `;
 
-  const historyHtml = validEntries.map(h => {
-    return `<div class="jh-entry">
-      <div class="jh-day">${formatDate(h.date)}</div>
-      ${h.q1?`<div class="jh-q">🌟 Получилось</div><div class="jh-a">${escapeHtml(h.q1)}</div>`:''}
-      ${h.q2?`<div class="jh-q">💭 Сложно</div><div class="jh-a">${escapeHtml(h.q2)}</div>`:''}
-      ${h.q3?`<div class="jh-q">🔍 Замечаю</div><div class="jh-a">${escapeHtml(h.q3)}</div>`:''}
-    </div>`;
-  }).join('');
+  document.getElementById('journalHistory').innerHTML = statsHtml + historyHtml;
+  renderMoodTracker(); // Оставляем график настроения
+}
 
-  // Вставляем сводку и историю
-  document.getElementById('journalHistory').innerHTML = statsHtml + (historyHtml || '<div class="jh-entry" style="text-align:center;color:var(--muted);padding:24px">Пока пусто. Сделай первую запись.</div>');
+function setJournalFilter(bookId, el) {
+  journalFilter = bookId;
+  renderJournal(); // Перерисовываем всё
+  playClick();
+}
+
+async function deleteNote(noteId) {
+  showCustomConfirm('Удалить запись?', 'Она пропадет из дневника навсегда.', async () => {
+    await sb.from('notes').delete().eq('id', noteId);
+    playSuccess();
+    renderJournal();
+  });
 }
 function dateToDay(bookId,date){
   const bs=getBookState(bookId);
@@ -3085,7 +3338,11 @@ function filterAdmin(){
     list=list.filter(p=>p.blocked===true);
   }else if(adminFilter==='admin'){
     list=list.filter(p=>p.is_admin===true);
+  }else if(adminFilter==='sub'){
+    const now = new Date();
+    list=list.filter(p=>p.sub_until && new Date(p.sub_until) > now);
   }
+  
   if(q){
     list=list.filter(p=>{
       const name=(p.name||'').toLowerCase();
@@ -3099,7 +3356,6 @@ function filterAdmin(){
 
 async function openAdminUser(id){
   const wrap = document.getElementById('adminDetailWrap');
-    
   wrap.dataset.openUserId = id;
 
   const p=adminAllUsers.find(x=>x.id===id);if(!p)return;
@@ -3121,7 +3377,18 @@ async function openAdminUser(id){
   const lastSeen=p.last_seen?new Date(p.last_seen).toLocaleString('ru', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}):'—';
   const access=p.book_access||[];
   
-  // ТУТ УБРАЛИ ВСЕ ПРОВЕРКИ РЕЖИМОВ. Тумблеры работают всегда.
+  let isSubActive = false;
+  let subDateText = 'Нет подписки';
+  if (p.sub_until) {
+    const subDate = new Date(p.sub_until);
+    if (subDate > new Date()) {
+      isSubActive = true;
+      subDateText = 'Активна до ' + subDate.toLocaleDateString('ru-RU');
+    } else {
+      subDateText = 'Истекла ' + subDate.toLocaleDateString('ru-RU');
+    }
+  }
+  
   const booksHtml=BOOKS.map(b=>{
     let has = p.is_admin || access.includes(b.id);
     return `<div class="admin-book-row">
@@ -3130,8 +3397,6 @@ async function openAdminUser(id){
     </div>`;
   }).join('');
   
-  const modeWarning = ''; // Предупреждение убрано
-
   document.getElementById('adminDetailWrap').innerHTML=`
     <div class="admin-detail">
       <div class="ad-head" style="justify-content:space-between;">
@@ -3142,8 +3407,7 @@ async function openAdminUser(id){
             <p>${isMe?'Это ты':''}${p.blocked?' · 🚫 Заблокирован':''}</p>
           </div>
         </div>
-        <!-- Кнопка сворачивания -->
-                <span onclick="document.getElementById('adminDetailWrap').innerHTML=''" style="color:var(--muted); cursor:pointer; font-size:24px; line-height:1; padding:0 10px;">︿</span>
+        <span onclick="document.getElementById('adminDetailWrap').innerHTML=''" style="color:var(--muted); cursor:pointer; font-size:24px; line-height:1; padding:0 10px;">︿</span>
       </div>
       <div class="admin-row"><span>Имя</span><span>${escapeHtml(p.name||'—')}</span></div>
       <div class="admin-row"><span>Телефон</span><span>${(phone && phone !== 'Нет данных') ? '+7 ('+phone.slice(1,4)+') '+phone.slice(4,7)+'-'+phone.slice(7,9)+'-'+phone.slice(9) : 'Нет данных'}</span></div>
@@ -3152,10 +3416,18 @@ async function openAdminUser(id){
       <div class="admin-row"><span>Закрыто дней</span><span>${closed}</span></div>
       <div class="admin-row"><span>Записей</span><span>${journal}</span></div>
       
+      <div class="admin-row" style="border-bottom:none; margin-top:10px;">
+        <span>Подписка</span>
+        <span style="color:${isSubActive ? 'var(--success)' : 'var(--muted)'}">${subDateText}</span>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <button class="admin-action" style="flex:1; background:var(--accent) !important; color:#fff !important; border:none;" onclick="adminGrantSub('${id}', 30)">🎁 +1 Месяц</button>
+        ${isSubActive ? `<button class="admin-action danger" style="flex:1;" onclick="adminGrantSub('${id}', 0)">❌ Забрать</button>` : ''}
+      </div>
+      
       <div style="margin-top:16px">
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-bottom:8px">📚 Доступ к книгам</div>
         <div class="admin-books">${booksHtml}</div>
-        ${modeWarning}
       </div>
       
       ${!isMe?`<div class="admin-actions">
@@ -3339,6 +3611,7 @@ function showBookEditor(id){
   setVal('edAuthor', b?.author||'');
   setVal('edEmoji', b?.emoji||'');
   setVal('edDays', b?.days||30);
+  setVal('edCategory', b?.category || 'Разное');
   setVal('edAbout', b?.about||'');
   setVal('edMethod', (b?.method && Array.isArray(b.method)) ? b.method.join(', ') : '');
   setVal('edAuthorBio', b?.authorBio || '');
@@ -3436,6 +3709,7 @@ async function saveBook(published){
     author:document.getElementById('edAuthor').value.trim(),
     emoji:document.getElementById('edEmoji').value.trim()||'📖',
     days:parseInt(document.getElementById('edDays').value)||30,
+    category: document.getElementById('edCategory').value.trim() || 'Разное',
     about:document.getElementById('edAbout').value.trim(),
     
     // БЕРЕМ ДАННЫЕ ИЗ ПОЛЕЙ ВВОДА (они уже заполнены из JSON)
@@ -3513,6 +3787,16 @@ document.addEventListener('scroll', (e) => {
     });
   }
 
+  // ДОБАВЛЯЕМ СЛУШАТЕЛЬ ДЛЯ ДНЕВНИКА
+  if (e.target && e.target.id === 'journalFilters') {
+    const wrap = e.target;
+    const cardWidth = wrap.children[0] ? wrap.children[0].offsetWidth : 1;
+    const idx = Math.round(wrap.scrollLeft / (cardWidth + 10)); 
+    document.querySelectorAll('#journalDots .b-dot').forEach((d, i) => {
+      d.classList.toggle('on', i === idx);
+    });
+  }
+
   // ДОБАВЛЯЕМ СЛУШАТЕЛЬ ДЛЯ СТАТИСТИКИ
   if (e.target && e.target.id === 'statsBooksSwipe') {
     const wrap = e.target;
@@ -3529,27 +3813,25 @@ window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=
 });
 // ─── СИСТЕМНАЯ КНОПКА "НАЗАД" (Android) ───
 window.addEventListener('popstate', (e) => {
+  // Проверяем, какие экраны сейчас открыты
   const ritualOpen = !document.getElementById('ritualScreen').classList.contains('hidden');
   const practiceOpen = !document.getElementById('practiceScreen').classList.contains('hidden');
   const authOpen = !document.getElementById('authScreen').classList.contains('hidden');
+  const helpOpen = !document.getElementById('helpScreen').classList.contains('hidden');
+  const settingsOpen = !document.getElementById('settingsScreen').classList.contains('hidden');
+  const notifOpen = !document.getElementById('notificationsScreen').classList.contains('hidden');
+
+  if (ritualOpen) { closeRitual(); history.pushState(null, null, location.href); return; }
+  if (practiceOpen) { closePractice(); history.pushState(null, null, location.href); return; }
   
-  if (ritualOpen) { 
-    closeRitual(); 
-    history.pushState(null, null, location.href); 
-    return; 
-  }
-  if (practiceOpen) { 
-    closePractice(); 
-    history.pushState(null, null, location.href); 
-    return; 
-  }
-  
-  // Если мы не на главной и не на экране входа
-  if (currentScreen !== 'today' && !authOpen) {
+  // Если мы в Помощи, Настройках или Уведомлениях — возвращаем в Профиль
+  if (helpOpen || settingsOpen || notifOpen) {
+    showProfile();
+  } else if (currentScreen !== 'today' && !authOpen) {
     smartHome();
   }
   
-  // Всегда блокируем выход из приложения (чтобы не вылетало)
+  // Блокируем выход из приложения
   history.pushState(null, null, location.href);
 });
 
@@ -3875,14 +4157,11 @@ function resetAllProgress() {
       currentBook = null;
       
       // Очищаем дневник в базе данных
-      sb.from('journals').delete().eq('user_id', user.id).then(() => {
+      sb.from('journals').delete().eq('user_id', user.id).then(({error}) => {
+        if(error) console.error('Ошибка удаления дневника:', error);
         saveState();
         playSuccess();
         toast('Весь прогресс и дневник сброшены');
-        smartHome();
-      }).catch(() => {
-        saveState();
-        toast('Прогресс сброшен, но дневник не удалился (ошибка сети)', 'danger');
         smartHome();
       });
     }
@@ -3972,6 +4251,7 @@ function parseSmartJson() {
     if(data.author) document.getElementById('edAuthor').value = data.author;
     if(data.emoji) document.getElementById('edEmoji').value = data.emoji;
     if(data.days) document.getElementById('edDays').value = data.days;
+    if(data.category) document.getElementById('edCategory').value = data.category;
     if(data.about) document.getElementById('edAbout').value = data.about;
     
     if(data.method) document.getElementById('edMethod').value = Array.isArray(data.method) ? data.method.join(', ') : data.method;
@@ -4033,11 +4313,27 @@ function setNotifTime(period) {
   const title = period === 'morning' ? 'Утреннее напоминание' : 'Вечернее напоминание';
   document.getElementById('timeModalTitle').textContent = title;
   
-  // Устанавливаем текущее время в поле
   const currentTime = period === 'morning' ? (state.morningTime || '07:00') : (state.eveningTime || '21:00');
-  document.getElementById('timeInput').value = currentTime;
+  const [h, m] = currentTime.split(':');
   
-  // Открываем модалку
+  const hSel = document.getElementById('timeHour');
+  const mSel = document.getElementById('timeMinute');
+  
+  // Заполняем списки, если они пустые
+  if(hSel.options.length === 0) {
+    for(let i=0; i<24; i++) {
+      const val = String(i).padStart(2, '0');
+      hSel.innerHTML += `<option value="${val}">${val}</option>`;
+    }
+    for(let i=0; i<60; i+=5) { // Шаг 5 минут, чтобы не скроллить вечность
+      const val = String(i).padStart(2, '0');
+      mSel.innerHTML += `<option value="${val}">${val}</option>`;
+    }
+  }
+  
+  hSel.value = h;
+  mSel.value = m;
+  
   document.getElementById('timeModal').classList.remove('hidden');
 }
 
@@ -4046,10 +4342,10 @@ function closeTimeModal() {
 }
 
 function saveTimeFromModal() {
-  const time = document.getElementById('timeInput').value;
-  if (!time) return;
+  const h = document.getElementById('timeHour').value;
+  const m = document.getElementById('timeMinute').value;
+  const time = `${h}:${m}`;
 
-  // Сохраняем в состояние
   if (currentNotifPeriod === 'morning') {
     state.morningTime = time;
     document.getElementById('morningTime').textContent = time;
@@ -4162,3 +4458,110 @@ async function viewUserProfile(userId, source = 'feed') {
     toast('Ошибка загрузки профиля', 'danger');
   }
 }
+function togglePassword() {
+  const p = document.getElementById('password');
+  if(p) p.type = p.type === 'password' ? 'text' : 'password';
+}
+async function savePracticeNote(practiceTitle, noteText, bookId) {
+  if (!noteText || !noteText.trim()) return;
+  
+  try {
+    await sb.from('notes').insert({
+      user_id: user.id,
+      book_id: bookId || (currentBook ? currentBook.id : 'unknown'),
+      practice_title: practiceTitle,
+      text: noteText.trim()
+    });
+    console.log('✅ Заметка сохранена в БД');
+  } catch(e) {
+    console.error('Ошибка сохранения заметки:', e);
+  }
+}
+// ─── ОЗВУЧКА ТАЙМЕРА ───
+function speakTimerEnd() {
+  if (state.soundOn === false) return;
+  
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel(); // Сбрасываем предыдущую очередь
+    
+    const text = "Время практики завершено. Зафиксируйте мысли и открывайте глаза.";
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ru-RU';
+    utterance.rate = 0.9;
+    utterance.volume = 1.0;
+
+    // Функция, которая выберет голос и запустит озвучку
+    const playVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      
+      // Ищем ЛЮБОЙ русский голос (обычно женские стоят первыми)
+      const ruVoice = voices.find(v => v.lang === 'ru-RU' || v.lang === 'ru');
+      
+      if (ruVoice) {
+        utterance.voice = ruVoice;
+        console.log('🔊 Озвучка голосом:', ruVoice.name);
+      } else {
+        console.log('⚠️ Русский голос не найден, используется стандартный.');
+      }
+      
+      window.speechSynthesis.speak(utterance);
+    };
+
+    // Проверяем: если голоса уже загружены в браузер — запускаем сразу
+    if (window.speechSynthesis.getVoices().length !== 0) {
+      playVoice();
+    } else {
+      // Если нет — ждем события загрузки голосов
+      window.speechSynthesis.onvoiceschanged = () => {
+        playVoice();
+        window.speechSynthesis.onvoiceschanged = null; // Убираем слушатель
+      };
+    }
+  }
+  async function adminGrantSub(userId, days) {
+  try {
+    let newDate = null;
+    if (days > 0) {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      newDate = d.toISOString();
+    }
+    
+    const { error } = await sb.from('profiles').update({ sub_until: newDate }).eq('id', userId);
+    if (error) throw error;
+    
+    const p = adminAllUsers.find(x => x.id === userId);
+    if (p) p.sub_until = newDate;
+    
+    playSuccess();
+    toast(days > 0 ? 'Подписка выдана ✓' : 'Подписка забрана');
+    openAdminUser(userId); // Перерисовываем карточку
+  } catch (e) {
+    toast('Ошибка: ' + e.message, 'danger');
+  }
+}
+}
+// ─── УМНЫЕ ШАПКИ (СКРЫТИЕ ПРИ СКРОЛЛЕ) ───
+let lastScrollTop = 0;
+window.addEventListener('scroll', function() {
+  const header = document.querySelector('.main-head');
+  const bottomNav = document.querySelector('.bottom-nav');
+  
+  // Если шапок нет на экране (например, мы в модалке), ничего не делаем
+  if(!header || !bottomNav) return;
+
+  let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+  // Если прокрутили вниз больше 50 пикселей (чтобы не дергалось в самом начале)
+  if (scrollTop > lastScrollTop && scrollTop > 50) {
+    // Скроллим ВНИЗ -> Скрываем
+    header.classList.add('hide-ui');
+    bottomNav.classList.add('hide-ui');
+  } else {
+    // Скроллим ВВЕРХ -> Показываем
+    header.classList.remove('hide-ui');
+    bottomNav.classList.remove('hide-ui');
+  }
+  
+  lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+}, { passive: true });
