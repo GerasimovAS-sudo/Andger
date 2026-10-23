@@ -6,11 +6,32 @@
 const SUPABASE_URL = 'https://cangetbuejkwqgfxpeow.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_-gGY5BghNH6nqi4j_wXmpw_xgHjUFax';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ─── БАЗА SVG-ИКОНОК (Lucide) ───
+const SVG_ICONS = {
+  'zap': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>',
+  'play': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>',
+  'link': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
+  'layout': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>',
+  'user': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+  'check-square': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>',
+  'brain': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>',
+  'book': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>',
+  'sun': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>',
+  'heart': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>'
+};
+
+// Функция, которая превращает текст в SVG
+function getSvgIcon(name, size = 24, color = 'currentColor') {
+  const svgCode = SVG_ICONS[name] || SVG_ICONS['book']; 
+  return svgCode.replace('viewBox="0 0 24 24"', `viewBox="0 0 24 24" width="${size}" height="${size}" style="color: ${color};"`);
+}
 
 const DEV_WHATSAPP = '79124325556';
 const DEV_TELEGRAM = 'Gerasimov_And';
 
 // ─── ГЛОБАЛЬНЫЕ ДАННЫЕ ───
+let moodWeekOffset = 0; // 0 - текущая неделя, -1 - прошлая, 1 - следующая
+let calendarWeekOffset = 0; // 0 - текущая неделя, -1 - прошлая, 1 - следующая
 let BOOKS=[], currentBook=null, currentPractice=null, ritualQueue=[], ritualIndex=0;
 let timerInterval=null, timerRemaining=0, timerState='idle';
 let user=null, state={}, onbIndex=0, statsBookId=null;
@@ -152,7 +173,7 @@ document.addEventListener('click',(e)=>{
 const MUSIC_TRACKS=['meditation.mp3','meditation-2.mp3','meditation-3.mp3','meditation-4.mp3','meditation-5.mp3'];
 let currentTrackIdx=0;
 function startMusic(){
-  if(state.soundOn===false)return;
+  if(state.soundMode !== 'sound') return;
   if(!musicAudio){
     musicAudio=new Audio();
     musicAudio.volume=0;
@@ -208,11 +229,35 @@ function playTone(freq,duration,type,vol){
     osc.start();osc.stop(ctx.currentTime+duration);
   }catch(e){}
 }
-function playClick(){playTone(800,0.04,'sine',0.06);if(navigator.vibrate)navigator.vibrate(15)}
-function playSuccess(){playTone(600,0.1,'sine',0.1);setTimeout(()=>playTone(900,0.15,'sine',0.1),100)}
-function playError(){playTone(200,0.15,'square',0.08);if(navigator.vibrate)navigator.vibrate([50,30,50])}
-function playFanfare(){if(state.soundOn===false)return;[523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,0.3,'sine',0.12),i*120));if(navigator.vibrate)navigator.vibrate([100,50,100,50,200])}
-function playCheck(){if(state.soundOn===false)return;playTone(500,0.08,'sine',0.1);setTimeout(()=>playTone(750,0.12,'sine',0.1),60);if(navigator.vibrate)navigator.vibrate(80)}
+function playClick() {
+  if(state.soundMode === 'off') return;
+  if(state.soundMode === 'sound') playTone(800,0.04,'sine',0.06);
+  if(navigator.vibrate) navigator.vibrate(15);
+}
+
+function playSuccess() {
+  if(state.soundMode === 'off') return;
+  if(state.soundMode === 'sound') {
+    playTone(600,0.1,'sine',0.1);
+    setTimeout(()=>playTone(900,0.15,'sine',0.1),100);
+  }
+  if(navigator.vibrate) navigator.vibrate([30, 30, 30]);
+}
+
+function playError() {
+  if(state.soundMode === 'off') return;
+  if(state.soundMode === 'sound') playTone(200,0.15,'square',0.08);
+  if(navigator.vibrate) navigator.vibrate([50,30,50]);
+}
+
+function playCheck() {
+  if(state.soundMode === 'off') return;
+  if(state.soundMode === 'sound') {
+    playTone(500,0.08,'sine',0.1);
+    setTimeout(()=>playTone(750,0.12,'sine',0.1),60);
+  }
+  if(navigator.vibrate) navigator.vibrate(80);
+}
 
 // ─── TOAST ───
 function toast(msg,type='success'){
@@ -366,7 +411,8 @@ async function handleSession(session){
     user.lastName=profile.last_name||'';
     user.sub_until = profile.sub_until || null;
     state.avatar=profile.avatar||'👤';
-    state.soundOn=profile.sound_on!==false;
+    // Поддерживаем старую настройку и добавляем новую
+    state.soundMode = profile.sound_mode || (profile.sound_on !== false ? 'sound' : 'off');
     isAdminFlag=profile.is_admin===true;
     state.onboarded=profile.onboarded===true;
     state.lastBook=profile.last_book||null;
@@ -399,8 +445,18 @@ async function handleSession(session){
     }
   }, 60000); // 60000 мс = 1 минута
 
-  if(!state.onboarded)showOnboarding();
-  else smartHome();
+  if(!state.onboarded) {
+    showOnboarding();
+  } else {
+    // Принудительно сбрасываем экраны на Главную при входе
+    currentScreen = 'today'; 
+    if (BOOKS.length > 0) {
+      currentBook = BOOKS.find(b => b.id === state.lastBook) || BOOKS[0];
+      showTodayScreen();
+    } else {
+      showLibrary();
+    }
+  }
 }
 
 async function loadAppSettings(){
@@ -502,7 +558,8 @@ async function syncProgress(){
   if(rows.length)await sb.from('progress').upsert(rows,{onConflict:'user_id,book_id'});
   await sb.from('profiles').update({
     name:user.name,avatar:state.avatar,
-    sound_on:state.soundOn!==false,
+    sound_on: state.soundMode === 'sound',
+sound_mode: state.soundMode,
     onboarded:state.onboarded===true,
     last_book:state.lastBook||null,
     last_seen:new Date().toISOString()
@@ -766,26 +823,46 @@ function hasBookAccess(id){
   return access.includes(id);
 }
 
-// ─── ЗВУК UI ───
 function toggleSound(){
-  state.soundOn=state.soundOn===false?true:false;
-  saveState();updateSoundUI();
-  sb.from('profiles').update({sound_on:state.soundOn}).eq('id',user.id).then(()=>{});
-  if(state.soundOn){
+  // Переключаем по кругу: sound -> vibrate -> off -> sound
+  if (state.soundMode === 'sound') state.soundMode = 'vibrate';
+  else if (state.soundMode === 'vibrate') state.soundMode = 'off';
+  else state.soundMode = 'sound';
+
+  saveState();
+  updateSoundUI();
+  
+  // Сохраняем в базу (sound_on = true только если 'sound')
+  sb.from('profiles').update({ sound_on: state.soundMode === 'sound', sound_mode: state.soundMode }).eq('id',user.id).then(()=>{});
+
+  // Включаем/выключаем музыку в зависимости от режима
+  const inR = !document.getElementById('ritualScreen').classList.contains('hidden');
+  const inP = !document.getElementById('practiceScreen').classList.contains('hidden');
+  
+  if (state.soundMode === 'sound') {
     playClick();
-    const inR=!document.getElementById('ritualScreen').classList.contains('hidden');
-    const inP=!document.getElementById('practiceScreen').classList.contains('hidden');
-    if(inR||inP)startMusic();
-  }else stopMusic();
+    if(inR || inP) startMusic();
+  } else {
+    stopMusic();
+    if (state.soundMode === 'vibrate' && navigator.vibrate) {
+      navigator.vibrate(50); // Короткая вибрация для отклика
+    }
+  }
 }
+
 function updateSoundUI(){
   const tog = document.getElementById('soundToggle');
-  if(tog) tog.classList.toggle('on', state.soundOn !== false);
+  // В настройках переключатель горит только если включен полный звук
+  if(tog) tog.classList.toggle('on', state.soundMode === 'sound');
   
-  // Меняем иконку на всех экранах
+  // Меняем иконку на всех экранах (шапки, ритуал)
   const soundBtns = document.querySelectorAll('.sound-btn');
+  let icon = '🔊';
+  if (state.soundMode === 'vibrate') icon = '📳';
+  if (state.soundMode === 'off') icon = '🔇';
+
   soundBtns.forEach(btn => {
-    btn.textContent = state.soundOn === false ? '🔇' : '🔊';
+    btn.textContent = icon;
   });
 }
 
@@ -1011,7 +1088,8 @@ function renderToday(){
   const todayCount=(todayRec.practices||[]).length;
   const total=b.practices.length;
 
-  document.getElementById('todayName').textContent=user.name||'Друг';
+  const fullName = (user.name || 'Друг') + (user.lastName ? ' ' + user.lastName : '');
+document.getElementById('todayName').textContent = fullName;
   
 // Считаем глобальный опыт для статуса на главной
   let globalXP = 0;
@@ -1123,6 +1201,36 @@ function renderToday(){
   // Вызовы отрисовки
   renderHeroCards();
   renderWeekCalendar(); // Новый календарь
+  // Настройка свайпа для календаря
+  const calEl = document.getElementById('weekCalendar');
+  if (calEl && !calEl.dataset.swipeInit) {
+    calEl.dataset.swipeInit = 'true';
+    let startX = 0;
+    let startY = 0;
+    
+    calEl.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    }, {passive: true});
+    
+    calEl.addEventListener('touchend', (e) => {
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const diffX = startX - endX;
+      const diffY = startY - endY;
+      
+      // Если свайп по горизонтали больше, чем по вертикали
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+        if (diffX > 0) {
+          // Свайп влево (следующая неделя, максимум +1)
+          if (calendarWeekOffset < 1) { calendarWeekOffset++; renderWeekCalendar(); }
+        } else {
+          // Свайп вправо (прошлая неделя, минимум -1)
+          if (calendarWeekOffset > -1) { calendarWeekOffset--; renderWeekCalendar(); }
+        }
+      }
+    }, {passive: true});
+  }
   renderHint();
   updateSoundUI();
 }
@@ -1195,7 +1303,8 @@ function setLibFilter(f,el){
   renderLibrary();
 }
 function renderLibrary(){
-  document.getElementById('libName').textContent=user.name||'Друг';
+  const fullName = (user.name || 'Друг') + (user.lastName ? ' ' + user.lastName : '');
+document.getElementById('libName').textContent = fullName;
   document.getElementById('libAvatar').textContent=state.avatar||'👤';
   
   const q=(document.getElementById('libSearch')?.value||'').toLowerCase().trim();
@@ -1229,8 +1338,8 @@ function renderLibrary(){
 
   let html = '';
   Object.keys(grouped).forEach((catName, index) => {
-    // Открываем первую категорию по умолчанию
-    const isOpen = index === 0; 
+    // Все папки закрыты по умолчанию
+    const isOpen = false; 
     
     html += `
       <div class="lib-category-wrap">
@@ -1292,6 +1401,7 @@ function openBookDetail(id){
     `<span class="bd-tag">📋 ${b.practices.length} практик</span><span class="bd-tag">⏱ ~${totalTime} мин/день</span>`;
 
   renderBookStars(id);
+  renderBookReviews(id);
 
   if(b.method&&b.method.length){
     document.getElementById('bdMethod').innerHTML=b.method.map(m=>`<div class="bm-item">${m}</div>`).join('');
@@ -2202,8 +2312,27 @@ function closePractice(){
   document.body.style.overflow='';
   stopTimer();timerState='idle';stopMusic();
   currentPractice=null;
+  
+  // --- ПРОВЕРКА НА ЗАВЕРШЕНИЕ КНИГИ ---
+  const b = currentBook;
+  if (b) {
+    const closed = countClosedDays(b.id);
+    // Если пройдены все дни (книга завершена)
+    if (closed >= b.days) {
+      // Проверяем, есть ли уже отзыв от этого юзера
+      sb.from('reviews').select('id').eq('user_id', user.id).eq('book_id', b.id).maybeSingle().then(({data}) => {
+        if (!data) {
+          // Отзыва нет — показываем модалку
+          showReviewModal(b.id);
+        }
+      });
+    }
+  }
+  // ------------------------------------
+  
   smartHome();
 }
+
 async function markPracticeFromScreen(id){
   const noteInput = document.getElementById('practiceNoteInput');
   const noteText = noteInput ? noteInput.value : '';
@@ -2272,23 +2401,51 @@ function fireConfetti(){
 }
 
 // ─── ДЫХАНИЕ ───
-let breathTimer=null;
-const BREATH_CYCLE=[{t:'Вдох',d:4,cls:'inhale'},{t:'Задержка',d:7,cls:'hold'},{t:'Выдох',d:8,cls:'exhale'}];
-function showBreathModal(){document.getElementById('breathModal').classList.remove('hidden')}
-function closeBreath(){stopBreath();document.getElementById('breathModal').classList.add('hidden')}
+let breathTimer = null;
+let breathSeconds = 0;
+const BREATH_CYCLE = [{t:'Вдох',d:4,cls:'inhale'},{t:'Задержка',d:7,cls:'hold'},{t:'Выдох',d:8,cls:'exhale'}];
+
+function showBreathModal(){
+  document.getElementById('breathModal').classList.remove('hidden');
+  // Сбрасываем таймер при открытии
+  breathSeconds = 0;
+  document.getElementById('breathTimerDisplay').textContent = '00:00';
+  document.getElementById('breathBtn').textContent = '▶ Начать';
+}
+
+function closeBreath(){
+  stopBreath();
+  document.getElementById('breathModal').classList.add('hidden');
+}
+
 function toggleBreath(){
-  if(breathTimer){stopBreath();document.getElementById('breathBtn').textContent='▶ Начать';return}
+  if(breathTimer){
+    stopBreath();
+    document.getElementById('breathBtn').textContent='▶ Продолжить';
+    return;
+  }
   document.getElementById('breathBtn').textContent='⏸ Пауза';
   runBreathCycle();
 }
+
 function runBreathCycle(){
-  let phase=0,remaining=BREATH_CYCLE[0].d;
+  let phase=0, remaining=BREATH_CYCLE[0].d;
+  
   function update(){
     const el=document.getElementById('breathCircle');
     const txt=document.getElementById('breathText');
+    const timerDisplay = document.getElementById('breathTimerDisplay');
     const cur=BREATH_CYCLE[phase];
-    if(el)el.className='breath-circle '+cur.cls;
-    if(txt)txt.textContent=cur.t+' '+remaining;
+    
+    if(el) el.className='breath-circle '+cur.cls;
+    if(txt) txt.textContent=cur.t+' '+remaining;
+    
+    // Обновляем общий секундомер
+    breathSeconds++;
+    const m = String(Math.floor(breathSeconds/60)).padStart(2,'0');
+    const s = String(breathSeconds%60).padStart(2,'0');
+    if(timerDisplay) timerDisplay.textContent = `${m}:${s}`;
+    
     remaining--;
     if(remaining<0){
       phase=(phase+1)%BREATH_CYCLE.length;
@@ -2298,15 +2455,14 @@ function runBreathCycle(){
   update();
   breathTimer=setInterval(update,1000);
 }
+
 function stopBreath(){
   if(breathTimer){clearInterval(breathTimer);breathTimer=null}
   const el=document.getElementById('breathCircle');
-  if(el)el.className='breath-circle';
+  if(el) el.className='breath-circle';
   const txt=document.getElementById('breathText');
-  if(txt)txt.textContent='Готов?';
+  if(txt) txt.textContent='Пауза';
 }
-// ─── ПРОФИЛЬ ───
-function renderProfile(){
   try {
     // Безопасное получение телефона
     const phone = (user && user.phone) ? user.phone : '79999999999';
@@ -2334,6 +2490,40 @@ function renderProfile(){
     else if (totalXP >= 100) { lvlName = 'Ученик'; lvlIco = '🌿'; }
     
     const xpBadge = document.getElementById('profileXpBadge');
+    // --- СЧЕТЧИКИ ДЛЯ ПРОФИЛЯ ---
+    let totalClosedDays = 0;
+    let totalCompletedBooks = 0;
+    let totalPracticesDone = 0;
+
+    BOOKS.forEach(b => {
+      const closed = countClosedDays(b.id);
+      totalClosedDays += closed;
+      if (closed >= b.days) totalCompletedBooks++;
+      
+      const bs = getBookState(b.id);
+      Object.values(bs.days).forEach(rec => {
+        if (rec.practices) totalPracticesDone += rec.practices.length;
+      });
+    });
+
+    const statsGrid = document.getElementById('profileStatsGrid');
+    if(statsGrid) {
+      statsGrid.innerHTML = `
+        <div style="text-align:center;">
+          <div style="font-size:20px; font-weight:900; color:var(--accent-2);">${totalClosedDays}</div>
+          <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:2px;">Дней</div>
+        </div>
+        <div style="text-align:center; border-left:1px solid var(--border); border-right:1px solid var(--border);">
+          <div style="font-size:20px; font-weight:900; color:var(--warm);">${totalCompletedBooks}</div>
+          <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:2px;">Книг</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:20px; font-weight:900; color:var(--success);">${totalPracticesDone}</div>
+          <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:2px;">Практик</div>
+        </div>
+      `;
+    }
+    // ----------------------------
     if(xpBadge) xpBadge.textContent = `${lvlIco} ${lvlName} · ${totalXP} XP`;
     const avaEl = document.getElementById('profileAva');
     if(avaEl) avaEl.textContent = state.avatar || '👤';
@@ -2346,7 +2536,7 @@ function renderProfile(){
   } catch(e) {
     console.error('❌ renderProfile Error:', e);
   }
-}
+
 async function saveName(){
   const fullVal = document.getElementById('profileFullName').value.trim();
   if(!fullVal) return;
@@ -2630,15 +2820,73 @@ let journalFilter = 'all'; // Глобальная переменная для �
 async function renderJournal(){
   document.getElementById('journalAvatar').textContent = state.avatar||'👤';
   
-  // 1. Рисуем фильтры по книгам
+  // 1. Рисуем фильтры по книгам в виде карточек Главной страницы
   const filterWrap = document.getElementById('journalFilters');
-  let filterHtml = `<div class="lib-filter ${journalFilter==='all'?'on':''}" onclick="setJournalFilter('all', this)">Все книги</div>`;
-  let dotsHtml = `<div class="b-dot ${journalFilter==='all'?'on':''}"></div>`;
   
-  BOOKS.forEach(b => {
-    filterHtml += `<div class="lib-filter ${journalFilter===b.id?'on':''}" onclick="setJournalFilter('${b.id}', this)">${b.emoji} ${b.title}</div>`;
-    dotsHtml += `<div class="b-dot ${journalFilter===b.id?'on':''}"></div>`;
+  // Собираем список: сначала "Все", потом книги
+  const filterList = [{ id: 'all', title: 'Все записи', author: 'Общий дневник', emoji: 'book', days: 0, isAll: true }];
+  BOOKS.forEach(b => filterList.push(b));
+
+  let filterHtml = '';
+  let dotsHtml = '';
+  
+  filterList.forEach(item => {
+    const isActive = journalFilter === item.id;
+    
+    let cardContent = '';
+    
+    if (item.isAll) {
+       // Карточка "Все записи"
+       cardContent = `
+        <div class="abc-head">
+          <div class="abc-emoji" style="display:flex; align-items:center; justify-content:center;">${getSvgIcon('book', 36, 'var(--accent-2)')}</div>
+           <div class="abc-info">
+            <div class="abc-title">Все книги</div>
+            <div style="font-size:12px; color:var(--accent-2); font-weight:700; margin-bottom:4px;">Общий дневник</div>
+            <div class="abc-day">Все записи</div>
+          </div>
+        </div>
+        <div class="abc-bar"><div class="abc-fill" style="width:100%"></div></div>
+        <div class="abc-meta" style="justify-content:space-between;">
+          <span>Показать всё</span>
+          <span>Прогресс: <b>100%</b></span>
+        </div>
+       `;
+    } else {
+       // Карточка конкретной книги (как на Главной)
+       const bs = getBookState(item.id);
+       const closed = countClosedDays(item.id);
+       const pct = Math.round(closed / (item.days || 1) * 100);
+       const day = currentDay(item.id);
+       
+       cardContent = `
+        <div class="abc-head">
+          <div class="abc-emoji" style="display:flex; align-items:center; justify-content:center;">${getSvgIcon(item.emoji, 36, 'var(--accent-2)')}</div>
+           <div class="abc-info">
+            <div class="abc-title">${item.title}</div>
+            <div style="font-size:12px; color:var(--accent-2); font-weight:700; margin-bottom:4px;">${item.author || 'Неизвестный автор'}</div>
+            <div class="abc-day">День ${day} из ${item.days}</div>
+          </div>
+        </div>
+        <div class="abc-bar"><div class="abc-fill" style="width:${pct}%"></div></div>
+        <div class="abc-meta">
+          <span>Прогресс: <b>${pct}%</b></span>
+        </div>
+       `;
+    }
+
+    // Убрали жесткие min-width/max-width, теперь ширина берется из styles.css (как на Главной)
+    filterHtml += `
+      <div class="active-book-card" 
+           onclick="setJournalFilter('${item.id}')" 
+           style="${isActive ? 'border-color: var(--accent); box-shadow: 0 0 15px rgba(124,92,255,0.15);' : 'opacity: 0.6;'}">
+        ${cardContent}
+      </div>
+    `;
+    
+    dotsHtml += `<div class="b-dot ${isActive ? 'on' : ''}"></div>`;
   });
+  
   filterWrap.innerHTML = filterHtml;
   document.getElementById('journalDots').innerHTML = dotsHtml;
 
@@ -2687,9 +2935,36 @@ async function renderJournal(){
   document.getElementById('journalHistory').innerHTML = statsHtml + historyHtml;
   renderMoodTracker(); // Оставляем график настроения
   renderMoodChart();
+  // Настройка свайпа для графика настроения
+  const chartEl = document.getElementById('moodChartWrap');
+  if (chartEl && !chartEl.dataset.swipeInit) {
+    chartEl.dataset.swipeInit = 'true';
+    let startX = 0;
+    let startY = 0;
+    
+    chartEl.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    }, {passive: true});
+    
+    chartEl.addEventListener('touchend', (e) => {
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const diffX = startX - endX;
+      const diffY = startY - endY;
+      
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+        if (diffX > 0) {
+          if (moodWeekOffset < 1) { moodWeekOffset++; renderMoodChart(); }
+        } else {
+          if (moodWeekOffset > -1) { moodWeekOffset--; renderMoodChart(); }
+        }
+      }
+    }, {passive: true});
+  }
 }
 
-function setJournalFilter(bookId, el) {
+function setJournalFilter(bookId) {
   journalFilter = bookId;
   renderJournal(); // Перерисовываем всё
   playClick();
@@ -2755,21 +3030,33 @@ async function renderMoodChart() {
   const wrap = document.getElementById('moodChartWrap');
   if (!wrap) return;
 
-  // Получаем последние 7 дней
+  const today = new Date();
+  // Применяем сдвиг недели (каждый шаг - это 7 дней)
+  const baseDate = new Date(today);
+  baseDate.setDate(today.getDate() + (moodWeekOffset * 7));
+
+  // Находим понедельник нужной недели
+  const dayOfWeek = baseDate.getDay() === 0 ? 6 : baseDate.getDay() - 1; 
+  const monday = new Date(baseDate);
+  monday.setDate(baseDate.getDate() - dayOfWeek);
+
   const days = [];
-  const dows = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ']; // Воскресенье=0
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
+  const dows = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
     days.push({
       date: localDate(d),
-      dow: dows[d.getDay()]
+      dow: dows[i],
+      isFuture: d > today
     });
   }
 
   try {
     const startDate = days[0].date;
-    const { data } = await sb.from('moods').select('*').eq('user_id', user.id).gte('date', startDate);
+    const endDate = days[6].date;
+    const { data } = await sb.from('moods').select('*').eq('user_id', user.id).gte('date', startDate).lte('date', endDate);
     const moodsMap = {};
     (data || []).forEach(m => moodsMap[m.date] = m);
 
@@ -2782,11 +3069,12 @@ async function renderMoodChart() {
       if (m.evening) { val += m.evening; count++; }
       
       const avg = count > 0 ? (val / count) : 0;
-      const heightPct = Math.max(4, (avg / 5) * 100); // Минимальная высота 4%, чтобы полоска была видна
+      const heightPct = Math.max(4, (avg / 5) * 100); 
       const isEmpty = avg === 0;
+      const opacity = day.isFuture ? '0.3' : '1';
 
       html += `
-        <div class="mc-bar-wrap">
+        <div class="mc-bar-wrap" style="opacity: ${opacity};">
           <div class="mc-val">${isEmpty ? '' : avg.toFixed(1)}</div>
           <div class="mc-bar ${isEmpty ? 'empty' : ''}" style="height: ${isEmpty ? 4 : heightPct}%"></div>
           <div class="mc-label">${day.dow}</div>
@@ -2794,9 +3082,27 @@ async function renderMoodChart() {
       `;
     });
     wrap.innerHTML = html;
+
+    // Отрисовка точек
+    const dotsEl = document.getElementById('moodChartDots');
+    if (dotsEl) {
+      dotsEl.innerHTML = `
+        <div class="b-dot ${moodWeekOffset === -1 ? 'on' : ''}" onclick="changeMoodWeek(-1)"></div>
+        <div class="b-dot ${moodWeekOffset === 0 ? 'on' : ''}" onclick="changeMoodWeek(0)"></div>
+        <div class="b-dot ${moodWeekOffset === 1 ? 'on' : ''}" onclick="changeMoodWeek(1)"></div>
+      `;
+    }
+
   } catch (e) {
     console.error('Ошибка графика настроения:', e);
   }
+}
+
+// Функция для смены недели графика
+function changeMoodWeek(dir) {
+  moodWeekOffset = dir;
+  renderMoodChart();
+  playClick();
 }
 async function setMood(period,val){
   const today=todayStr();
@@ -3923,12 +4229,15 @@ document.addEventListener('scroll', (e) => {
     });
   }
 
-  // ДОБАВЛЯЕМ СЛУШАТЕЛЬ ДЛЯ ДНЕВНИКА
+  // СЛУШАТЕЛЬ ДЛЯ ДНЕВНИКА
   if (e.target && e.target.id === 'journalFilters') {
     const wrap = e.target;
     const cardWidth = wrap.children[0] ? wrap.children[0].offsetWidth : 1;
     const idx = Math.round(wrap.scrollLeft / (cardWidth + 10)); 
-    document.querySelectorAll('#journalDots .b-dot').forEach((d, i) => {
+    
+    // Обновляем точки, не перерисовывая всё
+    const dots = document.querySelectorAll('#journalDots .b-dot');
+    dots.forEach((d, i) => {
       d.classList.toggle('on', i === idx);
     });
   }
@@ -4127,15 +4436,18 @@ function renderWeekCalendar() {
   const today = new Date();
   const todayStr = localDate(today);
   
-  // Находим понедельник текущей недели
-  const dayOfWeek = today.getDay() === 0 ? 6 : today.getDay() - 1; // ПН=0, ВС=6
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - dayOfWeek);
+  // Применяем сдвиг недели
+  const baseDate = new Date(today);
+  baseDate.setDate(today.getDate() + (calendarWeekOffset * 7));
+
+  // Находим понедельник нужной недели
+  const dayOfWeek = baseDate.getDay() === 0 ? 6 : baseDate.getDay() - 1;
+  const monday = new Date(baseDate);
+  monday.setDate(baseDate.getDate() - dayOfWeek);
 
   const dows = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
   let html = '';
 
-  // Рисуем 7 дней текущей недели
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
@@ -4143,20 +4455,17 @@ function renderWeekCalendar() {
     const dateStr = localDate(d);
     const isToday = dateStr === todayStr;
     
-    // Проверяем, есть ли активность в этот день
     let hasActivity = false;
     const rec = bs.days[dateStr];
     if (rec && rec.practices && rec.practices.length > 0) {
       hasActivity = true;
     }
 
-    // Проверяем, не выходит ли этот день за рамки книги (до начала или после конца)
     const bookStart = new Date(bs.start + 'T00:00:00');
     const isBeforeStart = d < bookStart;
-    const isAfterEnd = currentDay(currentBook.id) === currentBook.days && d > today; // Если книга пройдена, дни после сегодня не показываем
 
     let extraClass = '';
-    if (isBeforeStart) extraClass = 'opacity: 0.3;'; // Дни до начала книги бледные
+    if (isBeforeStart) extraClass = 'opacity: 0.3;';
     if (isToday) extraClass = 'border-color: var(--warm); background: rgba(255, 154, 86, 0.1); color: var(--warm);';
 
     html += `<div class="cal-day ${hasActivity ? 'active' : ''}" 
@@ -4168,6 +4477,23 @@ function renderWeekCalendar() {
   }
   
   el.innerHTML = html;
+
+  // Отрисовка точек-индикаторов
+  const dotsEl = document.getElementById('calendarDots');
+  if (dotsEl) {
+    dotsEl.innerHTML = `
+      <div class="b-dot ${calendarWeekOffset === -1 ? 'on' : ''}" onclick="changeCalendarWeek(-1)"></div>
+      <div class="b-dot ${calendarWeekOffset === 0 ? 'on' : ''}" onclick="changeCalendarWeek(0)"></div>
+      <div class="b-dot ${calendarWeekOffset === 1 ? 'on' : ''}" onclick="changeCalendarWeek(1)"></div>
+    `;
+  }
+}
+
+// Функция для смены недели (при клике на точки)
+function changeCalendarWeek(dir) {
+  calendarWeekOffset = dir;
+  renderWeekCalendar();
+  playClick();
 }
 
 function showDayStats(dateStr) {
@@ -4604,7 +4930,7 @@ async function savePracticeNote(practiceTitle, noteText, bookId) {
 }
 // ─── ОЗВУЧКА ТАЙМЕРА ───
 function speakTimerEnd() {
-  if (state.soundOn === false) return;
+  if (state.soundMode !== 'sound') return;
   
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel(); // Сбрасываем предыдущую очередь
@@ -4666,5 +4992,121 @@ async function adminGrantSub(userId, days) {
     openAdminUser(userId); // Перерисовываем карточку
   } catch (e) {
     toast('Ошибка: ' + e.message, 'danger');
+  }
+}
+// ─── ОТЗЫВЫ ───
+let currentReviewBookId = null;
+let currentReviewStars = 5;
+
+function showReviewModal(bookId) {
+  currentReviewBookId = bookId;
+  currentReviewStars = 5;
+  document.getElementById('reviewTextInput').value = '';
+  updateReviewStarsUI();
+  document.getElementById('reviewModal').classList.remove('hidden');
+}
+
+function setReviewStars(val) {
+  currentReviewStars = val;
+  updateReviewStarsUI();
+  playClick();
+}
+
+function updateReviewStarsUI() {
+  const stars = document.querySelectorAll('#reviewModal .fa-star, #reviewModal span[onclick^="setReviewStars"]');
+  stars.forEach((s, idx) => {
+    s.style.color = idx < currentReviewStars ? 'var(--gold)' : 'var(--border)';
+  });
+}
+
+async function saveReview() {
+  if (!currentReviewBookId) return;
+  const text = document.getElementById('reviewTextInput').value.trim();
+  
+  try {
+    await sb.from('reviews').upsert({
+      user_id: user.id,
+      book_id: currentReviewBookId,
+      stars: currentReviewStars,
+      text: text
+    }, { onConflict: 'user_id,book_id' });
+    
+    document.getElementById('reviewModal').classList.add('hidden');
+    playSuccess();
+    toast('Спасибо за отзыв!');
+    
+    // Если мы на экране этой книги, обновляем звезды
+    if (bookDetailId === currentReviewBookId) {
+      renderBookStars(currentReviewBookId);
+    }
+  } catch(e) {
+    toast('Ошибка сохранения отзыва', 'danger');
+  }
+}
+// ─── ЗАГРУЗКА ОТЗЫВОВ В КАРТОЧКУ ───
+async function renderBookReviews(bookId) {
+  const el = document.getElementById('bdReviewsList');
+  const section = document.getElementById('bdReviewsSection');
+  if (!el || !section) return;
+
+  el.innerHTML = '<div style="color:var(--muted);font-size:13px;">Загрузка отзывов...</div>';
+
+  try {
+    // Получаем только те отзывы, где есть текст (не пустые)
+    const { data: reviews, error } = await sb.from('reviews')
+      .select('*')
+      .eq('book_id', bookId)
+      .neq('text', '')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    // Если отзывов нет, скрываем весь блок
+    if (!reviews || reviews.length === 0) {
+      section.style.display = 'none';
+      return;
+    }
+
+    // Показываем блок
+    section.style.display = 'block';
+    section.classList.remove('hidden');
+
+    // Достаем имена и аватарки авторов
+    const userIds = [...new Set(reviews.map(r => r.user_id))];
+    const { data: profiles } = await sb.from('profiles').select('id, name, last_name, avatar').in('id', userIds);
+    const profileMap = {};
+    (profiles || []).forEach(p => profileMap[p.id] = p);
+
+    let html = '';
+    reviews.forEach(r => {
+      const p = profileMap[r.user_id] || { name: 'Пользователь', last_name: '', avatar: '👤' };
+      const fullName = (p.name || 'Друг') + (p.last_name ? ' ' + p.last_name : '');
+      const date = new Date(r.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+      
+      let starsHtml = '';
+      for(let i=1; i<=5; i++) {
+        starsHtml += `<span style="color:${i <= r.stars ? 'var(--gold)' : 'var(--border)'}; font-size:14px;">★</span>`;
+      }
+
+      html += `
+        <div style="background:var(--card2); border-radius:var(--radius-sm); padding:12px; margin-bottom:10px; border: 1px solid var(--border);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="width:28px; height:28px; border-radius:50%; background:var(--card3); display:flex; align-items:center; justify-content:center; font-size:14px;">${p.avatar || '👤'}</div>
+              <div style="font-size:13px; font-weight:700;">${escapeHtml(fullName)}</div>
+            </div>
+            <div style="font-size:10px; color:var(--muted);">${date}</div>
+          </div>
+          <div style="margin-bottom:6px;">${starsHtml}</div>
+          <div style="font-size:13px; color:#dcdcf0; line-height:1.5;">${escapeHtml(r.text)}</div>
+        </div>
+      `;
+    });
+
+    el.innerHTML = html;
+
+  } catch (e) {
+    console.error('Ошибка загрузки отзывов:', e);
+    el.innerHTML = '<div style="color:var(--danger);font-size:13px;">Ошибка загрузки отзывов</div>';
   }
 }

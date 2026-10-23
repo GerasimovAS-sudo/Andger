@@ -161,6 +161,9 @@
       <!-- Календарь на неделю -->
       <div class="week-calendar" id="weekCalendar" style="margin-top:16px"></div>
 
+      <!-- Точки для календаря -->
+      <div class="books-dots" id="calendarDots" style="margin-top: 4px; margin-bottom: 12px;"></div>
+
       <!-- Карточка активной книги -->
       <div class="books-slider" id="activeBookWrap" style="margin-top:12px"></div>
       <div class="books-dots" id="booksDots"></div>
@@ -246,6 +249,11 @@
           <div class="bd-author" id="bdAuthor">—</div>
           <div class="bd-tags" id="bdTags"></div>
           <div class="bd-stars" id="bdStars"></div>
+          <!-- Блок с отзывами -->
+          <div class="book-section hidden" id="bdReviewsSection" style="margin-top: 20px;">
+            <h3>💬 Отзывы читателей</h3>
+            <div id="bdReviewsList"></div>
+          </div>
         </div>
         <div style="padding:0 16px 40px">
           <div class="book-section">
@@ -269,9 +277,8 @@
             <p id="bdResult">—</p>
           </div>
           <button class="btn" id="bdStartBtn" onclick="startBookFromDetail()">🚀 Начать практику</button>
-          <button class="btn btn-ghost" id="bdResetBtn" onclick="resetBookProgress('${bdTitle}')"
-            style="color:var(--danger); border-color:var(--danger); margin-top:12px;">🗑 Сбросить прогресс
-            книги</button>
+          <button class="btn btn-ghost" id="bdResetBtn" onclick="resetBookProgress()"
+        style="color:var(--danger); border-color:var(--border); margin-top:12px; opacity:0.8;">🗑 Сбросить прогресс книги</button>
         </div>
       </div>
     </div>
@@ -412,10 +419,11 @@
         </div>
 <h2 class="section-title" style="margin-top:24px;">📈 Настроение за неделю</h2>
         <div class="mood-chart-wrap" id="moodChartWrap" style="margin-bottom:4px;"></div>
+        <div class="books-dots" id="moodChartDots" style="margin-top: 4px; margin-bottom: 20px;"></div>
 <div style="text-align:center; font-size:11px; color:var(--muted); margin-bottom:20px; font-weight:700;">Нажми на эмодзи выше, чтобы обновить график</div>
         <h2 class="section-title">✍️ Мои практики</h2>
-<div class="lib-filters" id="journalFilters" style="margin-bottom:8px;"></div>
-        <div class="books-dots" id="journalDots" style="margin-bottom:12px;"></div>
+        <div class="books-slider" id="journalFilters" style="margin-bottom: 4px;"></div>
+        <div class="books-dots" id="journalDots" style="margin-bottom:20px;"></div>
         <div id="journalHistory"></div>
       </div>
     </div>
@@ -491,7 +499,12 @@
           <button class="back-top" onclick="backFromProfile()">←</button>
           <div class="page-label">👤 ПРОФИЛЬ</div>
           <div class="head-actions">
-            <div class="icon-btn hidden" id="adminBtnProfile" onclick="showAdmin()">🛠</div>
+          <div class="icon-btn hidden" id="adminBtnProfile" onclick="showAdmin()">
+  <svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+    <polyline points="9 12 11 14 15 10"></polyline>
+  </svg>
+</div>
           </div>
         </div>
       </div>
@@ -501,6 +514,10 @@
           <input type="text" id="profileFullName" class="profile-name-input" placeholder="Имя и Фамилия" maxlength="60" onblur="saveName()" onkeydown="if(event.key === 'Enter') this.blur()">
           <div class="profile-phone" id="profilePhone">+7 ***</div>
           <div class="profile-xp-badge" id="profileXpBadge">🌱 Новичок</div>
+          <!-- Мини-статистика в профиле -->
+          <div id="profileStatsGrid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
+             <!-- Сюда JS вставит цифры -->
+          </div>
         </div>
         <h3 class="section-title">Эмодзи-аватар</h3>
         <div class="emoji-row" id="emojiRow"></div>
@@ -577,7 +594,7 @@
           </div>
         </div>
         <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:24px">
-          ANDGER · v2.0 · Разработано Андреем Герасимовым
+          ANDGER · Разработано Андреем Герасимовым
         </div>
       </div>
     </div>
@@ -887,6 +904,30 @@
       </div>
     </div>
 
+    <!-- Модалка отзыва -->
+    <div class="modal hidden" id="reviewModal">
+      <div class="modal-box">
+        <div class="emoji" style="font-size: 64px;">🏆</div>
+        <h2>Книга пройдена!</h2>
+        <p style="margin-bottom: 20px;">Поздравляем с завершением! Поделись своими впечатлениями, это очень поможет другим.</p>
+        
+        <div class="field" style="text-align:left;">
+          <textarea id="reviewTextInput" rows="4" placeholder="Что вам дала эта книга? Какие результаты?" style="width:100%; background:var(--card2); border:1.5px solid var(--border); border-radius:12px; padding:12px; color:var(--text); font-size:14px; resize:vertical; font-family:inherit;"></textarea>
+        </div>
+        
+        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
+          <span style="font-size:32px; cursor:pointer; color:var(--border); transition:0.2s;" onclick="setReviewStars(1)">★</span>
+          <span style="font-size:32px; cursor:pointer; color:var(--border); transition:0.2s;" onclick="setReviewStars(2)">★</span>
+          <span style="font-size:32px; cursor:pointer; color:var(--border); transition:0.2s;" onclick="setReviewStars(3)">★</span>
+          <span style="font-size:32px; cursor:pointer; color:var(--border); transition:0.2s;" onclick="setReviewStars(4)">★</span>
+          <span style="font-size:32px; cursor:pointer; color:var(--border); transition:0.2s;" onclick="setReviewStars(5)">★</span>
+        </div>
+
+        <button class="btn" onclick="saveReview()">Оставить отзыв</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('reviewModal').classList.add('hidden')">Пропустить</button>
+      </div>
+    </div>
+
     <!-- Оверлей завершения -->
     <div class="complete-overlay hidden" id="completeOverlay">
       <div class="complete-box">
@@ -907,11 +948,20 @@
     <!-- Дыхание -->
     <div class="modal hidden" id="breathModal">
       <div class="modal-box">
-        <h2 style="font-size:20px">🌬 Дыхание 4-7-8</h2>
+        <h2 style="font-size:22px; margin-bottom:12px;">🌬 Дыхание 4-7-8</h2>
+        
+        <p style="font-size:13px; color:var(--muted); margin-bottom:20px; line-height:1.6; text-align:left; background:var(--card2); padding:12px; border-radius:10px;">
+          <b>Зачем это нужно:</b> Техника помогает быстро успокоить нервную систему, снизить тревожность и подготовиться ко сну.<br><br>
+          <b>Как делать:</b> Вдох 4 сек. → Задержка 7 сек. → Выдох 8 сек.<br><br>
+          <b>Рекомендуемое время:</b> 3-5 минут.
+        </p>
+
         <div class="breath-circle" id="breathCircle">
           <div class="bc-inner" id="breathText">Готов?</div>
         </div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Вдох 4 · Задержка 7 · Выдох 8</p>
+        
+        <div id="breathTimerDisplay" style="font-size:16px; font-weight:900; color:var(--accent-2); margin-bottom:16px; font-variant-numeric:tabular-nums;">00:00</div>
+        
         <button class="btn" id="breathBtn" onclick="toggleBreath()">▶ Начать</button>
         <button class="btn btn-ghost" onclick="closeBreath()">Закрыть</button>
       </div>

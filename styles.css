@@ -485,7 +485,7 @@ html.light .main-head, body.light .main-head {
 .book-row .br-lock{position:absolute;top:8px;right:8px;font-size:12px}
 
 /* ─── КАРТОЧКА КНИГИ ─── */
-.book-detail-hero{padding:calc(16px + var(--safe-top)) 20px 24px;text-align:center;
+.book-detail-hero{padding:calc(80px + var(--safe-top)) 20px 24px;text-align:center;
   background:linear-gradient(180deg,rgba(124,92,255,.12) 0%,transparent 100%);
   border-radius:0 0 var(--radius-lg) var(--radius-lg)}
 .book-detail-hero .bd-emoji{font-size:72px;margin-bottom:12px}
@@ -1745,25 +1745,37 @@ button:active,
   color: var(--danger);
 }
 /* ─── АККОРДЕОН БИБЛИОТЕКИ ─── */
-.lib-category-wrap { margin-bottom: 20px; }
+.lib-category-wrap { 
+  margin-bottom: 20px; 
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden; /* Обрезаем всё внутри по кругу */
+  background: var(--card); /* Фон для тела папки */
+}
+
 .lib-category-header {
   display: flex; justify-content: space-between; align-items: center;
   padding: 14px 16px; background: var(--card2);
-  border-radius: var(--radius-sm); cursor: pointer;
-  transition: 0.2s; border: 1px solid var(--border);
+  cursor: pointer; transition: 0.2s; 
+  border: none; /* Убрали рамку у заголовка, она теперь у всей папки */
 }
-.lib-category-header:active { transform: scale(0.98); }
+
+.lib-category-header:active { background: var(--card3); }
+
 .lib-category-header.open { 
-  border-bottom-left-radius: 0; border-bottom-right-radius: 0; 
-  background: rgba(124,92,255,0.1); border-color: var(--accent); 
+  background: rgba(124,92,255,0.1); 
+  border-bottom: 1px solid var(--border); /* Линия-разделитель */
 }
+
 .lib-category-header .arrow-icon { transition: transform 0.3s; color: var(--accent-2); }
 .lib-category-header.open .arrow-icon { transform: rotate(90deg); }
+
 .lib-category-body {
   display: none;
-  padding-top: 10px;
+  padding: 10px; /* Внутренний отступ, чтобы книги не прилипали к краям */
   animation: fadeIn 0.3s ease;
 }
+
 .lib-category-body.open { display: block; }
 /* ─── ДЗЕН-РЕЖИМ (FOCUS MODE) ─── */
 .focus-mode .ps-hero,
@@ -1892,4 +1904,74 @@ button:active,
 
 #dialogInputWrap .feed-input {
   background: var(--card) !important;
+}
+/* ─── СТЕКЛЯННЫЕ ШАПКИ (iOS Style) ─── */
+.main-head {
+  background: rgba(13, 10, 24, 0.65) !important; /* Чуть прозрачнее */
+  backdrop-filter: blur(30px) !important;
+  -webkit-backdrop-filter: blur(30px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+html.light .main-head, body.light .main-head {
+  background: rgba(245, 244, 250, 0.65) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.bottom-nav {
+  background: rgba(13, 10, 24, 0.75) !important;
+  backdrop-filter: blur(30px) !important;
+  -webkit-backdrop-filter: blur(30px) !important;
+}
+.rbs-btn {
+  background: #fff;
+  color: var(--accent);
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: 0.2s;
+}
+.rbs-btn:active { transform: scale(0.95); }
+/* ─── КОМПАКТНОЕ ОКНО ВВОДА В ЧАТЕ (Telegram Style) ─── */
+#dialogInputWrap {
+  bottom: calc(16px + var(--safe-bottom)) !important;
+  left: 16px !important;
+  right: 16px !important;
+  border-radius: 24px !important; /* Сильное скругление для стиля Telegram */
+  border: 1px solid var(--border) !important;
+  background: var(--card2) !important; /* Светлее, чем карточка */
+  backdrop-filter: blur(20px) !important;
+  padding: 8px 12px !important; /* Уменьшили высоту */
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  max-width: 608px !important;
+  margin: 0 auto !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Поле ввода внутри */
+#dialogInputWrap .feed-input {
+  background: transparent !important; /* Убрали фон, чтобы было ощущение единого целого */
+  padding: 8px 0 !important;
+  font-size: 15px;
+}
+
+/* Кнопка отправки */
+#dialogInputWrap .feed-post-btn {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  padding-left: 4px; /* Чтобы иконка стрелочки визуально стояла по центру */
 }

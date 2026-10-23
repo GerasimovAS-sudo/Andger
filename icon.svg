@@ -1,28 +1,69 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <!-- Градиент для кольца -->
-    <linearGradient id="ringGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+    <linearGradient id="ringGrad" x1="10%" y1="90%" x2="90%" y2="10%">
       <stop offset="0%" stop-color="#1e5cff" />
-      <stop offset="28%" stop-color="#7c5cff" />
-      <stop offset="55%" stop-color="#d94aff" />
-      <stop offset="78%" stop-color="#ff7a2a" />
-      <stop offset="100%" stop-color="#ffc233" />
+      <stop offset="35%" stop-color="#9333ea" />
+      <stop offset="65%" stop-color="#ec4899" />
+      <stop offset="85%" stop-color="#f97316" />
+      <stop offset="100%" stop-color="#facc15" />
     </linearGradient>
     
     <!-- Градиент для текста -->
     <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#c4b5fd" />
-      <stop offset="50%" stop-color="#7c5cff" />
-      <stop offset="100%" stop-color="#ff9a56" />
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="70%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#ffd1c1" />
     </linearGradient>
+
+    <!-- БОЛЕЕ ЯРКИЙ ГРАДИЕНТ ДЛЯ ЗВЕЗДЫ -->
+    <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+      <stop offset="8%" stop-color="#ffffff" stop-opacity="1" />
+      <stop offset="20%" stop-color="#ffea00" stop-opacity="0.9" />
+      <stop offset="50%" stop-color="#ff7a2a" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#ff7a2a" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Фильтр для неонового свечения кольца -->
+    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="18" result="blur1" />
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur2" />
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur3" />
+      <feMerge>
+        <feMergeNode in="blur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="blur3" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
   </defs>
 
   <!-- Темный фон -->
   <rect width="512" height="512" rx="115" fill="#0d0a18" />
+  
+  <!-- Фоновая подсветка за кольцом -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#7c5cff" stroke-width="60" opacity="0.05" filter="blur(20px)"/>
 
-  <!-- Градиентное кольцо -->
-  <circle cx="256" cy="256" r="170" fill="none" stroke="url(#ringGrad)" stroke-width="24" stroke-linecap="round" stroke-dasharray="880 188" transform="rotate(-45 256 256)" />
+  <!-- Кольцо с мощным неоновым свечением -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="url(#ringGrad)" stroke-width="20" stroke-linecap="round" stroke-dasharray="1160 96" transform="rotate(-45 256 256)" filter="url(#neonGlow)"/>
 
-  <!-- Название ANDGER по центру -->
-  <text x="256" y="280" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="60" font-weight="800" fill="url(#textGrad)" text-anchor="middle" letter-spacing="4">ANDGER</text>
+  <!-- Текст ANDGER (Увеличен до 56) -->
+  <text x="256" y="278" font-family="system-ui, -apple-system, sans-serif" font-size="56" font-weight="600" fill="url(#textGrad)" text-anchor="middle" letter-spacing="16">ANDGER</text>
+
+  <!-- Звезда и блики (Ярче и концентрированнее) -->
+  <g transform="translate(396, 114)">
+    <!-- Усиленный ореол -->
+    <circle cx="0" cy="0" r="75" fill="url(#starGlow)" />
+    
+    <!-- Чуть более заметные лучи -->
+    <line x1="-80" y1="0" x2="80" y2="0" stroke="#ffffff" stroke-width="1.5" opacity="0.8" filter="blur(0.5px)"/>
+    <line x1="0" y1="-80" x2="0" y2="80" stroke="#ffffff" stroke-width="1.5" opacity="0.8" filter="blur(0.5px)"/>
+    
+    <!-- Ядро звезды (сделано чуть крупнее) -->
+    <path d="M 0 -22 Q 0 0 22 0 Q 0 0 0 22 Q 0 0 -22 0 Q 0 0 0 -22 Z" fill="#ffffff" />
+    
+    <!-- Добавлена ослепительно белая точка в самом центре -->
+    <circle cx="0" cy="0" r="5" fill="#ffffff" filter="blur(1.5px)"/>
+  </g>
 </svg>
