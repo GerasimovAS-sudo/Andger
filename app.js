@@ -278,7 +278,7 @@ function nextTrack(){
 }
 function stopMusic(){
   if(!musicAudio)return;
-  fadeAudio(musicAudio,musicAudio.volume,0,300,()=>{try{musicAudio.pause();musicAudio.currentTime=0}catch(e){}});
+  fadeAudio(musicAudio,musicAudio.volume,0,100,()=>{try{musicAudio.pause();musicAudio.currentTime=0}catch(e){}});
 }
 function fadeAudio(audio,from,to,duration,onEnd){
   const start=performance.now();
@@ -3460,7 +3460,7 @@ async function loadFeed(){
     
     return `<div class="feed-post">
       <div class="fp-head" onclick="viewUserProfile('${m.user_id}', 'feed')" style="cursor:pointer">
-        <div class="fp-ava">${m.user_avatar||'👤'}</div>
+        <div class="fp-ava">${getAvatarHtml(m.user_avatar, 20)}</div>
         <div class="fp-info">
           <div class="fp-name">${escapeHtml(m.user_name||'Аноним')}${own?' · ты':''}</div>
           <div class="fp-time">${t}</div>
@@ -3492,7 +3492,7 @@ async function loadFeed(){
         </div>
       </div>
       <div class="feed-comments" id="comments-${m.id}">
-        ${postComments.map(c=>`<div class="feed-comment"><div class="fc-ava">${c.user_avatar||'👤'}</div><div class="fc-body"><div class="fc-name">${escapeHtml(c.user_name||'Аноним')}</div><div class="fc-text">${escapeHtml(c.text)}</div></div></div>`).join('')}
+        ${postComments.map(c=>`<div class="feed-comment"><div class="fc-ava">${getAvatarHtml(c.user_avatar, 16)}</div><div class="fc-body"><div class="fc-name">${escapeHtml(c.user_name||'Аноним')}</div><div class="fc-text">${escapeHtml(c.text)}</div></div></div>`).join('')}
         <div class="feed-comment-form"><input type="text" id="cin-${m.id}" placeholder="Ответить..." maxlength="300"><button class="feed-post-btn" style="width:36px;height:36px;font-size:16px" onclick="sendComment(${m.id},'${m.user_id}')">➤</button></div>
       </div>
     </div>`;
@@ -3689,7 +3689,7 @@ async function loadChats(){
       const p=profMap[id]||{name:'Участник',avatar:'👤'};
       const preview=d.last.from_user===user.id?'Ты: ':'';
       html+=`<div class="chat-row">
-        <div class="cr-ava" onclick="event.stopPropagation(); viewUserProfile('${id}', 'chats')" style="cursor:pointer;">${p.avatar||'👤'}</div>
+        <div class="cr-ava" onclick="event.stopPropagation(); viewUserProfile('${id}', 'chats')" style="cursor:pointer;">${getAvatarHtml(p.avatar, 24)}</div>
         <div class="cr-info" onclick="openDialog('${id}')" style="cursor:pointer;">
           <div class="cr-name">
             <span onclick="event.stopPropagation(); viewUserProfile('${id}', 'chats')">${escapeHtml(p.name||'Участник')}</span>
@@ -3918,7 +3918,7 @@ async function loadPeople(){
         if(p.score<=0)return;
         const medal=['🥇','🥈','🥉'][i];
         html+=`<div class="admin-item" onclick="viewUserProfile('${p.id}', 'people')">
-          <div class="ai-ava">${p.avatar||'👤'}</div>
+          <div class="ai-ava">${getAvatarHtml(p.avatar, 20)}</div>
           <div class="ai-info">
             <div class="ai-name">${escapeHtml(p.name||'Аноним')}</div>
             <div class="ai-phone">🔥 ${p.score} ${plural(p.score,'день','дня','дней')} за неделю</div>
@@ -3932,7 +3932,7 @@ async function loadPeople(){
       html+='<h3 class="section-title">👥 Все участники</h3>';
       rest.forEach(p=>{
         html+=`<div class="admin-item" onclick="viewUserProfile('${p.id}', 'people')">
-          <div class="ai-ava">${p.avatar||'👤'}</div>
+          <div class="ai-ava">${getAvatarHtml(p.avatar, 20)}</div>
           <div class="ai-info">
             <div class="ai-name">${escapeHtml(p.name||'Аноним')}</div>
             <div class="ai-phone">${p.score>0?'🔥 '+p.score+' за неделю':'Без активности'}</div>
@@ -4123,7 +4123,7 @@ function renderAdminList(list){
 
     return `<div class="admin-item" style="display:flex; justify-content:space-between;">
       <div style="display:flex; gap:12px; align-items:center; flex:1;" onclick="openAdminUser('${p.id}')">
-        <div class="ai-ava">${p.avatar||'👤'}</div>
+        <div class="ai-ava">${getAvatarHtml(p.avatar, 20)}</div>
         <div class="ai-info">
           <div class="ai-name">${escapeHtml(p.name||'Без имени')} ${p.is_admin?'👑':''} ${isMe?'(ты)':''} ${p.blocked?'🚫':''} ${subBadge}</div>
           <div class="ai-phone">${phoneShown}</div>
@@ -4215,7 +4215,7 @@ async function openAdminUser(id){
     <div class="admin-detail">
       <div class="ad-head" style="justify-content:space-between;">
         <div style="display:flex; align-items:center; gap:12px;">
-          <div class="ad-ava">${p.avatar||'👤'}</div>
+          <div class="ad-ava">${getAvatarHtml(p.avatar, 24)}</div>
           <div>
             <h3>${escapeHtml(p.name||'Без имени')} ${p.is_admin?'👑':''}</h3>
             <p>${isMe?'Это ты':''}${p.blocked?' · 🚫 Заблокирован':''}</p>
@@ -4576,6 +4576,18 @@ async function saveBook(published){
     err.textContent=published?'✅ Опубликовано':'💾 Черновик сохранён';
     err.style.color='var(--success)';
     window._aiBook=null;
+        // --- ОБНОВЛЕНИЕ СПИСКА КНИГ В ПАМЯТИ ---
+    const existingIdx = BOOKS.findIndex(b => b.id === id);
+    const normalized = {
+      id, title: data.title, author: data.author, emoji: data.emoji, days: data.days,
+      about: data.about, method: data.method, authorBio: data.author_bio,
+      forWhom: data.for_whom, result: data.result, category: data.category,
+      practices: data.practices, quotes: data.quotes, _fromSupabase: true
+    };
+    if (existingIdx >= 0) BOOKS[existingIdx] = normalized;
+    else BOOKS.push(normalized);
+    // ----------------------------------------
+
     toast(published?'Опубликовано ✓':'Черновик сохранён');
     setTimeout(()=>backFromBookEditor(),800);
   }catch(e){
@@ -5165,13 +5177,19 @@ function showResetOptions() {
 }
 
 function resetSpecificBook(bookId) {
-  showCustomConfirm('Сбросить книгу?', 'Прогресс по этой книге будет удален.', () => {
+  showCustomConfirm('Сбросить книгу?', 'Прогресс и заметки по этой книге будут удалены.', async () => {
     const bs = getBookState(bookId);
     bs.start = null; bs.days = {}; bs.journal = {};
     if(currentBook && currentBook.id === bookId) { currentBook = null; state.lastBook = null; }
+    
+    // Удаляем заметки из БД
+    try {
+      await sb.from('notes').delete().eq('user_id', user.id).eq('book_id', bookId);
+    } catch(e) { console.error('Ошибка удаления заметок', e); }
+
     saveState(); playSuccess();
     document.getElementById('resetProgressModal').classList.add('hidden');
-    toast('Прогресс книги сброшен');
+    toast('Прогресс и заметки книги сброшены');
     smartHome();
   });
 }
@@ -5525,7 +5543,7 @@ async function renderBookReviews(bookId) {
         <div style="background:var(--card2); border-radius:var(--radius-sm); padding:12px; margin-bottom:10px; border: 1px solid var(--border);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <div style="display:flex; align-items:center; gap:8px;">
-              <div style="width:28px; height:28px; border-radius:50%; background:var(--card3); display:flex; align-items:center; justify-content:center; font-size:14px;">${p.avatar || '👤'}</div>
+              <div style="width:28px; height:28px; border-radius:50%; background:var(--card3); display:flex; align-items:center; justify-content:center; font-size:14px;">${getAvatarHtml(p.avatar, 16)}</div>
               <div style="font-size:13px; font-weight:700;">${escapeHtml(fullName)}</div>
             </div>
             <div style="font-size:10px; color:var(--muted);">${date}</div>
