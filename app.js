@@ -2599,15 +2599,17 @@ function stopBreath(){
   function renderProfile(){
   try {
     loadMyFriends();
-    // Проверка подписки
+    // Проверка подписки (Баннер, если истекла)
     const subBanner = document.getElementById('subBanner');
     if (subBanner) {
-      if (user.sub_until && new Date(user.sub_until) < new Date()) {
+      if (!isAdmin() && user.sub_until && new Date(user.sub_until) < new Date()) {
         subBanner.innerHTML = `
-          <div style="font-size:24px; margin-bottom:8px;">⚠️</div>
-          <div style="font-weight:900; font-size:15px; color:var(--danger); margin-bottom:4px;">Подписка закончилась</div>
-          <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">Доступ к новым книгам закрыт. Продлите подписку, чтобы продолжить.</div>
-          <button class="btn-small-inline" style="margin-top:0; width:100%; background:var(--danger);" onclick="contactDev()">Продлить подписку</button>
+          <div style="background: linear-gradient(135deg, rgba(255,92,92,0.1), var(--card)); border: 1px solid rgba(255,92,92,0.3); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; text-align: center;">
+            <div style="font-size:20px; margin-bottom:6px;">🔒</div>
+            <div style="font-weight:900; font-size:14px; color:var(--text); margin-bottom:4px;">Доступ к книгам приостановлен</div>
+            <div style="font-size:11px; color:var(--muted); margin-bottom:12px;">Ваша подписка истекла. Продлите её, чтобы продолжить свой путь.</div>
+            <button class="btn" style="margin-top:0; padding:10px; font-size:12px; background:transparent; border: 1px solid var(--accent); color: var(--accent-2); box-shadow: none;" onclick="contactDev()">Продлить доступ</button>
+          </div>
         `;
         subBanner.classList.remove('hidden'); 
       } else {
@@ -2680,24 +2682,38 @@ function stopBreath(){
     // --- БЛОК ПОДПИСКИ ---
     const subEl = document.getElementById('profileSubStatus');
     if (subEl) {
-      if (user.sub_until && new Date(user.sub_until) > new Date()) {
-        // Подписка активна
-        const subDate = new Date(user.sub_until).toLocaleDateString('ru-RU');
+      // 1. Если это АДМИН — показываем золотую карточку
+      if (isAdmin()) {
         subEl.innerHTML = `
-          <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
-            <span style="color:var(--success); font-weight:800; font-size:12px; background:rgba(62,207,142,0.15); border: 1px solid rgba(62,207,142,0.3); padding:6px 14px; border-radius:100px;">
-              💎 PRO до ${subDate}
-            </span>
+          <div style="background: linear-gradient(135deg, rgba(124,92,255,0.2), rgba(255,184,0,0.1)); border: 1.5px solid var(--accent); border-radius: var(--radius-md); padding: 16px; text-align: center; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(124,92,255,0.15); position: relative; overflow: hidden;">
+            <div style="font-size: 13px; font-weight: 900; color: var(--gold); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;">👑 Администратор</div>
+            <div style="font-size: 12px; color: var(--text); opacity: 0.9;">У вас есть полный доступ ко всем функциям</div>
           </div>
         `;
-      } else {
-        // Подписки нет
+      } 
+      // 2. Если есть активная ПОДПИСКА
+      else if (user.sub_until && new Date(user.sub_until) > new Date()) {
+        const subDate = new Date(user.sub_until).toLocaleDateString('ru-RU');
         subEl.innerHTML = `
-          <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
-            <span style="color:var(--muted); font-weight:800; font-size:12px; background:var(--card2); padding:6px 14px; border-radius:100px;">
-              🎁 Бесплатный доступ
-            </span>
-            <button class="btn" style="margin-top:4px; padding:8px 16px; font-size:12px; border-radius:100px; background:linear-gradient(135deg, var(--gold), var(--warm)); box-shadow:0 4px 12px rgba(255,184,0,0.3);" onclick="contactDev()">
+          <div style="background: linear-gradient(135deg, rgba(124,92,255,0.2), rgba(255,184,0,0.1)); border: 1.5px solid var(--accent); border-radius: var(--radius-md); padding: 16px; text-align: center; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(124,92,255,0.15); position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -10px; right: -10px; font-size: 60px; opacity: 0.1;">💎</div>
+            <div style="font-size: 13px; font-weight: 900; color: var(--gold); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;">PRO Аккаунт</div>
+            <div style="font-size: 12px; color: var(--text); opacity: 0.9;">Активен до <b>${subDate}</b></div>
+          </div>
+        `;
+      } 
+      // 3. Если это ОБЫЧНЫЙ ПОЛЬЗОВАТЕЛЬ без подписки
+      else {
+        subEl.innerHTML = `
+          <div style="background: linear-gradient(180deg, var(--card), var(--card2)); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <div style="position: absolute; top: 10px; right: 10px; font-size: 40px; opacity: 0.1;">👑</div>
+            <div style="font-size: 15px; font-weight: 900; margin-bottom: 8px; color: var(--text);">Открой все возможности</div>
+            <div style="font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.6; text-align: left; padding-left: 10px;">
+              <div style="margin-bottom: 4px;">✅ Доступ ко <b>всем</b> книгам</div>
+              <div style="margin-bottom: 4px;">✅ Умная музыка и озвучка</div>
+              <div>✅ Закрытое сообщество</div>
+            </div>
+            <button class="btn" style="margin-top:0; padding:12px; font-size:13px; background:linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow:0 6px 20px var(--accent-glow); border-radius: var(--radius-sm);" onclick="contactDev()">
               ⚡ Оформить Премиум
             </button>
           </div>

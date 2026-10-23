@@ -2008,3 +2008,26 @@ input:-webkit-autofill:active {
 .admin-item .ai-info {
   min-width: 0; 
 }
+/* Красивый замочек для закрытых книг */
+.book-row.locked {
+  opacity: 0.6;
+  filter: grayscale(0.5);
+  position: relative;
+}
+.book-row.locked .br-lock {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  background: var(--card2);
+  border: 1px solid var(--border);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  z-index: 2;
+}
