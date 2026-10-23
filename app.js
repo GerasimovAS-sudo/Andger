@@ -21,20 +21,20 @@ const SVG_ICONS = {
 };
 
 // ─── БАЗА SVG-АВАТАРОК ───
+// ─── БАЗА СТИЛЬНЫХ АВАТАРОК ───
 const AVATAR_ICONS = {
-  'user': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
-  'brain': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>',
-  'zap': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>',
-  'sun': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>',
-  'heart': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>',
-  'book': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>',
-  'target': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>',
-  'shield': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>',
-  'crown': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"></path></svg>',
-  'coffee': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>',
-  'star': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
-  'leaf': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>',
-  'moon': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>'
+  'astronaut': '<svg viewBox="0 0 24 24" fill="#a78bfa" stroke="#fff" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9v2c0 4.42 3.58 8 8 8s8-3.58 8-8V9c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="11" r="3" fill="#1a1428"/><path d="M8 19v2c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2" fill="none"/></svg>',
+  'alien': '<svg viewBox="0 0 24 24" fill="#3ecf8e" stroke="#1a1428" stroke-width="1.5"><path d="M12 2C7.58 2 4 5.58 4 10c0 5.25 5.5 11 8 12 2.5-1 8-6.75 8-12 0-4.42-3.58-8-8-8z"/><ellipse cx="9" cy="9" rx="1.5" ry="2.5" fill="#1a1428"/><ellipse cx="15" cy="9" rx="1.5" ry="2.5" fill="#1a1428"/><path d="M10 14s1 1.5 2 1.5 2-1.5 2-1.5" stroke="#1a1428" stroke-width="1.5" fill="none"/></svg>',
+  'cyberpunk': '<svg viewBox="0 0 24 24" fill="#ff5c5c" stroke="#ffb800" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M7 9h10M7 13h5M14 13h3M7 17h7" stroke-linecap="round"/></svg>',
+  'robot': '<svg viewBox="0 0 24 24" fill="#ffb800" stroke="#1a1428" stroke-width="1.5"><rect x="4" y="6" width="16" height="12" rx="3"/><rect x="7" y="9" width="3" height="3" fill="#1a1428"/><rect x="14" y="9" width="3" height="3" fill="#1a1428"/><circle cx="12" cy="3" r="2" fill="#ff5c5c"/><path d="M9 14h6M12 3v3" stroke-linecap="round"/></svg>',
+  'cat': '<svg viewBox="0 0 24 24" fill="#7c5cff" stroke="#1a1428" stroke-width="1.5"><path d="M4 5l4 3h8l4-3v10c0 4-3.5 7-8 7s-8-3-8-7V5z"/><ellipse cx="9" cy="12" rx="1.5" ry="2" fill="#1a1428"/><ellipse cx="15" cy="12" rx="1.5" ry="2" fill="#1a1428"/><path d="M11 16h2" stroke-linecap="round"/></svg>',
+  'unicorn': '<svg viewBox="0 0 24 24" fill="#ff9a56" stroke="#fff" stroke-width="1.5"><path d="M12 2L9 9H5l3 4-2 7 6-4 6 4-2-7 3-4h-4L12 2z"/><circle cx="12" cy="13" r="2" fill="#1a1428"/></svg>',
+  'dragon': '<svg viewBox="0 0 24 24" fill="#3ecf8e" stroke="#1a1428" stroke-width="1.5"><path d="M2 20s2-4 6-4h8c4 0 6 4 6 4M12 16V6M12 6l-4-2v4M12 6l4-2v4M8 12l-2 4M16 12l2 4"/><circle cx="12" cy="16" r="2" fill="#1a1428"/></svg>',
+  'ninja': '<svg viewBox="0 0 24 24" fill="#2c2245" stroke="#a78bfa" stroke-width="1.5"><rect x="3" y="6" width="18" height="12" rx="6"/><path d="M3 12h18M8 9h2M14 9h2" stroke-linecap="round" stroke="#fff"/></svg>',
+  'skull': '<svg viewBox="0 0 24 24" fill="#eceaf5" stroke="#1a1428" stroke-width="1.5"><path d="M12 2C7.58 2 4 5.58 4 10c0 3.5 2 6 4 7v3c0 1 1 2 2 2h4c1 0 2-1 2-2v-3c2-1 4-3.5 4-7 0-4.42-3.58-8-8-8z"/><circle cx="9" cy="10" r="2" fill="#1a1428"/><circle cx="15" cy="10" r="2" fill="#1a1428"/><path d="M10 16h4" stroke-linecap="round"/></svg>',
+  'crown': '<svg viewBox="0 0 24 24" fill="#ffb800" stroke="#fff" stroke-width="1.5"><path d="M2 6l5 12h10l5-12-6 5-4-7-4 7-6-5z"/><circle cx="12" cy="18" r="2" fill="#1a1428"/></svg>',
+  'wolf': '<svg viewBox="0 0 24 24" fill="#8a8aa5" stroke="#1a1428" stroke-width="1.5"><path d="M4 4l5 5h6l5-5v12c0 4.42-3.58 8-8 8s-8-3.58-8-8V4z"/><circle cx="9" cy="13" r="2" fill="#fff"/><circle cx="15" cy="13" r="2" fill="#fff"/><circle cx="9" cy="13" r="1" fill="#1a1428"/><circle cx="15" cy="13" r="1" fill="#1a1428"/></svg>',
+  'heart': '<svg viewBox="0 0 24 24" fill="#ff5c5c" stroke="#1a1428" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
 };
 
 // Функция для отрисовки аватарки (поддерживает старые эмодзи)
@@ -44,7 +44,8 @@ function getAvatarHtml(avatar, size = 24) {
     return `<span style="font-size:${size * 0.8}px; line-height:1;">${avatar}</span>`;
   }
   const svg = AVATAR_ICONS[avatar] || AVATAR_ICONS['user'];
-  return svg.replace('viewBox="0 0 24 24"', `viewBox="0 0 24 24" width="${size}" height="${size}" style="color: var(--accent-2);"`);
+  // Мы убрали style="color: var(--accent-2);", чтобы SVG не перекрашивались в один цвет
+  return svg.replace('viewBox="0 0 24 24"', `viewBox="0 0 24 24" width="${size}" height="${size}"`);
 }
 
 // Функция, которая превращает текст в SVG
@@ -525,6 +526,8 @@ async function handleSession(session){
     state.slug=profile.public_slug||null;
     state.referralCode=profile.referral_code||null;
     state.theme=profile.theme||'dark';
+    state.shields = profile.shields || 0;
+    state.spentXP = profile.spent_xp || 0;
   }else{
     state.soundOn=true;state.avatar='👤';state.theme='dark';
   }
@@ -660,13 +663,16 @@ async function syncProgress(){
     updated_at:new Date().toISOString()
   }));
   if(rows.length)await sb.from('progress').upsert(rows,{onConflict:'user_id,book_id'});
+  
   await sb.from('profiles').update({
     name:user.name,avatar:state.avatar,
     sound_on: state.soundMode === 'sound',
-sound_mode: state.soundMode,
+    sound_mode: state.soundMode,
     onboarded:state.onboarded===true,
     last_book:state.lastBook||null,
-    last_seen:new Date().toISOString()
+    last_seen:new Date().toISOString(),
+    shields: state.shields || 0,
+    spent_xp: state.spentXP || 0
   }).eq('id',user.id);
 }
 function saveState(){
@@ -698,6 +704,10 @@ function hideAll(){
   if(bn) { bn.classList.add('hidden'); bn.style.display = ''; }
   const fi=document.getElementById('feedInputWrap');if(fi)fi.style.display='none';
   const di=document.getElementById('dialogInputWrap');if(di)di.style.display='none';
+  // Скрываем кнопку быстрой заметки при переходе на другие экраны
+  const fab = document.getElementById('quickNoteFab');
+  if (fab) fab.style.display = 'none';
+  
   window.scrollTo(0,0);
 }
 function showAuth(){
@@ -741,6 +751,14 @@ function showTodayScreen(){
   document.getElementById('todayScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
   updateBottomNav('today');
+  applyShields(currentBook.id); // <--- ПРОВЕРКА ЗАМОРОЗОК
+  updateBottomNav('today');
+  applyShields(currentBook.id); // <--- ПРОВЕРКА ЗАМОРОЗОК
+  
+  // Показываем кнопку быстрой заметки только на Главной
+  const fab = document.getElementById('quickNoteFab');
+  if (fab) fab.style.display = 'flex';
+
   renderToday();updateSoundUI();checkInstallBanner();updateNotifBadge();
 }
 function showStatsScreen(){
@@ -1199,8 +1217,13 @@ function renderToday(){
 document.getElementById('todayName').textContent = fullName;
   
 // Считаем глобальный опыт для статуса на главной
-const stats = getGlobalStats();
+  const stats = getGlobalStats();
   document.getElementById('statusBadge').textContent = `${stats.lvlIco} ${stats.lvlName}`;
+
+  // --- ОБНОВЛЕНИЕ СЧЕТЧИКА ЗАМОРОЗОК ---
+  const shieldEl = document.getElementById('shieldCount');
+  if (shieldEl) shieldEl.textContent = state.shields || 0;
+  // -------------------------------------
 
   // Крупный счётчик дня (1 кольцо)
   const pct=Math.round(todayCount/total*100);
@@ -1610,6 +1633,9 @@ function renderStatsScreen(){
   if (lvl === 5) prevLvlXP = 1000;
   if (lvl === 6) prevLvlXP = 2000;
 
+  // Вычитаем потраченный опыт
+  totalXP = Math.max(0, totalXP - (state.spentXP || 0)); 
+
   const xpInCurrentLvl = totalXP - prevLvlXP;
   const xpNeededForNext = nextLvlXP - prevLvlXP;
   const xpPct = Math.min(100, Math.round((xpInCurrentLvl / xpNeededForNext) * 100)) || 100;
@@ -1821,9 +1847,9 @@ function calcStreak(bookId){
   let streak=0, misses=0;
   for(let i=1;i<=b.days;i++){
     const d=dateByDay(bookId,i);
-    if(bs.days[d]&&bs.days[d].closed){
+    if(bs.days[d] && (bs.days[d].closed || bs.days[d].shielded)){
       streak++;
-      misses=0; // Если сделал практику, счетчик пропусков сбрасывается
+      misses=0;
     } else {
       // Если день в прошлом (не сегодня) и пропущен
       if(d < todayStr()) {
@@ -2727,7 +2753,7 @@ function stopBreath(){
     
     const emojiEl = document.getElementById('emojiRow');
     if(emojiEl) emojiEl.innerHTML = 
-      Object.keys(AVATAR_ICONS).map(key => `<div class="emoji-pick ${state.avatar === key ? 'on' : ''}" onclick="setAvatar('${key}')">${getAvatarHtml(key, 24)}</div>`).join('');
+      Object.keys(AVATAR_ICONS).map(key => `<div class="emoji-pick ${state.avatar === key ? 'on' : ''}" onclick="setAvatar('${key}')">${getAvatarHtml(key, 24)}</div>`).join('')
       
     updateSoundUI();
   } catch(e) {
@@ -3441,21 +3467,21 @@ async function loadFeed(){
         </div>
       </div>
       <div class="fp-text">${escapeHtml(m.text)}</div>
-            <div class="fp-actions" style="display:flex; justify-content:space-between; width:100%;">
-        <div style="display:flex; gap:10px;">
-          <div class="fp-action ${myType === 'heart' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'heart',this)" data-type="heart">
+          <div class="fp-actions" style="display:flex; justify-content:space-between; width:100%;">
+        <div style="display:flex; gap:12px;">
+          <div class="fp-action ${myType === 'heart' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'heart',this)" data-type="heart" style="padding: 4px 6px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="${myType === 'heart' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
             <span>${countHeart>0?countHeart:''}</span>
           </div>
-          <div class="fp-action ${myType === 'fire' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'fire',this)" data-type="fire">
+          <div class="fp-action ${myType === 'fire' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'fire',this)" data-type="fire" style="padding: 4px 6px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="${myType === 'fire' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
             <span>${countFire>0?countFire:''}</span>
           </div>
-          <div class="fp-action ${myType === 'muscle' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'muscle',this)" data-type="muscle">
+          <div class="fp-action ${myType === 'muscle' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'muscle',this)" data-type="muscle" style="padding: 4px 6px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="${myType === 'muscle' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"></path><path d="M11 3 8 9l4 13 4-13-3-6"></path><path d="M2 9h20"></path></svg>
             <span>${countMuscle>0?countMuscle:''}</span>
           </div>
-          <div class="fp-action ${myType === 'clap' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'clap',this)" data-type="clap">
+          <div class="fp-action ${myType === 'clap' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'clap',this)" data-type="clap" style="padding: 4px 6px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="${myType === 'clap' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
             <span>${countClap>0?countClap:''}</span>
           </div>
@@ -4105,7 +4131,7 @@ function renderAdminList(list){
       </div>
       
       <!-- БЫСТРАЯ ВЫДАЧА ПОДПИСКИ -->
-      <button class="btn-small-inline" style="margin:0; padding:8px 10px; font-size:10px; background:var(--success); box-shadow:none;" onclick="event.stopPropagation(); quickGrantSub('${p.id}')">+30д</button>
+      <button class="btn-small-inline" style="margin:0; padding:8px 10px; font-size:10px; background:transparent; border: 1px solid var(--success); color:var(--success); box-shadow:none;" onclick="event.stopPropagation(); quickGrantSub('${p.id}')">+30д</button>
     </div>`;
   }).join('');
 }
@@ -5236,7 +5262,8 @@ async function viewUserProfile(userId, source = 'feed') {
     });
 
     const fullName = (p.name || 'Друг') + (p.last_name ? ' ' + p.last_name : '');
-    document.getElementById('ppAva').textContent = p.avatar || '👤';
+    const avaHtml = getAvatarHtml(p.avatar || 'user', 90); // 90 - это размер
+document.getElementById('ppAva').innerHTML = avaHtml;
     document.getElementById('ppName').textContent = fullName;
     document.getElementById('ppStatus').textContent = p.last_seen ? 'Был(а) в сети ' + timeAgo(p.last_seen) : 'Статус скрыт';
     
@@ -5287,13 +5314,13 @@ async function viewUserProfile(userId, source = 'feed') {
     if (friendBtn) {
       friendBtn.dataset.targetId = userId;
       if (friendData) {
-        friendBtn.textContent = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; vertical-align:middle;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Удалить из друзей';
+        friendBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; vertical-align:middle;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Удалить из друзей';
         friendBtn.style.background = 'transparent';
         friendBtn.style.border = '1px solid var(--border)';
         friendBtn.style.color = 'var(--text)';
         friendBtn.style.boxShadow = 'none';
       } else {
-        friendBtn.textContent = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; vertical-align:middle;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg> Добавить в друзья';
+        friendBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; vertical-align:middle;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg> Добавить в друзья';
         friendBtn.style.background = 'linear-gradient(135deg,var(--accent),var(--accent-2))';
         friendBtn.style.border = 'none';
         friendBtn.style.color = '#fff';
@@ -5674,5 +5701,205 @@ async function loadMyFriends() {
     renderAdminList(adminAllUsers); // Перерисовываем список
   } catch (e) {
     toast('Ошибка: ' + e.message, 'danger');
+  }
+}
+// ─── БЫСТРАЯ ЗАМЕТКА ───
+function openQuickNote() {
+  document.getElementById('quickNoteInput').value = '';
+  document.getElementById('quickNoteModal').classList.remove('hidden');
+  setTimeout(() => {
+    document.getElementById('quickNoteInput').focus();
+  }, 100);
+}
+
+function closeQuickNote() {
+  document.getElementById('quickNoteModal').classList.add('hidden');
+}
+
+async function saveQuickNote() {
+  const text = document.getElementById('quickNoteInput').value.trim();
+  if (!text) {
+    toast('Напиши хотя бы одно слово', 'warm');
+    return;
+  }
+
+  const btn = document.querySelector('#quickNoteModal .btn');
+  const originalText = btn.textContent;
+  btn.textContent = 'Сохранение...';
+  btn.disabled = true;
+
+  try {
+    // Сохраняем в базу данных
+    await sb.from('notes').insert({
+      user_id: user.id,
+      book_id: currentBook ? currentBook.id : 'general', // Привязываем к текущей книге или общую
+      practice_title: '⚡ Быстрая мысль', // Название практики для отображения в дневнике
+      text: text
+    });
+    
+    playSuccess();
+    toast('Заметка сохранена в дневник!');
+    closeQuickNote();
+    
+    // Если мы сейчас в дневнике, обновляем его
+    if (currentScreen === 'journal') {
+      renderJournal();
+    }
+  } catch(e) {
+    console.error(e);
+    toast('Ошибка сохранения', 'danger');
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+// ─── ЗАМОРОЗКА ОГНЯ ───
+function buyShield() {
+  const stats = getGlobalStats();
+  if (stats.totalXP < 200) {
+    toast('Недостаточно XP! Нужно 200 XP.', 'warm');
+    return;
+  }
+
+  showCustomConfirm(
+    'Купить заморозку?',
+    'Списать 200 XP для покупки щита? Он спасет твой огонь, если ты пропустишь 1 день.',
+    () => {
+      state.spentXP = (state.spentXP || 0) + 200;
+      state.shields = (state.shields || 0) + 1;
+      saveState();
+      playSuccess();
+      toast('🛡️ Заморозка куплена!');
+      renderToday(); // Обновляем экран
+    }
+  );
+}
+
+function applyShields(bookId) {
+  const b = BOOKS.find(x=>x.id===bookId);
+  if (!b) return;
+  const bs = getBookState(bookId);
+  if (!bs.start) return;
+
+  let today = new Date();
+  today.setHours(0,0,0,0);
+  let start = new Date(bs.start);
+  let shields = state.shields || 0;
+
+  if (shields <= 0) return;
+
+  let d = new Date(today);
+  d.setDate(d.getDate() - 1); // Начинаем проверять со вчерашнего дня
+
+  while (d >= start && shields > 0) {
+    const dStr = localDate(d);
+    const rec = bs.days[dStr];
+    
+    // Если день пропущен (нет записи или не закрыт и не заморожен)
+    if (!rec || (!rec.closed && !rec.shielded)) {
+      if (!bs.days[dStr]) bs.days[dStr] = { practices: [] };
+      bs.days[dStr].shielded = true;
+      shields--;
+      state.shields = shields;
+      saveState();
+      playSuccess();
+      toast(`🛡️ Заморозка спасла ваш огонь за ${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}`, 'success');
+      break; // Тратим один щит и останавливаемся
+    }
+    d.setDate(d.getDate() - 1);
+  }
+}
+// ─── ГЕНЕРАТОР СТОРИС ───
+function openShareStory() {
+  // 1. Собираем данные
+  let maxStreak = 0;
+  let totalPractices = 0;
+
+  BOOKS.forEach(b => {
+    const s = calcStreak(b.id);
+    if (s > maxStreak) maxStreak = s;
+    
+    const bs = getBookState(b.id);
+    Object.values(bs.days).forEach(rec => {
+      if (rec.practices) totalPractices += rec.practices.length;
+    });
+  });
+
+  // 2. Заполняем карточку
+  document.getElementById('storyAvatar').innerHTML = getAvatarHtml(state.avatar, 60);
+  document.getElementById('storyName').textContent = (user.name || 'Друг') + (user.lastName ? ' ' + user.lastName : '');
+  document.getElementById('storyStreak').textContent = maxStreak;
+  document.getElementById('storyClosed').textContent = totalPractices;
+
+  // 3. Показываем модалку
+  document.getElementById('storyModal').classList.remove('hidden');
+}
+
+async function downloadStory() {
+  const btn = document.getElementById('storyDownloadBtn');
+  const originalText = btn.textContent;
+  btn.textContent = 'Создаем...';
+  btn.disabled = true;
+
+  const card = document.getElementById('storyCard');
+
+  try {
+    // Превращаем HTML в картинку
+    const canvas = await html2canvas(card, {
+      scale: 3, // Высокое качество (для Retina)
+      useCORS: true,
+      backgroundColor: null,
+      logging: false
+    });
+
+    // Создаем ссылку на скачивание
+    const imgData = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = `andger_story_${Date.now()}.png`;
+    link.href = imgData;
+    link.click();
+
+    playSuccess();
+    toast('Картинка сохранена!');
+  } catch (e) {
+    console.error(e);
+    toast('Ошибка создания картинки', 'danger');
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+// ─── ТЕСТ УВЕДОМЛЕНИЙ ───
+async function testPushNotification() {
+  if (!('Notification' in window)) {
+    alert('Ваш браузер не поддерживает уведомления');
+    return;
+  }
+
+  // 1. Проверяем разрешение
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') {
+    alert('Вы отклонили разрешение. Включите уведомления в настройках браузера.');
+    return;
+  }
+
+  // 2. Отправляем уведомление через Service Worker
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg) {
+      reg.showNotification('ANDGER работает! 🚀', {
+        body: 'Это тестовое уведомление. Значит, push-уведомления настроены верно.',
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        vibrate: [200, 100, 200],
+        tag: 'test-notification'
+      });
+      playSuccess();
+    } else {
+      alert('Service Worker не найден. Убедитесь, что приложение установлено или открыто по HTTPS.');
+    }
+  } catch (e) {
+    console.error(e);
+    toast('Ошибка отправки', 'danger');
   }
 }
