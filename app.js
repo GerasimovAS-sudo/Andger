@@ -53,6 +53,32 @@ function getSvgIcon(name, size = 24, color = 'currentColor') {
   return svgCode.replace('viewBox="0 0 24 24"', `viewBox="0 0 24 24" width="${size}" height="${size}" style="color: ${color};"`);
 }
 
+// Глобальная функция для подсчета опыта и уровня
+function getGlobalStats() {
+  let totalXP = 0;
+  BOOKS.forEach(bb => {
+    const bbs = getBookState(bb.id);
+    Object.values(bbs.days).forEach(rec => {
+      if(rec.practices) totalXP += rec.practices.length * 10;
+      if(rec.closed) totalXP += 50;
+    });
+  });
+
+  let lvl = 1, lvlName = 'Новичок', lvlIco = '🌱', nextLvlXP = 100, prevLvlXP = 0;
+  if (totalXP >= 2000) { lvl = 6; lvlName = 'Легенда'; lvlIco = '👑'; nextLvlXP = 2000; prevLvlXP = 2000; }
+  else if (totalXP >= 1000) { lvl = 5; lvlName = 'Мастер'; lvlIco = '🏆'; nextLvlXP = 2000; prevLvlXP = 1000; }
+  else if (totalXP >= 600) { lvl = 4; lvlName = 'Опытный'; lvlIco = '💎'; nextLvlXP = 1000; prevLvlXP = 600; }
+  else if (totalXP >= 300) { lvl = 3; lvlName = 'Практик'; lvlIco = '🔥'; nextLvlXP = 600; prevLvlXP = 300; }
+  else if (totalXP >= 100) { lvl = 2; lvlName = 'Ученик'; lvlIco = '🌿'; nextLvlXP = 300; prevLvlXP = 100; }
+
+  const xpInCurrentLvl = totalXP - prevLvlXP;
+  const xpNeededForNext = nextLvlXP - prevLvlXP;
+  let xpPct = Math.min(100, Math.round((xpInCurrentLvl / xpNeededForNext) * 100)) || 100;
+  if(lvl === 6) xpPct = 100;
+
+  return { totalXP, lvl, lvlName, lvlIco, xpInCurrentLvl, xpNeededForNext, xpPct };
+}
+
 const DEV_WHATSAPP = '79124325556';
 const DEV_TELEGRAM = 'Gerasimov_And';
 
@@ -203,30 +229,50 @@ document.addEventListener('click',(e)=>{
 },true);
 
 // ─── МУЗЫКА ───
-const MUSIC_TRACKS=['meditation.mp3','meditation-2.mp3','meditation-3.mp3','meditation-4.mp3','meditation-5.mp3'];
-function startMusic(){
+// Разделяем музыку по типам практик
+const MUSIC_TRACKS = {
+  default: ['meditation.mp3', 'meditation-2.mp3', 'meditation-3.mp3'],
+  sport: ['energy.mp3'], 
+  read: ['focus.mp3'], 
+  silence: ['meditation-4.mp3', 'meditation-5.mp3'] 
+};
+let currentTrackIdx = 0;
+let currentPlaylist = [];
+
+function startMusic(practiceId = 'default'){
   if(state.soundMode !== 'sound') return;
   if(!musicAudio){
     musicAudio=new Audio();
     musicAudio.volume=0;
     musicAudio.addEventListener('ended',nextTrack);
   }
+  
+  // Выбираем плейлист под практику
+  if (practiceId === 'sport') currentPlaylist = MUSIC_TRACKS.sport;
+  else if (practiceId === 'read') currentPlaylist = MUSIC_TRACKS.read;
+  else if (practiceId === 'silence' || practiceId === 'visual') currentPlaylist = MUSIC_TRACKS.silence;
+  else currentPlaylist = MUSIC_TRACKS.default;
+
   // Новый трек при каждом запуске (если музыка не играет)
-  if(!musicAudio.src||musicAudio.paused){
+  if(!musicAudio.src || musicAudio.paused){
     let newIdx;
-    do{newIdx=Math.floor(Math.random()*MUSIC_TRACKS.length)}
-    while(MUSIC_TRACKS.length>1&&newIdx===currentTrackIdx);
-    currentTrackIdx=newIdx;
-    musicAudio.src=MUSIC_TRACKS[currentTrackIdx];
-    musicAudio.currentTime=0;
+    do { newIdx = Math.floor(Math.random() * currentPlaylist.length) }
+    while (currentPlaylist.length > 1 && newIdx === currentTrackIdx);
+    
+    currentTrackIdx = newIdx;
+    musicAudio.src = currentPlaylist[currentTrackIdx];
+    musicAudio.currentTime = 0;
   }
-  musicAudio.play().then(()=>fadeAudio(musicAudio,musicAudio.volume,0.2,2000)).catch(()=>{});
+  musicAudio.play().then(() => fadeAudio(musicAudio, musicAudio.volume, 0.2, 2000)).catch(()=>{});
 }
+
 function nextTrack(){
-  if(!musicAudio)return;
-  currentTrackIdx=(currentTrackIdx+1)%MUSIC_TRACKS.length;
-  musicAudio.src=MUSIC_TRACKS[currentTrackIdx];
-  musicAudio.volume=0.2;
+  if(!musicAudio) return;
+  if(!currentPlaylist.length) currentPlaylist = MUSIC_TRACKS.default;
+  
+  currentTrackIdx = (currentTrackIdx + 1) % currentPlaylist.length;
+  musicAudio.src = currentPlaylist[currentTrackIdx];
+  musicAudio.volume = 0.2;
   musicAudio.play().catch(()=>{});
 }
 function stopMusic(){
@@ -262,6 +308,12 @@ function playTone(freq,duration,type,vol){
   }catch(e){}
 }
 function playClick() {
+  // Будим AudioContext на iOS при первом клике
+  const ctx = getCtx();
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume();
+  }
+  
   if(!state.soundOn) return;
   playTone(800,0.04,'sine',0.06);
   if(navigator.vibrate) navigator.vibrate(15);
@@ -285,6 +337,14 @@ function playCheck() {
   playTone(500,0.08,'sine',0.1);
   setTimeout(()=>playTone(750,0.12,'sine',0.1),60);
   if(navigator.vibrate) navigator.vibrate(80);
+}
+function playFanfare() {
+  if(!state.soundOn) return;
+  playTone(523, 0.1, 'sine', 0.1); // До
+  setTimeout(()=>playTone(659, 0.1, 'sine', 0.1), 100); // Ми
+  setTimeout(()=>playTone(784, 0.2, 'sine', 0.1), 200); // Соль
+  setTimeout(()=>playTone(1046, 0.3, 'sine', 0.1), 350); // До (октава выше)
+  if(navigator.vibrate) navigator.vibrate([50, 50, 100]);
 }
 
 // ─── TOAST ───
@@ -622,6 +682,10 @@ function saveState(){
 
 // ─── ЭКРАНЫ ───
 function hideAll(){
+  // Отключаем слушатели чатов, чтобы не грузить телефон и базу данных
+  if(feedChannel) { sb.removeChannel(feedChannel); feedChannel = null; }
+  if(dialogChannel) { sb.removeChannel(dialogChannel); dialogChannel = null; }
+
   ['authScreen','onbScreen','welcomeScreen','libScreen','todayScreen',
    'statsScreen','journalScreen','communityScreen','profileScreen',
    'publicProfileScreen','adminScreen','bookDetailScreen','ritualBuilderScreen',
@@ -854,14 +918,24 @@ function getBookState(id){
 let bookAccessMode='everyone'; // 'everyone' или 'individual'
 
 function hasBookAccess(id){
+  // Админу доступно всё
   if(isAdmin()) return true;
+
+  // Если у пользователя есть активная подписка — доступно всё
+  if(user && user.sub_until && new Date(user.sub_until) > new Date()) return true;
   
-  if(user && user.sub_until) {
-    if(new Date(user.sub_until) > new Date()) return true;
-  }
-  
+  // Индивидуальный доступ (если админ выдал книгу вручную)
   const access = state.bookAccess || [];
-  return access.includes(id);
+  if (access.includes(id)) return true;
+
+  // --- БЕСПЛАТНЫЙ ДОСТУП (ФРИМИУМ) ---
+  // Даем бесплатный доступ к первой книге (например, "Магия утра")
+  // Если ты хочешь сделать другую книгу бесплатной, поменяй её ID здесь:
+  const freeBookId = BOOKS.length > 0 ? BOOKS[0].id : 'magic-morning'; 
+  if (id === freeBookId) return true;
+
+  // Всё остальное закрыто
+  return false;
 }
 
 function toggleSound(){
@@ -876,7 +950,8 @@ function toggleSound(){
   
   if (state.soundOn) {
     playClick();
-    if(inR || inP) startMusic();
+    if(inR) startMusic(ritualQueue[ritualIndex]?.id || 'default');
+    else if(inP) startMusic(currentPractice?.id || 'default');
   } else {
     stopMusic();
   }
@@ -1124,22 +1199,8 @@ function renderToday(){
 document.getElementById('todayName').textContent = fullName;
   
 // Считаем глобальный опыт для статуса на главной
-  let globalXP = 0;
-  BOOKS.forEach(bb => {
-    const bbs = getBookState(bb.id);
-    Object.values(bbs.days).forEach(rec => {
-      if(rec.practices) globalXP += rec.practices.length * 10;
-      if(rec.closed) globalXP += 50;
-    });
-  });
-  let globalLvlName = 'Новичок', globalLvlIco = '🌱';
-  if (globalXP >= 2000) { globalLvlName = 'Легенда'; globalLvlIco = '👑'; }
-  else if (globalXP >= 1000) { globalLvlName = 'Мастер'; globalLvlIco = '🏆'; }
-  else if (globalXP >= 600) { globalLvlName = 'Опытный'; globalLvlIco = '💎'; }
-  else if (globalXP >= 300) { globalLvlName = 'Практик'; globalLvlIco = '🔥'; }
-  else if (globalXP >= 100) { globalLvlName = 'Ученик'; globalLvlIco = '🌿'; }
-  
-  document.getElementById('statusBadge').textContent = `${globalLvlIco} ${globalLvlName}`;
+const stats = getGlobalStats();
+  document.getElementById('statusBadge').textContent = `${stats.lvlIco} ${stats.lvlName}`;
 
   // Крупный счётчик дня (1 кольцо)
   const pct=Math.round(todayCount/total*100);
@@ -1398,8 +1459,8 @@ document.getElementById('libName').textContent = fullName;
         ${!hasAccess?'<div class="br-lock">🔒</div>':''}
         <div class="br-emoji">${b.emoji}</div>
         <div class="br-info">
-          <div class="br-title">${b.title} ${isDone?'👑':''}</div>
-          <div class="br-author">${b.author} · ${b.days} дней</div>
+          <div class="br-title">${escapeHtml(b.title)} ${isDone?'👑':''}</div>
+          <div class="br-author">${escapeHtml(b.author)} · ${b.days} дней</div>
           ${started?`<div class="br-bar"><div class="br-fill" style="width:${pct}%"></div></div>`:''}
         </div>
         <div class="br-pct">${started?pct+'%':'—'}</div>
@@ -1813,43 +1874,70 @@ function startRitual(){
   renderRitualStep();
 }
 function renderRitualStep(){
-  if(ritualIndex>=ritualQueue.length){finishRitual();return}
-  const p=ritualQueue[ritualIndex];
-  document.getElementById('rpStep').textContent=(ritualIndex+1)+' из '+ritualQueue.length;
-  document.getElementById('rpFill').style.width=(ritualIndex/ritualQueue.length*100)+'%';
-  const bookTag=p._bookTitle&&(!currentBook||p._bookTitle!==currentBook.title)?
-    `<div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px">📚 ${p._bookTitle}</div>`:'';
-  document.getElementById('ritualBody').innerHTML=
-    `${bookTag}
-     <div class="ritual-hero"><div class="ico">${getSvgIcon(p.ico, 72, 'var(--accent-2)')}</div><h2>${p.title}</h2><div class="sub">${p.sub}</div></div>
-     <div class="ps-block"><h3>💡 Зачем это нужно</h3><p>${p.why}</p></div>
-     <div class="ps-block"><h3>🎬 Как делать</h3><ol class="steps">${p.how.map(s=>`<li>${s}</li>`).join('')}</ol></div>
-     
-     <div class="ps-block timer-wrapper" style="margin-top:30px; border-top:1px solid var(--border); padding-top:20px;">
-       <h3>⏱ Время практики</h3>
-       <div class="timer-box">
-         <div class="timer-display" id="ritualTime">${formatTime(p.time)}</div>
-         <button class="timer-big-btn" id="ritualTimerBtn" onclick="toggleTimer('ritual')">▶ Старт</button>
-         <button class="exit-zen-btn" onclick="exitZenMode('ritual')">👁 Показать текст</button>
+  try {
+    if(ritualIndex>=ritualQueue.length){finishRitual();return}
+    const p=ritualQueue[ritualIndex];
+    
+    // Проверка на всякий случай, если данные книги битые
+    if(!p) { closeRitual(); return; }
+
+    document.getElementById('rpStep').textContent=(ritualIndex+1)+' из '+ritualQueue.length;
+    document.getElementById('rpFill').style.width=(ritualIndex/ritualQueue.length*100)+'%';
+    
+    const bookTag=p._bookTitle&&(!currentBook||p._bookTitle!==currentBook.title)?
+      `<div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px">📚 ${escapeHtml(p._bookTitle)}</div>`:'';
+      
+    // Безопасная обработка массива шагов (если вдруг он не массив)
+    const stepsHtml = Array.isArray(p.how) ? p.how.map(s=>`<li>${escapeHtml(s)}</li>`).join('') : '';
+    
+    document.getElementById('ritualBody').innerHTML=
+      `${bookTag}
+       <div class="ritual-hero"><div class="ico">${getSvgIcon(p.ico || 'book', 72, 'var(--accent-2)')}</div><h2>${escapeHtml(p.title || 'Практика')}</h2><div class="sub">${escapeHtml(p.sub || '')}</div></div>
+       <div class="ps-block"><h3>💡 Зачем это нужно</h3><p>${escapeHtml(p.why || 'Описание отсутствует')}</p></div>
+       <div class="ps-block"><h3>🎬 Как делать</h3><ol class="steps">${stepsHtml}</ol></div>
+       
+       <div class="ps-block timer-wrapper" style="margin-top:30px; border-top:1px solid var(--border); padding-top:20px;">
+         <h3>⏱ Время практики</h3>
+         <div class="timer-box">
+           <div class="timer-display" id="ritualTime">${formatTime(p.time || 300)}</div>
+           <button class="timer-big-btn" id="ritualTimerBtn" onclick="toggleTimer('ritual')">▶ Старт</button>
+           <button class="exit-zen-btn" onclick="exitZenMode('ritual')">👁 Показать текст</button>
+         </div>
        </div>
-     </div>
 
-     <div class="ps-block" style="margin-top:20px;">
-       <h3>✍️ Заметка в дневник</h3>
-       <textarea id="ritualNoteInput" placeholder="Что почувствовал? О чем подумал? (Необязательно)" style="width:100%; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; color:var(--text); font-size:14px; min-height:80px; resize:vertical;"></textarea>
-     </div>
+       <div class="ps-block" style="margin-top:20px;">
+         <h3>✍️ Заметка в дневник</h3>
+         <textarea id="ritualNoteInput" placeholder="Что почувствовал? О чем подумал? (Необязательно)" style="width:100%; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; color:var(--text); font-size:14px; min-height:80px; resize:vertical;"></textarea>
+       </div>
 
-     <button class="btn" style="margin-top:20px; margin-bottom:50px;" onclick="nextRitual()">✓ Отметить выполненным</button>`;
-  timerRemaining=p.time;
-  timerState='idle';
+       <button class="btn" style="margin-top:20px; margin-bottom:50px;" onclick="nextRitual()">✓ Отметить выполненным</button>`;
+       
+    timerRemaining=p.time || 300;
+    timerState='idle';
+    
     if(musicAudio && state.soundOn!==false){
-    nextTrack(); // Переключаем трек на следующий при переходе к новой практике
+      startMusic(p.id); // Передаем ID практики для выбора трека
+    }
+    
+    setTimeout(() => {
+      const rBody = document.getElementById('ritualBody');
+      if(rBody) rBody.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
+
+  } catch (error) {
+    // Если произошла ошибка, показываем её на экране вместо синего экрана
+    console.error("Ошибка рендера практики:", error);
+    document.getElementById('ritualBody').innerHTML = `
+      <div style="padding:20px; text-align:center;">
+        <div style="font-size:40px; margin-bottom:10px;">⚠️</div>
+        <h2 style="color:var(--danger); margin-bottom:10px;">Ошибка загрузки</h2>
+        <p style="color:var(--muted); font-size:14px; margin-bottom:20px;">${error.message}</p>
+        <button class="btn" onclick="closeRitual()">Закрыть</button>
+      </div>
+    `;
   }
-// Плавный скролл наверх при смене практики
-  setTimeout(() => {
-    const rBody = document.getElementById('ritualBody');
-    if(rBody) rBody.scrollTo({ top: 0, behavior: 'smooth' });
-  }, 50);}
+}
+
 function toggleTimer(ctx){
   const btn=ctx==='ritual'?
     document.getElementById('ritualTimerBtn'):
@@ -1922,7 +2010,8 @@ function startTimer(ctx){
         btn.disabled = true;
       }
 
-      speakTimerEnd(); // Голос
+      if(ctx === 'ritual') speakTimerEnd(ritualQueue[ritualIndex].id);
+      else speakTimerEnd(currentPractice.id);
       playFanfare();   // Звук
       
       if(ctx==='ritual') showCompleteOverlay(ritualQueue[ritualIndex],'ritual');
@@ -2348,7 +2437,7 @@ function openPractice(id){
   window.scrollTo(0,0);
   timerRemaining=p.time;
   timerState='idle';
-  startMusic();
+  startMusic(p.id); // Передаем ID практики для выбора трека
   updateSoundUI();
 }
 function closePractice(){
@@ -2514,6 +2603,12 @@ function stopBreath(){
     const subBanner = document.getElementById('subBanner');
     if (subBanner) {
       if (user.sub_until && new Date(user.sub_until) < new Date()) {
+        subBanner.innerHTML = `
+          <div style="font-size:24px; margin-bottom:8px;">⚠️</div>
+          <div style="font-weight:900; font-size:15px; color:var(--danger); margin-bottom:4px;">Подписка закончилась</div>
+          <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">Доступ к новым книгам закрыт. Продлите подписку, чтобы продолжить.</div>
+          <button class="btn-small-inline" style="margin-top:0; width:100%; background:var(--danger);" onclick="contactDev()">Продлить подписку</button>
+        `;
         subBanner.classList.remove('hidden'); 
       } else {
         subBanner.classList.add('hidden'); 
@@ -2581,6 +2676,36 @@ function stopBreath(){
     }
     // ----------------------------
     if(xpBadge) xpBadge.textContent = `${lvlIco} ${lvlName} · ${totalXP} XP`;
+    
+    // --- БЛОК ПОДПИСКИ ---
+    const subEl = document.getElementById('profileSubStatus');
+    if (subEl) {
+      if (user.sub_until && new Date(user.sub_until) > new Date()) {
+        // Подписка активна
+        const subDate = new Date(user.sub_until).toLocaleDateString('ru-RU');
+        subEl.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
+            <span style="color:var(--success); font-weight:800; font-size:12px; background:rgba(62,207,142,0.15); border: 1px solid rgba(62,207,142,0.3); padding:6px 14px; border-radius:100px;">
+              💎 PRO до ${subDate}
+            </span>
+          </div>
+        `;
+      } else {
+        // Подписки нет
+        subEl.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
+            <span style="color:var(--muted); font-weight:800; font-size:12px; background:var(--card2); padding:6px 14px; border-radius:100px;">
+              🎁 Бесплатный доступ
+            </span>
+            <button class="btn" style="margin-top:4px; padding:8px 16px; font-size:12px; border-radius:100px; background:linear-gradient(135deg, var(--gold), var(--warm)); box-shadow:0 4px 12px rgba(255,184,0,0.3);" onclick="contactDev()">
+              ⚡ Оформить Премиум
+            </button>
+          </div>
+        `;
+      }
+    }
+    // --- КОНЕЦ БЛОКА ПОДПИСКИ ---
+
     const avaEl = document.getElementById('profileAva');
     if(avaEl) avaEl.innerHTML = getAvatarHtml(state.avatar, 48);
     
@@ -2770,8 +2895,16 @@ function renderNotifications(){
       try { p = JSON.parse(p); } catch(e) { p = {}; }
     }
     let ico='🔔',title='',text='';
-    if(n.type==='msg'){ico='💬';title='Новое сообщение';text=p.text||''}
-    else if(n.type==='like'){ico='❤️';title='Новый лайк';text=p.text||'Кому-то понравился твой пост'}
+    if(n.type==='msg'){
+      ico='💬';
+      title = p.from_name ? 'Сообщение от ' + p.from_name : 'Новое сообщение';
+      text = p.text || '';
+    }
+    else if(n.type==='like'){
+      ico='❤️';
+      title='Новый лайк';
+      text=p.from_name ? p.from_name + ' оценил(а) твой пост' : (p.text||'Кому-то понравился твой пост');
+    }
     else if(n.type==='comment'){ico='💬';title='Новый комментарий';text=p.text||''}
     else if(n.type==='ach'){ico='🏆';title='Новая награда';text=p.title||''}
     else if(n.type==='admin'){ico='📢';title=p.title||'Объявление';text=p.text||''} 
@@ -3580,6 +3713,20 @@ async function openDialog(otherId,p){
     const inp=document.getElementById('dialogInput');
     if(inp)inp.focus();
   },300);
+  // Фикс клавиатуры для iOS/Android
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const wrap = document.getElementById('dialogInputWrap');
+      if (!wrap) return;
+      const isKeyboardOpen = window.visualViewport.height < window.innerHeight - 100;
+      
+      if (isKeyboardOpen) {
+        wrap.style.bottom = `${window.innerHeight - window.visualViewport.height + 16}px`;
+      } else {
+        wrap.style.bottom = 'calc(16px + var(--safe-bottom))';
+      }
+    });
+  }
     // Слушаем ввод текста, чтобы отправить сигнал "Печатает..."
   const inp = document.getElementById('dialogInput');
   if(inp) {
@@ -3648,8 +3795,9 @@ async function sendPrivateMessage(){
     playCheck();
     // Уведомление получателю
     await createNotification(currentDialogUserId,'msg',{
-      text:(user.name||'Кто-то')+': '+text.slice(0,50),
-      from:user.id
+      text: text.slice(0, 50),
+      from_name: user.name || 'Пользователь',
+      from: user.id
     });
     await loadDialog();
   }catch(e){toast('Ошибка отправки','danger')}
@@ -3796,25 +3944,30 @@ function subscribeNotifications(){
 function switchAdminTab(tab,el){
   document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('on'));
   if(el)el.classList.add('on');
-  ['adminUsers','adminBooks','adminAnalytics','adminSystem'].forEach(id=>{
+  
+  // Скрываем все вкладки
+  ['adminDashboard', 'adminUsers', 'adminBooks', 'adminReports', 'adminSystem'].forEach(id=>{
     document.getElementById(id)?.classList.add('hidden');
   });
-  if(tab==='users'){
+
+  // Показываем нужную
+  if(tab==='dashboard'){
+    document.getElementById('adminDashboard').classList.remove('hidden');
+    renderAdminDashboard(); // Вызываем новую функцию
+  } else if(tab==='users'){
     document.getElementById('adminUsers').classList.remove('hidden');
     loadAdminUsers();
-  }else if(tab==='books'){
+  } else if(tab==='books'){
     document.getElementById('adminBooks').classList.remove('hidden');
     loadAdminBooks();
-  }else if(tab==='analytics'){
-    document.getElementById('adminAnalytics').classList.remove('hidden');
-    renderAnalytics();
-  }else if(tab==='reports'){
+  } else if(tab==='reports'){
     document.getElementById('adminReports').classList.remove('hidden');
     loadAdminReports();
-  }else if(tab==='system'){
+  } else if(tab==='system'){
     document.getElementById('adminSystem').classList.remove('hidden');
     renderSystem();
-    loadAdminQuotes();}
+    loadAdminQuotes();
+  }
 }
 
 async function showAdmin(){
@@ -3823,14 +3976,77 @@ async function showAdmin(){
   document.getElementById('adminScreen').classList.remove('hidden');
   document.getElementById('adminDetailWrap').innerHTML='';
   document.getElementById('adminSearch').value='';
-    adminFilter='all';
-  document.querySelectorAll('.admin-filter').forEach((f,i)=>f.classList.toggle('on',i===0));
-    adminFilter='all';
+  adminFilter='all';
   document.querySelectorAll('.admin-filter').forEach((f,i)=>f.classList.toggle('on',i===0));
   document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('on',i===0));
-  ['adminBooks','adminAnalytics','adminSystem'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
-  document.getElementById('adminUsers').classList.remove('hidden');
-  await loadAdminUsers();
+  
+  // Скрываем всё, кроме дашборда
+  ['adminUsers', 'adminBooks', 'adminReports', 'adminSystem'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
+  document.getElementById('adminDashboard').classList.remove('hidden');
+  
+  await loadAdminUsers(); // Загружаем юзеров в память
+  renderAdminDashboard(); // Рисуем графики
+}
+
+function renderAdminDashboard() {
+  const el = document.getElementById('dashboardContent');
+  if (!el || !adminAllUsers.length) return;
+
+  // 1. Считаем деньги и подписки
+  let activeSubs = 0;
+  let expiredSubs = 0;
+  let freeUsers = 0;
+  
+  adminAllUsers.forEach(p => {
+    if (p.sub_until) {
+      if (new Date(p.sub_until) > new Date()) activeSubs++;
+      else expiredSubs++;
+    } else {
+      freeUsers++;
+    }
+  });
+
+  // Предполагаемая выручка (если подписка 299 руб)
+  const estimatedRevenue = activeSubs * 299;
+
+  // 2. Считаем активность за сегодня
+  const today = new Date().toISOString().slice(0, 10);
+  const activeToday = adminAllUsers.filter(p => p.last_seen && p.last_seen.slice(0, 10) === today).length;
+
+  el.innerHTML = `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+      
+      <!-- Карточка выручки -->
+      <div class="admin-detail" style="grid-column: span 2; background:linear-gradient(135deg, rgba(62,207,142,0.15), var(--card)); border-color:var(--success); padding:20px; text-align:center;">
+        <div style="font-size:12px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Примерная выручка (MRR)</div>
+        <div style="font-size:32px; font-weight:900; color:var(--success);">${estimatedRevenue.toLocaleString('ru-RU')} ₽</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:4px;">(Активных подписок: ${activeSubs})</div>
+      </div>
+
+      <!-- Карточка активности -->
+      <div class="admin-detail" style="text-align:center; padding:16px;">
+        <div style="font-size:24px; font-weight:900; color:var(--accent-2);">${activeToday}</div>
+        <div style="font-size:11px; color:var(--muted); font-weight:800; margin-top:4px;">Зашли сегодня</div>
+      </div>
+
+      <!-- Карточка бесплатных -->
+      <div class="admin-detail" style="text-align:center; padding:16px;">
+        <div style="font-size:24px; font-weight:900; color:var(--warm);">${freeUsers}</div>
+        <div style="font-size:11px; color:var(--muted); font-weight:800; margin-top:4px;">Без подписки</div>
+      </div>
+      
+    </div>
+
+    <h3 class="section-title" style="margin-top:20px;">Быстрые действия</h3>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <button class="btn" style="margin-top:0; background:var(--card2); color:var(--text); border:1px solid var(--border);" onclick="switchAdminTab('users', document.querySelectorAll('.admin-tab')[1])">
+        👥 Перейти к списку пользователей
+      </button>
+      <button class="btn" style="margin-top:0; background:var(--card2); color:var(--text); border:1px solid var(--border);" onclick="switchAdminTab('system', document.querySelectorAll('.admin-tab')[4])">
+        📢 Сделать рассылку уведомлений
+      </button>
+    </div>
+  `;
 }
 
 async function loadAdminUsers(){
@@ -3858,13 +4074,22 @@ function renderAdminList(list){
     const isMe=p.id===user.id;
     const phone=isMe?user.phone:(p.phone||'');
     const phoneShown=phone?'+7 ('+phone.slice(1,4)+') '+phone.slice(4,7)+'-'+phone.slice(7,9)+'-'+phone.slice(9):'—';
-    return `<div class="admin-item" onclick="openAdminUser('${p.id}')">
-      <div class="ai-ava">${p.avatar||'👤'}</div>
-      <div class="ai-info">
-        <div class="ai-name">${escapeHtml(p.name||'Без имени')} ${p.is_admin?'👑':''} ${isMe?'(ты)':''} ${p.blocked?'🚫':''}</div>
-        <div class="ai-phone">${phoneShown}</div>
+    let subBadge = '';
+    if (p.sub_until && new Date(p.sub_until) > new Date()) {
+      subBadge = `<span style="color:var(--success); font-size:14px; margin-left:6px;">💎</span>`;
+    }
+
+    return `<div class="admin-item" style="display:flex; justify-content:space-between;">
+      <div style="display:flex; gap:12px; align-items:center; flex:1;" onclick="openAdminUser('${p.id}')">
+        <div class="ai-ava">${p.avatar||'👤'}</div>
+        <div class="ai-info">
+          <div class="ai-name">${escapeHtml(p.name||'Без имени')} ${p.is_admin?'👑':''} ${isMe?'(ты)':''} ${p.blocked?'🚫':''} ${subBadge}</div>
+          <div class="ai-phone">${phoneShown}</div>
+        </div>
       </div>
-      <div class="ai-arrow">›</div>
+      
+      <!-- БЫСТРАЯ ВЫДАЧА ПОДПИСКИ -->
+      <button class="btn-small-inline" style="margin:0; padding:8px 10px; font-size:10px; background:var(--success); box-shadow:none;" onclick="event.stopPropagation(); quickGrantSub('${p.id}')">+30д</button>
     </div>`;
   }).join('');
 }
@@ -4394,39 +4619,31 @@ window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=
 });
 // ─── СИСТЕМНАЯ КНОПКА "НАЗАД" (Android) ───
 window.addEventListener('popstate', (e) => {
-  // Проверяем, какие экраны сейчас открыты
   const ritualOpen = !document.getElementById('ritualScreen').classList.contains('hidden');
   const practiceOpen = !document.getElementById('practiceScreen').classList.contains('hidden');
   const authOpen = !document.getElementById('authScreen').classList.contains('hidden');
   const helpOpen = !document.getElementById('helpScreen').classList.contains('hidden');
   const settingsOpen = !document.getElementById('settingsScreen').classList.contains('hidden');
   const notifOpen = !document.getElementById('notificationsScreen').classList.contains('hidden');
+  const adminOpen = !document.getElementById('adminScreen').classList.contains('hidden');
 
   if (ritualOpen) { closeRitual(); history.pushState(null, null, location.href); return; }
   if (practiceOpen) { closePractice(); history.pushState(null, null, location.href); return; }
   
-  // Если мы в Помощи, Настройках или Уведомлениях — возвращаем в Профиль
-  if (helpOpen || settingsOpen || notifOpen) {
+  if (helpOpen || settingsOpen || notifOpen || adminOpen) {
     showProfile();
+    history.pushState(null, null, location.href);
   } else if (currentScreen !== 'today' && !authOpen) {
     smartHome();
+    history.pushState(null, null, location.href);
+  } else {
+    // Если мы на главном экране, разрешаем приложению закрыться
+    history.back(); 
   }
-  
-  // Блокируем выход из приложения
-  history.pushState(null, null, location.href);
 });
 
-// Блокируем закрытие приложения на главном экране (опционально, если хочешь как в PWA)
+// Оставляем один пушстейт для инициализации
 history.pushState(null, null, location.href);
-async function toggleBookAccessMode(){
-  bookAccessMode=bookAccessMode==='everyone'?'individual':'everyone';
-  try{
-    await sb.from('app_settings').upsert({key:'book_access_mode',value:bookAccessMode},{onConflict:'key'});
-  }catch(e){}
-  toast(bookAccessMode==='everyone'?'Режим: Всем открыто':'Режим: Индивидуально');
-  playCheck();
-  renderSystem();
-}
 async function setAllBooksAccess(userId,grant){
   const p=adminAllUsers.find(x=>x.id===userId);if(!p)return;
   let access=grant?BOOKS.map(b=>b.id):[];
@@ -5101,43 +5318,44 @@ async function savePracticeNote(practiceTitle, noteText, bookId) {
   }
 }
 // ─── ОЗВУЧКА ТАЙМЕРА ───
-function speakTimerEnd() {
+function speakTimerEnd(practiceId) {
   if (state.soundMode !== 'sound') return;
   
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel(); // Сбрасываем предыдущую очередь
     
-    const text = "Время практики завершено. Зафиксируйте мысли и открывайте глаза.";
+    // Умный текст для разных практик (чтобы не говорил "открывайте глаза" во время чтения)
+    let text = "Время практики завершено. Зафиксируйте мысли.";
+    if (practiceId === 'read') {
+      text = "Время чтения завершено. Зафиксируйте одну мысль из прочитанного.";
+    } else if (practiceId === 'sport') {
+      text = "Тренировка завершена. Отличная работа, вы заряжены энергией!";
+    } else if (practiceId === 'silence' || practiceId === 'visual') {
+      text = "Время вышло. Медленно возвращайтесь в здесь и сейчас, открывайте глаза.";
+    }
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'ru-RU';
-    utterance.rate = 0.9;
+    utterance.rate = 0.85; // Говорит медленнее (спокойнее)
+    utterance.pitch = 1.1; // Тембр чуть выше (звучит более женственно и мягко)
     utterance.volume = 1.0;
 
-    // Функция, которая выберет голос и запустит озвучку
     const playVoice = () => {
       const voices = window.speechSynthesis.getVoices();
+      // Ищем русский голос, отдавая предпочтение женским
+      let ruVoice = voices.find(v => (v.lang === 'ru-RU' || v.lang === 'ru') && v.name.includes('Milena')) || 
+                    voices.find(v => v.lang === 'ru-RU' || v.lang === 'ru');
       
-      // Ищем ЛЮБОЙ русский голос (обычно женские стоят первыми)
-      const ruVoice = voices.find(v => v.lang === 'ru-RU' || v.lang === 'ru');
-      
-      if (ruVoice) {
-        utterance.voice = ruVoice;
-        console.log('🔊 Озвучка голосом:', ruVoice.name);
-      } else {
-        console.log('⚠️ Русский голос не найден, используется стандартный.');
-      }
-      
+      if (ruVoice) utterance.voice = ruVoice;
       window.speechSynthesis.speak(utterance);
     };
 
-    // Проверяем: если голоса уже загружены в браузер — запускаем сразу
     if (window.speechSynthesis.getVoices().length !== 0) {
       playVoice();
     } else {
-      // Если нет — ждем события загрузки голосов
       window.speechSynthesis.onvoiceschanged = () => {
         playVoice();
-window.speechSynthesis.onvoiceschanged = null; // Убираем слушатель
+        window.speechSynthesis.onvoiceschanged = null; 
       };
     }
   }
@@ -5419,5 +5637,26 @@ async function loadMyFriends() {
     el.innerHTML = html;
   } catch(e) {
     console.error(e);
+  }
+  }
+  async function quickGrantSub(userId) {
+  if(!confirm('Выдать подписку на 30 дней?')) return;
+  try {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    const newDate = d.toISOString();
+    
+    const { error } = await sb.from('profiles').update({ sub_until: newDate }).eq('id', userId);
+    if (error) throw error;
+    
+    // Обновляем в памяти
+    const p = adminAllUsers.find(x => x.id === userId);
+    if (p) p.sub_until = newDate;
+    
+    playSuccess();
+    toast('Подписка выдана на 30 дней ✓');
+    renderAdminList(adminAllUsers); // Перерисовываем список
+  } catch (e) {
+    toast('Ошибка: ' + e.message, 'danger');
   }
 }

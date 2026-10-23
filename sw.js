@@ -3,9 +3,9 @@
 // Офлайн + Push + фоновая синхронизация
 // ═══════════════════════════════════════════════
 
-const CACHE_VERSION = 'andger-v3.5';
-const CACHE_STATIC = 'andger-static-v3.5';
-const CACHE_DYNAMIC = 'andger-dynamic-v3.5';
+const CACHE_VERSION = 'andger-v3.6';
+const CACHE_STATIC = 'andger-static-v3.6';
+const CACHE_DYNAMIC = 'andger-dynamic-v3.6';
 
 // Файлы, которые всегда в кэше
 const STATIC_FILES = [
@@ -154,30 +154,4 @@ self.addEventListener('message',(e)=>{
       icon:'/icon-192.png'
     });
   }
-});
-// ─── PUSH УВЕДОМЛЕНИЯ ───
-self.addEventListener('push', function(event) {
-  if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.body,
-      icon: '/icon-192.png', // Иконка уведомления
-      badge: '/icon-192.png',
-      vibrate: [100, 50, 100],
-      data: {
-        url: data.url || '/'
-      }
-    };
-    event.waitUntil(
-      self.registration.showNotification(data.title, options)
-    );
-  }
-});
-
-// Клик по уведомлению
-self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
-  event.waitUntil(
-    clients.openWindow(event.notification.data.url)
-  );
 });

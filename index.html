@@ -503,7 +503,7 @@
         </div>
       </div>
       <div class="feed-input-wrap" id="feedInputWrap">
-        <input type="text" class="feed-input" id="feedInput" placeholder="Что у тебя нового?" maxlength="500">
+        <input type="text" class="feed-input" id="feedInput" placeholder="Что у тебя нового?" maxlength="500" autocomplete="off" name="feed_message">
         <button class="feed-post-btn" onclick="sendFeedPost()">➤</button>
       </div>
     </div>
@@ -527,7 +527,7 @@
         </div>
       </div>
       <div class="feed-input-wrap" id="dialogInputWrap">
-        <input type="text" class="feed-input" id="dialogInput" placeholder="Написать..." maxlength="1000">
+        <input type="text" class="feed-input" id="dialogInput" placeholder="Написать..." maxlength="1000" autocomplete="off" name="message">
         <button class="feed-post-btn" onclick="sendPrivateMessage()">➤</button>
       </div>
     </div>
@@ -553,6 +553,9 @@
           <div class="profile-avatar-lg" id="profileAva">👤</div>
           <input type="text" id="profileFullName" class="profile-name-input" placeholder="Имя и Фамилия" maxlength="60" onblur="saveName()" onkeydown="if(event.key === 'Enter') this.blur()">
           <div class="profile-phone" id="profilePhone">+7 ***</div>
+          <div class="profile-phone" id="profilePhone">+7 ***</div>
+          <div class="profile-xp-badge" id="profileXpBadge">🌱 Новичок</div>
+          <div id="profileSubStatus" style="margin-bottom: 12px;"></div>
           <div class="profile-xp-badge" id="profileXpBadge">🌱 Новичок</div>
           <!-- Мини-статистика в профиле -->
           <div id="profileStatsGrid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
@@ -793,11 +796,16 @@
       </div>
       <div class="wrap">
         <div class="admin-tabs">
-          <div class="admin-tab on" onclick="switchAdminTab('users', this)">👥 Участники</div>
+          <div class="admin-tab on" onclick="switchAdminTab('dashboard', this)">📊 Дашборд</div>
+          <div class="admin-tab" onclick="switchAdminTab('users', this)">👥 База</div>
           <div class="admin-tab" onclick="switchAdminTab('books', this)">📚 Книги</div>
-          <div class="admin-tab" onclick="switchAdminTab('analytics', this)">📊 Аналитика</div>
           <div class="admin-tab" onclick="switchAdminTab('reports', this)">🚩 Жалобы</div>
-          <div class="admin-tab" onclick="switchAdminTab('system', this)">⚙️ Система</div>
+          <div class="admin-tab" onclick="switchAdminTab('system', this)">⚙️ Настройки</div>
+        </div>
+        
+        <!-- НОВЫЙ БЛОК ДЛЯ ДАШБОРДА -->
+        <div id="adminDashboard">
+          <div id="dashboardContent"></div>
         </div>
         <div id="adminUsers">
           <div class="admin-summary">
@@ -830,11 +838,8 @@
           <button class="btn" onclick="showBookEditor()">+ Добавить книгу</button>
           <div id="adminBookList" style="margin-top:16px"></div>
         </div>
-        <div id="adminAnalytics" class="hidden">
-          <div id="adminReports" class="hidden">
-            <div id="adminReportsList" class="admin-list"></div>
-          </div>
-          <div id="analyticsContent"></div>
+        <div id="adminReports" class="hidden">
+          <div id="adminReportsList" class="admin-list"></div>
         </div>
         <div id="adminSystem" class="hidden">
           
