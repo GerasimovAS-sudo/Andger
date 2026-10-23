@@ -20,6 +20,33 @@ const SVG_ICONS = {
   'heart': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>'
 };
 
+// ─── БАЗА SVG-АВАТАРОК ───
+const AVATAR_ICONS = {
+  'user': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+  'brain': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>',
+  'zap': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>',
+  'sun': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>',
+  'heart': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>',
+  'book': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>',
+  'target': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>',
+  'shield': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>',
+  'crown': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"></path></svg>',
+  'coffee': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>',
+  'star': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
+  'leaf': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>',
+  'moon': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>'
+};
+
+// Функция для отрисовки аватарки (поддерживает старые эмодзи)
+function getAvatarHtml(avatar, size = 24) {
+  // Если аватарка — это старый эмодзи (например 👤), показываем его как текст
+  if (!AVATAR_ICONS[avatar] && avatar && avatar.length <= 4) {
+    return `<span style="font-size:${size * 0.8}px; line-height:1;">${avatar}</span>`;
+  }
+  const svg = AVATAR_ICONS[avatar] || AVATAR_ICONS['user'];
+  return svg.replace('viewBox="0 0 24 24"', `viewBox="0 0 24 24" width="${size}" height="${size}" style="color: var(--accent-2);"`);
+}
+
 // Функция, которая превращает текст в SVG
 function getSvgIcon(name, size = 24, color = 'currentColor') {
   const svgCode = SVG_ICONS[name] || SVG_ICONS['book']; 
@@ -48,7 +75,13 @@ let notifications=[];
 let globalQuotes=[];
 
 const DOW=['ПН','ВТ','СР','ЧТ','ПТ','СБ','ВС'];
-const MOODS=['😔','😐','🙂','😊','🤩'];
+const MOODS = [
+  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 16s-1.5-2-4-2-4 2-4 2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>`,
+  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="15" x2="16" y2="15"></line><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>`,
+  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>`,
+  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M18 13a6 6 0 0 1-6 5 6 6 0 0 1-6-5h12Z"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>`,
+  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><path d="M9 9l1 1"></path><path d="M15 9l-1 1"></path><line x1="12" y1="15" x2="12" y2="18"></line></svg>`
+];
 
 const ONB=[
   {ico:'🌅',title:'Это игра по книгам',body:'<p>Ты не читаешь книги. Ты <strong>играешь в них</strong>. Каждое утро — цепочка практик, и день закрывается сам.</p>'},
@@ -171,7 +204,6 @@ document.addEventListener('click',(e)=>{
 
 // ─── МУЗЫКА ───
 const MUSIC_TRACKS=['meditation.mp3','meditation-2.mp3','meditation-3.mp3','meditation-4.mp3','meditation-5.mp3'];
-let currentTrackIdx=0;
 function startMusic(){
   if(state.soundMode !== 'sound') return;
   if(!musicAudio){
@@ -230,32 +262,28 @@ function playTone(freq,duration,type,vol){
   }catch(e){}
 }
 function playClick() {
-  if(state.soundMode === 'off') return;
-  if(state.soundMode === 'sound') playTone(800,0.04,'sine',0.06);
+  if(!state.soundOn) return;
+  playTone(800,0.04,'sine',0.06);
   if(navigator.vibrate) navigator.vibrate(15);
 }
 
 function playSuccess() {
-  if(state.soundMode === 'off') return;
-  if(state.soundMode === 'sound') {
-    playTone(600,0.1,'sine',0.1);
-    setTimeout(()=>playTone(900,0.15,'sine',0.1),100);
-  }
+  if(!state.soundOn) return;
+  playTone(600,0.1,'sine',0.1);
+  setTimeout(()=>playTone(900,0.15,'sine',0.1),100);
   if(navigator.vibrate) navigator.vibrate([30, 30, 30]);
 }
 
 function playError() {
-  if(state.soundMode === 'off') return;
-  if(state.soundMode === 'sound') playTone(200,0.15,'square',0.08);
+  if(!state.soundOn) return;
+  playTone(200,0.15,'square',0.08);
   if(navigator.vibrate) navigator.vibrate([50,30,50]);
 }
 
 function playCheck() {
-  if(state.soundMode === 'off') return;
-  if(state.soundMode === 'sound') {
-    playTone(500,0.08,'sine',0.1);
-    setTimeout(()=>playTone(750,0.12,'sine',0.1),60);
-  }
+  if(!state.soundOn) return;
+  playTone(500,0.08,'sine',0.1);
+  setTimeout(()=>playTone(750,0.12,'sine',0.1),60);
   if(navigator.vibrate) navigator.vibrate(80);
 }
 
@@ -337,8 +365,23 @@ window.addEventListener('DOMContentLoaded', async()=>{
 
     if (session) {
       console.log('👤 handleSession starting...');
-      await handleSession(session);
-      console.log('✅ handleSession completed');
+      try {
+        // Даем 5 секунд на загрузку. Если сервер тупит — идем дальше
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000));
+        await Promise.race([handleSession(session), timeoutPromise]);
+        console.log('✅ handleSession completed');
+      } catch(e) {
+        console.error('❌ Ошибка или тайм-аут загрузки:', e.message);
+        // Принудительно показываем экран, чтобы не было пустоты
+        if(!state.onboarded) {
+          showOnboarding();
+        } else if (BOOKS.length > 0) {
+          currentBook = BOOKS[0];
+          showTodayScreen();
+        } else {
+          showLibrary();
+        }
+      }
       await waitSplash(t0);
       hideLoader();
       console.log('✅ Splash hidden');
@@ -360,11 +403,11 @@ window.addEventListener('DOMContentLoaded', async()=>{
 });
 
 async function waitSplash(t0){
+  const minTime = 6000; // Ждем ровно 6 секунд с момента старта
   const elapsed = performance.now() - t0;
-  const minTime = 5000; // Ждем ровно 5 секунд
+  const remaining = Math.max(0, minTime - elapsed); // Сколько секунд осталось ждать
   
-  if (elapsed < minTime) {
-    const remaining = minTime - elapsed;
+  if (remaining > 0) {
     // Берем текущий процент заполнения (на котором остановилась загрузка)
     const currentEl = document.getElementById('ldProgress');
     const startPct = currentEl ? (parseFloat(currentEl.style.width) || 10) : 10;
@@ -379,6 +422,7 @@ async function waitSplash(t0){
       await new Promise(r => setTimeout(r, stepTime));
     }
   } else {
+    // Если загрузка уже заняла больше 6 секунд, просто доводим до 100
     setSplashProgress(100);
   }
 }
@@ -591,9 +635,6 @@ function hideAll(){
   const fi=document.getElementById('feedInputWrap');if(fi)fi.style.display='none';
   const di=document.getElementById('dialogInputWrap');if(di)di.style.display='none';
   window.scrollTo(0,0);
-  // Принудительно удаляем загрузчик, если он завис
-  const loader = document.getElementById('appLoader');
-  if(loader) loader.remove();
 }
 function showAuth(){
   hideAll();
@@ -666,7 +707,7 @@ async function showCommunityScreen(){
   document.getElementById('communityScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
   updateBottomNav('community');
-  document.getElementById('communityAvatar').textContent=state.avatar||'👤';
+  document.getElementById('communityAvatar').innerHTML=getAvatarHtml(state.avatar, 24);
   document.getElementById('feedInputWrap').style.display='flex';
   updateSoundUI();
   await loadFeed();
@@ -824,45 +865,34 @@ function hasBookAccess(id){
 }
 
 function toggleSound(){
-  // Переключаем по кругу: sound -> vibrate -> off -> sound
-  if (state.soundMode === 'sound') state.soundMode = 'vibrate';
-  else if (state.soundMode === 'vibrate') state.soundMode = 'off';
-  else state.soundMode = 'sound';
-
+  state.soundOn = !state.soundOn;
   saveState();
   updateSoundUI();
   
-  // Сохраняем в базу (sound_on = true только если 'sound')
-  sb.from('profiles').update({ sound_on: state.soundMode === 'sound', sound_mode: state.soundMode }).eq('id',user.id).then(()=>{});
+  sb.from('profiles').update({ sound_on: state.soundOn }).eq('id',user.id).then(()=>{});
 
-  // Включаем/выключаем музыку в зависимости от режима
   const inR = !document.getElementById('ritualScreen').classList.contains('hidden');
   const inP = !document.getElementById('practiceScreen').classList.contains('hidden');
   
-  if (state.soundMode === 'sound') {
+  if (state.soundOn) {
     playClick();
     if(inR || inP) startMusic();
   } else {
     stopMusic();
-    if (state.soundMode === 'vibrate' && navigator.vibrate) {
-      navigator.vibrate(50); // Короткая вибрация для отклика
-    }
   }
 }
 
 function updateSoundUI(){
   const tog = document.getElementById('soundToggle');
-  // В настройках переключатель горит только если включен полный звук
-  if(tog) tog.classList.toggle('on', state.soundMode === 'sound');
+  if(tog) tog.classList.toggle('on', state.soundOn);
   
-  // Меняем иконку на всех экранах (шапки, ритуал)
   const soundBtns = document.querySelectorAll('.sound-btn');
-  let icon = '🔊';
-  if (state.soundMode === 'vibrate') icon = '📳';
-  if (state.soundMode === 'off') icon = '🔇';
+  // Красивые SVG-иконки
+  const iconOn = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>`;
+  const iconOff = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>`;
 
   soundBtns.forEach(btn => {
-    btn.textContent = icon;
+    btn.innerHTML = state.soundOn ? iconOn : iconOff;
   });
 }
 
@@ -1080,6 +1110,8 @@ async function triggerInstall(){
 
 // ─── ГЛАВНАЯ ───
 function renderToday(){
+  const todayAvaEl = document.getElementById('todayAvatar');
+  if(todayAvaEl) todayAvaEl.innerHTML = getAvatarHtml(state.avatar, 24);
   if(!currentBook)return;
   const b=currentBook,bs=getBookState(b.id);
   const day=currentDay(b.id),closed=countClosedDays(b.id);
@@ -1265,7 +1297,7 @@ function renderHeroCards(){
   b.practices.forEach((p,i)=>{
     const done=todayRec.practices&&todayRec.practices.includes(p.id);
     const cls=done?'hero-card hero-done':'hero-card '+(cm[p.id]||'hero-silence');
-    html+=`<div class="${cls}"><div class="hero-icon-bg">${p.ico}</div><div class="hero-badge">№${i+1} из ${b.practices.length}</div>${done?'<div class="hero-done-badge">✓</div>':''}<div class="hero-content"><div class="hero-title">${p.title}</div><div class="hero-sub">${p.sub}</div><button class="hero-play" onclick="event.stopPropagation();openPractice('${p.id}')">${done?'✓ ГОТОВО':'▶ НАЧАТЬ'}</button></div></div>`;
+    html+=`<div class="${cls}"><div class="hero-icon-bg" style="width:100px; height:100px; opacity:0.15; position:absolute; top:45%; left:50%; transform:translate(-50%,-50%); z-index:0;">${getSvgIcon(p.ico, 100, '#fff')}</div><div class="hero-badge">№${i+1} из ${b.practices.length}</div>${done?'<div class="hero-done-badge">✓</div>':''}<div class="hero-content"><div class="hero-title">${p.title}</div><div class="hero-sub">${p.sub}</div><button class="hero-play" onclick="event.stopPropagation();openPractice('${p.id}')">${done?'✓ ГОТОВО':'▶ НАЧАТЬ'}</button></div></div>`;
   });
   document.getElementById('heroScroll').innerHTML=html;
     document.getElementById('heroDots').innerHTML=
@@ -1305,7 +1337,7 @@ function setLibFilter(f,el){
 function renderLibrary(){
   const fullName = (user.name || 'Друг') + (user.lastName ? ' ' + user.lastName : '');
 document.getElementById('libName').textContent = fullName;
-  document.getElementById('libAvatar').textContent=state.avatar||'👤';
+  document.getElementById('libAvatar').innerHTML=getAvatarHtml(state.avatar, 24);
   
   const q=(document.getElementById('libSearch')?.value||'').toLowerCase().trim();
   let list=BOOKS.filter(b=>{
@@ -1344,7 +1376,10 @@ document.getElementById('libName').textContent = fullName;
     html += `
       <div class="lib-category-wrap">
         <div class="lib-category-header ${isOpen ? 'open' : ''}" onclick="toggleLibCategory(this)">
-          <div style="font-weight:800; font-size:15px;">📁 ${catName} <span style="font-size:11px; opacity:0.6; margin-left:6px;">(${grouped[catName].length})</span></div>
+          <div style="font-weight:800; font-size:15px; display:flex; align-items:center; gap:8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            ${catName} <span style="font-size:11px; opacity:0.6; margin-left:6px;">(${grouped[catName].length})</span>
+          </div>
           <div class="arrow-icon" style="font-size:18px;">›</div>
         </div>
         <div class="lib-category-body ${isOpen ? 'open' : ''}" style="padding-top: 10px;">
@@ -1483,7 +1518,7 @@ async function rateBook(bookId,stars){
 // ─── СТАТИСТИКА ───
 function renderStatsScreen(){
   if(!currentBook)return;
-  document.getElementById('statsAvatar').textContent=state.avatar||'👤';
+  document.getElementById('statsAvatar').innerHTML=getAvatarHtml(state.avatar, 24);
     // ─── СЧЕТ ОПЫТА И УРОВНЯ ───
   let totalXP = 0;
   BOOKS.forEach(bb => {
@@ -1560,44 +1595,47 @@ function renderStatsScreen(){
   document.getElementById('globalPractices').textContent=totalPractices;
   document.getElementById('globalMinutes').textContent=totalMinutes;
 
-    // Отрисовка карточек книг
-  document.getElementById('statsBooksSwipe').innerHTML=BOOKS.map(b=>{
-    const closed=countClosedDays(b.id);
-    const pct=Math.round(closed/b.days*100);
-    const isDone=closed>=b.days;
-    const isActive=statsBookId===b.id;
-    const circ=2*Math.PI*22;
-    const offset=circ-(circ*pct/100);
+    // Отрисовка карточек книг (как на Главной)
+  const statsBooksHtml = BOOKS.map(b=>{
+    const closed = countClosedDays(b.id);
+    const pct = Math.round(closed / (b.days || 1) * 100);
+    const day = currentDay(b.id);
+    const isActive = statsBookId === b.id;
     
-    const dayNum = currentDay(b.id);
-    const dayText = b.start ? `День ${dayNum} из ${b.days}` : `${b.days} дней`;
-
-    return `<div class="stats-book-card ${isActive?'active':''} ${isDone?'done':''}" onclick="selectStatsBook('${b.id}')">
-      <div class="sbc-ring">
-        <svg viewBox="0 0 52 52"><circle class="sbc-bg" cx="26" cy="26" r="22"/><circle class="sbc-fill" cx="26" cy="26" r="22" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/></svg>
-        <div class="sbc-pct">${pct}%</div>
+    return `
+      <div class="active-book-card" onclick="selectStatsBook('${b.id}')" style="${isActive ? 'border-color: var(--accent); box-shadow: 0 0 15px rgba(124,92,255,0.15);' : 'opacity: 0.6;'}">
+        <div class="abc-head">
+          <div class="abc-emoji" style="display:flex; align-items:center; justify-content:center;">${getSvgIcon(b.emoji, 36, 'var(--accent-2)')}</div>
+           <div class="abc-info">
+            <div class="abc-title">${b.title}</div>
+            <div style="font-size:12px; color:var(--accent-2); font-weight:700; margin-bottom:4px;">${b.author || 'Неизвестный автор'}</div>
+            <div class="abc-day">День ${day} из ${b.days}</div>
+          </div>
+        </div>
+        <div class="abc-bar"><div class="abc-fill" style="width:${pct}%"></div></div>
+        <div class="abc-meta">
+          <span>Прогресс: <b>${pct}%</b></span>
+        </div>
       </div>
-      <div class="sbc-name">${b.emoji} ${b.title}</div>
-      <div style="font-size:10px; color:var(--muted); font-weight:700; margin-top:2px;">${dayText}</div>
-    </div>`;
+    `;
   }).join('');
 
-  // ДОБАВЛЯЕМ ТОЧКИ ДЛЯ СТАТИСТИКИ
+  document.getElementById('statsBooksSwipe').innerHTML = statsBooksHtml;
+  document.getElementById('statsBooksSwipe').className = 'books-slider'; // Меняем класс на слайдер
+
+  // Точки для книг
   const dotsWrap = document.getElementById('statsBooksDots');
-  if (dotsWrap) {
-    if (BOOKS.length > 1) {
-      dotsWrap.innerHTML = BOOKS.map(b => `<div class="b-dot ${statsBookId === b.id ? 'on' : ''}"></div>`).join('');
-      setTimeout(() => {
-        const wrap = document.getElementById('statsBooksSwipe');
-        const activeIndex = BOOKS.findIndex(x => x.id === statsBookId);
-        if (wrap && activeIndex >= 0 && wrap.children[activeIndex]) {
-          const cardWidth = wrap.children[activeIndex].offsetWidth;
-          wrap.scrollTo({ left: wrap.children[activeIndex].offsetLeft - (wrap.offsetWidth / 2) + (cardWidth / 2), behavior: 'smooth' });
-        }
-      }, 50);
-    } else {
-      dotsWrap.innerHTML = '';
-    }
+  if (dotsWrap && BOOKS.length > 1) {
+    dotsWrap.innerHTML = BOOKS.map(b => `<div class="b-dot ${statsBookId === b.id ? 'on' : ''}"></div>`).join('');
+    setTimeout(() => {
+      const wrap = document.getElementById('statsBooksSwipe');
+      const activeIndex = BOOKS.findIndex(x => x.id === statsBookId);
+      if (wrap && activeIndex >= 0 && wrap.children[activeIndex]) {
+        wrap.scrollTo({ left: wrap.children[activeIndex].offsetLeft - 16, behavior: 'smooth' });
+      }
+    }, 50);
+  } else if (dotsWrap) {
+    dotsWrap.innerHTML = '';
   }
 
   const b=BOOKS.find(x=>x.id===statsBookId)||currentBook;
@@ -1783,7 +1821,7 @@ function renderRitualStep(){
     `<div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px">📚 ${p._bookTitle}</div>`:'';
   document.getElementById('ritualBody').innerHTML=
     `${bookTag}
-     <div class="ritual-hero"><div class="ico">${p.ico}</div><h2>${p.title}</h2><div class="sub">${p.sub}</div></div>
+     <div class="ritual-hero"><div class="ico">${getSvgIcon(p.ico, 72, 'var(--accent-2)')}</div><h2>${p.title}</h2><div class="sub">${p.sub}</div></div>
      <div class="ps-block"><h3>💡 Зачем это нужно</h3><p>${p.why}</p></div>
      <div class="ps-block"><h3>🎬 Как делать</h3><ol class="steps">${p.how.map(s=>`<li>${s}</li>`).join('')}</ol></div>
      
@@ -1792,6 +1830,7 @@ function renderRitualStep(){
        <div class="timer-box">
          <div class="timer-display" id="ritualTime">${formatTime(p.time)}</div>
          <button class="timer-big-btn" id="ritualTimerBtn" onclick="toggleTimer('ritual')">▶ Старт</button>
+         <button class="exit-zen-btn" onclick="exitZenMode('ritual')">👁 Показать текст</button>
        </div>
      </div>
 
@@ -2105,6 +2144,7 @@ function renderRitualBuilder(){
   
   document.getElementById('ritualBuilderList').innerHTML=html;
   updateCustomSummary();
+  loadSavedRituals();
 }
 
 // Функция для открытия/закрытия книги в списке
@@ -2277,7 +2317,7 @@ function openPractice(id){
   document.getElementById('psTitle').textContent=p.title;
   document.getElementById('psSub').textContent=p.sub;
   document.getElementById('psContent').innerHTML=
-    `<div class="ps-hero"><div class="ico">${p.ico}</div><div class="time">⏱ ${Math.round(p.time/60)} минут</div></div>
+    `<div class="ps-hero"><div class="ico" style="display:flex; justify-content:center;">${getSvgIcon(p.ico, 52, 'var(--accent-2)')}</div><div class="time">⏱ ${Math.round(p.time/60)} минут</div></div>
      <div class="ps-block"><h3>💡 Зачем это нужно</h3><p>${p.why}</p></div>
      <div class="ps-block"><h3>🎬 Как делать</h3><ol class="steps">${p.how.map(s=>`<li>${s}</li>`).join('')}</ol></div>
      ${p.affirm?`<div class="ps-block"><h3>✨ Аффирмации</h3><ul class="affirm-list">${p.affirm.map(a=>`<li onclick="copyAffirm(this)">«${a}»</li>`).join('')}</ul></div>`:''}
@@ -2287,7 +2327,11 @@ function openPractice(id){
      
      <div class="ps-block timer-wrapper" style="margin-top:30px; border-top:1px solid var(--border); padding-top:20px;">
        <h3>⏱ Время практики</h3>
-       <div class="timer-box"><div class="timer-display" id="timerDisplay">${formatTime(p.time)}</div><button class="timer-big-btn" id="timerBtn" onclick="toggleTimer('practice')">▶ Старт</button></div>
+       <div class="timer-box">
+  <div class="timer-display" id="timerDisplay">${formatTime(p.time)}</div>
+  <button class="timer-big-btn" id="timerBtn" onclick="toggleTimer('practice')">▶ Старт</button>
+  <button class="exit-zen-btn" onclick="exitZenMode('practice')">👁 Показать текст</button>
+</div>
      </div>
      
 <div class="ps-block" style="margin-top:20px; background:linear-gradient(135deg, rgba(124,92,255,0.1), transparent); padding:16px; border-radius:var(--radius-md); border:1px solid var(--accent);">
@@ -2463,7 +2507,19 @@ function stopBreath(){
   const txt=document.getElementById('breathText');
   if(txt) txt.textContent='Пауза';
 }
+  function renderProfile(){
   try {
+    loadMyFriends();
+    // Проверка подписки
+    const subBanner = document.getElementById('subBanner');
+    if (subBanner) {
+      if (user.sub_until && new Date(user.sub_until) < new Date()) {
+        subBanner.classList.remove('hidden'); 
+      } else {
+        subBanner.classList.add('hidden'); 
+      }
+    }
+
     // Безопасное получение телефона
     const phone = (user && user.phone) ? user.phone : '79999999999';
     const phoneEl = document.getElementById('profilePhone');
@@ -2526,16 +2582,17 @@ function stopBreath(){
     // ----------------------------
     if(xpBadge) xpBadge.textContent = `${lvlIco} ${lvlName} · ${totalXP} XP`;
     const avaEl = document.getElementById('profileAva');
-    if(avaEl) avaEl.textContent = state.avatar || '👤';
+    if(avaEl) avaEl.innerHTML = getAvatarHtml(state.avatar, 48);
     
     const emojiEl = document.getElementById('emojiRow');
     if(emojiEl) emojiEl.innerHTML = 
-      EMOJIS.map(e => `<div class="emoji-pick ${state.avatar === e ? 'on' : ''}" onclick="setAvatar('${e}')">${e}</div>`).join('');
+      Object.keys(AVATAR_ICONS).map(key => `<div class="emoji-pick ${state.avatar === key ? 'on' : ''}" onclick="setAvatar('${key}')">${getAvatarHtml(key, 24)}</div>`).join('');
       
     updateSoundUI();
   } catch(e) {
     console.error('❌ renderProfile Error:', e);
   }
+}
 
 async function saveName(){
   const fullVal = document.getElementById('profileFullName').value.trim();
@@ -2717,11 +2774,14 @@ function renderNotifications(){
     else if(n.type==='like'){ico='❤️';title='Новый лайк';text=p.text||'Кому-то понравился твой пост'}
     else if(n.type==='comment'){ico='💬';title='Новый комментарий';text=p.text||''}
     else if(n.type==='ach'){ico='🏆';title='Новая награда';text=p.title||''}
+    else if(n.type==='admin'){ico='📢';title=p.title||'Объявление';text=p.text||''} 
+    else if(n.type==='friend'){ico='🤝';title='Новый друг';text=p.text||''}
     else {title='Уведомление';text=p.text||''}
+    
     return `<div class="notif-item ${n.read?'':'unread'}" onclick="openNotification(${n.id})">
       <div class="ni-ico">${ico}</div>
       <div class="ni-body">
-        <div class="ni-title">${title}</div>
+        <div class="ni-title">${escapeHtml(title)}</div>
         <div class="ni-text">${escapeHtml(text)}</div>
         <div class="ni-time">${timeAgo(n.created_at)}</div>
       </div>
@@ -2730,18 +2790,36 @@ function renderNotifications(){
 }
 async function openNotification(id){
   const n=notifications.find(x=>x.id===id);if(!n)return;
+  
+  // Помечаем прочитанным
   if(!n.read){
     await sb.from('notifications').update({read:true}).eq('id',id);
     n.read=true;
     updateNotifBadge();
   }
-  if(n.type==='msg'&&n.payload?.from){
-    const fromId=n.payload.from;
-    const{data:p}=await sb.from('profiles').select('*').eq('id',fromId).single();
-    if(p)openDialog(fromId,p);
+  
+  // Разбираем payload
+  let p = n.payload || {};
+  if (typeof p === 'string') {
+    try { p = JSON.parse(p); } catch(e) { p = {}; }
+  }
+
+  // Логика перехода
+  if(n.type==='msg' && p.from){
+    // Открываем чат с отправителем
+    const fromId = p.from;
+    const{data:profile}=await sb.from('profiles').select('id,name,avatar,last_seen').eq('id',fromId).single();
+    if(profile) openDialog(fromId, profile);
   }else if(n.type==='like'||n.type==='comment'){
     showCommunityScreen();
+  }else if(n.type==='admin'){
+    showSimpleModal('📢', p.title || 'Сообщение', p.text || '');
   }
+  else if(n.type==='friend' && p.from){
+    const{data:profile}=await sb.from('profiles').select('id,name,avatar,last_seen').eq('id',p.from).single();
+    if(profile) viewUserProfile(p.from, 'feed');
+  }
+  
   renderNotifications();
 }
 async function createNotification(userId,type,payload){
@@ -2765,6 +2843,13 @@ async function ensureSlug(){
   state.slug=slug;saveState();
   return slug;
 }
+
+const msgBtn = document.getElementById('publicMsgBtn');
+  if(msgBtn) msgBtn.style.display = 'none';
+  const friendBtn = document.getElementById('publicFriendBtn');
+  if(friendBtn) friendBtn.style.display = 'none';
+  hideAll();
+
 async function showPublicProfile(){
   await ensureSlug();
   document.getElementById('ppAva').textContent=state.avatar||'👤';
@@ -2818,7 +2903,7 @@ async function copyReferral(){
 let journalFilter = 'all'; // Глобальная переменная для фильтра
 
 async function renderJournal(){
-  document.getElementById('journalAvatar').textContent = state.avatar||'👤';
+  document.getElementById('journalAvatar').innerHTML = getAvatarHtml(state.avatar, 24);
   
   // 1. Рисуем фильтры по книгам в виде карточек Главной страницы
   const filterWrap = document.getElementById('journalFilters');
@@ -3209,10 +3294,22 @@ async function loadFeed(){
       <div class="fp-text">${escapeHtml(m.text)}</div>
             <div class="fp-actions" style="display:flex; justify-content:space-between; width:100%;">
         <div style="display:flex; gap:10px;">
-                    <div class="fp-action ${myType === 'heart' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'heart',this)">❤️ <span>${countHeart>0?countHeart:''}</span></div>
-          <div class="fp-action ${myType === 'fire' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'fire',this)">🔥 <span>${countFire>0?countFire:''}</span></div>
-          <div class="fp-action ${myType === 'muscle' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'muscle',this)">💪 <span>${countMuscle>0?countMuscle:''}</span></div>
-          <div class="fp-action ${myType === 'clap' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'clap',this)">👏 <span>${countClap>0?countClap:''}</span></div>
+          <div class="fp-action ${myType === 'heart' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'heart',this)" data-type="heart">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="${myType === 'heart' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            <span>${countHeart>0?countHeart:''}</span>
+          </div>
+          <div class="fp-action ${myType === 'fire' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'fire',this)" data-type="fire">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="${myType === 'fire' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+            <span>${countFire>0?countFire:''}</span>
+          </div>
+          <div class="fp-action ${myType === 'muscle' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'muscle',this)" data-type="muscle">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="${myType === 'muscle' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"></path><path d="M11 3 8 9l4 13 4-13-3-6"></path><path d="M2 9h20"></path></svg>
+            <span>${countMuscle>0?countMuscle:''}</span>
+          </div>
+          <div class="fp-action ${myType === 'clap' ? 'on' : ''}" onclick="event.stopPropagation(); toggleLike(${m.id},'clap',this)" data-type="clap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="${myType === 'clap' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
+            <span>${countClap>0?countClap:''}</span>
+          </div>
         </div>
                 <div style="display:flex; gap:12px;">
           <div class="fp-action" onclick="event.stopPropagation(); toggleComments(${m.id})">💬 <span>${postComments.length}</span></div>
@@ -3257,55 +3354,65 @@ async function toggleLike(msgId, type, el){
     if (!isCurrentlyOn) el.classList.add('on');
   }
 
-  try{
-    const{data:existing}=await sb.from('likes').select('*')
-      .eq('message_id',msgId).eq('user_id',user.id).maybeSingle();
+  try {
+    const { data: existing } = await sb.from('likes').select('*')
+      .eq('message_id', msgId).eq('user_id', user.id).maybeSingle();
 
-    if(existing){
+    if (existing) {
       if (existing.type === type || (!existing.type && type === 'heart')) {
         // Удаляем лайк
-        await sb.from('likes').delete().eq('message_id',msgId).eq('user_id',user.id);
+        await sb.from('likes').delete().eq('message_id', msgId).eq('user_id', user.id);
       } else {
         // Меняем тип лайка
-        await sb.from('likes').update({type: type}).eq('message_id',msgId).eq('user_id',user.id);
+        await sb.from('likes').update({ type: type }).eq('message_id', msgId).eq('user_id', user.id);
         playCheck();
       }
     } else {
       // Ставим новый лайк
-      await sb.from('likes').insert({message_id:msgId, user_id:user.id, type: type});
+      await sb.from('likes').insert({ message_id: msgId, user_id: user.id, type: type });
       playCheck();
       
-      const{data:post}=await sb.from('messages').select('user_id').eq('id',msgId).single();
-      if(post&&post.user_id!==user.id){
-        await createNotification(post.user_id,'like',{
-          text:(user.name||'Кто-то')+' отреагировал на твой пост',
-          from:user.id,
-          msg_id:msgId
+      const { data: post } = await sb.from('messages').select('user_id').eq('id', msgId).single();
+      if (post && post.user_id !== user.id) {
+        await createNotification(post.user_id, 'like', {
+          text: (user.name || 'Кто-то') + ' отреагировал на твой пост',
+          from: user.id,
+          msg_id: msgId
         });
       }
     }
 
     // Обновляем цифры конкретно для этого поста (без перезагрузки всей ленты)
-    if(postEl) {
-      const {data: allLikes} = await sb.from('likes').select('*').eq('message_id', msgId);
+    if (postEl) {
+      const { data: allLikes } = await sb.from('likes').select('*').eq('message_id', msgId);
       const actions = postEl.querySelectorAll('.fp-action');
-      const types = ['heart', 'fire', 'muscle', 'clap'];
-      const emojis = ['❤️', '🔥', '💪', '👏'];
+      const typesList = ['heart', 'fire', 'muscle', 'clap'];
       const myLike = (allLikes || []).find(l => l.user_id === user.id);
       const myType = myLike ? (myLike.type || 'heart') : null;
 
-      types.forEach((t, i) => {
+      typesList.forEach((t) => {
         const count = (allLikes || []).filter(l => (l.type === t || (!l.type && t === 'heart'))).length;
-        const actionDiv = Array.from(actions).find(a => a.textContent.includes(emojis[i]));
+        const actionDiv = Array.from(actions).find(a => a.dataset.type === t);
+        
         if (actionDiv) {
-          actionDiv.innerHTML = `${emojis[i]} <span>${count > 0 ? count : ''}</span>`;
-          if (myType === t) actionDiv.classList.add('on');
-          else actionDiv.classList.remove('on');
+          // Обновляем только цифру, не трогая SVG
+          const span = actionDiv.querySelector('span');
+          if (span) span.textContent = count > 0 ? count : '';
+          
+          if (myType === t) {
+            actionDiv.classList.add('on');
+            const svg = actionDiv.querySelector('svg');
+            if (svg) svg.setAttribute('fill', 'currentColor');
+          } else {
+            actionDiv.classList.remove('on');
+            const svg = actionDiv.querySelector('svg');
+            if (svg) svg.setAttribute('fill', 'none');
+          }
         }
       });
-    }
+    } // <--- ВОТ ЭТА СКОБКА БЫЛА ПОТЕРЯНА
 
-  }catch(e){
+  } catch(e) {
     console.error(e);
     toast('Ошибка','danger');
     if(postEl) loadFeed(); // Откат в случае ошибки сети
@@ -3980,6 +4087,35 @@ async function renderAnalytics(){
     </div>`;
 }
 
+async function sendBroadcast() {
+  const title = document.getElementById('broadcastTitle').value.trim();
+  const text = document.getElementById('broadcastText').value.trim();
+  if(!title || !text) { toast('Заполни оба поля', 'warm'); return; }
+  
+  try {
+    const { data: users } = await sb.from('profiles').select('id');
+    if(!users) return;
+
+    const notifs = users.map(u => ({
+      user_id: u.id,
+      type: 'admin',
+      payload: { title, text },
+      read: false
+    }));
+
+    const { error } = await sb.from('notifications').insert(notifs);
+    if(error) throw error;
+
+    playSuccess();
+    toast('Рассылка отправлена!');
+    document.getElementById('broadcastTitle').value = '';
+    document.getElementById('broadcastText').value = '';
+  } catch(e) {
+    console.error(e);
+    toast('Ошибка отправки', 'danger');
+  }
+}
+
 // ─── СИСТЕМА ───
 async function renderSystem(){
   document.getElementById('systemContent').innerHTML=`
@@ -4534,24 +4670,30 @@ function showDayStats(dateStr) {
 }
 
 function startFastRitual() {
-  let queue = [];
-  BOOKS.forEach(b => {
-    if (hasBookAccess(b.id) && b.practices.length > 0) {
-      const shortest = b.practices.reduce((prev, curr) => (prev.time < curr.time) ? prev : curr);
-      queue.push({ ...shortest, _bookId: b.id, _bookTitle: b.title });
+  showCustomConfirm(
+    '⚡ Быстрый режим', 
+    'Приложение запустит по 1 самой короткой практике из каждой доступной вам книги. Идеально, если мало времени!', 
+    () => {
+      let queue = [];
+      BOOKS.forEach(b => {
+        if (hasBookAccess(b.id) && b.practices.length > 0) {
+          const shortest = b.practices.reduce((prev, curr) => (prev.time < curr.time) ? prev : curr);
+          queue.push({ ...shortest, _bookId: b.id, _bookTitle: b.title });
+        }
+      });
+      if (!queue.length) { toast('Нет доступных книг', 'warm'); return; }
+      
+      ritualQueue = queue;
+      ritualIndex = 0;
+      hideAll();
+      const rEl = document.getElementById('ritualScreen');
+      rEl.className = 'ritual';
+      rEl.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;z-index:9999;display:flex;flex-direction:column;background:var(--bg)';
+      window.scrollTo(0, 0);
+      startMusic();
+      renderRitualStep();
     }
-  });
-  if (!queue.length) { toast('Нет доступных книг', 'warm'); return; }
-  
-  ritualQueue = queue;
-  ritualIndex = 0;
-  hideAll();
-  const rEl = document.getElementById('ritualScreen');
-  rEl.className = 'ritual';
-  rEl.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;z-index:9999;display:flex;flex-direction:column;background:var(--bg)';
-  window.scrollTo(0, 0);
-  startMusic();
-  renderRitualStep();
+  );
 }
 
 async function reportPost(postId, authorId) {
@@ -4889,13 +5031,11 @@ async function viewUserProfile(userId, source = 'feed') {
     const achEl = document.getElementById('ppAchievements');
     if (achEl) achEl.innerHTML = achHtml;
 
-    const mainBtn = document.querySelector('#publicProfileScreen .btn');
-    const ghostBtn = document.querySelector('#publicProfileScreen .btn-ghost');
-    
-    mainBtn.textContent = '💬 Написать сообщение';
-    mainBtn.style.display = '';
-    mainBtn.onclick = () => openDialog(userId, p);
-    ghostBtn.style.display = 'none';
+    const msgBtn = document.getElementById('publicMsgBtn');
+    if(msgBtn) {
+      msgBtn.style.display = '';
+      msgBtn.onclick = () => openDialog(userId, p);
+    }
 
     hideAll();
     document.getElementById('publicProfileScreen').classList.remove('hidden');
@@ -4908,10 +5048,42 @@ async function viewUserProfile(userId, source = 'feed') {
     console.error(e);
     toast('Ошибка загрузки профиля', 'danger');
   }
+  // Проверяем, в друзьях ли он
+    const { data: friendData } = await sb.from('friends').select('*').eq('user_id', user.id).eq('friend_id', userId).maybeSingle();
+    const friendBtn = document.getElementById('publicFriendBtn');
+    if (friendBtn) {
+      friendBtn.dataset.targetId = userId;
+      if (friendData) {
+        friendBtn.textContent = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; vertical-align:middle;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Удалить из друзей';
+        friendBtn.style.background = 'transparent';
+        friendBtn.style.border = '1px solid var(--border)';
+        friendBtn.style.color = 'var(--text)';
+        friendBtn.style.boxShadow = 'none';
+      } else {
+        friendBtn.textContent = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; vertical-align:middle;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg> Добавить в друзья';
+        friendBtn.style.background = 'linear-gradient(135deg,var(--accent),var(--accent-2))';
+        friendBtn.style.border = 'none';
+        friendBtn.style.color = '#fff';
+        friendBtn.style.boxShadow = '0 6px 18px var(--accent-glow)';
+      }
+    }
 }
 function togglePassword() {
   const p = document.getElementById('password');
-  if(p) p.type = p.type === 'password' ? 'text' : 'password';
+  const open = document.getElementById('eyeOpen');
+  const closed = document.getElementById('eyeClosed');
+  
+  if(p && open && closed) {
+    if (p.type === 'password') {
+      p.type = 'text';
+      open.style.display = 'none';
+      closed.style.display = 'block';
+    } else {
+      p.type = 'password';
+      open.style.display = 'block';
+      closed.style.display = 'none';
+    }
+  }
 }
 async function savePracticeNote(practiceTitle, noteText, bookId) {
   if (!noteText || !noteText.trim()) return;
@@ -5108,5 +5280,144 @@ async function renderBookReviews(bookId) {
   } catch (e) {
     console.error('Ошибка загрузки отзывов:', e);
     el.innerHTML = '<div style="color:var(--danger);font-size:13px;">Ошибка загрузки отзывов</div>';
+  }
+}
+// ─── СОХРАНЕННЫЕ ПРАКТИКИ ───
+window._savedRitualsData = []; // Временное хранилище для быстрого доступа
+
+async function loadSavedRituals() {
+  const wrap = document.getElementById('savedRitualsWrap');
+  const list = document.getElementById('savedRitualsList');
+  if(!wrap || !list) return;
+
+  try {
+    const { data } = await sb.from('custom_practices').select('*').eq('user_id', user.id).order('created_at', {ascending: false});
+    window._savedRitualsData = data || []; // Сохраняем в память
+    
+    if(!data || !data.length) {
+      wrap.style.display = 'none';
+      return;
+    }
+
+    wrap.style.display = 'block';
+    let html = '';
+    data.forEach(item => {
+      const count = item.practices.length;
+      html += `
+        <div class="book-row" onclick="loadSavedRitualToList('${item.id}')" style="margin-bottom:8px; border-color:var(--accent-2); background:rgba(124,92,255,0.05);">
+          <div class="br-emoji" style="background:var(--accent); color:#fff;">💾</div>
+          <div class="br-info">
+            <div class="br-title">${escapeHtml(item.name)}</div>
+            <div class="br-author" style="color:var(--accent-2);">${count} ${plural(count, 'практика', 'практики', 'практик')} · Нажми, чтобы выбрать</div>
+          </div>
+          <div style="color:var(--danger); padding:10px;" onclick="event.stopPropagation(); deleteSavedRitual('${item.id}')">🗑</div>
+        </div>
+      `;
+    });
+    list.innerHTML = html;
+  } catch(e) { console.error(e); }
+}
+
+async function saveCustomRitual() {
+  if(!customRitual.length) { toast('Сначала выбери практики', 'warm'); return; }
+  
+  const name = prompt('Как назовем этот набор? (например: Идеальное утро)');
+  if(!name || !name.trim()) return;
+
+  try {
+    await sb.from('custom_practices').insert({
+      user_id: user.id,
+      name: name.trim(),
+      practices: customRitual // Сохраняем массив ключей "bookId:practiceId"
+    });
+    playSuccess();
+    toast('Набор сохранен!');
+    loadSavedRituals(); // Обновляем список
+  } catch(e) {
+    toast('Ошибка сохранения', 'danger');
+    console.error(e);
+  }
+}
+
+function loadSavedRitualToList(id) {
+  // Находим сохраненный набор по ID
+  const item = window._savedRitualsData.find(x => String(x.id) === String(id));
+  if(!item) return;
+
+  // Подставляем его практики в текущий выбор
+  customRitual = [...item.practices]; 
+  playClick();
+  
+  // Перерисовываем конструктор, чтобы галочки встали на место
+  renderRitualBuilder(); 
+  
+  // Прокручиваем наверх, чтобы было видно выбранные галочки
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function deleteSavedRitual(id) {
+  if(!confirm('Удалить этот набор?')) return;
+  await sb.from('custom_practices').delete().eq('id', id);
+  playSuccess();
+  loadSavedRituals();
+}
+function exitZenMode(ctx) {
+  const screen = ctx === 'ritual' ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
+  if (screen) screen.classList.remove('focus-mode');
+}
+async function toggleFriendFromProfile() {
+  const btn = document.getElementById('publicFriendBtn');
+  if (!btn || !btn.dataset.targetId) return;
+  const targetId = btn.dataset.targetId;
+
+  const { data: existing } = await sb.from('friends').select('*').eq('user_id', user.id).eq('friend_id', targetId).maybeSingle();
+
+  if (existing) {
+    await sb.from('friends').delete().eq('user_id', user.id).eq('friend_id', targetId);
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; vertical-align:middle;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg> Добавить в друзья';
+    btn.style.background = 'linear-gradient(135deg,var(--accent),var(--accent-2))';
+    btn.style.border = 'none';
+    btn.style.color = '#fff';
+    btn.style.boxShadow = '0 6px 18px var(--accent-glow)';
+    toast('Удален из друзей');
+  } else {
+    await sb.from('friends').insert({ user_id: user.id, friend_id: targetId });
+    await createNotification(targetId, 'friend', { text: user.name + ' добавил(а) вас в друзья!', from: user.id });
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px; vertical-align:middle;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Удалить из друзей';
+    btn.style.background = 'transparent';
+    btn.style.border = '1px solid var(--border)';
+    btn.style.color = 'var(--text)';
+    btn.style.boxShadow = 'none';
+    toast('Добавлен в друзья');
+  }
+  playSuccess();
+}
+
+async function loadMyFriends() {
+  const el = document.getElementById('friendsContainer');
+  if (!el) return;
+  try {
+    const { data: friends } = await sb.from('friends').select('friend_id').eq('user_id', user.id);
+    if (!friends || friends.length === 0) {
+      el.innerHTML = '<div style="padding:16px; text-align:center; color:var(--muted); font-size:13px;">У вас пока нет друзей. Найдите их в разделе «Сообщество».</div>';
+      return;
+    }
+
+    const friendIds = friends.map(f => f.friend_id);
+    const { data: profiles } = await sb.from('profiles').select('id, name, avatar').in('id', friendIds);
+    
+    let html = '';
+    (profiles || []).forEach(p => {
+      html += `<div class="admin-item" style="margin-bottom:0; border:none; border-bottom:1px solid var(--border); border-radius:0;" onclick="viewUserProfile('${p.id}', 'profile')">
+        <div class="ai-ava">${p.avatar || '👤'}</div>
+        <div class="ai-info">
+          <div class="ai-name">${escapeHtml(p.name || 'Аноним')}</div>
+        </div>
+        <div class="ai-arrow">›</div>
+      </div>`;
+    });
+    el.innerHTML = html;
+  } catch(e) {
+    console.error(e);
   }
 }

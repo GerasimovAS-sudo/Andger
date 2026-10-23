@@ -127,7 +127,7 @@ body>*{position:relative;z-index:1}
 .ld-version{color:var(--muted);font-size:10px;opacity:0;animation:fadeIn .6s 1.8s forwards;margin-top:8px}
 
 /* ─── AUTH ─── */
-.auth{height:100dvh;display:flex;flex-direction:column;justify-content:center;overflow:hidden;
+.auth{height:100dvh;position:fixed;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;justify-content:center;overflow:hidden;
   padding:calc(30px + var(--safe-top)) 24px calc(30px + var(--safe-bottom));
   max-width:440px;margin:0 auto}
 .auth-logo{text-align:center;margin-bottom:36px}
@@ -1974,4 +1974,30 @@ html.light .main-head, body.light .main-head {
   justify-content: center;
   font-size: 18px;
   padding-left: 4px; /* Чтобы иконка стрелочки визуально стояла по центру */
+}
+/* ─── УБИРАЕМ ЖЕЛТЫЙ ФОН АВТОЗАПОЛНЕНИЯ ─── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--card) inset !important;
+    -webkit-text-fill-color: var(--text) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+.exit-zen-btn {
+  display: none;
+  background: rgba(255,255,255,0.05);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.exit-zen-btn:active { transform: scale(0.95); }
+.focus-mode .exit-zen-btn {
+  display: inline-block;
 }
