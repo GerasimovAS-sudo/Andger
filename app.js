@@ -2021,54 +2021,37 @@ function renderRitualStep(){
 }
 
 function toggleTimer(ctx){
-  const btn=ctx==='ritual'?
-    document.getElementById('ritualTimerBtn'):
-    document.getElementById('timerBtn');
-    
-  const screen = ctx==='ritual' ? 
-    document.getElementById('ritualScreen') : 
-    document.getElementById('practiceScreen');
+  const btn=ctx==='ritual'? document.getElementById('ritualTimerBtn'): document.getElementById('timerBtn');
+  const screen = ctx==='ritual' ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
 
   if(timerState==='running'){
-    stopTimer();timerState='paused';
+    // ПАУЗА
+    stopTimer();
+    timerState='paused';
     if(btn){btn.textContent='▶ Продолжить';btn.className='timer-big-btn paused'}
-    if(screen) screen.classList.remove('focus-mode'); // ВЫКЛЮЧАЕМ ДЗЕН
-  }else if(timerState==='done'){}
-  else{
-    // Разблокировка голоса для браузера
+    if(screen) screen.classList.remove('focus-mode');
+  }else if(timerState==='done'){
+    // Ничего не делаем, если время вышло
+  }else{
+    // СТАРТ ИЛИ ПРОДОЛЖЕНИЕ
     if ('speechSynthesis' in window) {
         window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
     }
     
-    startTimer(ctx);timerState='running';
-    if(btn){btn.textContent='⏸ Пауза';btn.className='timer-big-btn'}
-    if(screen) screen.classList.add('focus-mode'); 
-
-    // --- ВКЛЮЧАЕМ ФОНОВЫЙ ГОЛОС ---
-    let practiceText = ""; // Текст по умолчанию
-    let currentP = null;
+    let currentP = (ctx === 'ritual') ? ritualQueue[ritualIndex] : currentPractice;
     
-    if (ctx === 'ritual') currentP = ritualQueue[ritualIndex];
-    else currentP = currentPractice;
-
-    if (currentP) {
-       // Если у практики есть свой текст для голоса, берем его
-       if (currentP.voiceGuide) {
-         practiceText = currentP.voiceGuide;
-       } else {
-         // Если нет (для старых книг), берем стандартный по ID
-         if (currentP.id === 'silence') practiceText = "Сделайте глубокий вдох. Постарайтесь отпустить мысли и просто наблюдайте за дыханием.";
-         else if (currentP.id === 'read') practiceText = "Начните читать. Не торопитесь, вдумывайтесь в каждое слово.";
-         else if (currentP.id === 'sport') practiceText = "Приступайте к упражнениям. Следите за дыханием и не сбавляйте темп.";
-         else practiceText = "Сосредоточьтесь на практике. Отпустите все лишнее и побудьте в этом моменте.";
-       }
-       speakBackgroundGuide(practiceText);
+    // Если это запуск с нуля (таймер был idle), сбрасываем счетчик сказанных фраз
+    if (timerState === 'idle' && currentP) {
+      currentP._spokenIndices = [];
     }
-    startTimer(ctx);timerState='running';
+    
+    startTimer(ctx);
+    timerState='running';
     if(btn){btn.textContent='⏸ Пауза';btn.className='timer-big-btn'}
-    if(screen) screen.classList.add('focus-mode'); // ВКЛЮЧАЕМ ДЗЕН
+    if(screen) screen.classList.add('focus-mode');
   }
 }
+
 let wakeLock = null;
 
 async function requestWakeLock() {
@@ -2091,9 +2074,16 @@ function releaseWakeLock() {
 function startTimer(ctx){
   requestWakeLock(); 
   const targetTime = Date.now() + (timerRemaining * 1000);
+  const totalDuration = timerRemaining; // Запоминаем общую длительность для таймлайна
   
   if(timerInterval) clearInterval(timerInterval);
   
+  let currentP = (ctx === 'ritual') ? ritualQueue[ritualIndex] : currentPractice;
+  
+  if (currentP && !currentP._spokenIndices) {
+    currentP._spokenIndices = []; 
+  }
+
   timerInterval = setInterval(()=>{
     const now = Date.now();
     const remaining = Math.max(0, Math.round((targetTime - now) / 1000));
@@ -2102,14 +2092,26 @@ function startTimer(ctx){
     const el=document.getElementById(ctx==='ritual'?'ritualTime':'timerDisplay');
     if(el){
       el.textContent=formatTime(timerRemaining);
-      el.classList.add('timer-pulsing'); // Включаем пульсацию
+      el.classList.add('timer-pulsing');
+    }
+
+    // --- ЛОГИКА ТАЙМЛАЙНА ГОЛОСА ---
+    if (currentP && currentP.voiceTimeline && timerState === 'running') {
+      const elapsed = totalDuration - remaining;
+      
+      currentP.voiceTimeline.forEach((item, index) => {
+        // Если время пришло и мы еще это не говорили
+        if (elapsed >= item.time && !currentP._spokenIndices.includes(index)) {
+          speakBackgroundGuide(item.text);
+          currentP._spokenIndices.push(index);
+        }
+      });
     }
     
     if(timerRemaining <= 0){
       stopTimer();
       timerState='done';
       
-      // Меняем текст кнопки на "Время вышло"
       const btn = document.getElementById(ctx==='ritual'?'ritualTimerBtn':'timerBtn');
       if(btn){
         btn.textContent = '✨ Время вышло';
@@ -2117,13 +2119,14 @@ function startTimer(ctx){
         btn.disabled = true;
       }
 
-      if(ctx === 'ritual') speakTimerEnd(ritualQueue[ritualIndex].id);
-      else speakTimerEnd(currentPractice.id);
-      playFanfare();   // Звук
+      if(ctx === 'ritual' && ritualQueue[ritualIndex]) speakTimerEnd(ritualQueue[ritualIndex].id);
+      else if (ctx === 'practice' && currentPractice) speakTimerEnd(currentPractice.id);
       
-      if(ctx==='ritual') showCompleteOverlay(ritualQueue[ritualIndex],'ritual');
-      else showCompleteOverlay(currentPractice,'practice');
-      // Прокрутка к заметке после окончания таймера
+      playFanfare();   
+      
+      if(ctx==='ritual' && ritualQueue[ritualIndex]) showCompleteOverlay(ritualQueue[ritualIndex],'ritual');
+      else if (ctx==='practice' && currentPractice) showCompleteOverlay(currentPractice,'practice');
+      
       setTimeout(() => {
         const noteId = ctx==='ritual' ? 'ritualNoteInput' : 'practiceNoteInput';
         const noteInput = document.getElementById(noteId);
@@ -2591,25 +2594,19 @@ function closePractice(){
 }
 
 async function markPracticeFromScreen(id){
-  async function markPracticeFromScreen(id){
-  // --- ПРОВЕРКА ТАЙМЕРА ---
   if (timerState !== 'done') {
     showCustomConfirm(
       'Таймер еще идет!', 
       'Вы уверены, что хотите завершить практику досрочно? Результат может быть не таким эффективным.', 
       () => {
-        // Если пользователь нажал "Да", выполняем то, что было внутри функции
         executeMarkPractice(id);
       }
     );
-    return; // Останавливаем выполнение, пока ждем ответа
+    return; 
   }
-  
-  // Если таймер завершен, выполняем сразу
   executeMarkPractice(id);
 }
 
-// Выносим старую логику в отдельную функцию
 async function executeMarkPractice(id) {
   const noteInput = document.getElementById('practiceNoteInput');
   const noteText = noteInput ? noteInput.value : '';
@@ -2627,29 +2624,7 @@ async function executeMarkPractice(id) {
   if(navigator.vibrate) navigator.vibrate([100, 50, 100]); 
   closePractice();
 }
-  // Проверка: если таймер идет и осталось больше 5 секунд — не даем нажать
-  if(timerState === 'running' && timerRemaining > 5) {
-    toast('Дождитесь окончания таймера или нажмите Пауза', 'warm');
-    return;
-  }
 
-  const noteInput = document.getElementById('practiceNoteInput');
-  const noteText = noteInput ? noteInput.value : '';
-  const p = currentBook.practices.find(x => x.id === id);
-  
-  if (noteText.trim() && p) {
-    await savePracticeNote(p.title, noteText, currentBook.id); // ДОБАВИЛИ ID КНИГИ
-  }
-
-markPracticeDone(id);
-  playCheck();
-  fireConfetti(); 
-  
-  // ВАУ-ЭФФЕКТ: Опыт и Вибрация
-  toast('🔥 +10 к огоньку!', 'success');
-  if(navigator.vibrate) navigator.vibrate([100, 50, 100]); // Двойная вибрация
-  closePractice();
-}
 function copyAffirm(el){
   const text=el.textContent.replace(/[«»]/g,'');
   if(navigator.clipboard){
