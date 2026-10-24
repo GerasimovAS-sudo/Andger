@@ -4611,22 +4611,60 @@ function backFromBookEditor(){
 async function loadAdminBooks(){
   const el=document.getElementById('adminBookList');
   if(!el)return;
-  const{data}=await sb.from('books').select('*').order('created_at',{ascending:false});
-  adminAllBooks=data||[];
-  if(!adminAllBooks.length){
-    el.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">В базе пока нет книг.<br>Все книги — из JS-файлов (books/*.js).</div>';
+  
+  // 1. Берем книги из Supabase
+  const{data}=await sb.from('books').select('*');
+  let dbBooks = data || [];
+  
+  // 2. Берем книги из кода (которых еще нет в базе)
+  let localBooks = BOOKS.filter(b => !dbBooks.some(db => db.id === b.id));
+  
+  // Помечаем локальные книги специальным флагом
+  localBooks = localBooks.map(b => ({ ...b, _isLocal: true, published: true }));
+  
+  // 3. Объединяем и сортируем по алфавиту
+  adminAllBooks = [...dbBooks, ...localBooks];
+  adminAllBooks.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+
+  // Сбрасываем поиск при загрузке
+  const searchInp = document.getElementById('adminBookSearch');
+  if (searchInp) searchInp.value = '';
+  
+  renderAdminBookList(adminAllBooks);
+}
+
+function renderAdminBookList(list) {
+  const el=document.getElementById('adminBookList');
+  if(!el)return;
+  
+  if(!list.length){
+    el.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Книг не найдено.</div>';
     return;
   }
-  el.innerHTML=adminAllBooks.map(b=>`
+  
+  el.innerHTML=list.map(b=>`
     <div class="book-row" onclick="showBookEditor('${b.id}')">
       <div class="br-emoji">${b.emoji||'📖'}</div>
       <div class="br-info">
-        <div class="br-title">${escapeHtml(b.title)} ${b.published?'✅':'📝'}</div>
+        <div class="br-title">${escapeHtml(b.title)} ${b._isLocal ? '<span style="font-size:10px; color:var(--warm); font-weight:normal; background:rgba(255,154,86,0.1); padding:2px 6px; border-radius:6px; margin-left:4px;">из кода</span>' : '✅'}</div>
         <div class="br-author">${escapeHtml(b.author||'')} · ${b.days} дней</div>
       </div>
       <div class="br-pct">›</div>
     </div>
   `).join('');
+}
+
+function filterAdminBooks() {
+  const q = document.getElementById('adminBookSearch').value.toLowerCase().trim();
+  if (!q) {
+    renderAdminBookList(adminAllBooks);
+    return;
+  }
+  const filtered = adminAllBooks.filter(b => 
+    (b.title || '').toLowerCase().includes(q) || 
+    (b.author || '').toLowerCase().includes(q)
+  );
+  renderAdminBookList(filtered);
 }
 
 // AI-генерация через Groq (нужен ключ в Edge Function)

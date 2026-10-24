@@ -866,7 +866,8 @@
           <div id="adminDetailWrap"></div>
         </div>
         <div id="adminBooks" class="hidden">
-          <button class="btn" onclick="showBookEditor()">+ Добавить книгу</button>
+          <button class="btn" onclick="showBookEditor()" style="margin-bottom: 10px;">+ Добавить книгу</button>
+          <input type="text" class="admin-search" id="adminBookSearch" placeholder="🔍 Поиск по названию или автору" oninput="filterAdminBooks()">
           <div id="adminBookList" style="margin-top:16px"></div>
         </div>
         <div id="adminReports" class="hidden">
@@ -953,9 +954,13 @@
           <button class="btn btn-ghost" onclick="parseSmartJson()" style="margin-top:8px; border-color:var(--success); color:var(--success);">Разобрать текст</button>
         </div>
         
-                <!-- Скрытое поле для хранения JSON практик -->
-        <div style="display:none;">
-          <textarea id="edPractices"></textarea>
+        <!-- ВИЗУАЛЬНЫЙ СПИСОК ПРАКТИК -->
+        <div style="margin-top:20px; margin-bottom:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="font-size:14px; color:var(--text);">Список практик</h3>
+            <button class="btn-small-inline" onclick="openPracticeEditor(-1)" style="margin-top:0;">+ Добавить</button>
+          </div>
+          <div id="adminPracticesList"></div>
         </div>
 
         <button class="btn" onclick="saveBookDraft()">💾 Сохранить черновик</button>
@@ -1326,6 +1331,71 @@
       </div>
     </div>
   </div>
+      <!-- ═══════ МОДАЛКА РЕДАКТОРА ПРАКТИКИ ═══════ -->
+    <div class="modal hidden" id="practiceEditorModal" style="align-items: flex-start; padding-top: 40px; overflow-y: auto;">
+      <div class="modal-box" style="text-align:left; max-height: 90vh;">
+        <h2 id="peTitle" style="margin-bottom:16px; font-size:20px;">Новая практика</h2>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="field">
+            <label>Название</label>
+            <input type="text" id="peTitleInp" placeholder="Тишина">
+          </div>
+          <div class="field">
+            <label>Время (мин)</label>
+            <input type="number" id="peTimeInp" placeholder="5">
+          </div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="field">
+            <label>Подзаголовок</label>
+            <input type="text" id="peSubInp" placeholder="Медитация · 5 минут">
+          </div>
+          <div class="field">
+            <label>Иконка (ID)</label>
+            <input type="text" id="peIcoInp" placeholder="brain, book, sun...">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Зачем это нужно (why)</label>
+          <textarea id="peWhyInp" rows="3"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Как делать (каждый шаг с новой строки)</label>
+          <textarea id="peHowInp" rows="4" placeholder="Шаг 1&#10;Шаг 2&#10;Шаг 3"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Результат (result)</label>
+          <textarea id="peResultInp" rows="2"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Ошибки (каждая с новой строки)</label>
+          <textarea id="peMistakesInp" rows="3"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Совет (advice)</label>
+          <textarea id="peAdviceInp" rows="2"></textarea>
+        </div>
+
+        <!-- ТАЙМЛАЙН ГОЛОСА -->
+        <div style="background:rgba(124,92,255,0.1); border:1px solid var(--accent); padding:12px; border-radius:12px; margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <label style="margin:0; color:var(--accent-2);">Фоновый голос (voiceTimeline)</label>
+            <button class="btn-small-inline" onclick="addVoiceLine()" style="margin-top:0; padding:4px 8px; font-size:10px;">+ Фраза</button>
+          </div>
+          <div id="voiceTimelineContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+
+        <button class="btn" onclick="savePracticeEditor()">Сохранить практику</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('practiceEditorModal').classList.add('hidden')">Отмена</button>
+      </div>
+    </div>
 </body>
 
 </html>
