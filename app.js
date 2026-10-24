@@ -5104,23 +5104,73 @@ async function deleteFaq(id) {
 }
 
 // ═══════════════════════════════════════════════
-// ─── PWA ОБНОВЛЕНИЯ ───
+// ─── PWA ОБНОВЛЕНИЯ (УМНЫЙ РЕЖИМ) ───
 let newWorker;
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
+let refreshing = false;
+
+// Когда новый воркер берет контроль, перезагружаем страницу
+navigator.serviceWorker.addEventListener('controllerchange', () => {
+  if (refreshing) return;
+  refreshing = true;
+  window.location.reload();
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then(reg => {
+      
+      // Проверяем обновления каждые 10 минут
+      setInterval(() => { reg.update(); }, 10 * 60 * 1000);
+
+      // Проверяем обновления, когда пользователь возвращается в приложение
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          reg.update();
+        }
+      });
+
       reg.addEventListener('updatefound', () => {
         newWorker = reg.installing;
         newWorker.addEventListener('statechange', () => {
-          // Если новый воркер установился и ждет активации
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            const banner = document.getElementById('updateBanner');
-            if(banner) banner.style.display = 'flex'; // Показываем баннер
+            
+            // Проверяем, где находится пользователь. 
+            const isRitualActive = !document.getElementById('ritualScreen').classList.contains('hidden');
+            const isPracticeActive = !document.getElementById('practiceScreen').classList.contains('hidden');
+            
+            if (!isRitualActive && !isPracticeActive) {
+              // Если он не занят — обновляемся сами через 2 секунды
+              setTimeout(() => {
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+              }, 2000);
+            } else {
+              // Если занят — показываем баннер
+              const banner = document.getElementById('updateBanner');
+              if (banner) banner.style.display = 'flex';
+            }
           }
         });
       });
-    }).catch(err=>console.log('SW error',err));
+    }).catch(err => console.log('SW error', err));
   });
+}
+
+// Обработка кнопки "Обновить" на баннере
+function forceUpdate() {
+  if (newWorker) {
+    newWorker.postMessage({ type: 'SKIP_WAITING' });
+  } else {
+    window.location.reload();
+  }
+}
+
+// Обработка кнопки "Обновить" на баннере
+function forceUpdate() {
+  if (newWorker) {
+    newWorker.postMessage({ type: 'SKIP_WAITING' });
+  } else {
+    window.location.reload();
+  }
 }
 
 // ─── PWA SHORTCUTS ───
