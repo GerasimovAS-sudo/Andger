@@ -20,21 +20,24 @@ const SVG_ICONS = {
   'heart': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>'
 };
 
-// ─── БАЗА SVG-АВАТАРОК ───
 // ─── БАЗА СТИЛЬНЫХ АВАТАРОК ───
 const AVATAR_ICONS = {
-  'astronaut': '<svg viewBox="0 0 24 24" fill="#a78bfa" stroke="#fff" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9v2c0 4.42 3.58 8 8 8s8-3.58 8-8V9c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="11" r="3" fill="#1a1428"/><path d="M8 19v2c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2" fill="none"/></svg>',
-  'alien': '<svg viewBox="0 0 24 24" fill="#3ecf8e" stroke="#1a1428" stroke-width="1.5"><path d="M12 2C7.58 2 4 5.58 4 10c0 5.25 5.5 11 8 12 2.5-1 8-6.75 8-12 0-4.42-3.58-8-8-8z"/><ellipse cx="9" cy="9" rx="1.5" ry="2.5" fill="#1a1428"/><ellipse cx="15" cy="9" rx="1.5" ry="2.5" fill="#1a1428"/><path d="M10 14s1 1.5 2 1.5 2-1.5 2-1.5" stroke="#1a1428" stroke-width="1.5" fill="none"/></svg>',
-  'cyberpunk': '<svg viewBox="0 0 24 24" fill="#ff5c5c" stroke="#ffb800" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M7 9h10M7 13h5M14 13h3M7 17h7" stroke-linecap="round"/></svg>',
-  'robot': '<svg viewBox="0 0 24 24" fill="#ffb800" stroke="#1a1428" stroke-width="1.5"><rect x="4" y="6" width="16" height="12" rx="3"/><rect x="7" y="9" width="3" height="3" fill="#1a1428"/><rect x="14" y="9" width="3" height="3" fill="#1a1428"/><circle cx="12" cy="3" r="2" fill="#ff5c5c"/><path d="M9 14h6M12 3v3" stroke-linecap="round"/></svg>',
-  'cat': '<svg viewBox="0 0 24 24" fill="#7c5cff" stroke="#1a1428" stroke-width="1.5"><path d="M4 5l4 3h8l4-3v10c0 4-3.5 7-8 7s-8-3-8-7V5z"/><ellipse cx="9" cy="12" rx="1.5" ry="2" fill="#1a1428"/><ellipse cx="15" cy="12" rx="1.5" ry="2" fill="#1a1428"/><path d="M11 16h2" stroke-linecap="round"/></svg>',
-  'unicorn': '<svg viewBox="0 0 24 24" fill="#ff9a56" stroke="#fff" stroke-width="1.5"><path d="M12 2L9 9H5l3 4-2 7 6-4 6 4-2-7 3-4h-4L12 2z"/><circle cx="12" cy="13" r="2" fill="#1a1428"/></svg>',
-  'dragon': '<svg viewBox="0 0 24 24" fill="#3ecf8e" stroke="#1a1428" stroke-width="1.5"><path d="M2 20s2-4 6-4h8c4 0 6 4 6 4M12 16V6M12 6l-4-2v4M12 6l4-2v4M8 12l-2 4M16 12l2 4"/><circle cx="12" cy="16" r="2" fill="#1a1428"/></svg>',
-  'ninja': '<svg viewBox="0 0 24 24" fill="#2c2245" stroke="#a78bfa" stroke-width="1.5"><rect x="3" y="6" width="18" height="12" rx="6"/><path d="M3 12h18M8 9h2M14 9h2" stroke-linecap="round" stroke="#fff"/></svg>',
-  'skull': '<svg viewBox="0 0 24 24" fill="#eceaf5" stroke="#1a1428" stroke-width="1.5"><path d="M12 2C7.58 2 4 5.58 4 10c0 3.5 2 6 4 7v3c0 1 1 2 2 2h4c1 0 2-1 2-2v-3c2-1 4-3.5 4-7 0-4.42-3.58-8-8-8z"/><circle cx="9" cy="10" r="2" fill="#1a1428"/><circle cx="15" cy="10" r="2" fill="#1a1428"/><path d="M10 16h4" stroke-linecap="round"/></svg>',
-  'crown': '<svg viewBox="0 0 24 24" fill="#ffb800" stroke="#fff" stroke-width="1.5"><path d="M2 6l5 12h10l5-12-6 5-4-7-4 7-6-5z"/><circle cx="12" cy="18" r="2" fill="#1a1428"/></svg>',
-  'wolf': '<svg viewBox="0 0 24 24" fill="#8a8aa5" stroke="#1a1428" stroke-width="1.5"><path d="M4 4l5 5h6l5-5v12c0 4.42-3.58 8-8 8s-8-3.58-8-8V4z"/><circle cx="9" cy="13" r="2" fill="#fff"/><circle cx="15" cy="13" r="2" fill="#fff"/><circle cx="9" cy="13" r="1" fill="#1a1428"/><circle cx="15" cy="13" r="1" fill="#1a1428"/></svg>',
-  'heart': '<svg viewBox="0 0 24 24" fill="#ff5c5c" stroke="#1a1428" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
+  'smile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>',
+  'ghost': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 10h.01"></path><path d="M15 10h.01"></path><path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"></path></svg>',
+  'rocket': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>',
+  'brain': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>',
+  'leaf': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>',
+  'flame': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>',
+  'diamond': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"></path><path d="M11 3 8 9l4 13 4-13-3-6"></path><path d="M2 9h20"></path></svg>',
+  'paw': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="4" r="2"></circle><circle cx="18" cy="8" r="2"></circle><circle cx="20" cy="16" r="2"></circle><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"></path></svg>',
+  'coffee': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"></path><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"></path><line x1="6" y1="2" x2="6" y2="4"></line><line x1="10" y1="2" x2="10" y2="4"></line><line x1="14" y1="2" x2="14" y2="4"></line></svg>',
+  'compass': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>',
+  'shield': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>',
+  'crown': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"></path></svg>',
+  'moon': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>',
+  'sun': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>',
+  'star': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
+  'heart': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>'
 };
 
 // Функция для отрисовки аватарки (поддерживает старые эмодзи)
@@ -43,9 +46,13 @@ function getAvatarHtml(avatar, size = 24) {
   if (!AVATAR_ICONS[avatar] && avatar && avatar.length <= 4) {
     return `<span style="font-size:${size * 0.8}px; line-height:1;">${avatar}</span>`;
   }
-  const svg = AVATAR_ICONS[avatar] || AVATAR_ICONS['user'];
-  // Мы убрали style="color: var(--accent-2);", чтобы SVG не перекрашивались в один цвет
-  return svg.replace('viewBox="0 0 24 24"', `viewBox="0 0 24 24" width="${size}" height="${size}"`);
+  // Берем иконку. Если её нет, берем user. Если и его нет, ставим эмодзи
+  const svg = AVATAR_ICONS[avatar] || AVATAR_ICONS['user'] || '👤';
+  
+  if (typeof svg === 'string' && svg.includes('<svg')) {
+    return svg.replace('viewBox="0 0 24 24"', `viewBox="0 0 24 24" width="${size}" height="${size}"`);
+  }
+  return `<span style="font-size:${size * 0.8}px; line-height:1;">${svg}</span>`;
 }
 
 // Функция, которая превращает текст в SVG
@@ -264,7 +271,12 @@ function startMusic(practiceId = 'default'){
     musicAudio.src = currentPlaylist[currentTrackIdx];
     musicAudio.currentTime = 0;
   }
-  musicAudio.play().then(() => fadeAudio(musicAudio, musicAudio.volume, 0.2, 2000)).catch(()=>{});
+  musicAudio.play().then(() => {
+      // Плавно нарастаем до 0.2
+      fadeAudio(musicAudio, musicAudio.volume, 0.2, 1500);
+    }).catch((e) => {
+      console.log('Ошибка воспроизведения (нужно нажать на экран):', e);
+    });
 }
 
 function nextTrack(){
@@ -277,8 +289,12 @@ function nextTrack(){
   musicAudio.play().catch(()=>{});
 }
 function stopMusic(){
-  if(!musicAudio)return;
-  fadeAudio(musicAudio,musicAudio.volume,0,100,()=>{try{musicAudio.pause();musicAudio.currentTime=0}catch(e){}});
+  if(!musicAudio) return;
+  try {
+    musicAudio.pause();
+    musicAudio.currentTime = 0;
+    musicAudio.volume = 0;
+  } catch(e) {}
 }
 function fadeAudio(audio,from,to,duration,onEnd){
   const start=performance.now();
@@ -741,6 +757,8 @@ function showLibrary(){
   document.getElementById('libScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
   updateBottomNav('lib');
+  const fab = document.getElementById('quickNoteFab');
+  if (fab) fab.style.display = 'flex';
   renderLibrary();updateSoundUI();
 }
 function showTodayScreen(){
@@ -770,6 +788,8 @@ function showStatsScreen(){
   document.getElementById('statsScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
   updateBottomNav('stats');
+  const fab = document.getElementById('quickNoteFab');
+  if (fab) fab.style.display = 'flex';
   renderStatsScreen();updateSoundUI();
 }
 function showJournalScreen(){
@@ -777,6 +797,10 @@ function showJournalScreen(){
   document.getElementById('journalScreen').classList.remove('hidden');
   document.getElementById('bottomNav').classList.remove('hidden');
   updateBottomNav('journal');
+  
+  // Показываем кнопку быстрой заметки в Дневнике
+  const fab = document.getElementById('quickNoteFab');
+  if (fab) fab.style.display = 'flex';
 
   // --- ДОБАВЛЯЕМ ИМЯ ПОЛЬЗОВАТЕЛЯ ---
   const nameEl = document.getElementById('journalBookTitle');
@@ -894,6 +918,21 @@ async function markAllNotificationsRead() {
     toast('Ошибка', 'danger');
   }
 }
+
+async function clearAllNotifications() {
+  showCustomConfirm('Очистить уведомления?', 'Все уведомления будут удалены навсегда.', async () => {
+    try {
+      await sb.from('notifications').delete().eq('user_id', user.id);
+      await loadNotifications(); 
+      renderNotifications();     
+      playSuccess();
+      toast('Уведомления очищены');
+    } catch(e) {
+      toast('Ошибка очистки', 'danger');
+    }
+  });
+}
+
 function backFromNotifications(){smartHome()}
 function backFromDialog(){showCommunityScreen()}
 function backFromCommunity(){ smartHome(); }
@@ -936,56 +975,73 @@ function getBookState(id){
 let bookAccessMode='everyone'; // 'everyone' или 'individual'
 
 function hasBookAccess(id){
-  // Админу доступно всё
+  // 1. Админу доступно всё
   if(isAdmin()) return true;
 
-  // Если у пользователя есть активная подписка — доступно всё
+  // 2. Если есть активная подписка — доступно всё
   if(user && user.sub_until && new Date(user.sub_until) > new Date()) return true;
   
-  // Индивидуальный доступ (если админ выдал книгу вручную)
+  // 3. Индивидуальный доступ (если админ выдал книгу вручную)
   const access = state.bookAccess || [];
   if (access.includes(id)) return true;
 
-  // --- БЕСПЛАТНЫЙ ДОСТУП (ФРИМИУМ) ---
-  // Даем бесплатный доступ к первой книге (например, "Магия утра")
-  // Если ты хочешь сделать другую книгу бесплатной, поменяй её ID здесь:
-  const freeBookId = BOOKS.length > 0 ? BOOKS[0].id : 'magic-morning'; 
-  if (id === freeBookId) return true;
+  // 4. ФРИМИУМ ЛОГИКА:
+  const bookIndex = BOOKS.findIndex(b => b.id === id);
+  
+  // Первые 3 книги (индексы 0, 1, 2) доступны всем всегда
+  if (bookIndex >= 0 && bookIndex < 3) return true;
+
+  // Считаем, сколько книг пользователь полностью прошел
+  let completedBooks = 0;
+  BOOKS.forEach(b => {
+    if (countClosedDays(b.id) >= b.days) completedBooks++;
+  });
+
+  // Если индекс книги меньше (3 + количество пройденных), то она открыта.
+  // Например, прошел 1 книгу -> открывается 4-я (индекс 3).
+  if (bookIndex >= 0 && bookIndex < (3 + completedBooks)) return true;
 
   // Всё остальное закрыто
   return false;
 }
 
 function toggleSound(){
-  state.soundOn = !state.soundOn;
+  // Синхронизируем обе переменные состояния
+  const newState = state.soundMode !== 'sound';
+  state.soundMode = newState ? 'sound' : 'off';
+  state.soundOn = newState;
+  
   saveState();
   updateSoundUI();
   
-  sb.from('profiles').update({ sound_on: state.soundOn }).eq('id',user.id).then(()=>{});
+  sb.from('profiles').update({ sound_on: state.soundOn, sound_mode: state.soundMode }).eq('id',user.id).then(()=>{});
 
   const inR = !document.getElementById('ritualScreen').classList.contains('hidden');
   const inP = !document.getElementById('practiceScreen').classList.contains('hidden');
   
-  if (state.soundOn) {
+  if (state.soundMode === 'sound') {
     playClick();
     if(inR) startMusic(ritualQueue[ritualIndex]?.id || 'default');
     else if(inP) startMusic(currentPractice?.id || 'default');
   } else {
-    stopMusic();
+    stopMusic(); 
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); 
+    }
   }
 }
 
 function updateSoundUI(){
+  const isSound = state.soundMode === 'sound';
   const tog = document.getElementById('soundToggle');
-  if(tog) tog.classList.toggle('on', state.soundOn);
+  if(tog) tog.classList.toggle('on', isSound);
   
   const soundBtns = document.querySelectorAll('.sound-btn');
-  // Красивые SVG-иконки
   const iconOn = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>`;
   const iconOff = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>`;
 
   soundBtns.forEach(btn => {
-    btn.innerHTML = state.soundOn ? iconOn : iconOff;
+    btn.innerHTML = isSound ? iconOn : iconOff;
   });
 }
 
@@ -1941,9 +1997,9 @@ function renderRitualStep(){
     timerRemaining=p.time || 300;
     timerState='idle';
     
-    if(musicAudio && state.soundOn!==false){
-      startMusic(p.id); // Передаем ID практики для выбора трека
-    }
+    if(state.soundMode === 'sound'){
+  startMusic(p.id);
+}
     
     setTimeout(() => {
       const rBody = document.getElementById('ritualBody');
@@ -2493,6 +2549,12 @@ function closePractice(){
 }
 
 async function markPracticeFromScreen(id){
+  // Проверка: если таймер идет и осталось больше 5 секунд — не даем нажать
+  if(timerState === 'running' && timerRemaining > 5) {
+    toast('Дождитесь окончания таймера или нажмите Пауза', 'warm');
+    return;
+  }
+
   const noteInput = document.getElementById('practiceNoteInput');
   const noteText = noteInput ? noteInput.value : '';
   const p = currentBook.practices.find(x => x.id === id);
@@ -2622,9 +2684,8 @@ function stopBreath(){
   const txt=document.getElementById('breathText');
   if(txt) txt.textContent='Пауза';
 }
-  function renderProfile(){
+  async function renderProfile(){
   try {
-    loadMyFriends();
     // Проверка подписки (Баннер, если истекла)
     const subBanner = document.getElementById('subBanner');
     if (subBanner) {
@@ -2652,7 +2713,7 @@ function stopBreath(){
     const fullEl = document.getElementById('profileFullName');
     if(fullEl) fullEl.value = ((user && user.name) ? user.name : '') + ((user && user.lastName) ? ' ' + user.lastName : '');
     
-        // Считаем глобальный опыт для профиля
+    // Считаем глобальный опыт для профиля
     let totalXP = 0;
     BOOKS.forEach(bb => {
       const bbs = getBookState(bb.id);
@@ -2669,15 +2730,14 @@ function stopBreath(){
     else if (totalXP >= 100) { lvlName = 'Ученик'; lvlIco = '🌿'; }
     
     const xpBadge = document.getElementById('profileXpBadge');
+    
     // --- СЧЕТЧИКИ ДЛЯ ПРОФИЛЯ ---
     let totalClosedDays = 0;
-    let totalCompletedBooks = 0;
     let totalPracticesDone = 0;
 
     BOOKS.forEach(b => {
       const closed = countClosedDays(b.id);
       totalClosedDays += closed;
-      if (closed >= b.days) totalCompletedBooks++;
       
       const bs = getBookState(b.id);
       Object.values(bs.days).forEach(rec => {
@@ -2685,30 +2745,47 @@ function stopBreath(){
       });
     });
 
+    // Считаем подписки и подписчиков
+    let subscriptionsCount = 0;
+    let subscribersCount = 0;
+    try {
+      const { count: c1 } = await sb.from('friends').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
+      const { count: c2 } = await sb.from('friends').select('*', { count: 'exact', head: true }).eq('friend_id', user.id);
+      subscriptionsCount = c1 || 0;
+      subscribersCount = c2 || 0;
+    } catch(e) {}
+
     const statsGrid = document.getElementById('profileStatsGrid');
     if(statsGrid) {
       statsGrid.innerHTML = `
+        <div style="text-align:center; cursor:pointer;" onclick="openFollowsModal('subscriptions')">
+          <div style="font-size:20px; font-weight:900; color:var(--accent-2);">${subscriptionsCount}</div>
+          <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:2px;">Подписки</div>
+        </div>
+        <div style="text-align:center; cursor:pointer;" onclick="openFollowsModal('subscribers')">
+          <div style="font-size:20px; font-weight:900; color:var(--warm);">${subscribersCount}</div>
+          <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:2px;">Подписчики</div>
+        </div>
         <div style="text-align:center;">
-          <div style="font-size:20px; font-weight:900; color:var(--accent-2);">${totalClosedDays}</div>
+          <div style="font-size:20px; font-weight:900; color:var(--success);">${totalClosedDays}</div>
           <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:2px;">Дней</div>
         </div>
-        <div style="text-align:center; border-left:1px solid var(--border); border-right:1px solid var(--border);">
-          <div style="font-size:20px; font-weight:900; color:var(--warm);">${totalCompletedBooks}</div>
-          <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:2px;">Книг</div>
-        </div>
         <div style="text-align:center;">
-          <div style="font-size:20px; font-weight:900; color:var(--success);">${totalPracticesDone}</div>
+          <div style="font-size:20px; font-weight:900; color:var(--text);">${totalPracticesDone}</div>
           <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:2px;">Практик</div>
         </div>
       `;
     }
-    // ----------------------------
+
+    // Обновляем счетчик заморозки в профиле
+    const profileShieldEl = document.getElementById('profileShieldCount');
+    if (profileShieldEl) profileShieldEl.textContent = state.shields || 0;
+
     if(xpBadge) xpBadge.textContent = `${lvlIco} ${lvlName} · ${totalXP} XP`;
     
     // --- БЛОК ПОДПИСКИ ---
     const subEl = document.getElementById('profileSubStatus');
     if (subEl) {
-      // 1. Если это АДМИН — показываем золотую карточку
       if (isAdmin()) {
         subEl.innerHTML = `
           <div style="background: linear-gradient(135deg, rgba(124,92,255,0.2), rgba(255,184,0,0.1)); border: 1.5px solid var(--accent); border-radius: var(--radius-md); padding: 16px; text-align: center; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(124,92,255,0.15); position: relative; overflow: hidden;">
@@ -2716,9 +2793,7 @@ function stopBreath(){
             <div style="font-size: 12px; color: var(--text); opacity: 0.9;">У вас есть полный доступ ко всем функциям</div>
           </div>
         `;
-      } 
-      // 2. Если есть активная ПОДПИСКА
-      else if (user.sub_until && new Date(user.sub_until) > new Date()) {
+      } else if (user.sub_until && new Date(user.sub_until) > new Date()) {
         const subDate = new Date(user.sub_until).toLocaleDateString('ru-RU');
         subEl.innerHTML = `
           <div style="background: linear-gradient(135deg, rgba(124,92,255,0.2), rgba(255,184,0,0.1)); border: 1.5px solid var(--accent); border-radius: var(--radius-md); padding: 16px; text-align: center; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(124,92,255,0.15); position: relative; overflow: hidden;">
@@ -2727,9 +2802,7 @@ function stopBreath(){
             <div style="font-size: 12px; color: var(--text); opacity: 0.9;">Активен до <b>${subDate}</b></div>
           </div>
         `;
-      } 
-      // 3. Если это ОБЫЧНЫЙ ПОЛЬЗОВАТЕЛЬ без подписки
-      else {
+      } else {
         subEl.innerHTML = `
           <div style="background: linear-gradient(180deg, var(--card), var(--card2)); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
             <div style="position: absolute; top: 10px; right: 10px; font-size: 40px; opacity: 0.1;">👑</div>
@@ -2746,14 +2819,13 @@ function stopBreath(){
         `;
       }
     }
-    // --- КОНЕЦ БЛОКА ПОДПИСКИ ---
-
+    
     const avaEl = document.getElementById('profileAva');
-    if(avaEl) avaEl.innerHTML = getAvatarHtml(state.avatar, 48);
+    if(avaEl) avaEl.innerHTML = getAvatarHtml(state.avatar, 70);
     
     const emojiEl = document.getElementById('emojiRow');
     if(emojiEl) emojiEl.innerHTML = 
-      Object.keys(AVATAR_ICONS).map(key => `<div class="emoji-pick ${state.avatar === key ? 'on' : ''}" onclick="setAvatar('${key}')">${getAvatarHtml(key, 24)}</div>`).join('')
+      Object.keys(AVATAR_ICONS).map(key => `<div class="emoji-pick ${state.avatar === key ? 'on' : ''}" onclick="setAvatar('${key}')">${getAvatarHtml(key, 32)}</div>`).join('');
       
     updateSoundUI();
   } catch(e) {
@@ -2783,6 +2855,8 @@ function setAvatar(e){
 // ─── НАСТРОЙКИ ───
 function renderSettings(){
   updateSoundUI();
+  const shieldEl = document.getElementById('shieldCount');
+  if (shieldEl) shieldEl.textContent = state.shields || 0;
   const pushTog=document.getElementById('pushToggle');
   if(pushTog)pushTog.classList.toggle('on',state.pushEnabled===true);
   const mEl=document.getElementById('morningTime');
@@ -3463,7 +3537,7 @@ async function loadFeed(){
         <div class="fp-ava">${getAvatarHtml(m.user_avatar, 20)}</div>
         <div class="fp-info">
           <div class="fp-name">${escapeHtml(m.user_name||'Аноним')}${own?' · ты':''}</div>
-          <div class="fp-time">${t}</div>
+          <div class="fp-time">${new Date(m.created_at).toLocaleDateString('ru-RU', {day: 'numeric', month: 'short'})} · ${t}</div>
         </div>
       </div>
       <div class="fp-text">${escapeHtml(m.text)}</div>
@@ -4671,6 +4745,22 @@ document.addEventListener('scroll', (e) => {
 window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=>{
   if(state.theme==='auto')applyTheme();
 });
+
+// Разблокировка звуков и голосов на iOS при первом касании
+document.addEventListener('touchstart', function unlockAudio() {
+  // Будим AudioContext (для звуков кликов и фанфар)
+  const ctx = getCtx();
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume();
+  }
+  // Будим синтезатор речи (для озвучки таймера)
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+  }
+  // Убираем слушатель, чтобы не срабатывал каждый раз
+  document.removeEventListener('touchstart', unlockAudio);
+}, { once: true });
+
 // ─── СИСТЕМНАЯ КНОПКА "НАЗАД" (Android) ───
 window.addEventListener('popstate', (e) => {
   const ritualOpen = !document.getElementById('ritualScreen').classList.contains('hidden');
@@ -5030,6 +5120,8 @@ function resetAllProgress() {
       state.books = {};
       state.lastBook = null;
       currentBook = null;
+      state.shields = 0;
+      state.spentXP = 0;
       
       try {
         // Очищаем ВСЕ таблицы с данными пользователя
@@ -5285,6 +5377,11 @@ document.getElementById('ppAva').innerHTML = avaHtml;
     document.getElementById('ppName').textContent = fullName;
     document.getElementById('ppStatus').textContent = p.last_seen ? 'Был(а) в сети ' + timeAgo(p.last_seen) : 'Статус скрыт';
     
+    // Считаем друзей
+    const { count: friendsCount } = await sb.from('friends').select('*', { count: 'exact', head: true }).eq('user_id', userId);
+    const ppFriendsEl = document.getElementById('ppFriends');
+    if (ppFriendsEl) ppFriendsEl.textContent = friendsCount || 0;
+
     document.getElementById('ppFire').textContent = totalFire; 
     document.getElementById('ppRecord').textContent = totalBest;
     document.getElementById('ppBooks').textContent = booksCount;
@@ -5380,12 +5477,11 @@ async function savePracticeNote(practiceTitle, noteText, bookId) {
 }
 // ─── ОЗВУЧКА ТАЙМЕРА ───
 function speakTimerEnd(practiceId) {
-  if (state.soundMode !== 'sound') return;
+  if (state.soundOn === false) return;
   
   if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel(); // Сбрасываем предыдущую очередь
+    window.speechSynthesis.cancel(); // Сбрасываем старую очередь
     
-    // Умный текст для разных практик (чтобы не говорил "открывайте глаза" во время чтения)
     let text = "Время практики завершено. Зафиксируйте мысли.";
     if (practiceId === 'read') {
       text = "Время чтения завершено. Зафиксируйте одну мысль из прочитанного.";
@@ -5397,28 +5493,16 @@ function speakTimerEnd(practiceId) {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'ru-RU';
-    utterance.rate = 0.85; // Говорит медленнее (спокойнее)
-    utterance.pitch = 1.1; // Тембр чуть выше (звучит более женственно и мягко)
+    utterance.rate = 0.9;
+    utterance.pitch = 1.1;
     utterance.volume = 1.0;
 
-    const playVoice = () => {
-      const voices = window.speechSynthesis.getVoices();
-      // Ищем русский голос, отдавая предпочтение женским
-      let ruVoice = voices.find(v => (v.lang === 'ru-RU' || v.lang === 'ru') && v.name.includes('Milena')) || 
-                    voices.find(v => v.lang === 'ru-RU' || v.lang === 'ru');
-      
-      if (ruVoice) utterance.voice = ruVoice;
-      window.speechSynthesis.speak(utterance);
-    };
+    // Ищем русский голос
+    const voices = window.speechSynthesis.getVoices();
+    const ruVoice = voices.find(v => v.lang.includes('ru'));
+    if (ruVoice) utterance.voice = ruVoice;
 
-    if (window.speechSynthesis.getVoices().length !== 0) {
-      playVoice();
-    } else {
-      window.speechSynthesis.onvoiceschanged = () => {
-        playVoice();
-        window.speechSynthesis.onvoiceschanged = null; 
-      };
-    }
+    window.speechSynthesis.speak(utterance);
   }
 }
 
@@ -5600,14 +5684,23 @@ async function loadSavedRituals() {
 async function saveCustomRitual() {
   if(!customRitual.length) { toast('Сначала выбери практики', 'warm'); return; }
   
-  const name = prompt('Как назовем этот набор? (например: Идеальное утро)');
-  if(!name || !name.trim()) return;
+  // Открываем наше красивое окно вместо стандартного prompt
+  document.getElementById('saveRitualNameInput').value = '';
+  document.getElementById('saveRitualModal').classList.remove('hidden');
+}
+
+// Новая функция для реального сохранения (вызывается из модалки)
+async function confirmSaveRitual() {
+  const name = document.getElementById('saveRitualNameInput').value.trim();
+  if(!name) { toast('Напиши название', 'warm'); return; }
+
+  document.getElementById('saveRitualModal').classList.add('hidden');
 
   try {
     await sb.from('custom_practices').insert({
       user_id: user.id,
-      name: name.trim(),
-      practices: customRitual // Сохраняем массив ключей "bookId:practiceId"
+      name: name,
+      practices: customRitual
     });
     playSuccess();
     toast('Набор сохранен!');
@@ -5672,55 +5765,55 @@ async function toggleFriendFromProfile() {
   playSuccess();
 }
 
-async function loadMyFriends() {
-  const el = document.getElementById('friendsContainer');
-  if (!el) return;
+async function openFollowsModal(type) {
+  const modal = document.getElementById('followsModal');
+  const title = document.getElementById('followsModalTitle');
+  const list = document.getElementById('followsModalList');
+  
+  if(!modal) {
+    console.error('Модалка followsModal не найдена в HTML');
+    return;
+  }
+  
+  title.textContent = type === 'subscriptions' ? 'Мои подписки' : 'Мои подписчики';
+  list.innerHTML = '<div style="text-align:center; color:var(--muted); padding:20px;">Загрузка...</div>';
+  modal.classList.remove('hidden');
+
   try {
-    const { data: friends } = await sb.from('friends').select('friend_id').eq('user_id', user.id);
-    if (!friends || friends.length === 0) {
-      el.innerHTML = '<div style="padding:16px; text-align:center; color:var(--muted); font-size:13px;">У вас пока нет друзей. Найдите их в разделе «Сообщество».</div>';
+    let query;
+    if (type === 'subscriptions') {
+      query = await sb.from('friends').select('friend_id').eq('user_id', user.id);
+    } else {
+      query = await sb.from('friends').select('user_id').eq('friend_id', user.id);
+    }
+
+    const ids = (query.data || []).map(x => x.friend_id || x.user_id);
+    
+    if (ids.length === 0) {
+      list.innerHTML = '<div style="text-align:center; color:var(--muted); padding:20px;">Пока пусто</div>';
       return;
     }
 
-    const friendIds = friends.map(f => f.friend_id);
-    const { data: profiles } = await sb.from('profiles').select('id, name, avatar').in('id', friendIds);
+    const { data: profiles } = await sb.from('profiles').select('id, name, avatar').in('id', ids);
     
     let html = '';
     (profiles || []).forEach(p => {
-      html += `<div class="admin-item" style="margin-bottom:0; border:none; border-bottom:1px solid var(--border); border-radius:0;" onclick="viewUserProfile('${p.id}', 'profile')">
-        <div class="ai-ava">${p.avatar || '👤'}</div>
-        <div class="ai-info">
-          <div class="ai-name">${escapeHtml(p.name || 'Аноним')}</div>
+      html += `
+        <div class="admin-item" style="margin-bottom: 8px;" onclick="document.getElementById('followsModal').classList.add('hidden'); viewUserProfile('${p.id}', 'profile')">
+          <div class="ai-ava">${getAvatarHtml(p.avatar, 20)}</div>
+          <div class="ai-info">
+            <div class="ai-name">${escapeHtml(p.name || 'Аноним')}</div>
+          </div>
+          <div class="ai-arrow">›</div>
         </div>
-        <div class="ai-arrow">›</div>
-      </div>`;
+      `;
     });
-    el.innerHTML = html;
+    list.innerHTML = html;
   } catch(e) {
-    console.error(e);
-  }
-  }
-  async function quickGrantSub(userId) {
-  if(!confirm('Выдать подписку на 30 дней?')) return;
-  try {
-    const d = new Date();
-    d.setDate(d.getDate() + 30);
-    const newDate = d.toISOString();
-    
-    const { error } = await sb.from('profiles').update({ sub_until: newDate }).eq('id', userId);
-    if (error) throw error;
-    
-    // Обновляем в памяти
-    const p = adminAllUsers.find(x => x.id === userId);
-    if (p) p.sub_until = newDate;
-    
-    playSuccess();
-    toast('Подписка выдана на 30 дней ✓');
-    renderAdminList(adminAllUsers); // Перерисовываем список
-  } catch (e) {
-    toast('Ошибка: ' + e.message, 'danger');
+    list.innerHTML = '<div style="text-align:center; color:var(--danger); padding:20px;">Ошибка загрузки</div>';
   }
 }
+
 // ─── БЫСТРАЯ ЗАМЕТКА ───
 function openQuickNote() {
   document.getElementById('quickNoteInput').value = '';
@@ -5905,7 +5998,7 @@ async function testPushNotification() {
   try {
     const reg = await navigator.serviceWorker.getRegistration();
     if (reg) {
-      reg.showNotification('ANDGER работает! 🚀', {
+      reg.showNotification('ANDGER работает!', {
         body: 'Это тестовое уведомление. Значит, push-уведомления настроены верно.',
         icon: '/icon-192.png',
         badge: '/icon-192.png',

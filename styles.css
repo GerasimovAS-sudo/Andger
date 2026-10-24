@@ -64,7 +64,7 @@ body>*{position:relative;z-index:1}
 
 /* ─── SPLASH ─── */
 #appLoader {
-  position: fixed; inset: 0; z-index: 9999;
+  position: fixed; inset: 0; z-index: 99999 !important;
   background: linear-gradient(160deg, #1a1430 0%, #0d0a18 100%);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 20px; transition: opacity .5s; padding: 40px 24px; text-align: center;
@@ -538,7 +538,7 @@ html.light .main-head, body.light .main-head {
   margin: 0 auto;
   background:linear-gradient(135deg,var(--accent),var(--accent-2));
   border-radius:var(--radius-md);
-  padding:16px;
+  padding:12px 16px;
   display:flex;justify-content:space-between;align-items:center;
   color:#fff;box-shadow:0 10px 30px rgba(124,92,255, 0.4);
   z-index: 99;
@@ -643,7 +643,12 @@ html.light .main-head, body.light .main-head {
 .profile-name-input:focus{outline:none;border-bottom-color:var(--accent)}
 .profile-phone{font-size:12px;color:var(--muted);margin-top:6px;margin-bottom:10px}
 
-.emoji-row{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
+.emoji-row{
+  display:grid;
+  grid-template-columns:repeat(8, 1fr); /* 8 колонок */
+  gap: 10px; /* Расстояние между иконками */
+  margin-bottom: 24px;
+}
 .emoji-pick{
   aspect-ratio:1;background:var(--card);border:1px solid var(--border);
   border-radius:var(--radius-sm);display:flex;align-items:center;
@@ -1700,6 +1705,7 @@ button:active,
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 12px;
+  margin-bottom: 16px;
 }
 
 .settings-list {
@@ -1779,6 +1785,11 @@ button:active,
 
 .lib-category-body.open { display: block; }
 /* ─── ДЗЕН-РЕЖИМ (FOCUS MODE) ─── */
+.focus-mode {
+  /* Красивый градиентный фон вместо плоского */
+  background: radial-gradient(circle at center, #1a1428 0%, #0d0a18 100%) !important;
+}
+
 .focus-mode .ps-hero,
 .focus-mode .ps-block:not(.timer-wrapper),
 .focus-mode .ritual-hero,
@@ -1789,41 +1800,79 @@ button:active,
   display: none !important;
 }
 
-/* Оставляем только таймер, поднимаем его в центр */
+/* Делаем шапку прозрачной */
+.focus-mode .ritual-progress {
+  border-bottom: none !important;
+  background: transparent !important;
+}
+
+/* Центрируем таймер */
 .focus-mode .timer-wrapper {
   display: flex !important;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 80vh; /* Центрируем по вертикали */
+  min-height: 85vh;
   border: none !important;
-  padding-top: 0 !important;
-  margin-top: 0 !important;
-}
-.focus-mode .timer-wrapper h3 {
-  display: none !important; /* Убираем заголовок "Время практики" */
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-/* Делаем таймер еще больше и красивее */
+.focus-mode .timer-wrapper h3 {
+  display: none !important;
+}
+
 .focus-mode .timer-box {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   width: 100% !important;
-  max-width: 260px !important; /* Фиксируем ширину */
+  max-width: 300px !important;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
+/* Делаем цифры красивыми и со свечением */
 .focus-mode .timer-display {
-  font-size: 90px !important;
-  margin-bottom: 30px;
+  font-size: 85px !important;
+  font-weight: 900 !important;
+  color: #fff !important; /* Белый цвет */
+  text-shadow: 0 0 30px rgba(124,92,255,0.6), 0 0 60px rgba(124,92,255,0.3); /* Фиолетовое свечение */
+  margin-bottom: 40px !important;
+  letter-spacing: 2px;
 }
+
 .focus-mode .timer-big-btn {
   width: 100%;
   max-width: 260px;
-  margin: 0 auto; /* Центрируем */
+  margin: 0 auto;
+  border-radius: 100px !important; /* Кнопка-капсула */
+  padding: 18px !important;
+  font-size: 16px !important;
+  background: rgba(255,255,255,0.1) !important; /* Стеклянная кнопка */
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.focus-mode .timer-big-btn.paused {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+/* Кнопка "Показать текст" */
+.focus-mode .exit-zen-btn {
+  display: inline-block !important;
+  margin-top: 30px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  border: none;
+  border-bottom: 1px dashed var(--muted);
+  padding: 4px;
 }
 /* ─── КРАСИВЫЙ FAQ (iOS Style) ─── */
 .faq-item {
@@ -1889,18 +1938,40 @@ button:active,
 
 /* ─── УНИФИКАЦИЯ ОКНА ВВОДА (ЧАТ И ЛЕНТА) ─── */
 #dialogInputWrap {
-  bottom: calc(16px + var(--safe-bottom)) !important;
-  left: 16px !important;
-  right: 16px !important;
-  border-radius: var(--radius-md) !important;
+  bottom: calc(12px + var(--safe-bottom)) !important;
+  left: 12px !important;
+  right: 12px !important;
+  border-radius: 24px !important;
   border: 1px solid var(--border) !important;
-  background: rgba(13,10,24,0.95) !important;
-  backdrop-filter: blur(20px);
-  padding: 10px !important;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  background: var(--card2) !important;
+  backdrop-filter: blur(20px) !important;
+  padding: 6px 6px 6px 16px !important; /* Аккуратные отступы */
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   max-width: 608px !important;
   margin: 0 auto !important;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Убираем фон у самого поля ввода, чтобы оно сливалось с окном */
+#dialogInputWrap .feed-input {
+  background: transparent !important;
+  padding: 8px 0 !important;
+  font-size: 15px;
+}
+
+/* Кнопка отправки - идеальный круг */
+#dialogInputWrap .feed-post-btn {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  padding-left: 3px;
 }
 
 #dialogInputWrap .feed-input {
@@ -1928,14 +1999,18 @@ html.light .main-head, body.light .main-head {
   background: #fff;
   color: var(--accent);
   border: none;
-  padding: 10px 20px;
+  padding: 12px 20px;
   border-radius: var(--radius-sm);
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 800;
   text-transform: uppercase;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   transition: 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 .rbs-btn:active { transform: scale(0.95); }
 /* ─── КОМПАКТНОЕ ОКНО ВВОДА В ЧАТЕ (Telegram Style) ─── */
@@ -2034,9 +2109,12 @@ input:-webkit-autofill:active {
 }
 /* ─── ПЛАВАЮЩАЯ КНОПКА (FAB) ─── */
 .fab-btn {
-  position: fixed;
-  bottom: calc(90px + var(--safe-bottom));
-  right: 20px;
+  position: fixed !important;
+  bottom: calc(90px + var(--safe-bottom)) !important;
+  right: 20px !important;
+  left: auto !important;
+  margin: 0 !important;
+  transform: none !important;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -2048,7 +2126,7 @@ input:-webkit-autofill:active {
   box-shadow: 0 8px 24px rgba(124,92,255,0.4);
   border: none;
   cursor: pointer;
-  z-index: 95; /* Чуть выше контента, но ниже нижнего меню */
+  z-index: 100 !important; /* Подняли выше всех элементов */
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .fab-btn:active {
