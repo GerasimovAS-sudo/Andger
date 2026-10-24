@@ -8,6 +8,9 @@ const SUPABASE_KEY = 'sb_publishable_-gGY5BghNH6nqi4j_wXmpw_xgHjUFax';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // ─── БАЗА SVG-ИКОНОК (Lucide) ───
 const SVG_ICONS = {
+  'wind': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"></path><path d="M9.6 4.6A2 2 0 1 1 11 8H2"></path><path d="M12.6 19.4A2 2 0 1 0 14 16H2"></path></svg>',
+  'clock': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
+  'search': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
   'zap': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>',
   'play': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>',
   'link': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
@@ -298,10 +301,10 @@ document.addEventListener('click',(e)=>{
 // ─── МУЗЫКА ───
 // Разделяем музыку по типам практик
 const MUSIC_TRACKS = {
-  default: ['meditation.mp3', 'meditation-2.mp3', 'meditation-3.mp3'],
+  default: ['meditation.mp3'],
   sport: ['energy.mp3'], 
   read: ['focus.mp3'], 
-  silence: ['meditation-4.mp3', 'meditation-5.mp3'] 
+  silence: ['meditation.mp3'] 
 };
 let currentTrackIdx = 0;
 let currentPlaylist = [];
@@ -314,11 +317,17 @@ function startMusic(practiceId = 'default'){
     musicAudio.addEventListener('ended',nextTrack);
   }
   
-  // Выбираем плейлист под практику
-  if (practiceId === 'sport') currentPlaylist = MUSIC_TRACKS.sport;
-  else if (practiceId === 'read') currentPlaylist = MUSIC_TRACKS.read;
-  else if (practiceId === 'silence' || practiceId === 'visual') currentPlaylist = MUSIC_TRACKS.silence;
-  else currentPlaylist = MUSIC_TRACKS.default;
+  // Умный выбор плейлиста по ключевым словам в ID практики
+  const pid = (practiceId || '').toLowerCase();
+  
+  if (pid.includes('sport') || pid.includes('zaryadka') || pid.includes('action')) {
+    currentPlaylist = MUSIC_TRACKS.sport;
+  } else if (pid.includes('read') || pid.includes('journal')) {
+    currentPlaylist = MUSIC_TRACKS.read;
+  } else {
+    // Для всего остального (тишина, аффирмации, визуализация, дыхание) — медитация
+    currentPlaylist = MUSIC_TRACKS.silence; 
+  }
 
   // Новый трек при каждом запуске (если музыка не играет)
   if(!musicAudio.src || musicAudio.paused){
@@ -970,12 +979,6 @@ async function showNotifications(){
   hideAll();
   document.getElementById('notificationsScreen').classList.remove('hidden');
   
-  // Добавляем кнопку "Прочитать всё" в шапку
-  const headActions = document.querySelector('#notificationsScreen .head-actions');
-  if(headActions) {
-    headActions.innerHTML = `<button class="btn-small-inline" style="margin-top:0; font-size:11px; padding:8px 12px;" onclick="markAllNotificationsRead()">Прочитать всё</button>`;
-  }
-
   await loadNotifications();
   renderNotifications();
 }
@@ -2060,7 +2063,7 @@ function renderRitualStep(){
            <div class="timer-display" id="ritualTime">${formatTime(p.time || 300)}</div>
            <div class="voice-subtitle" id="ritualSubtitle"></div>
            <button class="timer-big-btn" id="ritualTimerBtn" onclick="toggleTimer('ritual')">▶ Старт</button>
-           <button class="exit-zen-btn" onclick="exitZenMode('ritual')">👁 Показать текст</button>
+           <button class="exit-zen-btn" onclick="exitZenMode('ritual')">← Вернуться к тексту</button>
          </div>
        </div>
 
@@ -2073,10 +2076,6 @@ function renderRitualStep(){
        
     timerRemaining=p.time || 300;
     timerState='idle';
-    
-    if(state.soundMode === 'sound'){
-  startMusic(p.id);
-}
     
     setTimeout(() => {
       const rBody = document.getElementById('ritualBody');
@@ -2105,6 +2104,7 @@ function toggleTimer(ctx){
     // ПАУЗА
     stopTimer();
     timerState='paused';
+    if (musicAudio) musicAudio.pause();
     if(btn){btn.textContent='▶ Продолжить';btn.className='timer-big-btn paused'}
     if(screen) screen.classList.remove('focus-mode');
   }else if(timerState==='done'){
@@ -2121,7 +2121,11 @@ function toggleTimer(ctx){
     if (timerState === 'idle' && currentP) {
       currentP._spokenIndices = [];
     }
-    
+        // Включаем музыку только при старте
+    if (state.soundMode === 'sound') {
+      let currentPForMusic = (ctx === 'ritual') ? ritualQueue[ritualIndex] : currentPractice;
+      startMusic(currentPForMusic ? currentPForMusic.id : 'default');
+    }
     startTimer(ctx);
     timerState='running';
     if(btn){btn.textContent='⏸ Пауза';btn.className='timer-big-btn'}
@@ -2624,7 +2628,7 @@ function openPractice(id){
   <div class="timer-display" id="timerDisplay">${formatTime(p.time)}</div>
   <div class="voice-subtitle" id="practiceSubtitle"></div>
   <button class="timer-big-btn" id="timerBtn" onclick="toggleTimer('practice')">▶ Старт</button>
-  <button class="exit-zen-btn" onclick="exitZenMode('practice')">👁 Показать текст</button>
+  <button class="exit-zen-btn" onclick="exitZenMode('practice')">← Вернуться к тексту</button>
 </div>
      </div>
      
@@ -2642,7 +2646,6 @@ function openPractice(id){
   window.scrollTo(0,0);
   timerRemaining=p.time;
   timerState='idle';
-  startMusic(p.id); // Передаем ID практики для выбора трека
   updateSoundUI();
 }
 function closePractice(){
@@ -2838,6 +2841,8 @@ function stopBreath(){
     // Безопасное получение телефона
     const phone = (user && user.phone) ? user.phone : '79999999999';
     const phoneEl = document.getElementById('profilePhone');
+    const userIdEl = document.getElementById('profileUserId');
+    if (userIdEl && user) userIdEl.textContent = 'ID: #' + user.id.slice(0, 8).toUpperCase();
     if(phoneEl) phoneEl.textContent = 
       '+7 ' + phone.slice(1,4) + ' *** ' + phone.slice(7,9) + ' ' + phone.slice(9);
     
@@ -2913,6 +2918,8 @@ function stopBreath(){
     if (profileShieldEl) profileShieldEl.textContent = state.shields || 0;
 
     if(xpBadge) xpBadge.textContent = `${lvlIco} ${lvlName} · ${totalXP} XP`;
+    const idEl = document.getElementById('profileUserId');
+    if (idEl && user) idEl.textContent = 'ID: #' + user.id.slice(0, 8).toUpperCase();
     // Показываем панель управления только админу
     const billingPanel = document.getElementById('adminBillingPanel');
     if (billingPanel) {
@@ -3003,7 +3010,17 @@ function renderSettings(){
   const eEl=document.getElementById('eveningTime');
   if(mEl)mEl.textContent=state.morningTime||'07:00';
   if(eEl)eEl.textContent=state.eveningTime||'21:00';
+  const vSel = document.getElementById('voiceSelect');
+  if(vSel) vSel.value = state.voice || 'alena';
 }
+
+function setVoice(v) {
+  state.voice = v;
+  saveState();
+  playSuccess();
+  toast('Голос изменен');
+}
+
 async function setTheme(theme){
   state.theme=theme;
   applyTheme();
@@ -3532,6 +3549,12 @@ async function renderMoodChart() {
   try {
     const startDate = days[0].date;
     const endDate = days[6].date;
+    // Красивые даты для заголовка
+    const sD = startDate.split('-');
+    const eD = endDate.split('-');
+    const dateLabel = `${sD[2]}.${sD[1]} — ${eD[2]}.${eD[1]}`;
+    const titleEl = document.getElementById('moodChartDates');
+    if (titleEl) titleEl.textContent = dateLabel;
     const { data } = await sb.from('moods').select('*').eq('user_id', user.id).gte('date', startDate).lte('date', endDate);
     const moodsMap = {};
     (data || []).forEach(m => moodsMap[m.date] = m);
@@ -4199,38 +4222,48 @@ function subscribeNotifications(){
 // АДМИНКА
 // ═══════════════════════════════════════════════
 
-function switchAdminTab(tab,el){
+function switchAdminTab(tab, el){
   document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('on'));
-  if(el)el.classList.add('on');
-  
-  // Скрываем все вкладки
-  ['adminDashboard', 'adminUsers', 'adminBooks', 'adminReports', 'adminSystem', 'adminTexts', 'adminFaq'].forEach(id=>{
-    document.getElementById(id)?.classList.add('hidden');
+  if(el) el.classList.add('on');
+
+  // Убираем класс hidden у всех вкладок, чтобы они выстроились в ряд
+  ['adminDashboard', 'adminUsers', 'adminBooks', 'adminReports', 'adminSystem', 'adminTexts', 'adminFaq', 'adminSubs'].forEach(id=>{
+    document.getElementById(id)?.classList.remove('hidden');
   });
 
-  // Показываем нужную
-  if(tab==='dashboard'){
-    document.getElementById('adminDashboard').classList.remove('hidden');
-    renderAdminDashboard();
-  } else if(tab==='users'){
-    document.getElementById('adminUsers').classList.remove('hidden');
-    loadAdminUsers();
-  } else if(tab==='books'){
-    document.getElementById('adminBooks').classList.remove('hidden');
-    loadAdminBooks();
-  } else if(tab==='reports'){
-    document.getElementById('adminReports').classList.remove('hidden');
-    loadAdminReports();
-  } else if(tab==='system'){
-    document.getElementById('adminSystem').classList.remove('hidden');
-    renderSystem();
-    loadAdminQuotes();
-  } else if(tab==='texts'){
-    document.getElementById('adminTexts').classList.remove('hidden');
-    loadAdminTexts();
-  } else if(tab==='faq'){
-    document.getElementById('adminFaq').classList.remove('hidden');
-    loadAdminFaq();
+  // Определяем, к какой вкладке скроллить
+  let targetId = 'adminDashboard';
+  if (tab === 'users') targetId = 'adminUsers';
+  else if (tab === 'books') targetId = 'adminBooks';
+  else if (tab === 'reports') targetId = 'adminReports';
+  else if (tab === 'system') targetId = 'adminSystem';
+  else if (tab === 'texts') targetId = 'adminTexts';
+  else if (tab === 'faq') targetId = 'adminFaq';
+  else if (tab === 'subs') targetId = 'adminSubs';
+
+  const wrapper = document.getElementById('adminSwipeWrapper');
+  const targetEl = document.getElementById(targetId);
+  
+  if (wrapper && targetEl) {
+    // Плавно скроллим к нужной вкладке
+    wrapper.scrollTo({ left: targetEl.offsetLeft - wrapper.offsetLeft, behavior: 'smooth' });
+  }
+
+  // Загружаем данные для нужной вкладки
+  if(tab==='dashboard') renderAdminDashboard();
+  else if(tab==='users') loadAdminUsers();
+  else if(tab==='books') loadAdminBooks();
+  else if(tab==='reports') loadAdminReports();
+  else if(tab==='system') { renderSystem(); loadAdminQuotes(); }
+  else if(tab==='texts') loadAdminTexts();
+  else if(tab==='faq') loadAdminFaq();
+  else if(tab==='subs') loadAdminSubs();
+  // Обновляем точки
+  const tabs = Array.from(document.querySelectorAll('.admin-tab'));
+  const activeIndex = tabs.findIndex(t => t.classList.contains('on'));
+  const dotsWrap = document.getElementById('adminTabDots');
+  if (dotsWrap) {
+    dotsWrap.innerHTML = tabs.map((t, i) => `<div class="b-dot ${i === activeIndex ? 'on' : ''}"></div>`).join('');
   }
 }
 
@@ -4243,10 +4276,6 @@ async function showAdmin(){
   adminFilter='all';
   document.querySelectorAll('.admin-filter').forEach((f,i)=>f.classList.toggle('on',i===0));
   document.querySelectorAll('.admin-tab').forEach((t,i)=>t.classList.toggle('on',i===0));
-  
-  // Скрываем всё, кроме дашборда
-  ['adminUsers', 'adminBooks', 'adminReports', 'adminSystem'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
-  document.getElementById('adminDashboard').classList.remove('hidden');
   
   await loadAdminUsers(); // Загружаем юзеров в память
   renderAdminDashboard(); // Рисуем графики
@@ -5103,6 +5132,45 @@ async function deleteFaq(id) {
   });
 }
 
+// ─── УПРАВЛЕНИЕ ПОДПИСКАМИ ───
+async function loadAdminSubs() {
+  const el = document.getElementById('adminSubsList');
+  const countEl = document.getElementById('adminSubsCount');
+  if(!el) return;
+  
+  el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Загрузка...</div>';
+  
+  try {
+    const now = new Date().toISOString();
+    const { data } = await sb.from('profiles').select('*').gt('sub_until', now).order('sub_until', {ascending: true});
+    
+    if (countEl) countEl.textContent = data ? data.length : 0;
+
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted);">Нет активных подписок.</div>';
+      return;
+    }
+
+    el.innerHTML = data.map(p => {
+      const subDate = new Date(p.sub_until).toLocaleDateString('ru-RU');
+      return `
+        <div class="admin-item" onclick="openAdminUser('${p.id}')" style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; gap:12px; align-items:center;">
+            <div class="ai-ava">${getAvatarHtml(p.avatar, 20)}</div>
+            <div class="ai-info">
+              <div class="ai-name">${escapeHtml(p.name||'Без имени')}</div>
+              <div class="ai-phone" style="color:var(--success);">До ${subDate}</div>
+            </div>
+          </div>
+          <button class="btn-small-inline" style="margin:0; padding:8px 10px; font-size:10px; background:transparent; border: 1px solid var(--success); color:var(--success); box-shadow:none;" onclick="event.stopPropagation(); quickGrantSub('${p.id}')">+30д</button>
+        </div>
+      `;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="color:var(--danger); text-align:center;">Ошибка загрузки</div>';
+  }
+}
+
 // ═══════════════════════════════════════════════
 // ─── PWA ОБНОВЛЕНИЯ (УМНЫЙ РЕЖИМ) ───
 let newWorker;
@@ -5131,25 +5199,24 @@ if ('serviceWorker' in navigator) {
 
       reg.addEventListener('updatefound', () => {
         newWorker = reg.installing;
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            
-            // Проверяем, где находится пользователь. 
-            const isRitualActive = !document.getElementById('ritualScreen').classList.contains('hidden');
-            const isPracticeActive = !document.getElementById('practiceScreen').classList.contains('hidden');
-            
-            if (!isRitualActive && !isPracticeActive) {
-              // Если он не занят — обновляемся сами через 2 секунды
-              setTimeout(() => {
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
-              }, 2000);
-            } else {
-              // Если занят — показываем баннер
-              const banner = document.getElementById('updateBanner');
-              if (banner) banner.style.display = 'flex';
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              
+              const isRitualActive = !document.getElementById('ritualScreen').classList.contains('hidden');
+              const isPracticeActive = !document.getElementById('practiceScreen').classList.contains('hidden');
+              
+              if (!isRitualActive && !isPracticeActive) {
+                setTimeout(() => {
+                  newWorker.postMessage({ type: 'SKIP_WAITING' });
+                }, 2000);
+              } else {
+                const banner = document.getElementById('updateBanner');
+                if (banner) banner.style.display = 'flex';
+              }
             }
-          }
-        });
+          });
+        }
       });
     }).catch(err => console.log('SW error', err));
   });
@@ -5222,6 +5289,31 @@ document.addEventListener('scroll', (e) => {
     document.querySelectorAll('#statsBooksDots .b-dot').forEach((d, i) => {
       d.classList.toggle('on', i === idx);
     });
+  }
+    // СЛУШАТЕЛЬ ДЛЯ АДМИНКИ
+  if (e.target && e.target.id === 'adminSwipeWrapper') {
+    const wrap = e.target;
+    const w = wrap.clientWidth;
+    const idx = Math.round(wrap.scrollLeft / w);
+    const tabs = document.querySelectorAll('.admin-tab');
+    const dots = document.querySelectorAll('#adminTabDots .b-dot');
+    
+    if (tabs[idx]) {
+      tabs.forEach(t => t.classList.remove('on'));
+      tabs[idx].classList.add('on');
+      // Загружаем данные для этой вкладки
+      const tabName = tabs[idx].getAttribute('onclick').match(/'([^']+)'/)[1];
+      if(tabName==='dashboard') renderAdminDashboard();
+      else if(tabName==='users') loadAdminUsers();
+      else if(tabName==='books') loadAdminBooks();
+      else if(tabName==='reports') loadAdminReports();
+      else if(tabName==='system') { renderSystem(); loadAdminQuotes(); }
+      else if(tabName==='texts') loadAdminTexts();
+      else if(tabName==='faq') loadAdminFaq();
+      else if(tabName==='subs') loadAdminSubs();
+    }
+    
+    dots.forEach((d, i) => d.classList.toggle('on', i === idx));
   }
 }, true);
 // ─── Слежение за системной темой (для режима «Авто») ───
@@ -6404,11 +6496,19 @@ function openShareStory() {
     });
   });
 
+  // Получаем уровень
+  const stats = getGlobalStats();
+
   // 2. Заполняем карточку
-  document.getElementById('storyAvatar').innerHTML = getAvatarHtml(state.avatar, 60);
+  document.getElementById('storyAvatar').innerHTML = getAvatarHtml(state.avatar, 70);
   document.getElementById('storyName').textContent = (user.name || 'Друг') + (user.lastName ? ' ' + user.lastName : '');
   document.getElementById('storyStreak').textContent = maxStreak;
   document.getElementById('storyClosed').textContent = totalPractices;
+  
+  const lvlEl = document.getElementById('storyLevel');
+  if (lvlEl) {
+    lvlEl.innerHTML = `${stats.lvlIco} ${stats.lvlName} · ${stats.totalXP} XP`;
+  }
 
   // 3. Показываем модалку
   document.getElementById('storyModal').classList.remove('hidden');
@@ -6482,6 +6582,12 @@ async function testPushNotification() {
     toast('Ошибка отправки', 'danger');
   }
 }
+function showAvatarModal() {
+  const content = document.getElementById('avatarViewContent');
+  if (!content) return;
+  content.innerHTML = `<div style="transform: scale(3.5); animation: modalIn 0.3s cubic-bezier(.34,1.56,.64,1);">${getAvatarHtml(state.avatar, 70)}</div>`;
+  document.getElementById('avatarViewModal').classList.remove('hidden');
+}
 async function speakBackgroundGuide(text, context = 'practice') {
   if (state.soundMode !== 'sound' || !text) return;
   
@@ -6493,7 +6599,7 @@ async function speakBackgroundGuide(text, context = 'practice') {
   if (subEl) { subEl.textContent = text; subEl.classList.add('show'); }
 
   try {
-    const { data, error } = await sb.functions.invoke('speak', { body: { text: text } });
+    const { data, error } = await sb.functions.invoke('speak', { body: { text: text, voice: state.voice || 'alena' } });
     if (error) throw error;
     if (data.error) throw new Error(data.error);
 

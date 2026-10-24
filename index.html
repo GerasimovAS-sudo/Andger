@@ -455,7 +455,10 @@
             <div class="mr-emojis" id="moodEvening"></div>
           </div>
         </div>
-<h2 class="section-title" style="margin-top:24px;">📈 Настроение за неделю</h2>
+<h2 class="section-title" style="margin-top:24px; display:flex; justify-content:space-between; align-items:center; width:100%;">
+  <span>📈 Настроение</span>
+  <span id="moodChartDates" style="font-size:11px; color:var(--muted); font-weight:normal; text-transform:none; letter-spacing:0;"></span>
+</h2>
         <div class="mood-chart-wrap" id="moodChartWrap" style="margin-bottom:4px;"></div>
         <div class="books-dots" id="moodChartDots" style="margin-top: 4px; margin-bottom: 20px;"></div>
 <div style="text-align:center; font-size:11px; color:var(--muted); margin-bottom:20px; font-weight:700;">Нажми на эмодзи выше, чтобы обновить график</div>
@@ -552,9 +555,10 @@
       </div>
       <div class="wrap">
         <div class="profile-hero">
-          <div class="profile-avatar-lg" id="profileAva">👤</div>
+          <div class="profile-avatar-lg" id="profileAva" onclick="showAvatarModal()">👤</div>
           <input type="text" id="profileFullName" class="profile-name-input" placeholder="Имя и Фамилия" maxlength="60" onblur="saveName()" onkeydown="if(event.key === 'Enter') this.blur()">
           <div class="profile-phone" id="profilePhone">+7 ***</div>
+          <div id="profileUserId" style="font-size:10px; color:var(--muted); margin-top:2px; cursor:pointer;" onclick="copyToClipboard(user.id); toast('ID скопирован');">ID: #...</div>
           <div class="profile-xp-badge" id="profileXpBadge">🌱 Новичок</div>
           <div id="profileSubStatus" style="margin-bottom: 12px;"></div>
           <!-- Статистика (4 колонки) -->
@@ -668,7 +672,8 @@
             <div class="sr-arrow">›</div>
           </div>
         </div>
-
+        
+        <div style="height: 1px; background: var(--border); margin: 24px 0 16px;"></div>
         <h3 class="section-title">ДАННЫЕ</h3>
         <div class="settings-list">
           <div class="settings-row danger" onclick="showResetOptions()">
@@ -707,7 +712,20 @@
             </div>
             <div class="sr-value" style="font-size:18px; color:var(--accent-2); font-weight:900;" id="shieldCount">0</div>
           </div>
-        </div>        
+        </div> 
+         
+        <h3 class="section-title">ЗВУК И ГОЛОС</h3>
+        <div class="settings-list" style="margin-bottom: 20px;">
+          <div class="settings-row" style="cursor:default; flex-direction: column; align-items: flex-start; gap: 10px;">
+            <div class="sr-left"><span class="sr-ico">🗣</span>Голос диктора</div>
+            <select id="voiceSelect" onchange="setVoice(this.value)" style="width: 100%; padding: 10px; border-radius: 8px; background: var(--card2); color: var(--text); border: 1px solid var(--border); font-size: 14px; outline: none;">
+              <option value="alena">Алёна (Женский, мягкий)</option>
+              <option value="filipp">Филипп (Мужской, спокойный)</option>
+              <option value="omazh">Омаж (Женский, строгий)</option>
+              <option value="ermil">Ермил (Мужской, глубокий)</option>
+            </select>
+          </div>
+        </div>
 
         <h3 class="section-title">ОФОРМЛЕНИЕ</h3>
         <div class="theme-selector" id="themeSelector">
@@ -763,7 +781,12 @@
           <button class="back-top" onclick="backFromNotifications()">←</button>
           <div class="page-label">🔔 УВЕДОМЛЕНИЯ</div>
           <div class="head-actions">
-            <button class="btn-small-inline" style="margin-top:0; font-size:11px; padding:6px 10px; background:var(--danger);" onclick="clearAllNotifications()">Очистить</button>
+            <div class="icon-btn" onclick="markAllNotificationsRead()" title="Прочитать всё">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div class="icon-btn" onclick="clearAllNotifications()" title="Очистить всё" style="color: var(--warm);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            </div>
           </div>
         </div>
       </div>
@@ -844,10 +867,14 @@
           <div class="admin-tab" onclick="switchAdminTab('reports', this)">🚩 Жалобы</div>
           <div class="admin-tab" onclick="switchAdminTab('texts', this)">📝 Тексты</div>
           <div class="admin-tab" onclick="switchAdminTab('faq', this)">❓ FAQ</div>
+          <div class="admin-tab" onclick="switchAdminTab('subs', this)">💎 Подписки</div>
           <div class="admin-tab" onclick="switchAdminTab('system', this)">⚙️ Настройки</div>
         </div>
         
         <!-- НОВЫЙ БЛОК ДЛЯ ДАШБОРДА -->
+         <!-- Контейнер для свайпа вкладок админки -->
+        <div class="books-dots" id="adminTabDots" style="margin-top: 10px; margin-bottom: 10px;"></div>
+        <div class="admin-swipe-wrapper" id="adminSwipeWrapper">
         <div id="adminDashboard">
           <div id="dashboardContent"></div>
         </div>
@@ -905,8 +932,21 @@
           <h3 class="section-title" style="margin-top:20px">✨ Цитаты</h3>
           <button class="btn" onclick="openQuoteEditor()">+ Добавить цитату</button>
           <div id="adminQuotesList" style="margin-top:16px"></div>
+        </div> <!-- Конец adminSystem -->
+
+        <!-- НОВАЯ ВКЛАДКА ПОДПИСКИ -->
+        <div id="adminSubs" class="hidden">
+          <div class="admin-summary" style="margin-bottom: 20px;">
+            <div>
+              <div class="as-num" id="adminSubsCount" style="color: var(--success);">0</div>
+              <div class="as-lbl">Активных</div>
+            </div>
+          </div>
+          <div class="admin-list" id="adminSubsList"></div>
         </div>
-      </div>
+
+      </div> <!-- Конец admin-swipe-wrapper -->
+    </div> <!-- Конец wrap -->
     </div>
 
         <!-- ═══════ РЕДАКТОР КНИГИ ═══════ -->
@@ -1283,19 +1323,15 @@
   <div class="bottom-nav hidden" id="bottomNav">
         <button class="nav-btn on" data-page="today" onclick="navTo('today', this)">
       <svg class="nav-ico" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-      <div>Главная</div>
     </button>
     <button class="nav-btn" data-page="lib" onclick="navTo('lib', this)">
       <svg class="nav-ico" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-      <div>Библиотека</div>
     </button>
     <button class="nav-btn" data-page="journal" onclick="navTo('journal', this)">
       <svg class="nav-ico" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-      <div>Дневник</div>
     </button>
     <button class="nav-btn" data-page="stats" onclick="navTo('stats', this)">
       <svg class="nav-ico" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-      <div>Статистика</div>
     </button>
   </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1309,35 +1345,40 @@
     <div class="modal-box" style="background: transparent; border: none; box-shadow: none; padding: 0;">
       
       <!-- Сама карточка, которая будет превращаться в картинку -->
-      <div id="storyCard" style="width: 320px; height: 568px; background: linear-gradient(160deg, #1a1430 0%, #0d0a18 100%); border-radius: 24px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 2px solid rgba(124,92,255,0.3);">
+      <div id="storyCard" style="width: 320px; height: 568px; background: linear-gradient(160deg, #1a1430 0%, #0d0a18 100%); border-radius: 32px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 2px solid rgba(124,92,255,0.3);">
         
-        <!-- Фоновые элементы -->
-        <div style="position: absolute; top: -50px; left: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(124,92,255,0.4) 0%, transparent 70%);"></div>
-        <div style="position: absolute; bottom: -50px; right: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(255,154,86,0.3) 0%, transparent 70%);"></div>
+        <!-- Фоновые свечения -->
+        <div style="position: absolute; top: -50px; left: -50px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(124,92,255,0.4) 0%, transparent 70%);"></div>
+        <div style="position: absolute; bottom: -50px; right: -50px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(255,154,86,0.3) 0%, transparent 70%);"></div>
 
         <!-- Логотип -->
-        <div style="position: absolute; top: 20px; font-size: 18px; font-weight: 900; color: #fff; letter-spacing: 4px; opacity: 0.8;">ANDGER</div>
+        <div style="position: absolute; top: 24px; font-size: 20px; font-weight: 900; color: #fff; letter-spacing: 6px; opacity: 0.9; text-shadow: 0 0 10px rgba(124,92,255,0.5);">ANDGER</div>
 
         <!-- Аватар и Имя -->
-        <div id="storyAvatar" style="width: 100px; height: 100px; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 50px; border: 3px solid var(--accent); margin-bottom: 15px; z-index: 1; box-shadow: 0 0 20px rgba(124,92,255,0.5);"></div>
-        <div id="storyName" style="font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 30px; z-index: 1; text-align: center;">Андрей</div>
+        <div id="storyAvatar" style="width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 50px; border: 3px solid var(--accent); margin-bottom: 15px; z-index: 1; box-shadow: 0 0 30px rgba(124,92,255,0.5);"></div>
+        <div id="storyName" style="font-size: 26px; font-weight: 900; color: #fff; margin-bottom: 5px; z-index: 1; text-align: center;">Андрей</div>
+        
+        <!-- Уровень (XP) -->
+        <div id="storyLevel" style="font-size: 13px; font-weight: 800; color: var(--warm); background: rgba(255,154,86,0.1); padding: 4px 12px; border-radius: 100px; margin-bottom: 30px; z-index: 1; border: 1px solid rgba(255,154,86,0.3);">
+          🌿 Ученик · 150 XP
+        </div>
 
         <!-- Достижения -->
         <div style="display: flex; gap: 15px; z-index: 1; margin-bottom: 40px;">
-          <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,154,86,0.3); border-radius: 16px; padding: 15px 20px; text-align: center; min-width: 110px;">
-            <div style="font-size: 32px; margin-bottom: 5px;">🔥</div>
-            <div id="storyStreak" style="font-size: 24px; font-weight: 900; color: #ff9a56;">0</div>
-            <div style="font-size: 10px; color: #8a8aa5; text-transform: uppercase; font-weight: 800; margin-top: 4px;">Дней огня</div>
+          <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,154,86,0.3); border-radius: 20px; padding: 15px 20px; text-align: center; min-width: 110px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <div style="font-size: 36px; margin-bottom: 5px; filter: drop-shadow(0 0 10px rgba(255,154,86,0.5));">🔥</div>
+            <div id="storyStreak" style="font-size: 28px; font-weight: 900; color: #ff9a56;">0</div>
+            <div style="font-size: 10px; color: #8a8aa5; text-transform: uppercase; font-weight: 800; margin-top: 4px; letter-spacing: 1px;">Дней огня</div>
           </div>
-          <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(62,207,142,0.3); border-radius: 16px; padding: 15px 20px; text-align: center; min-width: 110px;">
-            <div style="font-size: 32px; margin-bottom: 5px;">✅</div>
-            <div id="storyClosed" style="font-size: 24px; font-weight: 900; color: #3ecf8e;">0</div>
-            <div style="font-size: 10px; color: #8a8aa5; text-transform: uppercase; font-weight: 800; margin-top: 4px;">Практик</div>
+          <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(62,207,142,0.3); border-radius: 20px; padding: 15px 20px; text-align: center; min-width: 110px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <div style="font-size: 36px; margin-bottom: 5px; filter: drop-shadow(0 0 10px rgba(62,207,142,0.5));">✅</div>
+            <div id="storyClosed" style="font-size: 28px; font-weight: 900; color: #3ecf8e;">0</div>
+            <div style="font-size: 10px; color: #8a8aa5; text-transform: uppercase; font-weight: 800; margin-top: 4px; letter-spacing: 1px;">Практик</div>
           </div>
         </div>
 
         <!-- Подпись -->
-        <div style="position: absolute; bottom: 30px; font-size: 12px; color: #8a8aa5; font-weight: 600; z-index: 1;">andger.ru</div>
+        <div style="position: absolute; bottom: 24px; font-size: 12px; color: rgba(255,255,255,0.4); font-weight: 600; z-index: 1; letter-spacing: 1px;">andger.ru</div>
       </div>
 
       <!-- Кнопки управления -->
@@ -1427,6 +1468,10 @@
         <button class="btn" onclick="saveFaq()">Сохранить</button>
         <button class="btn btn-ghost" onclick="document.getElementById('faqEditorModal').classList.add('hidden')">Отмена</button>
       </div>
+    </div>
+        <!-- МОДАЛКА ПРОСМОТРА АВАТАРКИ -->
+    <div class="modal hidden" id="avatarViewModal" onclick="document.getElementById('avatarViewModal').classList.add('hidden')" style="background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);">
+      <div id="avatarViewContent" style="display:flex; justify-content:center; align-items:center; width:100%; height:100%;"></div>
     </div>
 </body>
 
