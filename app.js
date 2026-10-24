@@ -6262,24 +6262,47 @@ async function testPushNotification() {
     toast('Ошибка отправки', 'danger');
   }
 }
-// ─── ФОНОВЫЙ ГОЛОС ───
+// ─── ФОНОВЫЙ ГОЛОС (Улучшенный для Android) ───
 function speakBackgroundGuide(text) {
   if (state.soundMode !== 'sound' || !text) return;
   
   if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel(); // Сбрасываем старую озвучку
+    window.speechSynthesis.cancel(); 
     
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'ru-RU';
-    utterance.rate = 0.85; // Медленно и спокойно
-    utterance.pitch = 1.1; // Нежный женский тембр
-    utterance.volume = 0.8; // Чуть тише, чем конец практики
+    
+    // МАГИЯ ЗВУКА: Замедляем и понижаем тон. 
+    // Это скрывает цифровые артефакты "робота" и делает голос более бархатным.
+    utterance.rate = 0.85;  // Было 0.9 или 1, делаем чуть медленнее (спокойнее)
+    utterance.pitch = 0.85; // Было 1.1 (визгливо), делаем 0.85 (ниже и мягче)
+    utterance.volume = 1.0;
 
     const playVoice = () => {
       const voices = window.speechSynthesis.getVoices();
-      let ruVoice = voices.find(v => (v.lang === 'ru-RU' || v.lang === 'ru') && v.name.includes('Milena')) || 
-                    voices.find(v => v.lang === 'ru-RU' || v.lang === 'ru');
-      if (ruVoice) utterance.voice = ruVoice;
+      const ruVoices = voices.filter(v => v.lang.includes('ru'));
+      
+      // Умный поиск лучшего голоса
+      let bestVoice = null;
+      
+      if (ruVoices.length > 0) {
+        // 1. Ищем "сетевые" (network) или "натуральные" (natural) голоса — они звучат лучше всего
+        bestVoice = ruVoices.find(v => v.name.toLowerCase().includes('network') || v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('google'));
+        
+        // 2. Если нет, ищем женские (часто в названиях есть C, D или female)
+        if (!bestVoice) {
+          bestVoice = ruVoices.find(v => v.name.includes('C') || v.name.includes('D') || v.name.toLowerCase().includes('female'));
+        }
+        
+        // 3. Если нет, берем первый доступный
+        if (!bestVoice) bestVoice = ruVoices[0];
+      }
+
+      if (bestVoice) {
+        utterance.voice = bestVoice;
+        console.log('🎙 Выбран голос:', bestVoice.name);
+      }
+      
       window.speechSynthesis.speak(utterance);
     };
 
