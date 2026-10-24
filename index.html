@@ -549,10 +549,10 @@
           <div class="page-label">👤 ПРОФИЛЬ</div>
           <div class="head-actions">
           <div class="icon-btn hidden" id="adminBtnProfile" onclick="showAdmin()">
-  <svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-    <polyline points="9 12 11 14 15 10"></polyline>
-  </svg>
+  <svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+  <polyline points="9 12 11 14 15 10"></polyline>
+</svg>
 </div>
           </div>
         </div>
@@ -595,8 +595,6 @@
           <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">Доступ к новым книгам закрыт. Продлите подписку, чтобы продолжить.</div>
           <button class="btn-small-inline" style="margin-top:0; width:100%;" onclick="contactDev()">Связаться с разработчиком</button>
         </div>
-        <h3 class="section-title">АВАТАР ПРОФИЛЯ</h3>
-        <div class="emoji-row" id="emojiRow"></div>
         
         <h3 class="section-title">АККАУНТ</h3>
         <div class="settings-list">
@@ -864,15 +862,41 @@
         </div>
       </div>
       <div class="wrap">
-        <div class="admin-tabs">
-          <div class="admin-tab on" onclick="switchAdminTab('dashboard', this)">📊 Дашборд</div>
-          <div class="admin-tab" onclick="switchAdminTab('users', this)">👥 База</div>
-          <div class="admin-tab" onclick="switchAdminTab('books', this)">📚 Книги</div>
-          <div class="admin-tab" onclick="switchAdminTab('reports', this)">🚩 Жалобы</div>
-          <div class="admin-tab" onclick="switchAdminTab('texts', this)">📝 Тексты</div>
-          <div class="admin-tab" onclick="switchAdminTab('faq', this)">❓ FAQ</div>
-          <div class="admin-tab" onclick="switchAdminTab('subs', this)">💎 Подписки</div>
-          <div class="admin-tab" onclick="switchAdminTab('system', this)">⚙️ Настройки</div>
+        <div class="admin-tabs-wrap">
+          <div class="admin-tabs" id="adminTabs">
+            <div class="admin-tab on" onclick="switchAdminTab('dashboard', this)">
+              <div class="at-title">📊 Дашборд</div>
+              <div class="at-sub" id="tabSubDash">Главная сводка</div>
+            </div>
+            <div class="admin-tab" onclick="switchAdminTab('users', this)">
+              <div class="at-title">👥 База</div>
+              <div class="at-sub" id="tabSubUsers">Список юзеров</div>
+            </div>
+            <div class="admin-tab" onclick="switchAdminTab('books', this)">
+              <div class="at-title">📚 Книги</div>
+              <div class="at-sub" id="tabSubBooks">Управление</div>
+            </div>
+            <div class="admin-tab" onclick="switchAdminTab('reports', this)">
+              <div class="at-title">🚩 Жалобы</div>
+              <div class="at-sub" id="tabSubReports">Ревью</div>
+            </div>
+            <div class="admin-tab" onclick="switchAdminTab('texts', this)">
+              <div class="at-title">📝 Тексты</div>
+              <div class="at-sub" id="tabSubTexts">Интерфейс</div>
+            </div>
+            <div class="admin-tab" onclick="switchAdminTab('faq', this)">
+              <div class="at-title">❓ FAQ</div>
+              <div class="at-sub" id="tabSubFaq">Вопросы</div>
+            </div>
+            <div class="admin-tab" onclick="switchAdminTab('subs', this)">
+              <div class="at-title">💎 Подписки</div>
+              <div class="at-sub" id="tabSubSubs">Оплаты</div>
+            </div>
+            <div class="admin-tab" onclick="switchAdminTab('system', this)">
+              <div class="at-title">⚙️ Настройки</div>
+              <div class="at-sub" id="tabSubSystem">Система</div>
+            </div>
+          </div>
         </div>
         
         <!-- НОВЫЙ БЛОК ДЛЯ ДАШБОРДА -->
@@ -909,18 +933,21 @@
           <div class="admin-list" id="adminUserList"></div>
           <div id="adminDetailWrap"></div>
         </div>
-        <div id="adminBooks" class="hidden">
+        <div id="adminBooks">
           <button class="btn" onclick="showBookEditor()" style="margin-bottom: 10px;">+ Добавить книгу</button>
           <input type="text" class="admin-search" id="adminBookSearch" placeholder="🔍 Поиск по названию или автору" oninput="filterAdminBooks()">
           <div id="adminBookList" style="margin-top:16px"></div>
         </div>
-        <div id="adminReports" class="hidden">
+        <div id="adminReports">
           <div id="adminReportsList" class="admin-list"></div>
         </div>
-        <div id="adminTexts" class="hidden">
+        <div id="adminFaq">
+          <div id="adminFaqList" class="admin-list"></div>
+        </div>
+        <div id="adminTexts">
           <div id="adminTextsList" class="admin-list"></div>
         </div>
-        <div id="adminSystem" class="hidden">
+        <div id="adminSystem">
           
           <!-- Рассылка уведомлений -->
           <div class="admin-detail" style="margin-bottom:16px; border-color:var(--accent);">
@@ -939,7 +966,7 @@
         </div> <!-- Конец adminSystem -->
 
         <!-- НОВАЯ ВКЛАДКА ПОДПИСКИ -->
-        <div id="adminSubs" class="hidden">
+        <div id="adminSubs">
           <div class="admin-summary" style="margin-bottom: 20px;">
             <div>
               <div class="as-num" id="adminSubsCount" style="color: var(--success);">0</div>

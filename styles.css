@@ -476,7 +476,10 @@ html.light .main-head, body.light .main-head {
   padding: 0;
   overflow: hidden;
 }
-.book-row.active .br-emoji{background:linear-gradient(135deg,var(--warm),var(--gold-deep))}
+.book-row.active .br-emoji {
+  background: linear-gradient(135deg, var(--card2), var(--card3));
+  border: 1px solid rgba(255, 154, 86, 0.5);
+}
 .book-row.done .br-emoji{background:linear-gradient(135deg,var(--gold),var(--gold-deep))}
 .book-row .br-info{flex:1;min-width:0}
 .book-row .br-title{font-size:15px;font-weight:800;margin-bottom:2px;
@@ -497,7 +500,7 @@ html.light .main-head, body.light .main-head {
 /* ─── КАРТОЧКА КНИГИ ─── */
 .book-detail-hero{padding:calc(80px + var(--safe-top)) 20px 24px;text-align:center;
   background:linear-gradient(180deg,rgba(124,92,255,.12) 0%,transparent 100%);
-  border-radius:0 0 var(--radius-lg) var(--radius-lg)}
+  border-radius: 0 0 var(--radius-md) var(--radius-md); overflow: hidden; }
 .book-detail-hero .bd-emoji{font-size:72px;margin-bottom:12px}
 .book-detail-hero h1{font-size:26px;font-weight:900;margin-bottom:6px;
   letter-spacing:-.5px;line-height:1.15}
@@ -1613,8 +1616,20 @@ button:active,
 .admin-action.warn { color: var(--warm) !important; }
 .admin-action.gold { color: var(--text) !important; } /* Убрали золотой цвет */
 .rp-close {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 36px; 
+  height: 36px;
+  border-radius: var(--radius-sm); /* Скругленные, а не круглые */
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   position: relative;
-  z-index: 10;
+  z-index: 10002 !important;
 }
 .books-dots .b-dot, .hero-dot {
   width: 6px;
@@ -1853,8 +1868,16 @@ button:active,
 .focus-mode .ps-head {
   background: transparent !important;
   border: none !important;
-  z-index: 10000 !important; /* Поднимаем крестик на самый верх */
-  position: relative;
+  position: absolute !important;
+  top: 0; left: 0; right: 0;
+  z-index: 10001 !important;
+  pointer-events: none; /* Пропускает клики сквозь пустую область */
+}
+/* А кнопки внутри шапки клики принимают */
+.focus-mode .ritual-progress button,
+.focus-mode .ps-head button,
+.focus-mode .rp-left {
+  pointer-events: auto;
 }
 
 .focus-mode .ps-back,
@@ -2065,4 +2088,372 @@ body.keyboard-open #quickNoteFab {
 /* Плавное движение окна ввода */
 #feedInputWrap, #dialogInputWrap {
   transition: bottom 0.2s ease-out;
+}
+.book-row.active {
+  border-color: rgba(255, 154, 86, 0.5) !important; 
+  background: var(--card) !important; 
+}
+.smart-icon-wrap {
+  width: 100% !important; 
+  height: 100% !important; 
+  border-radius: 14px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+/* --- НОВЫЕ ПРАВКИ ДЛЯ КНИГ --- */
+.book-row.active {
+  border-color: rgba(255, 154, 86, 0.5) !important; 
+  background: var(--card) !important; 
+}
+
+.book-row.active .br-emoji {
+  background: linear-gradient(135deg, var(--card2), var(--card3)) !important;
+  border: 1px solid rgba(255, 154, 86, 0.5) !important;
+}
+
+.smart-icon-wrap {
+  width: 100% !important; 
+  height: 100% !important; 
+  border-radius: 14px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+/* ─── ИДЕАЛЬНЫЙ ДЗЕН-РЕЖИМ (ТАЙМЕР) ─── */
+
+/* 1. Центрируем весь контент в Дзен-режиме */
+.focus-mode .ritual-body,
+.focus-mode .ps-content {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important; /* Центрируем по вертикали */
+  align-items: center !important;
+  height: 100dvh !important;
+  padding-top: calc(80px + var(--safe-top)) !important; /* Место под крестик */
+  padding-bottom: calc(20px + var(--safe-bottom)) !important;
+  overflow: hidden !important; 
+  box-sizing: border-box !important;
+}
+
+/* 2. Ограничиваем таймер, чтобы он был аккуратным */
+.focus-mode .timer-display {
+  font-size: 80px !important; 
+  margin-bottom: 0px !important; /* Убираем старый отступ */
+  flex-shrink: 0 !important;
+}
+
+/* 3. Субтитры: жестко фиксируем место под них */
+.voice-subtitle {
+  height: 80px !important; /* Высота под 3 строки текста */
+  min-height: 80px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  font-size: 16px !important;
+  font-style: italic !important;
+  color: var(--text) !important;
+  line-height: 1.4 !important;
+  margin: 10px 0 20px 0 !important;
+  padding: 0 20px !important;
+  box-sizing: border-box !important;
+}
+
+/* Если текста нет — скрываем, но место не исчезает */
+.voice-subtitle:empty {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+.voice-subtitle:not(:empty)::before { content: '« '; }
+.voice-subtitle:not(:empty)::after { content: ' »'; }
+
+/* 4. Кнопки (Пауза и Вернуться) — строго одинаковые */
+.focus-mode .timer-big-btn,
+.focus-mode .exit-zen-btn {
+  width: 100% !important;
+  max-width: 280px !important;
+  height: 54px !important;
+  min-height: 54px !important;
+  border-radius: var(--radius-md) !important; /* Скругленные углы */
+  margin: 0 auto 12px auto !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-transform: uppercase !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+}
+
+.focus-mode .exit-zen-btn {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+/* 5. Верхние кнопки (крестик и звук) всегда кликабельны */
+.focus-mode .ritual-progress,
+.focus-mode .ps-head {
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+}
+.rp-close, .sound-btn {
+  z-index: 100000 !important;
+  pointer-events: auto !important;
+}
+/* ─── ФИКС МОДАЛОК И ИКОНКИ КНИГИ ─── */
+
+/* 1. Окна подтверждения теперь ВСЕГДА поверх Дзен-режима */
+.modal { 
+  z-index: 9999999 !important; 
+}
+
+/* 2. Иконка книги на Главной (делаем точно как в Библиотеке) */
+.abc-emoji {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: var(--radius-sm) !important;
+  background: linear-gradient(135deg, var(--card2), var(--card3)) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: none !important; /* Убираем лишнюю рамку */
+}
+/* ─── ЖЕСТКИЙ ФИКС ВСЕХ ВЕРХНИХ КНОПОК ─── */
+
+/* 1. Кнопки на Главной и в других экранах */
+.main-head .top-row,
+.main-head .head-actions,
+.main-head .icon-btn,
+.main-head .avatar,
+.back-top {
+  position: relative !important;
+  z-index: 99999 !important; /* Поднимаем поверх всего */
+  pointer-events: auto !important; /* Разрешаем клики */
+}
+
+/* 2. Кнопки в практике и ритуале (Крестик и Звук) */
+.ritual-progress,
+.ps-head {
+  position: fixed !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  z-index: 99999 !important;
+  padding-top: calc(16px + var(--safe-top)) !important;
+  background: transparent !important;
+  pointer-events: none !important; /* Пропускаем клики сквозь фон */
+}
+
+/* Сами кнопки (крестик и звук) делаем кликабельными */
+.ritual-progress button,
+.ritual-progress .icon-btn,
+.ps-head button,
+.ps-head .icon-btn,
+.rp-close {
+  position: relative !important;
+  z-index: 100000 !important; /* Максимальный приоритет */
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Убираем старую блокировку кнопок в Дзен-режиме */
+.focus-mode .ritual-progress,
+.focus-mode .ps-head {
+  pointer-events: none !important;
+}
+.focus-mode .ritual-progress button,
+.focus-mode .ps-head button {
+  pointer-events: auto !important;
+}
+/* ─── АБСОЛЮТНЫЙ ФИКС КНОПОК ─── */
+
+/* 1. Убираем невидимую блокировку кликов с шапок */
+.ritual-progress,
+.ps-head {
+  pointer-events: auto !important; /* Теперь клики работают везде в шапке */
+}
+/* ─── ЖЕСТКИЙ ФИКС КЛИКОВ И СЛОЕВ (Баги Safari) ─── */
+
+/* 1. Убираем баг с центрированием шапки на iPhone */
+.main-head {
+  transform: none !important; /* Убираем transform, который ломает клики */
+  left: 0 !important; 
+  right: 0 !important;
+  margin: 0 auto !important;
+}
+
+/* 2. Иконки внутри кнопок не должны перехватывать клик (кликаем по всей кнопке) */
+.icon-btn *, .avatar *, .rp-close *, .back-top * {
+  pointer-events: none !important;
+}
+
+/* 3. Кнопки на Главной (Звук, Уведомления, Чат, Профиль) */
+.main-head .head-actions,
+.main-head .icon-btn,
+.main-head .avatar {
+  position: relative !important;
+  z-index: 99999 !important; /* Поднимаем поверх невидимых слоев */
+  pointer-events: auto !important;
+}
+
+/* 4. Кнопки в практике и ритуале (Крестик и Звук) */
+.focus-mode .ritual-progress,
+.focus-mode .ps-head {
+  pointer-events: none !important; /* Пропускаем клики сквозь пустую шапку */
+}
+
+.focus-mode .ritual-progress button,
+.focus-mode .ps-head button,
+.focus-mode .rp-close,
+.focus-mode .ps-back {
+  position: relative !important;
+  z-index: 999999 !important; /* Кнопки всегда сверху */
+  pointer-events: auto !important;
+}
+
+/* 5. Контент таймера не должен перекрывать кнопки */
+.focus-mode .ritual-body,
+.focus-mode .ps-content {
+  z-index: 1 !important;
+}
+/* ─── ФИКС КЛИКАБЕЛЬНОСТИ ШАПКИ (Баг Safari) ─── */
+
+/* 1. Поднимаем саму шапку */
+.main-head {
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+/* 2. Поднимаем строку с кнопками */
+.main-head .top-row,
+.main-head .head-actions {
+  position: relative !important;
+  z-index: 10000 !important;
+  pointer-events: auto !important;
+}
+
+/* 3. Поднимаем сами кнопки и делаем их полностью кликабельными */
+.icon-btn, .avatar {
+  position: relative !important;
+  z-index: 10001 !important;
+  pointer-events: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 4. Запрещаем картинкам (SVG) внутри кнопок перехватывать клики */
+.icon-btn svg, .icon-btn *, 
+.avatar svg, .avatar * {
+  pointer-events: none !important;
+}
+/* ─── ФИКС ШАПКИ ПРАКТИКИ (ЧТОБЫ НЕ УЕЗЖАЛА ПОД КРАЙ) ─── */
+.ps-head {
+  background: var(--bg) !important; /* Возвращаем плотный фон шапке */
+  max-width: 640px !important;      /* Центрируем шапку по ширине контента */
+  margin: 0 auto !important;
+  border-bottom: 1px solid var(--border) !important;
+  pointer-events: auto !important;  /* Возвращаем клики */
+}
+
+/* Отодвигаем контент вниз, чтобы он не прятался под фиксированной шапкой */
+.practice-screen .ps-content {
+  padding-top: calc(85px + var(--safe-top)) !important; 
+}
+
+/* И на всякий случай делаем то же самое для Ритуала (там такая же шапка) */
+.ritual-progress {
+  background: var(--bg) !important;
+  max-width: 640px !important;
+  margin: 0 auto !important;
+  border-bottom: 1px solid var(--border) !important;
+  pointer-events: auto !important;
+}
+
+.ritual-body {
+  padding-top: calc(85px + var(--safe-top)) !important;
+}
+/* ─── ИДЕАЛЬНАЯ АДМИНКА В СТИЛЕ СТАТИСТИКИ ─── */
+.admin-tabs-wrap {
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.admin-tabs {
+  display: flex !important;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 10px;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.admin-tabs::-webkit-scrollbar { display: none; }
+
+/* Делаем карточку ровно на 100% ширины экрана */
+.admin-tab {
+  min-width: 100% !important; 
+  width: 100% !important;
+  flex-shrink: 0;
+  scroll-snap-align: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  transition: .2s;
+  box-sizing: border-box;
+}
+
+.admin-tab:active { transform: scale(0.97); }
+.admin-tab.on {
+  background: linear-gradient(135deg, rgba(124,92,255,0.15), var(--card));
+  border-color: var(--accent);
+  box-shadow: 0 4px 15px rgba(124,92,255,0.1);
+}
+
+.admin-tab .at-title {
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--text);
+  pointer-events: none;
+}
+.admin-tab .at-sub {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+  pointer-events: none;
+}
+.admin-tab.on .at-sub { color: var(--accent-2); }
+
+/* Контейнер для нижнего контента */
+.admin-swipe-wrapper {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  gap: 0;
+  width: 100%;
+  margin: 0;
+}
+.admin-swipe-wrapper::-webkit-scrollbar { display: none; }
+
+/* Вкладки контента */
+.admin-swipe-wrapper > div {
+  flex: 0 0 100%;
+  min-width: 100%;
+  width: 100%;
+  scroll-snap-align: start;
+  box-sizing: border-box;
+  padding: 2px;
+  overflow: hidden;
 }

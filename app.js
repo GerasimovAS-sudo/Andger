@@ -491,6 +491,7 @@ window.addEventListener('DOMContentLoaded', async()=>{
   const safetyTimer = setTimeout(() => {
     console.warn('⚠️ SAFETY: forcing loader hide after 12s');
     try { hideLoader(); } catch(e) { console.error(e); }
+    try { document.getElementById('appLoader').style.display = 'none'; } catch(e) {}
     // Если ни один экран не показан — покажем авторизацию
     const anyVisible = document.querySelector('#authScreen:not(.hidden), #todayScreen:not(.hidden), #libScreen:not(.hidden), #onbScreen:not(.hidden), #welcomeScreen:not(.hidden)');
     if (!anyVisible) {
@@ -1099,10 +1100,25 @@ function toggleSound(){
     if(inR) startMusic(ritualQueue[ritualIndex]?.id || 'default');
     else if(inP) startMusic(currentPractice?.id || 'default');
   } else {
+    // 1. Выключаем музыку
     stopMusic(); 
+    
+    // 2. Отменяем стандартный голос браузера
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel(); 
     }
+
+    // 3. ВЫКЛЮЧАЕМ ГОЛОС ОТ ЯНДЕКС/EDGE ФУНКЦИИ (это и не хватало)
+    if (ttsAudio) {
+      ttsAudio.pause();
+      ttsAudio.currentTime = 0;
+    }
+
+    // 4. Убираем субтитры с экрана, если они висят
+    const subR = document.getElementById('ritualSubtitle');
+    const subP = document.getElementById('practiceSubtitle');
+    if (subR) { subR.textContent = ''; subR.classList.remove('show'); }
+    if (subP) { subP.textContent = ''; subP.classList.remove('show'); }
   }
 }
 
@@ -2062,7 +2078,7 @@ function renderRitualStep(){
            <div class="timer-display" id="ritualTime">${formatTime(p.time || 300)}</div>
            <div class="voice-subtitle" id="ritualSubtitle"></div>
            <button class="timer-big-btn" id="ritualTimerBtn" onclick="toggleTimer('ritual')">▶ Старт</button>
-           <button class="exit-zen-btn" onclick="exitZenMode('ritual')">← Вернуться к тексту</button>
+           <button class="exit-zen-btn" onclick="exitZenMode('ritual')">Вернуться к практике</button>
          </div>
        </div>
 
@@ -2626,7 +2642,7 @@ function openPractice(id){
   <div class="timer-display" id="timerDisplay">${formatTime(p.time)}</div>
   <div class="voice-subtitle" id="practiceSubtitle"></div>
   <button class="timer-big-btn" id="timerBtn" onclick="toggleTimer('practice')">▶ Старт</button>
-  <button class="exit-zen-btn" onclick="exitZenMode('practice')">← Вернуться к тексту</button>
+  <button class="exit-zen-btn" onclick="exitZenMode('practice')">Вернуться к практике</button>
 </div>
      </div>
      
@@ -3977,6 +3993,14 @@ async function openDialog(otherId,p){
   hideAll();
   document.getElementById('dialogScreen').classList.remove('hidden');
   document.getElementById('dialogInputWrap').style.display='flex';
+  
+  // ВОТ ЭТИ ДВЕ СТРОЧКИ НУЖНО ДОБАВИТЬ:
+  document.getElementById('bottomNav').classList.remove('hidden');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
+
+  window.scrollTo(0, document.body.scrollHeight);
+  window.scrollTo(0,0);
+
   window.scrollTo(0, document.body.scrollHeight);
   window.scrollTo(0,0);
 
@@ -4221,33 +4245,26 @@ function subscribeNotifications(){
 // ═══════════════════════════════════════════════
 
 function switchAdminTab(tab, el){
-  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('on'));
+  const tabs = Array.from(document.querySelectorAll('.admin-tab'));
+  const idx = tabs.findIndex(t => t === el);
+
+  // 1. Включаем нужную кнопку
+  tabs.forEach(t => t.classList.remove('on'));
   if(el) el.classList.add('on');
 
-  // Убираем класс hidden у всех вкладок, чтобы они выстроились в ряд
-  ['adminDashboard', 'adminUsers', 'adminBooks', 'adminReports', 'adminSystem', 'adminTexts', 'adminFaq', 'adminSubs'].forEach(id=>{
-    document.getElementById(id)?.classList.remove('hidden');
-  });
+  // 2. Двигаем верхнюю карусель
+  const tabsWrap = document.getElementById('adminTabs');
+  if(tabsWrap && el) tabsWrap.scrollTo({ left: el.offsetLeft - 16, behavior: 'smooth' });
 
-  // Определяем, к какой вкладке скроллить
-  let targetId = 'adminDashboard';
-  if (tab === 'users') targetId = 'adminUsers';
-  else if (tab === 'books') targetId = 'adminBooks';
-  else if (tab === 'reports') targetId = 'adminReports';
-  else if (tab === 'system') targetId = 'adminSystem';
-  else if (tab === 'texts') targetId = 'adminTexts';
-  else if (tab === 'faq') targetId = 'adminFaq';
-  else if (tab === 'subs') targetId = 'adminSubs';
+  // 3. Обновляем точки
+  const dotsWrap = document.getElementById('adminTabDots');
+  if (dotsWrap) dotsWrap.innerHTML = tabs.map((t, i) => `<div class="b-dot ${i === idx ? 'on' : ''}"></div>`).join('');
 
+  // 4. Двигаем нижний контент
   const wrapper = document.getElementById('adminSwipeWrapper');
-  const targetEl = document.getElementById(targetId);
-  
-  if (wrapper && targetEl) {
-    // Плавно скроллим к нужной вкладке
-    wrapper.scrollTo({ left: targetEl.offsetLeft - wrapper.offsetLeft, behavior: 'smooth' });
-  }
+  if (wrapper && idx >= 0) wrapper.scrollTo({ left: idx * wrapper.clientWidth, behavior: 'smooth' });
 
-  // Загружаем данные для нужной вкладки
+  // 5. Загружаем данные
   if(tab==='dashboard') renderAdminDashboard();
   else if(tab==='users') loadAdminUsers();
   else if(tab==='books') loadAdminBooks();
@@ -4256,13 +4273,6 @@ function switchAdminTab(tab, el){
   else if(tab==='texts') loadAdminTexts();
   else if(tab==='faq') loadAdminFaq();
   else if(tab==='subs') loadAdminSubs();
-  // Обновляем точки
-  const tabs = Array.from(document.querySelectorAll('.admin-tab'));
-  const activeIndex = tabs.findIndex(t => t.classList.contains('on'));
-  const dotsWrap = document.getElementById('adminTabDots');
-  if (dotsWrap) {
-    dotsWrap.innerHTML = tabs.map((t, i) => `<div class="b-dot ${i === activeIndex ? 'on' : ''}"></div>`).join('');
-  }
 }
 
 async function showAdmin(){
@@ -4298,7 +4308,10 @@ function renderAdminDashboard() {
   });
 
   // Предполагаемая выручка (если подписка 299 руб)
+  
   const estimatedRevenue = activeSubs * 299;
+  const tabDash = document.getElementById('tabSubDash');
+  if(tabDash) tabDash.textContent = `Выручка: ${estimatedRevenue.toLocaleString('ru-RU')} ₽`;
 
   // 2. Считаем активность за сегодня
   const today = new Date().toISOString().slice(0, 10);
@@ -4354,6 +4367,8 @@ async function loadAdminUsers(){
   document.getElementById('adminActiveCount').textContent=active;
   document.getElementById('adminTodayCount').textContent=today;
   renderAdminList(adminAllUsers);
+  const tabUsers = document.getElementById('tabSubUsers');
+  if(tabUsers) tabUsers.textContent = `Всего: ${adminAllUsers.length}`;
 }
 
 function renderAdminList(list){
@@ -4452,13 +4467,10 @@ async function openAdminUser(id){
     }
   }
   
-  const booksHtml=BOOKS.map(b=>{
-    let has = p.is_admin || access.includes(b.id);
-    return `<div class="admin-book-row">
-      <div class="ab-title"><span>${b.emoji}</span><span>${b.title}</span></div>
-      <div class="toggle-switch ${has?'on':''}" onclick="event.stopPropagation();toggleBookAccess('${id}','${b.id}',${!has})"></div>
-    </div>`;
-  }).join('');
+  const booksHtml = `
+    <input type="text" class="admin-search" id="userBookSearch" placeholder="🔍 Поиск книги или автора" oninput="filterUserBooks('${id}')" style="margin-bottom:12px; padding:10px 14px;">
+    <div id="userBookListContainer" style="max-height:300px; overflow-y:auto; padding-right:4px;"></div>
+  `;
   
   document.getElementById('adminDetailWrap').innerHTML=`
     <div class="admin-detail">
@@ -4497,8 +4509,10 @@ async function openAdminUser(id){
           </div>
         </div>
         <div class="admin-books">${booksHtml}</div>
+        <script>setTimeout(() => renderUserBookList('${id}'), 50);</script>
       </div>
       
+      <button class="admin-action" style="width:100%; margin-bottom:10px; background:var(--card2) !important; border:1px solid var(--border) !important;" onclick="viewUserNotes('${id}', '${escapeHtml(p.name)}')">📝 Читать дневник пользователя</button>
       ${!isMe?`<div class="admin-actions">
         <button class="admin-action" onclick="adminSendMessage('${id}')">💬 Написать</button>
         <button class="admin-action ${p.blocked?'':'warn'}" onclick="adminToggleBlock('${id}',${!p.blocked})">${p.blocked?'✓ Разблокировать':'🚫 Заблокировать'}</button>
@@ -4544,19 +4558,75 @@ async function adminSendMessage(id){
   if(p)openDialog(id,p);
 }
 
-async function toggleBookAccess(userId,bookId,grant){
-  const p=adminAllUsers.find(x=>x.id===userId);if(!p)return;
-  let access=[...(p.book_access||[])];
-  if(access.length===0&&bookAccessMode==='individual'){
-    access=BOOKS.map(b=>b.id);
+async function toggleBookAccess(userId, bookId, grant){
+  const p = adminAllUsers.find(x => x.id === userId);
+  if(!p) return;
+  let access = [...(p.book_access || [])];
+  
+  if (grant) {
+    if(!access.includes(bookId)) access.push(bookId);
+  } else {
+    access = access.filter(x => x !== bookId);
   }
-  if(grant){if(!access.includes(bookId))access.push(bookId)}
-  else access=access.filter(x=>x!==bookId);
-  await sb.from('profiles').update({book_access:access}).eq('id',userId);
-  await logAdmin('grant_book',userId,{book:bookId,grant});
-  p.book_access=access;
+  
+  await sb.from('profiles').update({ book_access: access }).eq('id', userId);
+  await logAdmin('grant_book', userId, { book: bookId, grant });
+  p.book_access = access;
   playCheck();
-  openAdminUser(userId);
+  
+  // Обновляем список на месте, не закрывая карточку
+  const searchVal = document.getElementById('userBookSearch')?.value || '';
+  renderUserBookList(userId, searchVal);
+}
+
+// Новая функция: отрисовывает список книг с группами и иконками
+function renderUserBookList(userId, query = '') {
+  const container = document.getElementById('userBookListContainer');
+  if (!container) return;
+  
+  const p = adminAllUsers.find(x => x.id === userId);
+  if (!p) return;
+
+  // Фильтруем по поиску
+  const filtered = BOOKS.filter(b => 
+    b.title.toLowerCase().includes(query.toLowerCase()) || 
+    (b.author && b.author.toLowerCase().includes(query.toLowerCase()))
+  );
+
+  // Группируем по категориям
+  const grouped = {};
+  filtered.forEach(b => {
+    const cat = b.category || 'Разное';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(b);
+  });
+
+  let html = '';
+  const access = p.book_access || [];
+
+  Object.keys(grouped).forEach(cat => {
+    html += `<div style="font-size:11px; font-weight:900; color:var(--accent-2); text-transform:uppercase; margin-top:14px; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;">📁 ${cat}</div>`;
+    
+    grouped[cat].forEach(b => {
+      const has = p.is_admin || access.includes(b.id);
+      html += `<div class="admin-book-row" style="margin-bottom:6px;">
+        <div class="ab-title" style="display:flex; align-items:center; gap:10px; font-weight:700; font-size:13px; color:var(--text);">
+          <div style="width:32px; height:32px; border-radius:8px; background:var(--card3); display:flex; align-items:center; justify-content:center; overflow:hidden;">${getEmojiOrSvg(b.emoji, 20, b.title)}</div>
+          <span>${escapeHtml(b.title)}</span>
+        </div>
+        <div class="toggle-switch ${has ? 'on' : ''}" onclick="event.stopPropagation(); toggleBookAccess('${userId}','${b.id}',${!has})"></div>
+      </div>`;
+    });
+  });
+
+  if (!html) html = '<div style="text-align:center; color:var(--muted); font-size:12px; padding:20px;">Книги не найдены</div>';
+  container.innerHTML = html;
+}
+
+// Новая функция: срабатывает при вводе текста в поиск
+function filterUserBooks(userId) {
+  const q = document.getElementById('userBookSearch').value;
+  renderUserBookList(userId, q);
 }
 
 async function logAdmin(action,targetId,meta){
@@ -4646,6 +4716,12 @@ async function renderSystem(){
         <div class="toggle-switch ${bookAccessMode === 'everyone' ? 'on' : ''}" onclick="toggleBookAccessMode()"></div>
       </div>
       
+    </div>
+  `;
+    document.getElementById('systemContent').innerHTML += `
+    <div style="margin-top:24px;">
+      <button class="btn" style="margin-top:0; background:var(--card2); color:var(--text); border:1px solid var(--border);" onclick="loadAdminLogs()">📜 Посмотреть историю действий</button>
+      <div id="adminLogsContainer" style="margin-top:16px;"></div>
     </div>
   `;
 }
@@ -4859,7 +4935,8 @@ async function loadAdminBooks(){
   // Сбрасываем поиск при загрузке
   const searchInp = document.getElementById('adminBookSearch');
   if (searchInp) searchInp.value = '';
-  
+  const tabBooks = document.getElementById('tabSubBooks');
+  if(tabBooks) tabBooks.textContent = `Всего: ${adminAllBooks.length}`;
   renderAdminBookList(adminAllBooks);
 }
 
@@ -5143,6 +5220,8 @@ async function loadAdminSubs() {
     const { data } = await sb.from('profiles').select('*').gt('sub_until', now).order('sub_until', {ascending: true});
     
     if (countEl) countEl.textContent = data ? data.length : 0;
+    const tabSubs = document.getElementById('tabSubSubs');
+    if(tabSubs) tabSubs.textContent = `Активных: ${data ? data.length : 0}`;
 
     if (!data || data.length === 0) {
       el.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted);">Нет активных подписок.</div>';
@@ -5275,7 +5354,7 @@ document.addEventListener('scroll', (e) => {
     });
   }
   
-    // Точки для книг (сверху)
+  // Точки для книг (сверху)
   if (e.target && e.target.id === 'activeBookWrap') {
     const wrap = e.target;
     const cardWidth = wrap.children[0] ? wrap.children[0].offsetWidth : 1;
@@ -5291,7 +5370,6 @@ document.addEventListener('scroll', (e) => {
     const cardWidth = wrap.children[0] ? wrap.children[0].offsetWidth : 1;
     const idx = Math.round(wrap.scrollLeft / (cardWidth + 10)); 
     
-    // Обновляем точки, не перерисовывая всё
     const dots = document.querySelectorAll('#journalDots .b-dot');
     dots.forEach((d, i) => {
       d.classList.toggle('on', i === idx);
@@ -5307,7 +5385,8 @@ document.addEventListener('scroll', (e) => {
       d.classList.toggle('on', i === idx);
     });
   }
-    // СЛУШАТЕЛЬ ДЛЯ АДМИНКИ
+  
+  // СЛУШАТЕЛЬ ДЛЯ АДМИНКИ (КАРУСЕЛЬ)
   if (e.target && e.target.id === 'adminSwipeWrapper') {
     const wrap = e.target;
     const w = wrap.clientWidth;
@@ -5318,7 +5397,10 @@ document.addEventListener('scroll', (e) => {
     if (tabs[idx]) {
       tabs.forEach(t => t.classList.remove('on'));
       tabs[idx].classList.add('on');
-      // Загружаем данные для этой вкладки
+      
+      const tabsWrap = document.getElementById('adminTabs');
+      if(tabsWrap) tabsWrap.scrollTo({ left: tabs[idx].offsetLeft - 16, behavior: 'smooth' });
+
       const tabName = tabs[idx].getAttribute('onclick').match(/'([^']+)'/)[1];
       if(tabName==='dashboard') renderAdminDashboard();
       else if(tabName==='users') loadAdminUsers();
@@ -5329,10 +5411,10 @@ document.addEventListener('scroll', (e) => {
       else if(tabName==='faq') loadAdminFaq();
       else if(tabName==='subs') loadAdminSubs();
     }
-    
     dots.forEach((d, i) => d.classList.toggle('on', i === idx));
   }
 }, true);
+
 // ─── Слежение за системной темой (для режима «Авто») ───
 window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=>{
   if(state.theme==='auto')applyTheme();
@@ -5762,6 +5844,10 @@ async function loadAdminReports() {
           <div class="admin-row"><span>Текст поста</span><span style="font-size:12px; font-style:italic; color:var(--muted); text-align:right; max-width:60%;">"${post ? escapeHtml(post.text) : 'Пост удален'}"</span></div>
           <div class="admin-row"><span>Автор поста</span><span>${post ? post.user_name : '—'}</span></div>
           <div class="admin-row"><span>Время</span><span>${time}</span></div>
+          <div style="display:flex; gap:8px; margin-top:12px;">
+            <button class="btn-small-inline" style="background:var(--card2); color:var(--text); border:1px solid var(--border);" onclick="loadAdminReports()">Обновить</button>
+            <button class="btn-small-inline" style="background:var(--danger);" onclick="deleteReportedPost(${r.id}, ${r.post_id})">🗑 Удалить пост</button>
+          </div>
         </div>
       `;
     }
@@ -6658,12 +6744,126 @@ async function speakBackgroundGuide(text, context = 'practice') {
     
     ttsAudio.onended = () => {
       if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000);
-      if (subEl) subEl.classList.remove('show');
+      if (subEl) {
+        subEl.classList.remove('show');
+        // Очищаем текст, чтобы исчезли кавычки и таймер вернулся на место
+        setTimeout(() => { subEl.textContent = ''; }, 300);
+      }
     };
     await ttsAudio.play();
   } catch (error) {
     console.error('Ошибка озвучки (Яндекс):', error);
     if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000);
     if (subEl) subEl.classList.remove('show');
+  }
+}
+// ─── ПРОСМОТР ЗАМЕТОК ПОЛЬЗОВАТЕЛЯ ───
+async function viewUserNotes(userId, userName) {
+  const modal = document.getElementById('modal');
+  const mTitle = document.getElementById('modalTitle');
+  const mText = document.getElementById('modalText');
+  const mAchList = document.getElementById('modalAchList');
+  const mEmoji = document.getElementById('modalEmoji');
+  
+  mEmoji.textContent = '📝';
+  mTitle.textContent = 'Дневник: ' + userName;
+  mText.textContent = 'Загрузка записей...';
+  mAchList.innerHTML = '';
+  modal.classList.remove('hidden');
+
+  try {
+    const { data: notes } = await sb.from('notes').select('*').eq('user_id', userId).order('created_at', {ascending: false}).limit(20);
+    
+    if (!notes || notes.length === 0) {
+      mText.textContent = 'Пользователь пока не сделал ни одной записи.';
+      return;
+    }
+
+    let html = '<div style="text-align:left; max-height:50vh; overflow-y:auto; width:100%; padding-right:5px;">';
+    notes.forEach(n => {
+      const d = new Date(n.created_at).toLocaleDateString('ru-RU');
+      html += `
+        <div style="background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:8px;">
+          <div style="font-size:10px; color:var(--accent-2); font-weight:800; margin-bottom:4px; display:flex; justify-content:space-between;">
+            <span>${escapeHtml(n.practice_title)}</span>
+            <span style="color:var(--muted);">${d}</span>
+          </div>
+          <div style="font-size:13px; color:var(--text); line-height:1.5;">${escapeHtml(n.text)}</div>
+        </div>
+      `;
+    });
+    html += '</div>';
+    
+    mText.textContent = 'Последние записи:';
+    mAchList.innerHTML = html;
+    
+    // Переопределяем кнопку "Продолжить", чтобы она возвращала в профиль
+    const btn = modal.querySelector('.btn');
+    btn.onclick = () => { closeModal(); openAdminUser(userId); };
+  } catch(e) {
+    mText.textContent = 'Ошибка загрузки заметок.';
+  }
+}
+// ─── УДАЛЕНИЕ ПОСТА ИЗ ЖАЛОБ ───
+async function deleteReportedPost(reportId, postId) {
+  showCustomConfirm('Удалить пост?', 'Пост будет стерт из ленты, а жалоба закрыта.', async () => {
+    try {
+      await sb.from('messages').delete().eq('id', postId);
+      await sb.from('reports').delete().eq('id', reportId);
+      toast('Пост удален, жалоба закрыта');
+      loadAdminReports(); // Обновляем список
+    } catch(e) {
+      toast('Ошибка удаления', 'danger');
+    }
+  });
+}
+// ─── ИСТОРИЯ ДЕЙСТВИЙ АДМИНА ───
+async function loadAdminLogs() {
+  const el = document.getElementById('adminLogsContainer');
+  el.innerHTML = '<div style="text-align:center; color:var(--muted); padding:20px;">Загрузка...</div>';
+
+  try {
+    const { data: logs } = await sb.from('admin_logs').select('*').order('created_at', {ascending: false}).limit(30);
+    
+    if (!logs || logs.length === 0) {
+      el.innerHTML = '<div style="text-align:center; color:var(--muted); padding:20px;">История пуста.</div>';
+      return;
+    }
+
+    // Подтягиваем имена админов
+    const adminIds = [...new Set(logs.map(l => l.admin_id))];
+    const { data: profiles } = await sb.from('profiles').select('id, name').in('id', adminIds);
+    const adminsMap = {};
+    (profiles || []).forEach(p => adminsMap[p.id] = p.name);
+
+    let html = '<div class="admin-list">';
+    logs.forEach(log => {
+      const date = new Date(log.created_at).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+      const adminName = adminsMap[log.admin_id] || 'Админ';
+      
+      let actionText = 'Действие';
+      let color = 'var(--text)';
+      
+      if (log.action === 'block') { actionText = 'Заблокировал(а) юзера'; color = 'var(--danger)'; }
+      else if (log.action === 'admin') { actionText = 'Изменил(а) права'; color = 'var(--gold)'; }
+      else if (log.action === 'grant_book') { actionText = 'Изменил(а) доступ к книге'; color = 'var(--accent-2)'; }
+      else if (log.action === 'delete') { actionText = 'Удалил(а) юзера'; color = 'var(--danger)'; }
+
+      html += `
+        <div class="admin-item" style="flex-direction:column; align-items:flex-start; gap:6px;">
+          <div style="display:flex; justify-content:space-between; width:100%;">
+            <span style="font-size:12px; font-weight:800; color:${color};">${actionText}</span>
+            <span style="font-size:10px; color:var(--muted);">${date}</span>
+          </div>
+          <div style="font-size:11px; color:var(--muted);">
+            Админ: <b>${escapeHtml(adminName)}</b>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center; color:var(--danger); padding:20px;">Ошибка загрузки истории</div>';
   }
 }
