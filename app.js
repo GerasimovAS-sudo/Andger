@@ -5176,14 +5176,14 @@ async function loadAdminSubs() {
 let newWorker;
 let refreshing = false;
 
-// Когда новый воркер берет контроль, перезагружаем страницу
-navigator.serviceWorker.addEventListener('controllerchange', () => {
-  if (refreshing) return;
-  refreshing = true;
-  window.location.reload();
-});
-
 if ('serviceWorker' in navigator) {
+  // Когда новый воркер берет контроль, перезагружаем страницу
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then(reg => {
       
@@ -5220,15 +5220,6 @@ if ('serviceWorker' in navigator) {
       });
     }).catch(err => console.log('SW error', err));
   });
-}
-
-// Обработка кнопки "Обновить" на баннере
-function forceUpdate() {
-  if (newWorker) {
-    newWorker.postMessage({ type: 'SKIP_WAITING' });
-  } else {
-    window.location.reload();
-  }
 }
 
 // Обработка кнопки "Обновить" на баннере

@@ -1980,3 +1980,39 @@ button:active,
   scroll-snap-align: start;
   padding-bottom: 20px;
 }
+/* ─── ПЛАВАЮЩАЯ КНОПКА (FAB) ─── */
+.fab-btn {
+  position: fixed !important;
+  bottom: calc(75px + var(--safe-bottom)) !important;
+  right: 20px !important;
+  left: auto !important;
+  margin: 0 !important;
+  transform: none !important;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(124,92,255,0.4);
+  border: none;
+  cursor: pointer;
+  z-index: 100 !important; 
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.fab-btn:active {
+  transform: scale(0.9);
+  box-shadow: 0 4px 12px rgba(124,92,255,0.6);
+}
+.fab-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Скрываем кнопку, если открыта практика или ритуал */
+body.ritual-active .fab-btn,
+body.practice-active .fab-btn {
+  display: none !important;
+}
