@@ -2180,3 +2180,22 @@ body.practice-active .fab-btn {
 }
 .smart-icon-wrap.large svg { width: 48px; height: 48px; }
 .smart-icon-wrap.large .emoji-text { font-size: 44px; }
+/* ─── СУБТИТРЫ ДЛЯ ГОЛОСА ─── */
+.voice-subtitle {
+  font-size: 15px;
+  color: #dcdcf0;
+  text-align: center;
+  line-height: 1.4;
+  margin: 10px auto 20px;
+  max-width: 90%;
+  min-height: 40px; /* Чтобы верстка не прыгала */
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  font-style: italic;
+  pointer-events: none;
+}
+.voice-subtitle.show {
+  opacity: 1;
+  transform: translateY(0);
+}

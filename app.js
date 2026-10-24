@@ -2041,6 +2041,7 @@ function renderRitualStep(){
          <h3>⏱ Время практики</h3>
          <div class="timer-box">
            <div class="timer-display" id="ritualTime">${formatTime(p.time || 300)}</div>
+           <div class="voice-subtitle" id="ritualSubtitle"></div>
            <button class="timer-big-btn" id="ritualTimerBtn" onclick="toggleTimer('ritual')">▶ Старт</button>
            <button class="exit-zen-btn" onclick="exitZenMode('ritual')">👁 Показать текст</button>
          </div>
@@ -2161,7 +2162,7 @@ function startTimer(ctx){
       currentP.voiceTimeline.forEach((item, index) => {
         // Если время пришло и мы еще это не говорили
         if (elapsed >= item.time && !currentP._spokenIndices.includes(index)) {
-          speakBackgroundGuide(item.text);
+          speakBackgroundGuide(item.text, ctx);
           currentP._spokenIndices.push(index);
         }
       });
@@ -2604,6 +2605,7 @@ function openPractice(id){
        <h3>⏱ Время практики</h3>
        <div class="timer-box">
   <div class="timer-display" id="timerDisplay">${formatTime(p.time)}</div>
+  <div class="voice-subtitle" id="practiceSubtitle"></div>
   <button class="timer-big-btn" id="timerBtn" onclick="toggleTimer('practice')">▶ Старт</button>
   <button class="exit-zen-btn" onclick="exitZenMode('practice')">👁 Показать текст</button>
 </div>
@@ -6259,55 +6261,58 @@ async function testPushNotification() {
   }
 }
 // ─── ИДЕАЛЬНЫЙ ГОЛОС (Максимум из Web Speech API) ───
-function speakBackgroundGuide(text) {
+function speakBackgroundGuide(text, context = 'practice') {
   if (state.soundMode !== 'sound' || !text) return;
   
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel(); 
     
-    // Разбиваем текст на предложения для добавления естественных пауз
-    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-    
-    sentences.forEach((sentence, index) => {
-      const utterance = new SpeechSynthesisUtterance(sentence.trim());
-      utterance.lang = 'ru-RU';
-      
-      // Настройки для максимальной естественности:
-      // На Android при pitch=1 голос часто "пищит". 0.9 делает его глубже.
-      utterance.rate = 0.9; 
-      utterance.pitch = 0.9; 
-      utterance.volume = 1.0;
+    // 1. ПРИГЛУШАЕМ МУЗЫКУ
+    if (musicAudio) {
+      fadeAudio(musicAudio, musicAudio.volume, 0.05, 300); // Убавляем до 5% за 0.3 сек
+    }
 
-      const playVoice = () => {
-        const voices = window.speechSynthesis.getVoices();
-        
-        // ЖЕСТКИЙ ФИЛЬТР: Ищем ТОЛЬКО сетевые (network/online) или натуральные голоса
-        let bestVoice = voices.find(v => v.lang.includes('ru') && v.name.includes('network')) ||
-                        voices.find(v => v.lang.includes('ru') && v.name.includes('Google')) ||
-                        voices.find(v => v.lang.includes('ru') && v.name.includes('Natural')) ||
-                        voices.find(v => v.lang.includes('ru')); // Если совсем ничего нет
+    // 2. ПОКАЗЫВАЕМ СУБТИТР
+    const subEl = document.getElementById(context === 'ritual' ? 'ritualSubtitle' : 'practiceSubtitle');
+    if (subEl) {
+      subEl.textContent = text;
+      subEl.classList.add('show');
+    }
 
-        if (bestVoice) {
-          utterance.voice = bestVoice;
-          console.log(`🎙 Говорит: ${bestVoice.name}`);
-        }
-        
-        // Небольшая задержка между предложениями, чтобы звучало как живая речь
-        if (index > 0) {
-          setTimeout(() => window.speechSynthesis.speak(utterance), 500);
-        } else {
-          window.speechSynthesis.speak(utterance);
-        }
-      };
+    // 3. НАСТРАИВАЕМ ГОЛОС
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ru-RU';
+    utterance.rate = 0.9; 
+    utterance.pitch = 0.9; 
+    utterance.volume = 1.0;
 
-      if (window.speechSynthesis.getVoices().length !== 0) {
-        playVoice();
-      } else {
-        window.speechSynthesis.onvoiceschanged = () => {
-          playVoice();
-          window.speechSynthesis.onvoiceschanged = null; 
-        };
+    // 4. ВОЗВРАЩАЕМ МУЗЫКУ И СКРЫВАЕМ СУБТИТР (когда голос договорил)
+    utterance.onend = () => {
+      if (musicAudio) {
+        fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000); // Возвращаем до 20% за 1 сек
       }
-    });
+      if (subEl) {
+        subEl.classList.remove('show');
+      }
+    };
+
+    const playVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      let bestVoice = voices.find(v => v.lang.includes('ru') && v.name.includes('network')) ||
+                      voices.find(v => v.lang.includes('ru') && v.name.includes('Google')) ||
+                      voices.find(v => v.lang.includes('ru')); 
+      if (bestVoice) utterance.voice = bestVoice;
+      
+      window.speechSynthesis.speak(utterance);
+    };
+
+    if (window.speechSynthesis.getVoices().length !== 0) {
+      playVoice();
+    } else {
+      window.speechSynthesis.onvoiceschanged = () => {
+        playVoice();
+        window.speechSynthesis.onvoiceschanged = null; 
+      };
+    }
   }
 }
