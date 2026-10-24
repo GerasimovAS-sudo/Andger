@@ -2152,3 +2152,31 @@ body.practice-active .fab-btn {
 #profileScreen .wrap {
   padding-bottom: calc(160px + var(--safe-bottom)) !important;
 }
+/* ─── УМНЫЕ БЕЙДЖИ ДЛЯ ИКОНОК ─── */
+.smart-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 10px rgba(255,255,255,0.05);
+}
+.smart-icon-wrap svg {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+.smart-icon-wrap .emoji-text {
+  font-size: 24px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+/* Для большой карточки книги */
+.smart-icon-wrap.large {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+}
+.smart-icon-wrap.large svg { width: 48px; height: 48px; }
+.smart-icon-wrap.large .emoji-text { font-size: 44px; }

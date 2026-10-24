@@ -17,7 +17,15 @@ const SVG_ICONS = {
   'brain': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg>',
   'book': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>',
   'sun': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>',
-  'heart': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>'
+  'heart': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>',
+  'users': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
+  'sprout': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"></path><path d="M10 20c5.5-2.5.8-6.4 3-10"></path><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"></path><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"></path></svg>',
+  'sunrise': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18a5 5 0 0 0-10 0"></path><line x1="12" y1="2" x2="12" y2="9"></line><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line><line x1="1" y1="18" x2="3" y2="18"></line><line x1="21" y1="18" x2="23" y2="18"></line><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line><line x1="23" y1="22" x2="1" y2="22"></line><polyline points="8 6 12 2 16 6"></polyline></svg>',
+  'waves': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>',
+  'compass': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>',
+  'shield': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>',
+  'sparkles': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>',
+  'smile': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>',
 };
 
 // ─── БАЗА СТИЛЬНЫХ АВАТАРОК ───
@@ -60,12 +68,56 @@ function getSvgIcon(name, size = 24, color = 'currentColor') {
   const svgCode = SVG_ICONS[name] || SVG_ICONS['book']; 
   return svgCode.replace('viewBox="0 0 24 24"', `viewBox="0 0 24 24" width="${size}" height="${size}" style="color: ${color};"`);
 }
-// Умная функция: если это ID иконки (zap, target) — рисует SVG, если эмодзи (🌅) — выводит эмодзи
-function getEmojiOrSvg(emoji, size = 24) {
-  if (SVG_ICONS[emoji]) {
-    return getSvgIcon(emoji, size);
+// Функция для генерации красивого цвета на основе названия
+function getSmartColor(seedString) {
+  const colors = [
+    'linear-gradient(135deg, rgba(124,92,255,0.2), rgba(124,92,255,0.05))', // Фиолетовый
+    'linear-gradient(135deg, rgba(255,154,86,0.2), rgba(255,154,86,0.05))', // Оранжевый
+    'linear-gradient(135deg, rgba(62,207,142,0.2), rgba(62,207,142,0.05))', // Зеленый
+    'linear-gradient(135deg, rgba(255,184,0,0.2), rgba(255,184,0,0.05))',   // Золотой
+    'linear-gradient(135deg, rgba(79,172,254,0.2), rgba(79,172,254,0.05))', // Голубой
+    'linear-gradient(135deg, rgba(240,147,251,0.2), rgba(240,147,251,0.05))' // Розовый
+  ];
+  const textColors = ['#a78bfa', '#ff9a56', '#3ecf8e', '#ffb800', '#4facfe', '#f093fb'];
+  
+  let hash = 0;
+  const str = seedString || 'book';
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
-  return emoji || '📖';
+  const index = Math.abs(hash) % colors.length;
+  return { bg: colors[index], color: textColors[index] };
+}
+
+// Универсальная функция для красивых бейджей
+function getEmojiOrSvg(emoji, size = 24, seedString = '') {
+  const style = getSmartColor(seedString || emoji);
+  const iconSize = size === 72 ? 48 : 24;
+  let content = '';
+
+  // 1. Эмодзи
+  if (emoji && emoji.length <= 4 && !/[a-zA-Z]/.test(emoji)) {
+    content = `<span class="emoji-text" style="font-size:${iconSize}px; line-height:1;">${emoji}</span>`;
+  } 
+  // 2. Известная SVG иконка
+  else if (SVG_ICONS[emoji]) {
+    content = getSvgIcon(emoji, iconSize, style.color);
+  } 
+  // 3. Неизвестный текст (галлюцинация ИИ)
+  else {
+    const fallbacks = ['book', 'sparkles', 'layout', 'brain', 'compass'];
+    const hash = Math.abs((seedString || emoji || '').length);
+    const fallbackIcon = fallbacks[hash % fallbacks.length];
+    content = getSvgIcon(fallbackIcon, iconSize, style.color);
+  }
+
+  // Оборачиваем в красивый контейнер
+  const extraClass = size === 72 ? 'large' : '';
+  return `
+    <div class="smart-icon-wrap ${extraClass}" style="background: ${style.bg}; border: 1px solid ${style.color}40; box-shadow: 0 4px 12px ${style.color}15;">
+      ${content}
+    </div>
+  `;
 }
 
 // Глобальная функция для подсчета опыта и уровня
@@ -1573,7 +1625,7 @@ function openBookDetail(id){
     return;
   }
   bookDetailId=id;
-  document.getElementById('bdEmoji').innerHTML = getEmojiOrSvg(b.emoji, 72);
+  document.getElementById('bdEmoji').innerHTML = `<div style="display:flex; justify-content:center; margin-bottom:12px;">${getEmojiOrSvg(b.emoji, 72, b.title)}</div>`;
   document.getElementById('bdTitle').textContent=b.title;
   document.getElementById('bdAuthor').textContent=(b.author||'—')+' · '+b.days+' дней';
   document.getElementById('bdAbout').textContent=b.about||'Описание скоро появится.';
@@ -4759,7 +4811,7 @@ function renderAdminBookList(list) {
   
   el.innerHTML=list.map(b=>`
     <div class="book-row" onclick="showBookEditor('${b.id}')">
-      <div class="br-emoji" style="display:flex; align-items:center; justify-content:center;">${getEmojiOrSvg(b.emoji, 24)}</div>
+      <div style="margin-right:14px;">${getEmojiOrSvg(b.emoji, 24, b.title)}</div>
       <div class="br-info">
         <div class="br-title">${escapeHtml(b.title)} ${b._isLocal ? '<span style="font-size:10px; color:var(--warm); font-weight:normal; background:rgba(255,154,86,0.1); padding:2px 6px; border-radius:6px; margin-left:4px;">из кода</span>' : '✅'}</div>
         <div class="br-author">${escapeHtml(b.author||'')} · ${b.days} дней</div>
