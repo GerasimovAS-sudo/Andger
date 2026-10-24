@@ -2031,7 +2031,6 @@ function startRitual(){
   rEl.className='ritual';
   rEl.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;z-index:9999;display:flex;flex-direction:column;background:var(--bg)';
   window.scrollTo(0,0);
-  startMusic();
   renderRitualStep();
 }
 function renderRitualStep(){
@@ -2105,7 +2104,7 @@ function toggleTimer(ctx){
     stopTimer();
     timerState='paused';
     if (musicAudio) musicAudio.pause();
-    if(btn){btn.textContent='▶ Продолжить';btn.className='timer-big-btn paused'}
+    if(btn){btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle; margin-right:6px; margin-top:-2px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Продолжить';btn.className='timer-big-btn paused'}
     if(screen) screen.classList.remove('focus-mode');
   }else if(timerState==='done'){
     // Ничего не делаем, если время вышло
@@ -2128,7 +2127,7 @@ function toggleTimer(ctx){
     }
     startTimer(ctx);
     timerState='running';
-    if(btn){btn.textContent='⏸ Пауза';btn.className='timer-big-btn'}
+    if(btn){btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle; margin-right:6px; margin-top:-2px;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> Пауза';btn.className='timer-big-btn'}
     if(screen) screen.classList.add('focus-mode');
   }
 }
@@ -2520,7 +2519,6 @@ function launchCustomRitual(){
   const rEl=document.getElementById('ritualScreen');
   rEl.className='ritual';
   rEl.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;z-index:9999;display:flex;flex-direction:column;background:var(--bg)';
-  startMusic();
   renderRitualStep();
 }
 
@@ -5231,6 +5229,34 @@ function forceUpdate() {
   }
 }
 
+// ─── ФИКС КЛАВИАТУРЫ ДЛЯ IPHONE ───
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    // Если клавиатура открыта (высота экрана уменьшилась)
+    const isKeyboardOpen = window.visualViewport.height < window.innerHeight - 100;
+    
+    if (isKeyboardOpen) {
+      document.body.classList.add('keyboard-open');
+      const feedWrap = document.getElementById('feedInputWrap');
+      const dialogWrap = document.getElementById('dialogInputWrap');
+      const bottomOffset = window.innerHeight - window.visualViewport.height + 10;
+      
+      if (feedWrap && feedWrap.style.display === 'flex') feedWrap.style.bottom = `${bottomOffset}px`;
+      if (dialogWrap && dialogWrap.style.display === 'flex') dialogWrap.style.bottom = `${bottomOffset}px`;
+      
+      // Принудительно прокручиваем страницу вниз, чтобы ввод был виден
+      setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 50);
+    } else {
+      document.body.classList.remove('keyboard-open');
+      const feedWrap = document.getElementById('feedInputWrap');
+      const dialogWrap = document.getElementById('dialogInputWrap');
+      
+      if (feedWrap) feedWrap.style.bottom = '';
+      if (dialogWrap) dialogWrap.style.bottom = '';
+    }
+  });
+}
+
 // ─── PWA SHORTCUTS ───
 const urlParams=new URLSearchParams(location.search);
 const action=urlParams.get('action');
@@ -6576,8 +6602,30 @@ async function testPushNotification() {
 function showAvatarModal() {
   const content = document.getElementById('avatarViewContent');
   if (!content) return;
-  content.innerHTML = `<div style="transform: scale(3.5); animation: modalIn 0.3s cubic-bezier(.34,1.56,.64,1);">${getAvatarHtml(state.avatar, 70)}</div>`;
+  
+  let html = `<div style="background:var(--card); border-radius:var(--radius-lg); padding:24px; width:100%; max-width:360px; text-align:center; border: 1px solid var(--border);" onclick="event.stopPropagation()">`;
+  html += `<div style="font-size:20px; font-weight:900; margin-bottom:20px; color:var(--text);">Выбери аватар</div>`;
+  html += `<div class="emoji-row" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:24px;">`;
+  
+  html += Object.keys(AVATAR_ICONS).map(key => 
+    `<div class="emoji-pick ${state.avatar === key ? 'on' : ''}" onclick="setAvatarFromModal('${key}')">${getAvatarHtml(key, 32)}</div>`
+  ).join('');
+  
+  html += `</div>`;
+  html += `<button class="btn" onclick="document.getElementById('avatarViewModal').classList.add('hidden')" style="margin-top:0;">Готово</button>`;
+  html += `</div>`;
+  
+  content.innerHTML = html;
   document.getElementById('avatarViewModal').classList.remove('hidden');
+}
+
+function setAvatarFromModal(avatarKey) {
+  state.avatar = avatarKey;
+  saveState();
+  sb.from('profiles').update({avatar: avatarKey}).eq('id', user.id).then(()=>{});
+  playClick();
+  if (typeof renderProfile === 'function') renderProfile(); 
+  showAvatarModal(); 
 }
 async function speakBackgroundGuide(text, context = 'practice') {
   if (state.soundMode !== 'sound' || !text) return;
