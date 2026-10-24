@@ -5403,13 +5403,12 @@ function parseSmartJson() {
   
   try {
     let jsonStr = raw;
-    // Убираем лишние символы, если ИИ добавил ```json ... ```
     if (raw.includes('```json')) jsonStr = raw.split('```json')[1].split('```')[0];
     else if (raw.includes('```')) jsonStr = raw.split('```')[1].split('```')[0];
     
-    // Пытаемся распарсить. Если ИИ выдал массив практик, оборачиваем его.
     const data = JSON.parse(jsonStr.trim());
     
+    // Заполняем основные поля книги
     if(data.title) document.getElementById('edTitle').value = data.title;
     if(data.author) document.getElementById('edAuthor').value = data.author;
     if(data.emoji) document.getElementById('edEmoji').value = data.emoji;
@@ -5422,12 +5421,13 @@ function parseSmartJson() {
     if(data.forWhom) document.getElementById('edForWhom').value = data.forWhom;
     if(data.result) document.getElementById('edResult').value = data.result;
     
-    // Практики могут быть как в корне, так и внутри массива
+    // Заполняем практики в НАШУ НОВУЮ ПЕРЕМЕННУЮ
     if(Array.isArray(data)) {
-      document.getElementById('edPractices').value = JSON.stringify(data, null, 2);
+      window._tempPractices = data;
     } else if(data.practices) {
-      document.getElementById('edPractices').value = JSON.stringify(data.practices, null, 2);
+      window._tempPractices = data.practices;
     }
+    renderAdminPracticesList(); // Перерисовываем визуальный список
     
     if(data.quotes) window._tempQuotes = data.quotes;
     
