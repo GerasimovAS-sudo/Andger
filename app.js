@@ -60,6 +60,13 @@ function getSvgIcon(name, size = 24, color = 'currentColor') {
   const svgCode = SVG_ICONS[name] || SVG_ICONS['book']; 
   return svgCode.replace('viewBox="0 0 24 24"', `viewBox="0 0 24 24" width="${size}" height="${size}" style="color: ${color};"`);
 }
+// Умная функция: если это ID иконки (zap, target) — рисует SVG, если эмодзи (🌅) — выводит эмодзи
+function getEmojiOrSvg(emoji, size = 24) {
+  if (SVG_ICONS[emoji]) {
+    return getSvgIcon(emoji, size);
+  }
+  return emoji || '📖';
+}
 
 // Глобальная функция для подсчета опыта и уровня
 function getGlobalStats() {
@@ -1320,7 +1327,7 @@ document.getElementById('todayName').textContent = fullName;
     booksHtml += `
       <div class="active-book-card" onclick="switchActiveBook('${ab.id}')" style="${isActive ? '' : 'opacity:0.7;'}">
         <div class="abc-head">
-          <div class="abc-emoji">${ab.emoji}</div>
+          <div class="abc-emoji" style="display:flex; align-items:center; justify-content:center;">${getEmojiOrSvg(ab.emoji, 36)}</div>
            <div class="abc-info">
             <div class="abc-title">${ab.title}</div>
             <div style="font-size:12px; color:var(--accent-2); font-weight:700; margin-bottom:4px;">${ab.author || 'Неизвестный автор'}</div>
@@ -1536,7 +1543,7 @@ document.getElementById('libName').textContent = fullName;
       
       html += `<div class="book-row ${isDone?'done':''} ${isActive?'active':''} ${!hasAccess?'locked':''}" onclick="openBookDetail('${b.id}')">
         ${!hasAccess?'<div class="br-lock">🔒</div>':''}
-        <div class="br-emoji">${b.emoji}</div>
+        <div class="br-emoji" style="display:flex; align-items:center; justify-content:center;">${getEmojiOrSvg(b.emoji, 24)}</div>
         <div class="br-info">
           <div class="br-title">${escapeHtml(b.title)} ${isDone?'👑':''}</div>
           <div class="br-author">${escapeHtml(b.author)} · ${b.days} дней</div>
@@ -1566,7 +1573,7 @@ function openBookDetail(id){
     return;
   }
   bookDetailId=id;
-  document.getElementById('bdEmoji').textContent=b.emoji;
+  document.getElementById('bdEmoji').innerHTML = getEmojiOrSvg(b.emoji, 72);
   document.getElementById('bdTitle').textContent=b.title;
   document.getElementById('bdAuthor').textContent=(b.author||'—')+' · '+b.days+' дней';
   document.getElementById('bdAbout').textContent=b.about||'Описание скоро появится.';
@@ -4752,7 +4759,7 @@ function renderAdminBookList(list) {
   
   el.innerHTML=list.map(b=>`
     <div class="book-row" onclick="showBookEditor('${b.id}')">
-      <div class="br-emoji">${b.emoji||'📖'}</div>
+      <div class="br-emoji" style="display:flex; align-items:center; justify-content:center;">${getEmojiOrSvg(b.emoji, 24)}</div>
       <div class="br-info">
         <div class="br-title">${escapeHtml(b.title)} ${b._isLocal ? '<span style="font-size:10px; color:var(--warm); font-weight:normal; background:rgba(255,154,86,0.1); padding:2px 6px; border-radius:6px; margin-left:4px;">из кода</span>' : '✅'}</div>
         <div class="br-author">${escapeHtml(b.author||'')} · ${b.days} дней</div>
