@@ -155,7 +155,7 @@ let calendarWeekOffset = 0; // 0 - текущая неделя, -1 - прошл�
 let BOOKS=[], currentBook=null, currentPractice=null, ritualQueue=[], ritualIndex=0;
 let timerInterval=null, timerRemaining=0, timerState='idle';
 let user=null, state={}, onbIndex=0, statsBookId=null;
-let musicAudio=null, syncTimeout=null, isAdminFlag=false;
+let musicAudio=null, ttsAudio=null, syncTimeout=null, isAdminFlag=false;
 let completeCallback=null, adminAllUsers=[], adminAllBooks=[];
 let bookDetailId=null, customRitual=[];
 let bookDetailSource='lib';
@@ -469,7 +469,8 @@ function randomSplashQuote(){
   const qEl=document.getElementById('ldQuote');
   const aEl=document.getElementById('ldQuoteAuthor');
   if(qEl)qEl.childNodes[0].nodeValue=`«${q.text}»`;
-  if(aEl)aEl.textContent=`— ${q.author||'Андрей Герасимов'}`;
+  if(qEl && appTexts['splash_quote']) qEl.childNodes[0].nodeValue = appTexts['splash_quote'];
+  if(aEl && appTexts['splash_author']) aEl.textContent = appTexts['splash_author'];
 }
 
 // ─── ИНИЦИАЛИЗАЦИЯ ───
@@ -615,6 +616,7 @@ async function handleSession(session){
     await loadNotifications();
   await loadBooksFromSupabase();
   await loadQuotes();
+  await loadAppTexts();
   setSplashProgress(90);
 
   applyTheme();
@@ -655,6 +657,17 @@ async function loadQuotes(){
     const{data}=await sb.from('quotes').select('*').eq('active',true).order('sort_order');
     globalQuotes=data||[];
   }catch(e){globalQuotes=[]}
+}
+
+let appTexts = {}; // Глобальная переменная для текстов
+
+async function loadAppTexts() {
+  try {
+    const { data } = await sb.from('ui_texts').select('*');
+    if (data) {
+      data.forEach(item => appTexts[item.key] = item.value);
+    }
+  } catch(e) { console.log('Ошибка загрузки текстов', e); }
 }
 
 async function loadBooksFromSupabase(){
@@ -1106,9 +1119,13 @@ function updateSoundUI(){
 
 // ─── ОНБОРДИНГ ───
 function renderOnb(){
-  const s=ONB[onbIndex];
-  document.getElementById('onbContent').innerHTML=
-    `<div class="onb-ico">${s.ico}</div><h2>${s.title}</h2>${s.body}`;
+  const s = ONB[onbIndex];
+  const stepNum = onbIndex + 1;
+  const title = appTexts['onb_step' + stepNum + '_title'] || s.title;
+  const text = appTexts['onb_step' + stepNum + '_text'] || s.body.replace(/<[^>]*>/g, ''); 
+
+  document.getElementById('onbContent').innerHTML =
+    `<div class="onb-ico">${s.ico}</div><h2>${title}</h2><p>${text}</p>`;
   document.getElementById('onbDots').innerHTML=
     ONB.map((_,i)=>`<div class="onb-dot ${i===onbIndex?'on':''}"></div>`).join('');
   document.getElementById('onbBack').classList.toggle('hidden',onbIndex===0);
@@ -2200,7 +2217,7 @@ function startTimer(ctx){
 
 function stopTimer(){
   // Останавливаем фоновый голос
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel(); 
+  if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
   
   releaseWakeLock(); 
   if(timerInterval){clearInterval(timerInterval);timerInterval=null}
@@ -2896,6 +2913,15 @@ function stopBreath(){
     if (profileShieldEl) profileShieldEl.textContent = state.shields || 0;
 
     if(xpBadge) xpBadge.textContent = `${lvlIco} ${lvlName} · ${totalXP} XP`;
+    // Показываем панель управления только админу
+    const billingPanel = document.getElementById('adminBillingPanel');
+    if (billingPanel) {
+      if (isAdmin()) {
+        billingPanel.classList.remove('hidden');
+      } else {
+        billingPanel.classList.add('hidden');
+      }
+    }
     
     // --- БЛОК ПОДПИСКИ ---
     const subEl = document.getElementById('profileSubStatus');
@@ -3064,26 +3090,28 @@ async function togglePush(){
 }
 
 // ─── ПОМОЩЬ ───
-function renderHelp(){
+async function renderHelp(){
   const list=document.getElementById('faqList');
   if(!list)return;
   
-  let html = '';
-  FAQ_GROUPS.forEach(group => {
-    html += `<h3 class="section-title" style="margin-top: 20px;">${group.title}</h3>`;
-    group.items.forEach(item => {
-      // Генерируем уникальный ID для каждого вопроса, чтобы открывать только его
-      const faqId = 'faq_' + Math.random().toString(36).substr(2, 9);
-      html += `
-        <div class="faq-item" onclick="toggleFaq(this)">
-          <div class="faq-q">${item.q}<span class="fq-arrow">›</span></div>
-          <div class="faq-a">${item.a}</div>
-        </div>
-      `;
-    });
-  });
-  
-  list.innerHTML = html;
+  list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Загрузка...</div>';
+
+  try {
+    const { data } = await sb.from('faq').select('*').order('sort_order');
+    if (!data || data.length === 0) {
+      list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Пока нет вопросов.</div>';
+      return;
+    }
+
+    list.innerHTML = data.map(item => `
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-q">${escapeHtml(item.question)}<span class="fq-arrow">›</span></div>
+        <div class="faq-a">${escapeHtml(item.answer)}</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="color:var(--danger); text-align:center;">Ошибка загрузки</div>';
+  }
 }
 
 function toggleFaq(el){
@@ -4176,14 +4204,14 @@ function switchAdminTab(tab,el){
   if(el)el.classList.add('on');
   
   // Скрываем все вкладки
-  ['adminDashboard', 'adminUsers', 'adminBooks', 'adminReports', 'adminSystem'].forEach(id=>{
+  ['adminDashboard', 'adminUsers', 'adminBooks', 'adminReports', 'adminSystem', 'adminTexts', 'adminFaq'].forEach(id=>{
     document.getElementById(id)?.classList.add('hidden');
   });
 
   // Показываем нужную
   if(tab==='dashboard'){
     document.getElementById('adminDashboard').classList.remove('hidden');
-    renderAdminDashboard(); // Вызываем новую функцию
+    renderAdminDashboard();
   } else if(tab==='users'){
     document.getElementById('adminUsers').classList.remove('hidden');
     loadAdminUsers();
@@ -4197,6 +4225,12 @@ function switchAdminTab(tab,el){
     document.getElementById('adminSystem').classList.remove('hidden');
     renderSystem();
     loadAdminQuotes();
+  } else if(tab==='texts'){
+    document.getElementById('adminTexts').classList.remove('hidden');
+    loadAdminTexts();
+  } else if(tab==='faq'){
+    document.getElementById('adminFaq').classList.remove('hidden');
+    loadAdminFaq();
   }
 }
 
@@ -4918,6 +4952,155 @@ async function saveBook(published){
     err.textContent='❌ '+e.message;
     err.style.color='var(--danger)';
   }
+}
+
+// ─── УПРАВЛЕНИЕ ТЕКСТАМИ ───
+async function loadAdminTexts() {
+  const el = document.getElementById('adminTextsList');
+  el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Загрузка текстов...</div>';
+  
+  try {
+    const { data, error } = await sb.from('ui_texts').select('*').order('key');
+    if (error) throw error;
+    
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Текстов пока нет.</div>';
+      return;
+    }
+
+    // Красивые названия для ключей, чтобы ты понимал, что правишь
+    const labels = {
+      'splash_quote': '💬 Цитата на заставке',
+      'splash_author': '✍️ Автор цитаты',
+      'onb_step1_title': '1. Заголовок онбординга',
+      'onb_step1_text': '1. Текст онбординга',
+      'onb_step2_title': '2. Заголовок онбординга',
+      'onb_step2_text': '2. Текст онбординга',
+      'onb_step3_title': '3. Заголовок онбординга',
+      'onb_step3_text': '3. Текст онбординга',
+      'onb_step4_title': '4. Заголовок онбординга',
+      'onb_step4_text': '4. Текст онбординга',
+      'onb_step5_title': '5. Заголовок онбординга',
+      'onb_step5_text': '5. Текст онбординга'
+    };
+
+    let html = '';
+    data.forEach(item => {
+      const displayTitle = labels[item.key] || item.key;
+      html += `
+        <div class="admin-detail" style="margin-bottom:12px; padding:16px;">
+          <div style="font-size:12px; font-weight:800; color:var(--accent-2); margin-bottom:8px;">${displayTitle}</div>
+          <textarea id="txt_${item.key}" rows="3" style="width:100%; background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:10px; color:var(--text); font-size:14px; resize:vertical; font-family:inherit; margin-bottom:8px;">${escapeHtml(item.value)}</textarea>
+          <button class="btn-small-inline" style="margin-top:0;" onclick="saveAdminText('${item.key}')">Сохранить</button>
+        </div>
+      `;
+    });
+    el.innerHTML = html;
+  } catch (e) {
+    console.error(e);
+    el.innerHTML = '<div style="color:var(--danger); text-align:center; padding:20px;">Ошибка загрузки текстов</div>';
+  }
+}
+
+async function saveAdminText(key) {
+  const el = document.getElementById('txt_' + key);
+  if (!el) return;
+  const newValue = el.value.trim();
+  
+  try {
+    const { error } = await sb.from('ui_texts').update({ value: newValue }).eq('key', key);
+    if (error) throw error;
+    
+    playSuccess();
+    toast('Текст сохранен!');
+  } catch (e) {
+    console.error(e);
+    toast('Ошибка сохранения', 'danger');
+  }
+}
+
+// ─── УПРАВЛЕНИЕ FAQ ───
+let editingFaqId = null;
+
+async function loadAdminFaq() {
+  const el = document.getElementById('adminFaqList');
+  el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Загрузка...</div>';
+  
+  try {
+    const { data } = await sb.from('faq').select('*').order('sort_order');
+    
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Вопросов пока нет.</div>';
+      return;
+    }
+
+    el.innerHTML = data.map(item => `
+      <div class="admin-detail" style="margin-bottom:10px; padding:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div style="flex:1;">
+            <div style="font-size:14px; font-weight:800; color:var(--accent-2); margin-bottom:4px;">${escapeHtml(item.question)}</div>
+            <div style="font-size:13px; color:var(--muted); line-height:1.4;">${escapeHtml(item.answer)}</div>
+          </div>
+          <div style="display:flex; gap:6px; margin-left:10px;">
+            <button class="icon-btn" onclick="openFaqEditor(${item.id})" style="width:32px; height:32px; font-size:14px;">✏️</button>
+            <button class="icon-btn" onclick="deleteFaq(${item.id})" style="width:32px; height:32px; color:var(--danger); font-size:14px;">🗑</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="color:var(--danger); text-align:center;">Ошибка загрузки</div>';
+  }
+}
+
+function openFaqEditor(id = null) {
+  editingFaqId = id;
+  const modal = document.getElementById('faqEditorModal');
+  
+  if (id) {
+    // В реальном приложении тут надо тянуть данные из БД, но для простоты возьмем из DOM
+    // (или можно просто перерисовать, но мы сделаем запрос)
+    sb.from('faq').select('*').eq('id', id).single().then(({data}) => {
+      if(data) {
+        document.getElementById('faqModalTitle').textContent = 'Редактировать вопрос';
+        document.getElementById('faqQInp').value = data.question;
+        document.getElementById('faqAInp').value = data.answer;
+      }
+    });
+  } else {
+    document.getElementById('faqModalTitle').textContent = 'Новый вопрос';
+    document.getElementById('faqQInp').value = '';
+    document.getElementById('faqAInp').value = '';
+  }
+  modal.classList.remove('hidden');
+}
+
+async function saveFaq() {
+  const q = document.getElementById('faqQInp').value.trim();
+  const a = document.getElementById('faqAInp').value.trim();
+  if (!q || !a) { toast('Заполни вопрос и ответ', 'warm'); return; }
+
+  try {
+    if (editingFaqId) {
+      await sb.from('faq').update({ question: q, answer: a }).eq('id', editingFaqId);
+    } else {
+      await sb.from('faq').insert({ question: q, answer: a, sort_order: 99 });
+    }
+    document.getElementById('faqEditorModal').classList.add('hidden');
+    playSuccess();
+    toast('Сохранено');
+    loadAdminFaq();
+  } catch(e) {
+    toast('Ошибка', 'danger');
+  }
+}
+
+async function deleteFaq(id) {
+  showCustomConfirm('Удалить вопрос?', 'Он пропадет из Помощи.', async () => {
+    await sb.from('faq').delete().eq('id', id);
+    playSuccess();
+    loadAdminFaq();
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -5732,28 +5915,13 @@ async function savePracticeNote(practiceTitle, noteText, bookId) {
 // ─── ОЗВУЧКА ТАЙМЕРА ───
 function speakTimerEnd(practiceId) {
   if (state.soundOn === false) return;
+  let text = "Время практики завершено. Зафиксируйте мысли.";
+  if (practiceId === 'read') text = "Время чтения завершено. Зафиксируйте одну мысль.";
+  else if (practiceId === 'sport') text = "Тренировка завершена. Отличная работа!";
+  else if (practiceId === 'silence' || practiceId === 'visual') text = "Время вышло. Медленно возвращайтесь в здесь и сейчас.";
   
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel(); 
-    
-    let text = "Время практики завершено. Зафиксируйте мысли.";
-    if (practiceId === 'read') text = "Время чтения завершено. Зафиксируйте одну мысль из прочитанного.";
-    else if (practiceId === 'sport') text = "Тренировка завершена. Отличная работа!";
-    else if (practiceId === 'silence' || practiceId === 'visual') text = "Время вышло. Медленно возвращайтесь в здесь и сейчас.";
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ru-RU';
-    utterance.rate = 0.9;
-    utterance.pitch = 0.9;
-    utterance.volume = 1.0;
-
-    const voices = window.speechSynthesis.getVoices();
-    let bestVoice = voices.find(v => v.lang.includes('ru') && v.name.includes('network')) ||
-                    voices.find(v => v.lang.includes('ru') && v.name.includes('Google'));
-    if (bestVoice) utterance.voice = bestVoice;
-
-    window.speechSynthesis.speak(utterance);
-  }
+  // Вызываем нашу новую функцию
+  speakBackgroundGuide(text, 'practice');
 }
 
 // ─── ВЫДАЧА ПОДПИСКИ ───
@@ -6264,59 +6432,43 @@ async function testPushNotification() {
     toast('Ошибка отправки', 'danger');
   }
 }
-// ─── ИДЕАЛЬНЫЙ ГОЛОС (Максимум из Web Speech API) ───
-function speakBackgroundGuide(text, context = 'practice') {
+async function speakBackgroundGuide(text, context = 'practice') {
   if (state.soundMode !== 'sound' || !text) return;
   
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel(); 
+  // Приглушаем музыку
+  if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.05, 300);
+  
+  // Показываем субтитры
+  const subEl = document.getElementById(context === 'ritual' ? 'ritualSubtitle' : 'practiceSubtitle');
+  if (subEl) { subEl.textContent = text; subEl.classList.add('show'); }
+
+  try {
+    const { data, error } = await sb.functions.invoke('speak', { body: { text: text } });
+    if (error) throw error;
+    if (data.error) throw new Error(data.error);
+
+    // РАСШИФРОВКА Base64 в MP3
+    const binaryString = window.atob(data.audio);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    if (!ttsAudio) ttsAudio = new Audio();
+    ttsAudio.pause();
+    ttsAudio.currentTime = 0;
+
+    const blob = new Blob([bytes], { type: 'audio/mpeg' });
+    ttsAudio.src = URL.createObjectURL(blob);
     
-    // 1. ПРИГЛУШАЕМ МУЗЫКУ
-    if (musicAudio) {
-      fadeAudio(musicAudio, musicAudio.volume, 0.05, 300); // Убавляем до 5% за 0.3 сек
-    }
-
-    // 2. ПОКАЗЫВАЕМ СУБТИТР
-    const subEl = document.getElementById(context === 'ritual' ? 'ritualSubtitle' : 'practiceSubtitle');
-    if (subEl) {
-      subEl.textContent = text;
-      subEl.classList.add('show');
-    }
-
-    // 3. НАСТРАИВАЕМ ГОЛОС
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ru-RU';
-    utterance.rate = 0.9; 
-    utterance.pitch = 0.9; 
-    utterance.volume = 1.0;
-
-    // 4. ВОЗВРАЩАЕМ МУЗЫКУ И СКРЫВАЕМ СУБТИТР (когда голос договорил)
-    utterance.onend = () => {
-      if (musicAudio) {
-        fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000); // Возвращаем до 20% за 1 сек
-      }
-      if (subEl) {
-        subEl.classList.remove('show');
-      }
+    ttsAudio.onended = () => {
+      if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000);
+      if (subEl) subEl.classList.remove('show');
     };
-
-    const playVoice = () => {
-      const voices = window.speechSynthesis.getVoices();
-      let bestVoice = voices.find(v => v.lang.includes('ru') && v.name.includes('network')) ||
-                      voices.find(v => v.lang.includes('ru') && v.name.includes('Google')) ||
-                      voices.find(v => v.lang.includes('ru')); 
-      if (bestVoice) utterance.voice = bestVoice;
-      
-      window.speechSynthesis.speak(utterance);
-    };
-
-    if (window.speechSynthesis.getVoices().length !== 0) {
-      playVoice();
-    } else {
-      window.speechSynthesis.onvoiceschanged = () => {
-        playVoice();
-        window.speechSynthesis.onvoiceschanged = null; 
-      };
-    }
+    await ttsAudio.play();
+  } catch (error) {
+    console.error('Ошибка озвучки (Яндекс):', error);
+    if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000);
+    if (subEl) subEl.classList.remove('show');
   }
 }
