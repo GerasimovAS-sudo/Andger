@@ -5554,6 +5554,10 @@ function closeTimeModal() {
   document.getElementById('timeModal').classList.add('hidden');
 }
 
+function showVoiceSetupModal() {
+  document.getElementById('voiceSetupModal').classList.remove('hidden');
+}
+
 function saveTimeFromModal() {
   const timeInput = document.getElementById('timeInput');
   const time = timeInput ? timeInput.value : '07:00';

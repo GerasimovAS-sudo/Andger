@@ -696,6 +696,10 @@
             <div class="sr-left"><span class="sr-ico">🔊</span>Звуки и музыка</div>
             <div class="toggle-switch on" id="soundToggle"></div>
           </div>
+          <div class="settings-row" onclick="showVoiceSetupModal()">
+            <div class="sr-left"><span class="sr-ico">🎙</span>Улучшить голос диктора</div>
+            <div class="sr-arrow">›</div>
+          </div>
         </div>
 
         <h3 class="section-title">ОФОРМЛЕНИЕ</h3>
@@ -1394,6 +1398,35 @@
 
         <button class="btn" onclick="savePracticeEditor()">Сохранить практику</button>
         <button class="btn btn-ghost" onclick="document.getElementById('practiceEditorModal').classList.add('hidden')">Отмена</button>
+      </div>
+    </div>
+        <!-- МОДАЛКА: УЛУЧШЕНИЕ ГОЛОСА -->
+    <div class="modal hidden" id="voiceSetupModal">
+      <div class="modal-box" style="text-align:left;">
+        <div class="emoji">🎙</div>
+        <h2 style="text-align:center;">Как сделать голос красивым</h2>
+        <p style="font-size:13px; color:var(--muted); margin-bottom:16px; text-align:center;">
+          Голос диктора зависит от вашего телефона. Чтобы он звучал мягко и естественно, нужно скачать качественный голос.
+        </p>
+        
+        <div style="background:var(--card2); padding:14px; border-radius:12px; font-size:13px; line-height:1.6;">
+          <b>Инструкция для Android:</b><br>
+          1. Откройте <b>Настройки</b> телефона.<br>
+          2. Найдите раздел <b>«Система»</b> → <b>«Языки и ввод»</b>.<br>
+          3. Нажмите <b>«Синтез речи»</b>.<br>
+          4. Выберите движок <b>Google</b>.<br>
+          5. Нажмите на шестеренку → <b>«Установить голосовые данные»</b>.<br>
+          6. Найдите «Русский» и скачайте <b>«Женский»</b> или <b>«Высокое качество»</b>.
+        </div>
+
+        <div style="background:var(--card2); padding:14px; border-radius:12px; font-size:13px; line-height:1.6; margin-top:10px;">
+          <b>Инструкция для iPhone:</b><br>
+          1. Настройки → <b>Универсальный доступ</b>.<br>
+          2. <b>Озвучивание контента</b> → <b>Голоса</b>.<br>
+          3. <b>Русский</b> → скачайте <b>«Милена»</b> (улучшенное качество).
+        </div>
+
+        <button class="btn" onclick="document.getElementById('voiceSetupModal').classList.add('hidden')" style="margin-top:20px;">Понятно</button>
       </div>
     </div>
 </body>
