@@ -5728,27 +5728,23 @@ function speakTimerEnd(practiceId) {
   if (state.soundOn === false) return;
   
   if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel(); // Сбрасываем старую очередь
+    window.speechSynthesis.cancel(); 
     
     let text = "Время практики завершено. Зафиксируйте мысли.";
-    if (practiceId === 'read') {
-      text = "Время чтения завершено. Зафиксируйте одну мысль из прочитанного.";
-    } else if (practiceId === 'sport') {
-      text = "Тренировка завершена. Отличная работа, вы заряжены энергией!";
-    } else if (practiceId === 'silence' || practiceId === 'visual') {
-      text = "Время вышло. Медленно возвращайтесь в здесь и сейчас, открывайте глаза.";
-    }
+    if (practiceId === 'read') text = "Время чтения завершено. Зафиксируйте одну мысль из прочитанного.";
+    else if (practiceId === 'sport') text = "Тренировка завершена. Отличная работа!";
+    else if (practiceId === 'silence' || practiceId === 'visual') text = "Время вышло. Медленно возвращайтесь в здесь и сейчас.";
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'ru-RU';
     utterance.rate = 0.9;
-    utterance.pitch = 1.1;
+    utterance.pitch = 0.9;
     utterance.volume = 1.0;
 
-    // Ищем русский голос
     const voices = window.speechSynthesis.getVoices();
-    const ruVoice = voices.find(v => v.lang.includes('ru'));
-    if (ruVoice) utterance.voice = ruVoice;
+    let bestVoice = voices.find(v => v.lang.includes('ru') && v.name.includes('network')) ||
+                    voices.find(v => v.lang.includes('ru') && v.name.includes('Google'));
+    if (bestVoice) utterance.voice = bestVoice;
 
     window.speechSynthesis.speak(utterance);
   }
@@ -6262,57 +6258,56 @@ async function testPushNotification() {
     toast('Ошибка отправки', 'danger');
   }
 }
-// ─── ФОНОВЫЙ ГОЛОС (Улучшенный для Android) ───
+// ─── ИДЕАЛЬНЫЙ ГОЛОС (Максимум из Web Speech API) ───
 function speakBackgroundGuide(text) {
   if (state.soundMode !== 'sound' || !text) return;
   
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel(); 
     
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ru-RU';
+    // Разбиваем текст на предложения для добавления естественных пауз
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
     
-    // МАГИЯ ЗВУКА: Замедляем и понижаем тон. 
-    // Это скрывает цифровые артефакты "робота" и делает голос более бархатным.
-    utterance.rate = 0.85;  // Было 0.9 или 1, делаем чуть медленнее (спокойнее)
-    utterance.pitch = 0.85; // Было 1.1 (визгливо), делаем 0.85 (ниже и мягче)
-    utterance.volume = 1.0;
+    sentences.forEach((sentence, index) => {
+      const utterance = new SpeechSynthesisUtterance(sentence.trim());
+      utterance.lang = 'ru-RU';
+      
+      // Настройки для максимальной естественности:
+      // На Android при pitch=1 голос часто "пищит". 0.9 делает его глубже.
+      utterance.rate = 0.9; 
+      utterance.pitch = 0.9; 
+      utterance.volume = 1.0;
 
-    const playVoice = () => {
-      const voices = window.speechSynthesis.getVoices();
-      const ruVoices = voices.filter(v => v.lang.includes('ru'));
-      
-      // Умный поиск лучшего голоса
-      let bestVoice = null;
-      
-      if (ruVoices.length > 0) {
-        // 1. Ищем "сетевые" (network) или "натуральные" (natural) голоса — они звучат лучше всего
-        bestVoice = ruVoices.find(v => v.name.toLowerCase().includes('network') || v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('google'));
+      const playVoice = () => {
+        const voices = window.speechSynthesis.getVoices();
         
-        // 2. Если нет, ищем женские (часто в названиях есть C, D или female)
-        if (!bestVoice) {
-          bestVoice = ruVoices.find(v => v.name.includes('C') || v.name.includes('D') || v.name.toLowerCase().includes('female'));
+        // ЖЕСТКИЙ ФИЛЬТР: Ищем ТОЛЬКО сетевые (network/online) или натуральные голоса
+        let bestVoice = voices.find(v => v.lang.includes('ru') && v.name.includes('network')) ||
+                        voices.find(v => v.lang.includes('ru') && v.name.includes('Google')) ||
+                        voices.find(v => v.lang.includes('ru') && v.name.includes('Natural')) ||
+                        voices.find(v => v.lang.includes('ru')); // Если совсем ничего нет
+
+        if (bestVoice) {
+          utterance.voice = bestVoice;
+          console.log(`🎙 Говорит: ${bestVoice.name}`);
         }
         
-        // 3. Если нет, берем первый доступный
-        if (!bestVoice) bestVoice = ruVoices[0];
-      }
-
-      if (bestVoice) {
-        utterance.voice = bestVoice;
-        console.log('🎙 Выбран голос:', bestVoice.name);
-      }
-      
-      window.speechSynthesis.speak(utterance);
-    };
-
-    if (window.speechSynthesis.getVoices().length !== 0) {
-      playVoice();
-    } else {
-      window.speechSynthesis.onvoiceschanged = () => {
-        playVoice();
-        window.speechSynthesis.onvoiceschanged = null; 
+        // Небольшая задержка между предложениями, чтобы звучало как живая речь
+        if (index > 0) {
+          setTimeout(() => window.speechSynthesis.speak(utterance), 500);
+        } else {
+          window.speechSynthesis.speak(utterance);
+        }
       };
-    }
+
+      if (window.speechSynthesis.getVoices().length !== 0) {
+        playVoice();
+      } else {
+        window.speechSynthesis.onvoiceschanged = () => {
+          playVoice();
+          window.speechSynthesis.onvoiceschanged = null; 
+        };
+      }
+    });
   }
 }
