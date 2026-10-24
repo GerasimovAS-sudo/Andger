@@ -4569,14 +4569,12 @@ function showBookEditor(id){
   editingBookId=id||null;
   const b=id?BOOKS.find(x=>x.id===id):null;
 
-  // --- ДОБАВЛЯЕМ СБОР КАТЕГОРИЙ ---
   const catList = document.getElementById('edCategoryList');
   if(catList) {
     const uniqueCats = [...new Set(BOOKS.map(book => book.category).filter(Boolean))];
     catList.innerHTML = uniqueCats.map(c => `<option value="${c}"></option>`).join('');
   }
   
-  // Безопасное присваивание (если элемента нет, приложение не упадёт)
   const setVal = (elId, val) => { const el = document.getElementById(elId); if(el) el.value = val; };
   
   setVal('edTitle', b?.title||'');
@@ -4589,19 +4587,129 @@ function showBookEditor(id){
   setVal('edAuthorBio', b?.authorBio || '');
   setVal('edForWhom', b?.forWhom || '');
   setVal('edResult', b?.result || '');
-  setVal('edPractices', b?.practices ? JSON.stringify(b.practices, null, 2) : '');
   
+  // Клонируем практики в память
+  window._tempPractices = b?.practices ? JSON.parse(JSON.stringify(b.practices)) : [];
+  renderAdminPracticesList();
+
   window._tempQuotes = b?.quotes || [];
   const errEl = document.getElementById('edErr');
   if(errEl) errEl.textContent='';
   
-// Показываем кнопку удаления только для существующих книг
   const delBtn = document.getElementById('edDeleteBtn');
   if (delBtn) delBtn.style.display = id ? 'block' : 'none';
 
   hideAll();
   document.getElementById('bookEditorScreen').classList.remove('hidden');
 }
+
+// ─── УПРАВЛЕНИЕ ПРАКТИКАМИ ───
+window._tempPractices = [];
+let editingPracticeIndex = -1;
+
+function renderAdminPracticesList() {
+  const list = document.getElementById('adminPracticesList');
+  if (!list) return;
+  if (window._tempPractices.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted); font-size:13px; text-align:center;">Нет практик. Нажмите «+ Добавить».</div>';
+    return;
+  }
+  list.innerHTML = window._tempPractices.map((p, i) => `
+    <div class="admin-item" style="padding:10px 14px; margin-bottom:8px; border:1px solid var(--border);">
+      <div class="ai-info" style="flex:1;">
+        <div class="ai-name" style="font-size:14px;">${escapeHtml(p.title || 'Без названия')}</div>
+        <div class="ai-phone">${escapeHtml(p.sub || '')}</div>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button class="icon-btn" onclick="openPracticeEditor(${i})" style="width:32px; height:32px; font-size:14px;">✏️</button>
+        <button class="icon-btn" onclick="deleteAdminPractice(${i})" style="width:32px; height:32px; color:var(--danger); font-size:14px;">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openPracticeEditor(index) {
+  editingPracticeIndex = index;
+  const p = index >= 0 ? window._tempPractices[index] : null;
+  
+  document.getElementById('peTitle').textContent = index >= 0 ? 'Редактировать практику' : 'Новая практика';
+  document.getElementById('peTitleInp').value = p?.title || '';
+  document.getElementById('peTimeInp').value = p?.time ? Math.round(p.time/60) : 5;
+  document.getElementById('peSubInp').value = p?.sub || '';
+  document.getElementById('peIcoInp').value = p?.ico || 'brain';
+  document.getElementById('peWhyInp').value = p?.why || '';
+  document.getElementById('peHowInp').value = p?.how ? p.how.join('\n') : '';
+  document.getElementById('peResultInp').value = p?.result || '';
+  document.getElementById('peMistakesInp').value = p?.mistakes ? p.mistakes.join('\n') : '';
+  document.getElementById('peAdviceInp').value = p?.advice || '';
+  
+  const tlContainer = document.getElementById('voiceTimelineContainer');
+  tlContainer.innerHTML = '';
+  const tl = p?.voiceTimeline || [];
+  if (tl.length === 0) addVoiceLine(); 
+  else tl.forEach(item => addVoiceLine(item.time, item.text));
+
+  document.getElementById('practiceEditorModal').classList.remove('hidden');
+}
+
+function addVoiceLine(time = '', text = '') {
+  const container = document.getElementById('voiceTimelineContainer');
+  const div = document.createElement('div');
+  div.style.display = 'flex'; div.style.gap = '8px';
+  div.innerHTML = `
+    <input type="number" class="vt-time" placeholder="Сек" value="${time}" style="width:70px; flex-shrink:0; padding:8px; text-align:center;">
+    <input type="text" class="vt-text" placeholder="Текст фразы..." value="${escapeHtml(text)}" style="flex:1; padding:8px;">
+    <button class="icon-btn" onclick="this.parentElement.remove()" style="width:36px; height:36px; flex-shrink:0; color:var(--danger);">✕</button>
+  `;
+  container.appendChild(div);
+}
+
+function savePracticeEditor() {
+  const title = document.getElementById('peTitleInp').value.trim();
+  const timeMins = parseInt(document.getElementById('peTimeInp').value) || 5;
+  const sub = document.getElementById('peSubInp').value.trim();
+  const ico = document.getElementById('peIcoInp').value.trim() || 'brain';
+  const why = document.getElementById('peWhyInp').value.trim();
+  const how = document.getElementById('peHowInp').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const result = document.getElementById('peResultInp').value.trim();
+  const mistakes = document.getElementById('peMistakesInp').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const advice = document.getElementById('peAdviceInp').value.trim();
+
+  const tl = [];
+  document.querySelectorAll('#voiceTimelineContainer > div').forEach(row => {
+    const t = parseInt(row.querySelector('.vt-time').value);
+    const txt = row.querySelector('.vt-text').value.trim();
+    if (!isNaN(t) && txt) tl.push({ time: t, text: txt });
+  });
+  tl.sort((a, b) => a.time - b.time);
+
+  if (!title) { toast('Введите название практики', 'danger'); return; }
+
+  const p = {
+    id: editingPracticeIndex >= 0 ? (window._tempPractices[editingPracticeIndex].id || 'practice-' + Date.now()) : 'practice-' + Date.now(),
+    title, time: timeMins * 60, sub, ico, why, how, result, mistakes, advice,
+    voiceTimeline: tl
+  };
+
+  if (editingPracticeIndex >= 0) {
+    window._tempPractices[editingPracticeIndex] = p;
+  } else {
+    window._tempPractices.push(p);
+  }
+
+  document.getElementById('practiceEditorModal').classList.add('hidden');
+  renderAdminPracticesList();
+  playSuccess();
+}
+
+function deleteAdminPractice(index) {
+  showCustomConfirm('Удалить практику?', 'Она пропадет из книги.', () => {
+    window._tempPractices.splice(index, 1);
+    renderAdminPracticesList();
+    playSuccess();
+  });
+}
+
 function backFromBookEditor(){
   hideAll();
   document.getElementById('adminScreen').classList.remove('hidden');
@@ -4700,18 +4808,8 @@ async function saveBook(published){
   const err=document.getElementById('edErr');
   const id=editingBookId||('book-'+Date.now());
   
-  // Получаем практики из текстового поля
-  let practicesData = [];
-  const practicesText = document.getElementById('edPractices').value.trim();
-  if(practicesText) {
-    try {
-      practicesData = JSON.parse(practicesText);
-    } catch(e) {
-      err.textContent = '❌ Ошибка в JSON практик. Проверьте кавычки и запятые.';
-      err.style.color = 'var(--danger)';
-      return;
-    }
-  }
+  // Берем практики из нашей визуальной переменной
+  let practicesData = window._tempPractices || [];
 
   const data={
     id,
