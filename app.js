@@ -2038,7 +2038,32 @@ function toggleTimer(ctx){
     // Разблокировка голоса для браузера
     if ('speechSynthesis' in window) {
         window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
-      }
+    }
+    
+    startTimer(ctx);timerState='running';
+    if(btn){btn.textContent='⏸ Пауза';btn.className='timer-big-btn'}
+    if(screen) screen.classList.add('focus-mode'); 
+
+    // --- ВКЛЮЧАЕМ ФОНОВЫЙ ГОЛОС ---
+    let practiceText = ""; // Текст по умолчанию
+    let currentP = null;
+    
+    if (ctx === 'ritual') currentP = ritualQueue[ritualIndex];
+    else currentP = currentPractice;
+
+    if (currentP) {
+       // Если у практики есть свой текст для голоса, берем его
+       if (currentP.voiceGuide) {
+         practiceText = currentP.voiceGuide;
+       } else {
+         // Если нет (для старых книг), берем стандартный по ID
+         if (currentP.id === 'silence') practiceText = "Сделайте глубокий вдох. Постарайтесь отпустить мысли и просто наблюдайте за дыханием.";
+         else if (currentP.id === 'read') practiceText = "Начните читать. Не торопитесь, вдумывайтесь в каждое слово.";
+         else if (currentP.id === 'sport') practiceText = "Приступайте к упражнениям. Следите за дыханием и не сбавляйте темп.";
+         else practiceText = "Сосредоточьтесь на практике. Отпустите все лишнее и побудьте в этом моменте.";
+       }
+       speakBackgroundGuide(practiceText);
+    }
     startTimer(ctx);timerState='running';
     if(btn){btn.textContent='⏸ Пауза';btn.className='timer-big-btn'}
     if(screen) screen.classList.add('focus-mode'); // ВКЛЮЧАЕМ ДЗЕН
@@ -2111,6 +2136,9 @@ function startTimer(ctx){
 }
 
 function stopTimer(){
+  // Останавливаем фоновый голос
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel(); 
+  
   releaseWakeLock(); 
   if(timerInterval){clearInterval(timerInterval);timerInterval=null}
   
@@ -2126,14 +2154,28 @@ function stopTimer(){
   if(rScreen) rScreen.classList.remove('focus-mode');
 }
 async function nextRitual(){
+  if (timerState !== 'done') {
+    showCustomConfirm(
+      'Таймер еще идет!', 
+      'Вы уверены, что хотите пропустить текущую практику досрочно?', 
+      () => {
+        executeNextRitual();
+      }
+    );
+    return;
+  }
+  executeNextRitual();
+}
+
+async function executeNextRitual() {
   stopTimer();timerState='idle';
-  if(musicAudio && state.soundOn!==false) nextTrack(); // Меняем музыку
+  if(musicAudio && state.soundOn!==false) nextTrack();
   const p=ritualQueue[ritualIndex];
   
   const noteInput = document.getElementById('ritualNoteInput');
   const noteText = noteInput ? noteInput.value : '';
   if (noteText.trim() && p) {
-    await savePracticeNote(p.title, noteText, p._bookId); // ДОБАВИЛИ ID КНИГИ (он хранится в p._bookId)
+    await savePracticeNote(p.title, noteText, p._bookId);
   }
 
   markPracticeDoneForBook(p._bookId, p.id);
@@ -2549,6 +2591,42 @@ function closePractice(){
 }
 
 async function markPracticeFromScreen(id){
+  async function markPracticeFromScreen(id){
+  // --- ПРОВЕРКА ТАЙМЕРА ---
+  if (timerState !== 'done') {
+    showCustomConfirm(
+      'Таймер еще идет!', 
+      'Вы уверены, что хотите завершить практику досрочно? Результат может быть не таким эффективным.', 
+      () => {
+        // Если пользователь нажал "Да", выполняем то, что было внутри функции
+        executeMarkPractice(id);
+      }
+    );
+    return; // Останавливаем выполнение, пока ждем ответа
+  }
+  
+  // Если таймер завершен, выполняем сразу
+  executeMarkPractice(id);
+}
+
+// Выносим старую логику в отдельную функцию
+async function executeMarkPractice(id) {
+  const noteInput = document.getElementById('practiceNoteInput');
+  const noteText = noteInput ? noteInput.value : '';
+  const p = currentBook.practices.find(x => x.id === id);
+  
+  if (noteText.trim() && p) {
+    await savePracticeNote(p.title, noteText, currentBook.id);
+  }
+
+  markPracticeDone(id);
+  playCheck();
+  fireConfetti(); 
+  
+  toast('🔥 +10 к огоньку!', 'success');
+  if(navigator.vibrate) navigator.vibrate([100, 50, 100]); 
+  closePractice();
+}
   // Проверка: если таймер идет и осталось больше 5 секунд — не даем нажать
   if(timerState === 'running' && timerRemaining > 5) {
     toast('Дождитесь окончания таймера или нажмите Пауза', 'warm');
@@ -6012,5 +6090,36 @@ async function testPushNotification() {
   } catch (e) {
     console.error(e);
     toast('Ошибка отправки', 'danger');
+  }
+}
+// ─── ФОНОВЫЙ ГОЛОС ───
+function speakBackgroundGuide(text) {
+  if (state.soundMode !== 'sound' || !text) return;
+  
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel(); // Сбрасываем старую озвучку
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ru-RU';
+    utterance.rate = 0.85; // Медленно и спокойно
+    utterance.pitch = 1.1; // Нежный женский тембр
+    utterance.volume = 0.8; // Чуть тише, чем конец практики
+
+    const playVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      let ruVoice = voices.find(v => (v.lang === 'ru-RU' || v.lang === 'ru') && v.name.includes('Milena')) || 
+                    voices.find(v => v.lang === 'ru-RU' || v.lang === 'ru');
+      if (ruVoice) utterance.voice = ruVoice;
+      window.speechSynthesis.speak(utterance);
+    };
+
+    if (window.speechSynthesis.getVoices().length !== 0) {
+      playVoice();
+    } else {
+      window.speechSynthesis.onvoiceschanged = () => {
+        playVoice();
+        window.speechSynthesis.onvoiceschanged = null; 
+      };
+    }
   }
 }
