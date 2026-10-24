@@ -3,9 +3,9 @@
 // Офлайн + Push + фоновая синхронизация
 // ═══════════════════════════════════════════════
 
-const CACHE_VERSION = 'andger-v5.4';
-const CACHE_STATIC = 'andger-static-v5.4';
-const CACHE_DYNAMIC = 'andger-dynamic-v5.4';
+const CACHE_VERSION = 'andger-v5.5';
+const CACHE_STATIC = 'andger-static-v5.5';
+const CACHE_DYNAMIC = 'andger-dynamic-v5.5';
 
 // Файлы, которые всегда в кэше
 const STATIC_FILES = [

@@ -2456,4 +2456,37 @@ body.keyboard-open #quickNoteFab {
   box-sizing: border-box;
   padding: 2px;
   overflow: hidden;
+}/* ─── ФИКС ДЗЕН-РЕЖИМА (ТАЙМЕР) ─── */
+
+/* 1. Убираем нижний отступ у практики, чтобы таймер встал ровно по центру */
+.practice-screen.focus-mode {
+  padding-bottom: 0 !important;
+}
+
+/* 2. Делаем кнопки звука и крестика ближе друг к другу */
+.ritual-progress {
+  gap: 6px !important; 
+}
+.ritual-progress .rp-close {
+  margin-right: 0 !important; 
+}
+
+/* 3. Красивые и аккуратные субтитры */
+.voice-subtitle {
+  font-size: 14px !important; /* Уменьшили размер */
+  line-height: 1.5 !important;
+  color: rgba(255, 255, 255, 0.85) !important; /* Чуть мягче цвет */
+  font-style: normal !important; /* Убрали сплошной курсив, чтобы легче читать */
+  font-weight: 500 !important;
+  height: auto !important; /* Позволяем тексту занимать нужное место */
+  min-height: 50px !important;
+  margin: 10px 0 20px 0 !important;
+  padding: 0 30px !important;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important; /* Тень для читаемости */
+}
+
+/* Убираем эти некрасивые кавычки « », из-за которых ломался текст */
+.voice-subtitle:not(:empty)::before, 
+.voice-subtitle:not(:empty)::after {
+  content: '' !important;
 }
