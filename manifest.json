@@ -1,0 +1,62 @@
+{
+  "name": "ANDGER — практикум по книгам",
+  "short_name": "ANDGER",
+  "description": "Между знанием и жизнью — один шаг. Практикум по книгам.",
+  "start_url": "./",
+  "scope": "./",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0a18",
+  "theme_color": "#0d0a18",
+  "lang": "ru",
+  "categories": [
+    "lifestyle",
+    "education",
+    "books"
+  ],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Начать ритуал",
+      "short_name": "Ритуал",
+      "url": "./?action=ritual",
+      "icons": [
+        {
+          "src": "assets/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Дневник",
+      "short_name": "Дневник",
+      "url": "./?action=journal",
+      "icons": [
+        {
+          "src": "assets/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

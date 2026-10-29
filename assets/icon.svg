@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Градиент фона -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1430" />
+      <stop offset="100%" stop-color="#0d0a18" />
+    </linearGradient>
+    
+    <!-- Градиент кольца -->
+    <linearGradient id="ringGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff7a2a" />
+      <stop offset="50%" stop-color="#7c5cff" />
+      <stop offset="100%" stop-color="#1e5cff" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Фон (скругленный квадрат) -->
+  <rect width="1024" height="1024" rx="225" fill="url(#bgGrad)" />
+  
+  <!-- Увеличенное кольцо (радиус 430, толщина 60) -->
+  <circle cx="512" cy="512" r="430" fill="none" stroke="url(#ringGrad)" stroke-width="60" stroke-linecap="round" stroke-dasharray="2420 282" transform="rotate(-90 512 512)" />
+  
+  <!-- Текст ANDGER (чуть компактнее, чтобы не вылезать) -->
+  <text x="512" y="490" font-family="'Inter', 'Arial', sans-serif" font-size="125" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="12" dominant-baseline="middle">ANDGER</text>
+  
+  <!-- Подзаголовок -->
+  <text x="512" y="605" font-family="'Inter', 'Arial', sans-serif" font-size="26" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="7" dominant-baseline="middle">ПРАКТИКУЙ ПРОЧИТАННОЕ</text>
+</svg>
