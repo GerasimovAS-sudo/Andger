@@ -2080,8 +2080,8 @@ function toggleLibCategory(el) {
 // ─── КАРТОЧКА КНИГИ ───
 function openBookDetail(id){
   const b=BOOKS.find(x=>x.id===id);if(!b)return;
-  bookDetailSource=currentScreen||'lib';
-  if(!hasBookAccess(id)){
+  bookDetailSource = b._isPreview ? 'preview' : (currentScreen || 'lib');
+  if(!hasBookAccess(id) && !b._isPreview){
     document.getElementById('premiumUpsellModal').classList.remove('hidden');
     return;
   }
@@ -2131,21 +2131,83 @@ function openBookDetail(id){
     document.getElementById('bdResultSection').style.display = 'none';
   }
 
+  const previewBadge = document.getElementById('bdPreviewBadge');
+  if (previewBadge) previewBadge.style.display = b._isPreview ? 'block' : 'none';
+
   const bs=getBookState(b.id);
   const closed=countClosedDays(b.id);
   const btn=document.getElementById('bdStartBtn');
-  if(bs.start&&closed<b.days)btn.textContent='▶ Продолжить практику';
-  else if(closed>=b.days)btn.textContent='🔄 Пройти заново';
-  else btn.textContent='🚀 Начать практику';
+  if (b._isPreview) {
+    btn.textContent = '✕ Закрыть предпросмотр';
+    btn.setAttribute('onclick', 'backFromBookDetail()');
+  } else {
+    if(bs.start&&closed<b.days)btn.textContent='▶ Продолжить практику';
+    else if(closed>=b.days)btn.textContent='🔄 Пройти заново';
+    else btn.textContent='🚀 Начать практику';
+    btn.setAttribute('onclick', 'startBookFromDetail()');
+  }
   
   hideAll();
   document.getElementById('bookDetailScreen').classList.remove('hidden');
   updateSoundUI();
 }
 function backFromBookDetail(){
+  // Preview mode cleanup: возвращаемся в редактор и убираем временную книгу
+  if (bookDetailSource === 'preview') {
+    BOOKS = BOOKS.filter(b => !b._isPreview);
+    const returnScreen = window._previewReturnScreen || 'adminScreen';
+    window._previewReturnScreen = null;
+    bookDetailId = null;
+    bookDetailSource = 'lib';
+    hideAll();
+    const target = document.getElementById(returnScreen);
+    if (target) target.classList.remove('hidden');
+    return;
+  }
+
   if(bookDetailSource==='today')smartHome();
   else if(bookDetailSource==='stats')showStatsScreen();
   else showLibrary();
+}
+
+function previewBookDraft() {
+  const title = document.getElementById('edTitle').value.trim();
+  if (!title) {
+    const err = document.getElementById('edErr');
+    if (err) { err.textContent = 'Введи название перед предпросмотром'; err.style.color = 'var(--d-warning, #ffb800)'; }
+    playError();
+    return;
+  }
+
+  // Собираем черновик из текущих значений формы (даже несохранённых)
+  const draftId = '__preview_' + Date.now();
+  const draft = {
+    id: draftId,
+    emoji: document.getElementById('edEmoji').value.trim() || '📖',
+    title: title,
+    author: document.getElementById('edAuthor').value.trim(),
+    days: parseInt(document.getElementById('edDays').value) || 30,
+    category: document.getElementById('edCategory').value.trim() || 'Разное',
+    about: document.getElementById('edAbout').value.trim(),
+    method: document.getElementById('edMethod').value.split(',').map(s => s.trim()).filter(Boolean),
+    authorBio: document.getElementById('edAuthorBio').value.trim(),
+    forWhom: document.getElementById('edForWhom').value.trim(),
+    result: document.getElementById('edResult').value.trim(),
+    practices: JSON.parse(JSON.stringify(window._tempPractices || [])),
+    quotes: JSON.parse(JSON.stringify(window._tempQuotes || [])),
+    cover_url: document.getElementById('edCoverUrl')?.value.trim() || null,
+    _isPreview: true
+  };
+
+  // Куда вернёмся после закрытия превью
+  window._previewReturnScreen = bookEditorReturnScreen || 'adminScreen';
+
+  // Убираем старые черновики (если пользователь открывал превью раньше)
+  BOOKS = BOOKS.filter(b => !b._isPreview);
+  BOOKS.push(draft);
+
+  playClick();
+  openBookDetail(draftId);
 }
 async function startBookFromDetail(){
   const b=BOOKS.find(x=>x.id===bookDetailId);if(!b)return;
@@ -5088,8 +5150,11 @@ function renderAdminList(list){
         <div class="uc-lvl">${p.last_seen ? 'Был(а) ' + timeAgo(p.last_seen) : 'Не заходил(а)'}</div>
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; border-top:1px solid var(--border); padding-top:16px;">
-  <button class="d-btn-secondary" style="margin:0; height:40px; font-size:12px;" onclick="adminSendMessage('${id}')">💬 Написать</button>
-    </div>`;
+        <button class="d-btn-secondary" style="margin:0; height:40px; font-size:12px; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="adminSendMessage('${p.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          Написать
+        </button>
+      </div>`;
   }).join('');
 }
 
@@ -5780,7 +5845,9 @@ async function loadAdminTexts() {
     el.innerHTML = data.map(item => `
       <div class="admin-text-item">
         <div style="font-size:13px; font-weight:700; color:var(--d-text);">${labels[item.key] || item.key}</div>
-        <button class="d-btn-secondary" style="width:auto; padding:6px 12px; margin:0; font-size:11px; border-radius:8px;" onclick="openTextEditor('${item.key}')">✏️ Ред.</button>
+        <div class="action-btn-glass" onclick="openTextEditor('${item.key}')" title="Редактировать">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+        </div>
       </div>
     `).join('');
   } catch(e) {
@@ -6660,7 +6727,10 @@ async function loadAdminReports() {
           <div class="admin-row"><span>Время</span><span>${time}</span></div>
           <div style="display:flex; gap:8px; margin-top:12px;">
             <button class="btn-small-inline" style="background:var(--card2); color:var(--text); border:1px solid var(--border);" onclick="loadAdminReports()">Обновить</button>
-            <button class="btn-small-inline" style="background:var(--danger);" onclick="deleteReportedPost('${r.id}', '${r.post_id}')">🗑 Удалить пост</button>
+            <button class="btn-small-inline" style="background:var(--danger); display:flex; align-items:center; gap:6px;" onclick="deleteReportedPost('${r.id}', '${r.post_id}')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              Удалить пост
+            </button>
           </div>
         </div>
       `;
