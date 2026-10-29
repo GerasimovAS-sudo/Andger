@@ -1,5 +1,5 @@
 /* ANDGER service worker — cache versioned assets, online-first with offline fallback. */
-const CACHE_VERSION = 'andger-v11.7.20';
+const CACHE_VERSION = 'andger-v11.7.21';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const APP_SCOPE = new URL(self.registration.scope);
@@ -78,7 +78,7 @@ self.addEventListener('push', event => {
     body: data.body || '',
     icon: new URL('./assets/icons/icon-192x192.png', APP_SCOPE).href,
     badge: new URL('./assets/icons/icon-192x192.png', APP_SCOPE).href,
-    tag: data.tag || 'andger-notification',
+    tag: data.tag || ('andger-' + Date.now()),
     data: data.data || {},
     actions: Array.isArray(data.actions) ? data.actions : []
   };
