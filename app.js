@@ -950,8 +950,9 @@ async function handleSession(session) {
     user.name=profile.name||user.name;
     user.lastName=profile.last_name||'';
     user.sub_until = profile.sub_until || null;
-    state.avatar=profile.avatar||'default'; 
-    if(state.avatar === '👤') state.avatar = 'default'; // Переводим старую пустую иконку на новую звезду
+    state.avatar=profile.avatar||'default';
+    state.voice = profile.voice || 'auto'; // <--- ДОБАВИЛИ ЭТУ СТРОКУ
+    // Поддерживаем старую настройку и добавляем новую
     state.soundMode = profile.sound_mode || (profile.sound_on !== false ? 'sound' : 'off');
     state.soundOn = (state.soundMode === 'sound');
     isAdminFlag=profile.is_admin===true;
@@ -965,10 +966,11 @@ async function handleSession(session) {
     state.shields = profile.shields || 0;
     state.spentXP = profile.spent_xp || 0;
   }else{
-    state.soundOn = true;
-    state.soundMode = 'sound';
-    state.avatar = 'default';
-    state.theme = 'dark';
+  state.soundOn = true;
+  state.soundMode = 'sound';
+  state.avatar = 'default';
+  state.theme = 'dark';
+  state.voice = 'auto'; // <--- ДОБАВИЛИ ЭТУ СТРОКУ
   }
   setSplashProgress(70);
   // Эти запросы независимы: выполняем параллельно, чтобы не складывать их задержки.
@@ -4352,7 +4354,7 @@ async function loadFeed(){
           </div>
         </div>
         
-        <div class="feed-comments" id="comments-${m.id}" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--d-border); display:none;">
+        <div class="feed-comments" id="comments-${m.id}" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--d-border);">
           ${postComments.map(c=>`<div style="display:flex; gap:8px; margin-bottom:8px;"><div class="d-avatar" style="width:24px; height:24px;">${getAvatarHtml(c.user_avatar, 14)}</div><div><div style="font-size:10px; font-weight:800; color:var(--d-accent-2);">${escapeHtml(c.user_name||'Аноним')}</div><div style="font-size:12px; color:var(--d-text);">${escapeHtml(c.text)}</div></div></div>`).join('')}
           <div style="display:flex; gap:8px; margin-top:8px;">
             <input type="text" id="cin-${m.id}" placeholder="Ответить..." style="flex:1; background:var(--d-surface-2); border:1px solid var(--d-border); border-radius:100px; padding:6px 12px; color:var(--d-text); font-size:12px;">
@@ -4459,7 +4461,15 @@ async function toggleLike(msgId, type, el) {
 
 function toggleComments(msgId){
   const el=document.getElementById('comments-'+msgId);
-  if(el)el.classList.toggle('open');
+  if(!el) return;
+  const isOpen = el.classList.contains('open');
+  if (isOpen) {
+    el.classList.remove('open');
+    el.style.display = 'none';
+  } else {
+    el.classList.add('open');
+    el.style.display = 'block';
+  }
 }
 
 async function sendComment(msgId,postAuthorId){
@@ -7604,24 +7614,31 @@ const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
   }
 
   try {
-    // --- ЛОГИКА ВЫБОРА ГОЛОСА ---
+    // --- УМНАЯ ЛОГИКА ВЫБОРА ГОЛОСА ---
     let vSettings = {};
-    
-    // 1. Ищем настройки В САМОЙ ПРАКТИКЕ
-    let activePractice = context === 'ritual' ? ritualQueue[ritualIndex] : currentPractice;
-    
-    if (activePractice && activePractice.voice_settings) {
-      vSettings = activePractice.voice_settings;
+    let voiceToUse = 'alena';
+    let speedToUse = 1.0;
+    let emotionToUse = 'neutral';
+
+    // Если пользователь ВЫБРАЛ КОНКРЕТНЫЙ голос, мы ИГНОРИРУЕМ JSON и ставим его везде
+    if (state.voice && state.voice !== 'auto') {
+      voiceToUse = state.voice;
+      speedToUse = 1.0; 
     } 
-    // 2. Если в практике нет, берем настройки КНИГИ
-    else if (currentBook && currentBook.voice_settings) {
-      vSettings = currentBook.voice_settings;
+    // Если выбран "Автоматически", читаем JSON
+    else {
+      let activePractice = context === 'ritual' ? ritualQueue[ritualIndex] : currentPractice;
+      
+      if (activePractice && activePractice.voice_settings) {
+        vSettings = activePractice.voice_settings;
+      } else if (currentBook && currentBook.voice_settings) {
+        vSettings = currentBook.voice_settings;
+      }
+      
+      voiceToUse = vSettings.voice || 'alena';
+      speedToUse = vSettings.speed || 1.0;
+      emotionToUse = vSettings.emotion || 'neutral';
     }
-    
-    // 3. Приоритет: Практика > Профиль > Дефолт
-    const voiceToUse = vSettings.voice || state.voice || 'alena';
-    const speedToUse = vSettings.speed || 1.0;
-    const emotionToUse = vSettings.emotion || 'neutral';
 
     // Вызов Edge Function
     const { data, error } = await sb.functions.invoke('speak', { 
@@ -7831,10 +7848,21 @@ function setVoice(v) {
   saveState();
   sb.from('profiles').update({voice: v}).eq('id',user.id).then(()=>{});
   playSuccess();
-  toast('Голос изменен');
+  
+  if (v === 'auto') {
+    toast('Включен автоматический режим. Каждая практика будет читаться своим голосом.');
+  } else {
+    toast('Голос изменен. Теперь все практики будут читаться этим голосом.');
+  }
+  
   renderSettings();
+  
   // ОЗВУЧКА ПРИМЕРА
-  speakBackgroundGuide("Приветствую тебя в лучшем приложении для практик Andger", 'practice');
+  if (v === 'auto') {
+    speakBackgroundGuide("Приветствую тебя в лучшем приложении для практик Andger. Этот текст читается автоматическим голосом.", 'practice');
+  } else {
+    speakBackgroundGuide("Приветствую тебя в лучшем приложении для практик Andger. Теперь я буду читать все практики.", 'practice');
+  }
 }
 
 // ─── ANDGER HARDENING / UX PATCH v2.1 ───
