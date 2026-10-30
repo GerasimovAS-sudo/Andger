@@ -364,10 +364,10 @@ document.addEventListener('click',(e)=>{
 // ─── МУЗЫКА ───
 // Разделяем музыку по типам практик
 const MUSIC_TRACKS = {
-  // Просто добавляй новые файлы через запятую
-  default: ['assets/music/meditation/meditation.mp3', 'assets/music/meditation/meditation-1.mp3'],
-  sport: ['assets/music/sport/sport.mp3', 'assets/music/sport/sport-1.mp3'], 
-  read: ['assets/music/focus/focus.mp3'], 
+  // Точные пути к файлам внутри папок, как на скриншотах
+  default: ['assets/music/meditation/meditation-1.mp3'],
+  sport: ['assets/music/sport/sport-1.mp3'], 
+  read: ['assets/music/focus/focus-1.mp3'], 
   silence: ['assets/music/calm/calm-1.mp3'] 
 };
 let currentTrackIdx = 0;
