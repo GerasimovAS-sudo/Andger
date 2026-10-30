@@ -9246,7 +9246,7 @@ function buildPracticeHtml(p) {
       </div>
 
       <!-- Кнопки -->
-      <div class="zen-buttons-wrap" style="display:flex; flex-direction:column; gap:10px; width: 100%; max-width:260px; margin-top: auto;">
+      <div class="zen-buttons-wrap" style="display:flex; flex-direction:column; gap:10px; width: 100%; max-width:260px; margin: 0 auto;">
         <button class="d-btn-primary" id="timerBtn" onclick="toggleTimer('practice')">▶ Начать практику</button>
         <button class="d-btn-secondary exit-zen-btn" onclick="toggleZenMode()" style="display: none; width:100%;">Свернуть таймер</button>
       </div>
