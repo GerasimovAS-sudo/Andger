@@ -9213,7 +9213,7 @@ function buildPracticeHtml(p) {
     </div>
 
     <!-- ТАЙМЕР -->
-    <div class="ps-block timer-wrapper" style="margin-top:20px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+    <div class="ps-block timer-wrapper">
     <!-- Плавающая иконка музыки (только для экрана таймера) -->
       <div class="music-fab-btn" onclick="switchMusicTrack()" style="display:none; position:absolute; top: calc(85px + env(safe-area-inset-top, 0px)); right: 20px; width: 44px; height: 44px; border-radius: 50%; background: rgba(124,92,255,0.15); border: 1px solid rgba(124,92,255,0.3); backdrop-filter: blur(10px); color: #fff; align-items: center; justify-content: center; cursor: pointer; z-index: 100; transition: all 0.2s;" title="Сменить трек">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
