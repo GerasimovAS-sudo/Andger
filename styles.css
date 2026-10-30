@@ -759,7 +759,16 @@ html.light, body.light { background: var(--bg); color: var(--text); }
     opacity: 1;
 }
 .focus-mode .voice-subtitle.show { opacity: 1; }
-.focus-mode .zen-buttons-wrap { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 260px; margin: 0 auto; }
+.focus-mode .zen-buttons-wrap { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    width: 100%; 
+    max-width: 260px; 
+    margin: 15px auto 0 auto; /* Отделяем от чек-листа */
+    padding-top: 10px;
+    flex-shrink: 0; /* Кнопки никогда не сжимаются и всегда прижаты к низу */
+}
 .focus-mode .timer-big-btn { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border: none; padding: 16px; border-radius: 16px; font-size: 14px; font-weight: 900; width: 100%; }
 .focus-mode .exit-zen-btn { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 12px; border-radius: 16px; font-size: 12px; font-weight: 700; width: 100%; }
 .focus-mode .voice-subtitle {
@@ -1018,17 +1027,14 @@ body.keyboard-open .bottom-nav, body.keyboard-open #quickNoteFab { display: none
 
 .focus-mode .timer-wrapper {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: transparent;
     z-index: 90;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; /* или center, как было */
-    padding-top: 120px; /* или твой padding */
+    padding: calc(115px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
+    overflow: hidden; /* Запрещаем скролл всему экрану, скроллиться будет только чек-лист */
 }
 
 .focus-mode .voice-subtitle {
@@ -1903,13 +1909,12 @@ body, #screensRoot {
   display: none; 
   width: 100%;
   max-width: 360px; 
-  margin: 0 auto 20px auto; /* ИСПРАВЛЕНО: убрали margin: auto, который выталкивал кольцо вверх */
+  margin: 0 auto; /* Убрали нижний отступ */
   text-align: left;
   overflow-y: auto;
-  max-height: 40vh; 
+  flex: 1; /* Чек-лист забирает всё свободное место посередине */
+  min-height: 0; /* Важно для работы скролла внутри */
   padding-right: 4px;
-  
-  /* СКРЫВАЕМ ПОЛОСУ ПРОКРУТКИ */
   scrollbar-width: none; 
   -ms-overflow-style: none; 
 }

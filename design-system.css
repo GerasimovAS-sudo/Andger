@@ -617,7 +617,6 @@ html.light .d-lib-folder-title {
   background: var(--d-surface-2); padding: 12px 16px; border-radius: 12px; margin-bottom: 8px;
   border: 1px solid var(--d-border);
 }
-/* Жесткий Фокус-режим для таймера */
 .focus-mode .ps-block:not(.timer-wrapper),
 .focus-mode .ritual-hero,
 .focus-mode h3:not(.timer-wrapper h3),
@@ -625,18 +624,10 @@ html.light .d-lib-folder-title {
 .focus-mode ol,
 .focus-mode ul,
 .focus-mode .advice,
-/* Жесткий Фокус-режим для таймера */
-.focus-mode .ps-block:not(.timer-wrapper),
-.focus-mode .ritual-hero,
-.focus-mode h3:not(.timer-wrapper h3),
-.focus-mode p,
-.focus-mode ol,
-.focus-mode ul,
-.focus-mode .advice,
+.focus-mode .practice-focus-hide,
 .focus-mode .d-btn-secondary:not(.exit-zen-btn) {
-    display: none;
+    display: none !important;
 }
-
 
 /* Контейнер с таймером растягивается на весь экран */
 .focus-mode .timer-wrapper {
@@ -668,10 +659,10 @@ html.light .d-lib-folder-title {
     gap: 20px;
 }
 .focus-mode .d-timer-ring-wrap {
-    width: 240px; /* Вернули красивый размер */
+    width: 240px;
     height: 240px;
-    margin: 20px auto 24px; /* Чуть увеличили отступ снизу, чтобы дышалось */
-    flex-shrink: 0; /* ЖЕСТКО ЗАПРЕЩАЕМ сжимать кольцо */
+    margin: 0 auto 20px auto; /* Убрали лишний верхний отступ */
+    flex-shrink: 0; /* Кольцо никогда не сжимается */
 }
 .focus-mode .d-timer-text {
     font-size: 46px; /* Оставляем этот же размер шрифта */

@@ -9133,6 +9133,7 @@ async function loadAdminFeedbacks() {
 }
 function buildPracticeHtml(p) {
   return `
+    <div class="practice-focus-hide">
     <!-- Блок Триггера (Якоря) -->
     ${p.trigger ? `
     <div class="d-card-glass" style="margin-bottom: 12px; background: rgba(255,184,0,0.08); border-color: rgba(255,184,0,0.3); padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
@@ -9209,6 +9210,7 @@ function buildPracticeHtml(p) {
       <div style="font-size: 11px; font-weight: 900; color: var(--d-success); text-transform: uppercase; margin-bottom: 4px;">🚀 Сделай прямо сейчас</div>
       <div style="font-size: 14px; font-weight: 700; color: #fff;">${escapeHtml(p.micro_action)}</div>
     </div>` : ''}
+    </div>
 
     <!-- ТАЙМЕР -->
     <div class="ps-block timer-wrapper" style="margin-top:20px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
