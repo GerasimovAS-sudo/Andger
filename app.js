@@ -1908,17 +1908,9 @@ window.addEventListener('beforeinstallprompt',(e)=>{
 async function triggerInstall(){
   if(deferredInstallPrompt){
     deferredInstallPrompt.prompt();
-    const { outcome } = await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt = null;
-    const el = document.getElementById('installBanner');
-    if (el) el.innerHTML = '';
-    
-    if (outcome === 'dismissed') {
-      // Пользователь передумал — покажем инструкцию на будущее
-      showInstallInstructions();
-    }
-    // Если accepted — ничего не делаем, Android уже установил
-  } else {
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+  }else{
     showInstallInstructions();
   }
 }
@@ -2820,7 +2812,6 @@ function toggleTimer(ctx){
     }
     
     if(screen) {
-      window.andgerPracticeActive = true; // <--- ЗАЩИТА ОТ ПЕРЕЗАГРУЗКИ
       screen.classList.add('focus-mode');
       document.body.style.overflow = 'hidden'; 
       document.body.style.position = 'fixed';
@@ -2932,7 +2923,6 @@ function startTimer(ctx){
 }
 
 function stopTimer(){
-  window.andgerPracticeActive = false; // <--- СНИМАЕМ ЗАЩИТУ
   const pScreen = document.getElementById('practiceScreen');
   const rScreen = document.getElementById('ritualScreen');
   
@@ -5899,13 +5889,8 @@ function showBookEditor(id){
   window._tempPractices = b?.practices ? JSON.parse(JSON.stringify(b.practices)) : [];
   renderAdminPracticesList();
 
-  window._tempQuotes = b?.quotes ? JSON.parse(JSON.stringify(b.quotes)) : [];
+    window._tempQuotes = b?.quotes ? JSON.parse(JSON.stringify(b.quotes)) : [];
   renderAdminQuotesList(); // <--- Добавили вызов отрисовки
-  
-  // Захватываем поля без UI, чтобы не потерять при сохранении
-  window._tempLumiTips = b?.lumi_tips ? JSON.parse(JSON.stringify(b.lumi_tips)) : [];
-  window._tempBookVoiceSettings = b?.voice_settings || null;
-  window._tempSummary = b?.summary ? JSON.parse(JSON.stringify(b.summary)) : [];
   const errEl = document.getElementById('edErr');
   if(errEl) errEl.textContent='';
   
@@ -6297,9 +6282,6 @@ async function saveBook(published){
     
     practices: practicesData, 
     quotes: window._tempQuotes || [], // Цитаты берем из временной переменной
-    lumi_tips: window._tempLumiTips || [],
-    summary: window._tempSummary || [],
-    voice_settings: window._tempBookVoiceSettings || null,
     published,
     created_by:user.id,
     updated_at:new Date().toISOString()
@@ -6317,12 +6299,7 @@ async function saveBook(published){
       id, title: data.title, author: data.author, emoji: data.emoji, days: data.days,
       about: data.about, method: data.method, authorBio: data.author_bio,
       forWhom: data.for_whom, result: data.result, category: data.category,
-      cover_url: data.cover_url,
-      practices: data.practices, quotes: data.quotes,
-      lumi_tips: data.lumi_tips,
-      summary: data.summary,
-      voice_settings: data.voice_settings,
-      _fromSupabase: true
+      practices: data.practices, quotes: data.quotes, _fromSupabase: true
     };
     if (existingIdx >= 0) BOOKS[existingIdx] = normalized;
     else BOOKS.push(normalized);
@@ -6580,7 +6557,7 @@ if ('serviceWorker' in navigator) {
               const isRitualActive = !document.getElementById('ritualScreen').classList.contains('hidden');
               const isPracticeActive = !document.getElementById('practiceScreen').classList.contains('hidden');
               
-              if (!isRitualActive && !isPracticeActive && !window.andgerPracticeActive) {
+              if (!isRitualActive && !isPracticeActive) {
                 setTimeout(() => {
                   newWorker.postMessage({ type: 'SKIP_WAITING' });
                 }, 2000);
@@ -7361,11 +7338,6 @@ function parseSmartJson() {
       window._tempQuotes = data.quotes;
       renderAdminQuotesList(); // <--- Отрисовываем цитаты из JSON
     }
-    
-    // Захватываем поля без UI для сохранения в БД
-    if(data.lumi_tips) window._tempLumiTips = data.lumi_tips;
-    if(data.voice_settings) window._tempBookVoiceSettings = data.voice_settings;
-    if(data.summary) window._tempSummary = data.summary;
     
     toast('✅ Данные распознаны!');
     document.getElementById('edSmartJson').value = ''; 
@@ -8335,7 +8307,6 @@ const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
     if (!ttsAudio) ttsAudio = new Audio();
     ttsAudio.pause();
     ttsAudio.currentTime = 0;
-    if (ttsAudio.src) URL.revokeObjectURL(ttsAudio.src); // <--- ОЧИЩАЕМ ПАМЯТЬ
 
     const blob = new Blob([bytes], { type: 'audio/mpeg' });
     ttsAudio.src = URL.createObjectURL(blob);

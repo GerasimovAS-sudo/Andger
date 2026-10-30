@@ -1973,38 +1973,4 @@ input, textarea, select {
   font-size: 16px !important; /* iOS не зумит, если шрифт 16px или больше */
   touch-action: manipulation;
 }
-/* ═══════════════════════════════════════════════ */
-/* ЖЕСТКИЙ ФИКС ЭКРАНА ЧАТА (Шапка на месте) */
-/* ═══════════════════════════════════════════════ */
-#dialogScreen {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-}
-
-/* Шапка теперь не уезжает, а стоит на месте */
-#dialogScreen .d-header {
-  position: relative; 
-  flex-shrink: 0;
-  z-index: 10;
-  background: var(--d-bg); /* Плотный фон, чтобы сообщения не просвечивали */
-}
-
-/* Скролл остается только для сообщений */
-#dialogScreen .wrap {
-  flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-top: 10px !important; /* Убираем гигантский отступ сверху */
-  padding-bottom: 120px !important; /* Даем место для окна ввода */
-}
-
-/* Окно ввода прибито к низу */
-#dialogInputWrap {
-  position: absolute !important; 
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
-}
 
