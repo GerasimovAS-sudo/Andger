@@ -1908,9 +1908,17 @@ window.addEventListener('beforeinstallprompt',(e)=>{
 async function triggerInstall(){
   if(deferredInstallPrompt){
     deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt=null;
-  }else{
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    const el = document.getElementById('installBanner');
+    if (el) el.innerHTML = '';
+    
+    if (outcome === 'dismissed') {
+      // Пользователь передумал — покажем инструкцию на будущее
+      showInstallInstructions();
+    }
+    // Если accepted — ничего не делаем, Android уже установил
+  } else {
     showInstallInstructions();
   }
 }
