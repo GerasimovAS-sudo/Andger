@@ -121,9 +121,9 @@
   </div>  
 
     <!-- AUTH -->
-  <div class="hidden" id="authScreen" style="min-height:100dvh; display:flex; flex-direction:column; padding: 24px; max-width:440px; margin:0 auto; position: fixed; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; z-index: var(--z-screen);">
+  <div class="hidden" id="authScreen" style="min-height:100dvh; flex-direction:column; padding: 24px; max-width:440px; margin:0 auto; position: fixed; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; z-index: var(--z-screen);">
     
-    <div class="d-card-glass" style="margin: auto; padding: 32px 24px; border-radius: 32px; background: linear-gradient(135deg, rgba(40,30,70,0.85), rgba(25,18,45,0.65)); border: 1px solid rgba(124,92,255,0.3); box-shadow: 0 20px 50px rgba(0,0,0,0.5); backdrop-filter: blur(20px);">
+    <div class="d-card-glass" style="margin: 5vh auto 40px; padding: 32px 24px; border-radius: 32px; background: linear-gradient(135deg, rgba(40,30,70,0.85), rgba(25,18,45,0.65)); border: 1px solid rgba(124,92,255,0.3); box-shadow: 0 20px 50px rgba(0,0,0,0.5); backdrop-filter: blur(20px);">
       
       <div style="text-align:center; margin-bottom:32px;">
         <div style="font-size:44px; font-weight:900; letter-spacing:6px; background: linear-gradient(135deg, #c4b5fd, #4f46e5); -webkit-background-clip:text; background-clip: text; -webkit-text-fill-color:transparent; margin-bottom:8px; filter: drop-shadow(0 0 15px rgba(124,92,255,0.4));">ANDGER</div>
@@ -667,7 +667,7 @@
       <div class="d-header">
         <div class="d-header-greet">
           <div class="d-header-greet-label">ПРОФИЛЬ</div>
-          <div class="d-header-greet-name">Профиль</div>
+          <div class="d-header-greet-name" id="profileHeaderName">Настройки</div>
         </div>
         <div class="d-header-actions">
           <div class="d-icon-btn sound-btn" onclick="toggleSound()">
@@ -879,6 +879,23 @@
         </div>
       </div>
       <div class="wrap" style="padding-top: calc(90px + env(safe-area-inset-top, 0px)); display:flex; flex-direction:column; gap:16px;">
+      
+            <h3 style="font-size:11px; font-weight:900; color:var(--d-text-dim); text-transform:uppercase; margin-top: 8px;">Внешний вид</h3>
+      
+      <div class="d-card-glass" style="padding: 10px; display: flex; gap: 8px; justify-content: space-between;">
+        <div class="theme-option" data-theme="dark" onclick="setTheme('dark')" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px 8px; border-radius: 12px; border: 1px solid var(--d-border); background: rgba(0,0,0,0.2); cursor: pointer; transition: 0.2s;">
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: #0d0a18; border: 2px solid rgba(255,255,255,0.2); box-shadow: inset 0 0 10px rgba(124,92,255,0.5);"></div>
+          <span style="font-size: 11px; font-weight: 700; color: var(--d-text);">Тёмная</span>
+        </div>
+        <div class="theme-option" data-theme="light" onclick="setTheme('light')" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px 8px; border-radius: 12px; border: 1px solid var(--d-border); background: rgba(0,0,0,0.2); cursor: pointer; transition: 0.2s;">
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: #f5f4fa; border: 2px solid rgba(0,0,0,0.1); box-shadow: inset 0 0 10px rgba(255,184,0,0.3);"></div>
+          <span style="font-size: 11px; font-weight: 700; color: var(--d-text);">Светлая</span>
+        </div>
+        <div class="theme-option" data-theme="auto" onclick="setTheme('auto')" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px 8px; border-radius: 12px; border: 1px solid var(--d-border); background: rgba(0,0,0,0.2); cursor: pointer; transition: 0.2s;">
+          <div style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #0d0a18 50%, #f5f4fa 50%); border: 2px solid rgba(124,92,255,0.5);"></div>
+          <span style="font-size: 11px; font-weight: 700; color: var(--d-text);">Авто</span>
+        </div>
+      </div>  
         
       <h3 style="font-size:11px; font-weight:900; color:var(--d-text-dim); text-transform:uppercase;">Звук и уведомления</h3>
       <!-- Отдельная карточка для Админа -->
@@ -1099,6 +1116,11 @@
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <div class="field"><label>Эмодзи</label><input type="text" id="edEmoji" placeholder="⚛️" maxlength="4"></div>
             <div class="field"><label>Кол-во дней</label><input type="number" id="edDays" placeholder="21"></div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin: 10px 0 16px 0; background:var(--d-surface-2); padding:12px 16px; border-radius:12px; border:1px solid var(--d-border);">
+            <span style="font-size:14px; font-weight:700; color:var(--d-text);">Бесплатная книга (без Premium)</span>
+            <div class="d-toggle" id="edIsFreeToggle" onclick="this.classList.toggle('on')"></div>
           </div>
           <div class="field">
             <label>Категория книги</label>
@@ -1432,9 +1454,9 @@
           </div>
           <button class="d-btn-primary" onclick="completePracticeDone()">Сохранить</button>
           
-          <!-- НОВАЯ КНОПКА ОБРАТНОЙ СВЯЗИ -->
+          <!-- КНОПКА ОБРАТНОЙ СВЯЗИ -->
           <button class="d-btn-secondary" onclick="openFeedbackModal()" style="margin-top: 8px; border-color: transparent; background: transparent; color: var(--d-text-dim); font-size: 12px; text-decoration: underline;">
-  💬 Оставить отзыв или идею
+  💬 Обратная связь
 </button>
         </div>
       </div>

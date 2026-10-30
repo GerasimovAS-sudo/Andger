@@ -116,13 +116,28 @@ function getEmojiOrSvg(emoji, size = 24, seedString = '') {
   const iconSize = Math.round(size * 0.65); 
   let content = '';
 
+  // Умный словарь для иконок, которые часто присылает ИИ
+  const AI_ICON_MAP = {
+    'activity': '🏃', 'edit': '📝', 'book-open': '📖', 'brain': '🧠', 'sun': '☀️',
+    'moon': '🌙', 'zap': '⚡', 'target': '🎯', 'award': '🏆', 'heart': '❤️',
+    'clock': '⏱️', 'coffee': '☕', 'pen': '✍️', 'smile': '😊', 'music': '🎵',
+    'star': '⭐', 'shield': '🛡️', 'flame': '🔥', 'wind': '💨', 'eye': '👁️'
+  };
+
   if (emoji && /^\p{Extended_Pictographic}/u.test(String(emoji))) {
+    // Если пришел готовый эмодзи
     content = `<span class="emoji-text" style="font-size:${iconSize}px; line-height:1;">${emoji}</span>`;
   } 
   else if (SVG_ICONS[emoji]) {
+    // Если есть в наших локальных SVG
     content = getSvgIcon(emoji, iconSize, style.color);
   } 
+  else if (AI_ICON_MAP[emoji]) {
+    // Если это ИИ-ключ, переводим в эмодзи
+    content = `<span class="emoji-text" style="font-size:${iconSize}px; line-height:1;">${AI_ICON_MAP[emoji]}</span>`;
+  }
   else {
+    // Если вообще ничего не нашли — ставим дефолт
     const fallbacks = ['book', 'sparkles', 'layout', 'brain', 'compass'];
     const hash = Math.abs((seedString || emoji || '').length);
     const fallbackIcon = fallbacks[hash % fallbacks.length];
@@ -188,6 +203,7 @@ let BOOKS=[], currentBook=null, currentPractice=null, ritualQueue=[], ritualInde
 let timerInterval=null, timerRemaining=0, timerState='idle';
 let user=null, state={}, onbIndex=0, statsBookId=null;
 let musicAudio=null, ttsAudio=null, syncTimeout=null, isAdminFlag=false, profileHeartbeatTimer=null;
+let isVoicePlaying = false;
 let completeCallback=null, adminAllUsers=[], adminAllBooks=[];
 let bookDetailId=null, customRitual=[];
 let bookDetailSource='lib';
@@ -443,8 +459,9 @@ function startMusic(practiceId = 'default'){
     musicAudio.currentTime = 0;
   }
   musicAudio.play().then(() => {
-      // Если звук включен - нарастаем до 0.2, если выключен - держим на 0
-      const targetVol = state.soundMode === 'sound' ? 0.2 : 0;
+      // Если звук включен - нарастаем до 0.2 (или 0.05, если уже говорит голос)
+      let targetVol = state.soundMode === 'sound' ? 0.2 : 0;
+      if (isVoicePlaying) targetVol = 0.05;
       fadeAudio(musicAudio, musicAudio.volume, targetVol, 1500);
     }).catch((e) => {
       console.log('Ошибка воспроизведения (нужно нажать на экран):', e);
@@ -457,7 +474,8 @@ function nextTrack(){
   
   currentTrackIdx = (currentTrackIdx + 1) % currentPlaylist.length;
   musicAudio.src = currentPlaylist[currentTrackIdx];
-  musicAudio.volume = 0.2;
+  // Если голос играет, не перебиваем его громкой музыкой
+  musicAudio.volume = isVoicePlaying ? 0.05 : 0.2;
   musicAudio.play().catch(()=>{});
 }
 function stopMusic(){
@@ -466,6 +484,7 @@ function stopMusic(){
     musicAudio.pause();
     musicAudio.currentTime = 0;
     musicAudio.volume = 0;
+    isVoicePlaying = false; // Сбрасываем флаг при полной остановке
   } catch(e) {}
 }
 function fadeAudio(audio,from,to,duration,onEnd){
@@ -1590,9 +1609,12 @@ function hasBookAccess(id){
   const access = state.bookAccess || [];
   if (access.includes(id)) return true;
 
-  // 5. БЕСПЛАТНЫЕ КНИГИ (Всегда доступны всем)
+  // 5. Проверяем флаг в базе данных (приходит из Supabase)
+  const book = BOOKS.find(b => b.id === id);
+  if (book && book.is_free === true) return true;
+
+  // 6. Старый хардкод (оставляем на случай, если база еще не обновилась)
   const freeBooks = ['magic-morning', 'atomic-habits'];
-  
   if (freeBooks.includes(id)) return true;
 
   // Всё остальное закрыто
@@ -2405,10 +2427,6 @@ async function renderBookStars(bookId){
   
   if(isCompleted) {
      html += `<button class="btn" style="margin-top:12px; padding:10px; font-size:13px;" onclick="showReviewModal('${bookId}')">✍️ ${myStars > 0 ? 'Изменить отзыв' : 'Оставить отзыв'}</button>`;
-  } else {
-     html += `<div style="font-size:11px; color:var(--d-text-dim); width:100%; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:4px;">
-       <span>🔒</span> Отзыв доступен после прохождения
-     </div>`;
   }
   
   el.innerHTML = html;
@@ -2781,18 +2799,20 @@ function toggleTimer(ctx){
     if (timerState === 'idle' && currentP) currentP._spokenIndices = [];
     
     if (state.soundMode === 'sound') {
-      if (timerState === 'idle') {
-        startMusic(currentP ? currentP.id : 'default');
-      } else {
-        if (musicAudio) {
-          musicAudio.play().catch(()=>{});
-          fadeAudio(musicAudio, musicAudio.volume, 0.2, 500); 
+          if (timerState === 'idle') {
+            startMusic(currentP ? currentP.id : 'default');
+          } else {
+            if (musicAudio) {
+              musicAudio.play().catch(()=>{});
+              // Если голос на паузе (готов продолжить), музыка не должна прыгать на 0.2
+              const targetVol = isVoicePlaying ? 0.05 : 0.2;
+              fadeAudio(musicAudio, musicAudio.volume, targetVol, 500); 
+            }
+            if (ttsAudio && ttsAudio.paused && ttsAudio.currentTime > 0 && ttsAudio.src) {
+              ttsAudio.play().catch(()=>{});
+            }
+          }
         }
-        if (ttsAudio && ttsAudio.paused && ttsAudio.currentTime > 0 && ttsAudio.src) {
-          ttsAudio.play().catch(()=>{});
-        }
-      }
-    }
     
     startTimer(isRitual ? 'ritual' : 'practice'); 
     timerState = 'running';
@@ -3728,6 +3748,7 @@ function showSimpleModal(emoji,title,text){
   document.getElementById('modalText').textContent=text;
   document.getElementById('modalAchList').innerHTML='';
   document.getElementById('modal').classList.remove('hidden');
+  document.getElementById('modalAchList').innerHTML='';
 }
 function showAchModal(emoji,title,text,items){
   document.getElementById('modalEmoji').textContent=emoji;
@@ -3935,6 +3956,8 @@ function closeAndgerConfirm(accepted = false) {
     
     const nameEl = document.getElementById('profileFullName');
     if(nameEl) nameEl.value = ((user.name || '') + (user.lastName ? ' ' + user.lastName : '')).trim();
+    const headerNameEl = document.getElementById('profileHeaderName');
+    if (headerNameEl) headerNameEl.textContent = user.name || 'Профиль';
     
     const idEl = document.getElementById('profileUserId');
     if(idEl) idEl.textContent = 'ID: #' + user.id.slice(0, 8).toUpperCase();
@@ -3957,10 +3980,8 @@ function closeAndgerConfirm(accepted = false) {
       document.getElementById('profileSubscribersCount').textContent = fans || 0;
     } catch(e) { console.error('Ошибка загрузки подписок', e); }
 
-    syncGodModeUI();
-        // Загружаем график настроения
+    // Загружаем график настроения
     loadMoodChart();
-
     syncGodModeUI();
 
     // 6. Показываем кнопку Админа (Щит), если это админ
@@ -4012,14 +4033,12 @@ function renderSettings(){
   // Подсветка темы
   document.querySelectorAll('.theme-option').forEach(el => {
     if (el.dataset.theme === (state.theme || 'dark')) {
-      el.style.borderColor = 'var(--d-accent)';
-      el.style.background = 'rgba(124,92,255,0.1)';
+      el.classList.add('active');
     } else {
-      el.style.borderColor = 'var(--d-border)';
-      el.style.background = 'transparent';
+      el.classList.remove('active');
     }
-    
   });
+  
     // Подсветка выбранного голоса
   document.querySelectorAll('.voice-option').forEach(el => {
     if (el.dataset.voice === (state.voice || 'alena')) el.classList.add('active');
@@ -4355,7 +4374,7 @@ async function renderJournal(){
       
       let title = item.isAll ? 'Все записи' : item.title;
       let sub = item.isAll ? 'Общий дневник' : item.author;
-      let emojiHtml = getEmojiOrSvg(item.emoji, 24, item.title);
+      let emojiHtml = getEmojiOrSvg(item.emoji, 38, item.title);
       
       const coverImg = item.cover_url 
         ? `<img src="${item.cover_url}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">` 
@@ -4602,9 +4621,11 @@ async function loadFeed(){
       <div class="d-card-glass" style="margin-bottom:10px; position:relative;">
         <div class="fp-head" onclick="viewUserProfile('${m.user_id}', 'feed')" style="cursor:pointer; display:flex; gap:10px; align-items:center; margin-bottom:10px;">
           <div class="d-avatar" style="width:36px; height:36px;">${getAvatarHtml(m.user_avatar, 20)}</div>
-          <div>
-          ${isAdmin() ? `<div class="action-btn-glass danger" style="position:absolute; top:12px; right:12px; z-index:10;" onclick="event.stopPropagation(); confirmGodDeletePost(${m.id}, 'пост')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>` : ''}
-            <div style="font-size:13px; font-weight:800; color:var(--d-text);">${escapeHtml(m.user_name||'Аноним')}${own?' · ты':''}</div>
+          <div style="flex:1; min-width:0;">
+            <div style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:800; color:var(--d-text);">
+              <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(m.user_name||'Аноним')}${own?' · ты':''}</span>
+              ${isAdmin() ? `<div class="action-btn-glass danger" style="width:20px; height:20px; padding:0; margin-left:auto;" onclick="event.stopPropagation(); confirmGodDeletePost(${m.id}, 'пост')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px; height:12px;"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>` : ''}
+            </div>
             <div style="font-size:10px; color:var(--d-text-dim);">${t}</div>
           </div>
         </div>
@@ -5881,8 +5902,10 @@ function showBookEditor(id){
   setVal('edCategory', b?.category || 'Разное');
   setVal('edAbout', b?.about||'');
   setVal('edMethod', (b?.method && Array.isArray(b.method)) ? b.method.join(', ') : '');
-  setVal('edAuthorBio', b?.authorBio || '');
-  setVal('edForWhom', b?.forWhom || '');
+  setVal('edAuthorBio', b?.authorBio || b?.author_bio || '');
+  setVal('edForWhom', b?.forWhom || b?.for_whom || '');
+  const freeToggle = document.getElementById('edIsFreeToggle');
+  if (freeToggle) freeToggle.classList.toggle('on', b?.is_free === true);
   setVal('edResult', b?.result || '');
   
   // Клонируем практики в память
@@ -6283,6 +6306,7 @@ async function saveBook(published){
     practices: practicesData, 
     quotes: window._tempQuotes || [], // Цитаты берем из временной переменной
     published,
+    is_free: document.getElementById('edIsFreeToggle')?.classList.contains('on') || false, // <--- ДОБАВИЛИ
     created_by:user.id,
     updated_at:new Date().toISOString()
   };
@@ -8243,15 +8267,19 @@ function setAvatarFromModal(avatarKey) {
 }
 async function speakBackgroundGuide(text, context = 'practice') {
   if (!text) return;
-  if (state.soundMode !== 'sound') return; // Если звук выключен — даже не пытаемся говорить
+  if (state.soundMode !== 'sound') return; 
   
-  // Приглушаем музыку
-  if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, state.soundMode === 'sound' ? 0.05 : 0, 300);
+  isVoicePlaying = true;
+
+  // Приглушаем музыку (если она играет)
+  if (musicAudio && !musicAudio.paused) {
+    fadeAudio(musicAudio, musicAudio.volume, 0.05, 400);
+  }
   
   // Показываем субтитры
   const isRitual = (context === 'ritual');
-const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
-const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
+  const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
+  const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
   if (subEl) { 
     subEl.textContent = text; 
     setTimeout(() => subEl.classList.add('show'), 50); 
@@ -8264,13 +8292,10 @@ const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
     let speedToUse = 1.0;
     let emotionToUse = 'neutral';
 
-    // Если пользователь ВЫБРАЛ КОНКРЕТНЫЙ голос, мы ИГНОРИРУЕМ JSON и ставим его везде
     if (state.voice && state.voice !== 'auto') {
       voiceToUse = state.voice;
       speedToUse = 1.0; 
-    } 
-    // Если выбран "Автоматически", читаем JSON
-    else {
+    } else {
       let activePractice = context === 'ritual' ? ritualQueue[ritualIndex] : currentPractice;
       
       if (activePractice && activePractice.voice_settings) {
@@ -8286,12 +8311,7 @@ const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
 
     // Вызов Edge Function
     const { data, error } = await sb.functions.invoke('speak', { 
-      body: { 
-        text: text, 
-        voice: voiceToUse,
-        speed: speedToUse,
-        emotion: emotionToUse
-      } 
+      body: { text: text, voice: voiceToUse, speed: speedToUse, emotion: emotionToUse } 
     });
     
     if (error) throw error;
@@ -8317,13 +8337,14 @@ const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
         setTimeout(() => { subEl.textContent = ''; }, 500);
       }
       
-      // Возвращаем громкость музыки обратно, когда голос закончил говорить
-      if (musicAudio && state.soundMode === 'sound') {
-        fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000); // Плавно возвращаем к 0.2
+      isVoicePlaying = false;
+      
+      // Возвращаем громкость музыки (только если таймер еще идет)
+      if (musicAudio && state.soundMode === 'sound' && timerState === 'running') {
+        fadeAudio(musicAudio, musicAudio.volume, 0.2, 800);
       }
     };
-    // Всегда проверяем текущий режим звука. 
-    // Если выключено — громкость 0, иначе 1.
+    
     ttsAudio.volume = state.soundMode === 'sound' ? 1 : 0;
     
     // Защита от ошибки AbortError, если таймер закончился ровно в этот момент
@@ -8333,30 +8354,25 @@ const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
       if (playError.name === 'AbortError') {
         console.log('Голос был прерван (таймер остановлен).');
       } else {
-        console.error('Ошибка воспроизведения:', playError);
+        throw playError;
       }
     }
     
   } catch (error) {
     console.error('Ошибка озвучки (Яндекс):', error);
+    isVoicePlaying = false;
     
-    // --- ДОСТАЕМ ТЕКСТ ОШИБКИ ИЗ SUPABASE ---
     let errorMsg = error.message;
     if (error.context && typeof error.context.json === 'function') {
-      try {
-        const errData = await error.context.json();
-        errorMsg = errData.error || errorMsg;
-      } catch(e) {}
+      try { const errData = await error.context.json(); errorMsg = errData.error || errorMsg; } catch(e) {}
     }
     
-    console.error('Детали ошибки:', errorMsg);
+    if (typeof toast === 'function') toast('Ошибка озвучки: ' + errorMsg, 'danger');
     
-    // Показываем ошибку всплывающим окном, чтобы мы её увидели
-    if (typeof toast === 'function') {
-      toast('Ошибка: ' + errorMsg, 'danger');
+    // Восстанавливаем музыку при ошибке (если таймер идет)
+    if (musicAudio && state.soundMode === 'sound' && timerState === 'running') {
+      fadeAudio(musicAudio, musicAudio.volume, 0.2, 800);
     }
-    
-    if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, state.soundMode === 'sound' ? 0.2 : 0, 1000);
     if (subEl) subEl.classList.remove('show');
   }
 }
@@ -8458,9 +8474,14 @@ function showJsonImportModal() {
         <p style="font-size:12px; color:var(--d-text-dim); margin-bottom:12px; text-align:center;">Вставь JSON от ИИ сюда, и книга появится в приложении.</p>
         <textarea id="adminJsonInput" rows="8" placeholder='{ "id": "new-book", "title": "Название", ... }' style="width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--d-border); border-radius:12px; padding:12px; color:var(--d-text); font-family:monospace; font-size:12px; resize:vertical; margin-bottom:16px;"></textarea>
         
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; background:rgba(255,255,255,0.03); padding:12px 16px; border-radius:12px; border:1px solid var(--d-border);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; background:rgba(255,255,255,0.03); padding:12px 16px; border-radius:12px; border:1px solid var(--d-border);">
           <span style="font-size:14px; font-weight:700; color:var(--d-text);">Опубликовать сразу</span>
           <div class="d-toggle" id="jsonPublishToggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; background:rgba(255,255,255,0.03); padding:12px 16px; border-radius:12px; border:1px solid var(--d-border);">
+          <span style="font-size:14px; font-weight:700; color:var(--d-text);">Бесплатная книга (без Premium)</span>
+          <div class="d-toggle" id="jsonFreeToggle" onclick="this.classList.toggle('on')"></div>
         </div>
 
         <button class="d-btn-primary" onclick="addBookFromJSON()">Добавить в базу</button>
@@ -8486,8 +8507,12 @@ async function addBookFromJSON() {
     const toggle = document.getElementById('jsonPublishToggle');
     const isPublish = toggle ? toggle.classList.contains('on') : false;
     
-    // Устанавливаем статус на основе тумблера
+    const freeToggle = document.getElementById('jsonFreeToggle');
+    const isFree = freeToggle ? freeToggle.classList.contains('on') : false;
+    
+    // Устанавливаем статус на основе тумблеров
     bookData.published = isPublish; 
+    bookData.is_free = isFree; // <--- ДОБАВИЛИ ЭТУ СТРОКУ
 
     // Отправляем в Supabase
         // Переводим названия полей в формат базы данных
@@ -9187,8 +9212,8 @@ function buildPracticeHtml(p) {
 
     <!-- ТАЙМЕР -->
     <div class="ps-block timer-wrapper" style="margin-top:20px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
-          <!-- Плавающая иконка музыки (только для экрана таймера) -->
-      <div class="music-fab-btn" onclick="switchMusicTrack()" style="display:none; position:absolute; top: 80px; right: 20px; width: 44px; height: 44px; border-radius: 50%; background: rgba(124,92,255,0.15); border: 1px solid rgba(124,92,255,0.3); backdrop-filter: blur(10px); color: #fff; align-items: center; justify-content: center; cursor: pointer; z-index: 100; transition: all 0.2s;" title="Сменить трек">
+    <!-- Плавающая иконка музыки (только для экрана таймера) -->
+      <div class="music-fab-btn" onclick="switchMusicTrack()" style="display:none; position:absolute; top: calc(85px + env(safe-area-inset-top, 0px)); right: 20px; width: 44px; height: 44px; border-radius: 50%; background: rgba(124,92,255,0.15); border: 1px solid rgba(124,92,255,0.3); backdrop-filter: blur(10px); color: #fff; align-items: center; justify-content: center; cursor: pointer; z-index: 100; transition: all 0.2s;" title="Сменить трек">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
       </div>
       
@@ -9515,18 +9540,6 @@ function showBookCompleteSuccess(bookId) {
   playFanfare();
 }
 
-// Обновляем стандартную модалку, чтобы кнопка "Продолжить" возвращалась для других окон
-function showSimpleModal(emoji,title,text){
-  document.getElementById('modalEmoji').textContent=emoji;
-  document.getElementById('modalTitle').textContent=title;
-  document.getElementById('modalText').textContent=text;
-  document.getElementById('modalAchList').innerHTML='';
-  
-  const btn = document.querySelector('#modal .modal-box > button.d-btn-primary');
-  if (btn) btn.style.display = 'flex'; // Возвращаем видимость
-  
-  document.getElementById('modal').classList.remove('hidden');
-}
 function toggleRankFilter() {
   rankFilter = rankFilter === 'all' ? 'friends' : 'all';
   const btn = document.getElementById('rankFilterBtn');

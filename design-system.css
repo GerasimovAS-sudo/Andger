@@ -668,12 +668,13 @@ html.light .d-lib-folder-title {
     gap: 20px;
 }
 .focus-mode .d-timer-ring-wrap {
-    width: 210px; /* Уменьшили кольцо */
-    height: 210px;
-    margin: 10px auto 15px;
+    width: 240px; /* Вернули красивый размер */
+    height: 240px;
+    margin: 20px auto 24px; /* Чуть увеличили отступ снизу, чтобы дышалось */
+    flex-shrink: 0; /* ЖЕСТКО ЗАПРЕЩАЕМ сжимать кольцо */
 }
 .focus-mode .d-timer-text {
-    font-size: 46px; /* Уменьшили шрифт времени */
+    font-size: 46px; /* Оставляем этот же размер шрифта */
 }
 /* Оранжевая кнопка, когда таймер на паузе */
 .d-btn-primary.paused {
@@ -906,17 +907,12 @@ div[onclick="showPremium()"] div {
 /* ═══════ ПЛОТНЫЙ ФОН ЗАГРУЗКИ В СТИЛЕ ПРИЛОЖЕНИЯ ═══════ */
 #appLoader {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh; /* Важно для iOS, чтобы заполнить экран */
+  inset: 0; /* <--- ИСПРАВЛЕНИЕ: Идеально закрывает весь экран на iOS */
   background-color: #120c24;
   background-image: 
     radial-gradient(circle at 10% 10%, rgba(124, 92, 255, 0.25) 0%, transparent 50%),
     radial-gradient(circle at 90% 80%, rgba(255, 122, 42, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, rgba(30, 92, 255, 0.1) 0%, transparent 60%);
-  background-attachment: scroll; /* Убрали fixed, это ломало iOS */
   z-index: var(--z-loader);
   display: flex;
   flex-direction: column;
@@ -1802,3 +1798,96 @@ button, .nav-btn, .d-icon-btn, .tab-pill, .fp-action {
 .d-header, .d-bottom-nav { background: rgba(18,12,36,.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 .d-focus-card { background: linear-gradient(135deg, rgba(124,92,255,.15), rgba(25,18,45,.8)); }
 .d-calendar-strip { background: rgba(40,30,70,.4); }
+
+/* ═══════════════════════════════════════════════
+   PREMIUM LIGHT THEME (ANDGER 2.0)
+   ═══════════════════════════════════════════════ */
+html.light {
+  --d-bg: #f4f2f9;
+  --d-bg-2: #ffffff;
+  --d-surface: rgba(255, 255, 255, 0.7);
+  --d-surface-2: rgba(0, 0, 0, 0.04);
+  --d-surface-3: rgba(0, 0, 0, 0.08);
+  --d-border: rgba(124, 92, 255, 0.15);
+  --d-border-strong: rgba(124, 92, 255, 0.3);
+  --d-text: #1a1428;
+  --d-text-dim: #6b6880;
+  --d-text-mute: #9e9bb0;
+  --color-background-app: #f4f2f9;
+}
+
+html.light body {
+  background-color: #f4f2f9;
+  background-image: 
+    radial-gradient(circle at 10% 10%, rgba(124, 92, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(255, 122, 42, 0.1) 0%, transparent 50%);
+}
+
+html.light .d-header, 
+html.light .d-bottom-nav {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(124, 92, 255, 0.15) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+html.light .d-card-glass,
+html.light .d-focus-card,
+html.light .d-lib-folder,
+html.light .lib-category-wrap,
+html.light .timer-wrapper,
+html.light .admin-detail {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(124, 92, 255, 0.2) !important;
+  box-shadow: 0 8px 32px rgba(124, 92, 255, 0.08) !important;
+}
+
+html.light .d-btn-primary, 
+html.light .btn {
+  background: linear-gradient(135deg, #7c5cff 0%, #6366f1 100%);
+  box-shadow: 0 6px 20px rgba(124, 92, 255, 0.3);
+}
+
+html.light .d-btn-secondary {
+  background: rgba(124, 92, 255, 0.08);
+  border-color: rgba(124, 92, 255, 0.2);
+  color: #7c5cff;
+}
+
+/* Исправляем невидимые элементы при светлой теме */
+html.light .d-focus-cover,
+html.light .d-lib-book-cover {
+  background: #ffffff;
+  border-color: rgba(0,0,0,0.05);
+}
+
+html.light .d-cal-day.today {
+  background: rgba(124, 92, 255, 0.1);
+  border-color: #7c5cff;
+}
+
+html.light .d-cal-dom, 
+html.light .d-focus-title, 
+html.light .d-lib-book-title,
+html.light .andger-bubble-text {
+  color: #1a1428;
+}
+
+html.light .d-focus-action,
+html.light .d-lib-book-author,
+html.light .d-cal-dow {
+  color: #6b6880;
+}
+
+html.light .andger-bubble {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(124, 92, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Эффект выбранной темы */
+.theme-option.active {
+  border-color: var(--d-accent) !important;
+  background: rgba(124, 92, 255, 0.1) !important;
+  box-shadow: 0 0 15px rgba(124, 92, 255, 0.2) !important;
+  transform: scale(1.02);
+}
