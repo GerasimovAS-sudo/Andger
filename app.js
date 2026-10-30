@@ -5889,8 +5889,13 @@ function showBookEditor(id){
   window._tempPractices = b?.practices ? JSON.parse(JSON.stringify(b.practices)) : [];
   renderAdminPracticesList();
 
-    window._tempQuotes = b?.quotes ? JSON.parse(JSON.stringify(b.quotes)) : [];
+  window._tempQuotes = b?.quotes ? JSON.parse(JSON.stringify(b.quotes)) : [];
   renderAdminQuotesList(); // <--- Добавили вызов отрисовки
+  
+  // Захватываем поля без UI, чтобы не потерять при сохранении
+  window._tempLumiTips = b?.lumi_tips ? JSON.parse(JSON.stringify(b.lumi_tips)) : [];
+  window._tempBookVoiceSettings = b?.voice_settings || null;
+  window._tempSummary = b?.summary ? JSON.parse(JSON.stringify(b.summary)) : [];
   const errEl = document.getElementById('edErr');
   if(errEl) errEl.textContent='';
   
@@ -6282,6 +6287,9 @@ async function saveBook(published){
     
     practices: practicesData, 
     quotes: window._tempQuotes || [], // Цитаты берем из временной переменной
+    lumi_tips: window._tempLumiTips || [],
+    summary: window._tempSummary || [],
+    voice_settings: window._tempBookVoiceSettings || null,
     published,
     created_by:user.id,
     updated_at:new Date().toISOString()
@@ -6299,7 +6307,12 @@ async function saveBook(published){
       id, title: data.title, author: data.author, emoji: data.emoji, days: data.days,
       about: data.about, method: data.method, authorBio: data.author_bio,
       forWhom: data.for_whom, result: data.result, category: data.category,
-      practices: data.practices, quotes: data.quotes, _fromSupabase: true
+      cover_url: data.cover_url,
+      practices: data.practices, quotes: data.quotes,
+      lumi_tips: data.lumi_tips,
+      summary: data.summary,
+      voice_settings: data.voice_settings,
+      _fromSupabase: true
     };
     if (existingIdx >= 0) BOOKS[existingIdx] = normalized;
     else BOOKS.push(normalized);
@@ -7338,6 +7351,11 @@ function parseSmartJson() {
       window._tempQuotes = data.quotes;
       renderAdminQuotesList(); // <--- Отрисовываем цитаты из JSON
     }
+    
+    // Захватываем поля без UI для сохранения в БД
+    if(data.lumi_tips) window._tempLumiTips = data.lumi_tips;
+    if(data.voice_settings) window._tempBookVoiceSettings = data.voice_settings;
+    if(data.summary) window._tempSummary = data.summary;
     
     toast('✅ Данные распознаны!');
     document.getElementById('edSmartJson').value = ''; 
