@@ -1968,4 +1968,9 @@ body, #screensRoot {
   color: var(--d-text-dim);
   text-decoration: line-through;
 }
+/* Защита от прыжков клавиатуры на iOS */
+input, textarea, select {
+  font-size: 16px !important; /* iOS не зумит, если шрифт 16px или больше */
+  touch-action: manipulation;
+}
 
