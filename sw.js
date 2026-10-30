@@ -1,5 +1,5 @@
 /* ANDGER service worker — cache versioned assets, online-first with offline fallback. */
-const CACHE_VERSION = 'andger-v11.9.6';
+const CACHE_VERSION = 'andger-v11.9.10';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const APP_SCOPE = new URL(self.registration.scope);
@@ -7,7 +7,10 @@ const STATIC_FILES = [
   './', './index.html', './styles.css', './design-system.css', './app.js',
   './manifest.json', './assets/icons/favicon.ico', './assets/icons/apple-touch-icon.png',
   './assets/icons/icon-192x192.png', './assets/icons/icon-512x512.png',
-  './assets/meditation.mp3', './assets/energy.mp3', './assets/focus.mp3',
+  './assets/music/meditation/meditation-1.mp3', 
+  './assets/music/sport/sport-1.mp3', 
+  './assets/music/focus/focus-1.mp3',
+  './assets/music/calm/calm-1.mp3',
   './books/magic-morning.js', './books/atomic-habits.js',
   './books/transurfing.js', './books/registry.js'
 ].map(path => new URL(path, APP_SCOPE).href);

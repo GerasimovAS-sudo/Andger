@@ -2805,7 +2805,7 @@ function startTimer(ctx){
        circle.style.strokeDashoffset = circumference - (percent * circumference);
     }
 
-    if (currentP && currentP.voiceTimeline && timerState === 'running') {
+    if (currentP && currentP.voiceTimeline && timerState === 'running' && remaining > 1) {
       const elapsed = totalDuration - remaining;
       currentP.voiceTimeline.forEach((item, index) => {
         if (elapsed >= item.time && !currentP._spokenIndices.includes(index)) {
@@ -2818,6 +2818,10 @@ function startTimer(ctx){
     if(timerRemaining <= 0){
       stopTimer();
       timerState='done';
+       // ✨ Автоматически ставим все галочки в чек-листе, когда время вышло
+      screen.querySelectorAll('.checklist-item').forEach(item => {
+        item.classList.add('done');
+      });
       const noteBlock = screen.querySelector('.note-block');
       if(noteBlock) noteBlock.style.display = 'block';
       
@@ -8203,7 +8207,17 @@ const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
     // Всегда проверяем текущий режим звука. 
     // Если выключено — громкость 0, иначе 1.
     ttsAudio.volume = state.soundMode === 'sound' ? 1 : 0;
-    await ttsAudio.play();
+    
+    // Защита от ошибки AbortError, если таймер закончился ровно в этот момент
+    try {
+      await ttsAudio.play();
+    } catch (playError) {
+      if (playError.name === 'AbortError') {
+        console.log('Голос был прерван (таймер остановлен).');
+      } else {
+        console.error('Ошибка воспроизведения:', playError);
+      }
+    }
     
   } catch (error) {
     console.error('Ошибка озвучки (Яндекс):', error);
@@ -9061,13 +9075,23 @@ function buildPracticeHtml(p) {
         </svg>
         <div class="d-timer-text timer-display" id="timerDisplay" style="font-size: 52px; text-shadow: 0 0 20px rgba(255,255,255,0.3);">${formatTime(p.time || 300)}</div>
       </div>
-
-      <!-- Субтитры (фикс. высота) -->
-      <div class="voice-subtitle practice-subtitle"></div>
+      
+      <!-- ЧЕК-ЛИСТ ШАГОВ -->
+      <div class="practice-checklist">
+        <div style="font-size: 10px; font-weight: 900; color: var(--d-text-dim); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px;">Шаги практики</div>
+        ${(p.how || []).map((step, i) => `
+          <div class="checklist-item" onclick="this.classList.toggle('done')">
+            <div class="check-circle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <div class="check-text">${i+1}. ${step}</div>
+          </div>
+        `).join('')}
+      </div>
 
       <!-- Кнопки -->
-      <div class="zen-buttons-wrap" style="display:flex; flex-direction:column; gap:10px; width: 100%; max-width:260px;">
-        <button class="d-btn-primary" id="timerBtn" onclick="toggleTimer('practice')" style="height:52px; font-size:15px;">▶ Начать практику</button>
+      <div class="zen-buttons-wrap" style="display:flex; flex-direction:column; gap:10px; width: 100%; max-width:260px; margin-top: auto;">
+        <button class="d-btn-primary" id="timerBtn" onclick="toggleTimer('practice')">▶ Начать практику</button>
         <button class="d-btn-secondary exit-zen-btn" onclick="toggleZenMode()" style="display: none; width:100%;">Свернуть таймер</button>
       </div>
     </div>
