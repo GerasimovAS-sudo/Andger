@@ -5800,7 +5800,8 @@ function showBookEditor(id){
   window._tempPractices = b?.practices ? JSON.parse(JSON.stringify(b.practices)) : [];
   renderAdminPracticesList();
 
-  window._tempQuotes = b?.quotes || [];
+    window._tempQuotes = b?.quotes ? JSON.parse(JSON.stringify(b.quotes)) : [];
+  renderAdminQuotesList(); // <--- Добавили вызов отрисовки
   const errEl = document.getElementById('edErr');
   if(errEl) errEl.textContent='';
   
@@ -5961,6 +5962,67 @@ function deleteAdminPractice(index) {
     playSuccess();
   });
 }
+
+ // ─── УПРАВЛЕНИЕ ЦИТАТАМИ КНИГИ ───
+let editingBookQuoteIndex = -1;
+
+function renderAdminQuotesList() {
+  const list = document.getElementById('adminBookQuotesList');
+  if (!list) return;
+  
+  if (!window._tempQuotes || window._tempQuotes.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted); font-size:13px; text-align:center; padding: 10px;">Нет цитат. Нажмите «+ Добавить».</div>';
+    return;
+  }
+  
+  list.innerHTML = window._tempQuotes.map((q, i) => `
+    <div class="admin-item" style="padding:10px 14px; margin-bottom:8px; border:1px solid var(--border);">
+      <div class="ai-info" style="flex:1;">
+        <div style="font-size:13px; font-style:italic; color:var(--d-accent-2); margin-bottom:4px; line-height:1.4;">«${escapeHtml(q.text)}»</div>
+        <div style="font-size:11px; color:var(--muted);">— ${escapeHtml(q.author || 'Без автора')}</div>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <div class="action-btn-glass" onclick="openBookQuoteEditor(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
+        <div class="action-btn-glass danger" onclick="deleteBookQuote(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openBookQuoteEditor(index) {
+  editingBookQuoteIndex = index;
+  const q = index >= 0 ? window._tempQuotes[index] : { text: '', author: '' };
+  
+  document.getElementById('bqTitle').textContent = index >= 0 ? 'Редактировать цитату' : 'Новая цитата';
+  document.getElementById('bqTextInp').value = q.text || '';
+  document.getElementById('bqAuthorInp').value = q.author || '';
+  document.getElementById('bookQuoteEditorModal').classList.remove('hidden');
+}
+
+function saveBookQuote() {
+  const text = document.getElementById('bqTextInp').value.trim();
+  const author = document.getElementById('bqAuthorInp').value.trim();
+  
+  if (!text) { toast('Введите текст цитаты', 'danger'); return; }
+  
+  if (editingBookQuoteIndex >= 0) {
+    window._tempQuotes[editingBookQuoteIndex] = { text, author };
+  } else {
+    window._tempQuotes.push({ text, author });
+  }
+  
+  document.getElementById('bookQuoteEditorModal').classList.add('hidden');
+  renderAdminQuotesList();
+  playSuccess();
+}
+
+function deleteBookQuote(index) {
+  legacyConfirmAdapter('Удалить цитату?', 'Она пропадет из книги.', () => {
+    window._tempQuotes.splice(index, 1);
+    renderAdminQuotesList();
+    playSuccess();
+  });
+} 
 
 function backFromBookEditor(){
   const destination = bookEditorReturnScreen || "adminScreen";
@@ -7183,7 +7245,10 @@ function parseSmartJson() {
     }
     renderAdminPracticesList(); 
     
-    if(data.quotes) window._tempQuotes = data.quotes;
+    if(data.quotes) {
+      window._tempQuotes = data.quotes;
+      renderAdminQuotesList(); // <--- Отрисовываем цитаты из JSON
+    }
     
     toast('✅ Данные распознаны!');
     document.getElementById('edSmartJson').value = ''; 

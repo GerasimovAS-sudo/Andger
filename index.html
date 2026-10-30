@@ -1115,6 +1115,16 @@
           <div class="field"><label>Об авторе</label><textarea id="edAuthorBio" rows="2" placeholder="Об авторе..."></textarea></div>
           <div class="field"><label>Для кого</label><textarea id="edForWhom" rows="2" placeholder="Для кого..."></textarea></div>
           <div class="field"><label>Что даст за курс</label><textarea id="edResult" rows="2" placeholder="Что даст..."></textarea></div>
+          
+          <!-- НОВЫЙ БЛОК ДЛЯ ЦИТАТ -->
+          <div style="margin-top: 24px; border-top: 1px solid var(--d-border); padding-top: 16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <h3 style="font-size:14px; color:var(--d-text); font-weight:800;">📜 Цитаты книги</h3>
+              <button class="d-btn-secondary" onclick="openBookQuoteEditor(-1)" style="margin-top:0; width:auto; min-height:36px; padding:0 16px;">+ Добавить</button>
+            </div>
+            <div id="adminBookQuotesList"></div>
+          </div>
+          <!-- КОНЕЦ БЛОКА ЦИТАТ -->
         </div>
 
         <!-- Вкладка 3: Практики -->
@@ -1640,6 +1650,23 @@
             <span onclick="document.getElementById('followsModal').classList.add('hidden')" style="cursor:pointer; font-size:20px; color:var(--d-text-dim);">✕</span>
           </div>
           <div id="followsModalList" style="max-height: 50vh; overflow-y:auto;"></div>
+        </div>
+      </div>
+
+            <!-- Модалка для цитат книги (Админка) -->
+      <div class="modal hidden" id="bookQuoteEditorModal">
+        <div class="modal-box" style="text-align:left;">
+          <h2 id="bqTitle" style="margin-bottom:16px; font-size:20px;">Новая цитата</h2>
+          <div class="field">
+            <label>Текст цитаты</label>
+            <textarea id="bqTextInp" rows="3" placeholder="Введите текст..."></textarea>
+          </div>
+          <div class="field">
+            <label>Автор</label>
+            <input type="text" id="bqAuthorInp" placeholder="Автор цитаты">
+          </div>
+          <button class="d-btn-primary" onclick="saveBookQuote()">Сохранить</button>
+          <button class="d-btn-secondary" onclick="document.getElementById('bookQuoteEditorModal').classList.add('hidden')" style="margin-top:8px;">Отмена</button>
         </div>
       </div>
 
