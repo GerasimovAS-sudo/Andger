@@ -2820,6 +2820,7 @@ function toggleTimer(ctx){
     }
     
     if(screen) {
+      window.andgerPracticeActive = true; // <--- ЗАЩИТА ОТ ПЕРЕЗАГРУЗКИ
       screen.classList.add('focus-mode');
       document.body.style.overflow = 'hidden'; 
       document.body.style.position = 'fixed';
@@ -2931,6 +2932,7 @@ function startTimer(ctx){
 }
 
 function stopTimer(){
+  window.andgerPracticeActive = false; // <--- СНИМАЕМ ЗАЩИТУ
   const pScreen = document.getElementById('practiceScreen');
   const rScreen = document.getElementById('ritualScreen');
   
@@ -6578,7 +6580,7 @@ if ('serviceWorker' in navigator) {
               const isRitualActive = !document.getElementById('ritualScreen').classList.contains('hidden');
               const isPracticeActive = !document.getElementById('practiceScreen').classList.contains('hidden');
               
-              if (!isRitualActive && !isPracticeActive) {
+              if (!isRitualActive && !isPracticeActive && !window.andgerPracticeActive) {
                 setTimeout(() => {
                   newWorker.postMessage({ type: 'SKIP_WAITING' });
                 }, 2000);
@@ -8333,6 +8335,7 @@ const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
     if (!ttsAudio) ttsAudio = new Audio();
     ttsAudio.pause();
     ttsAudio.currentTime = 0;
+    if (ttsAudio.src) URL.revokeObjectURL(ttsAudio.src); // <--- ОЧИЩАЕМ ПАМЯТЬ
 
     const blob = new Blob([bytes], { type: 'audio/mpeg' });
     ttsAudio.src = URL.createObjectURL(blob);
