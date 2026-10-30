@@ -1,5 +1,5 @@
 /* ANDGER service worker — cache versioned assets, online-first with offline fallback. */
-const CACHE_VERSION = 'andger-v11.9.10';
+const CACHE_VERSION = 'andger-v11.9.11';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const APP_SCOPE = new URL(self.registration.scope);
@@ -7,10 +7,24 @@ const STATIC_FILES = [
   './', './index.html', './styles.css', './design-system.css', './app.js',
   './manifest.json', './assets/icons/favicon.ico', './assets/icons/apple-touch-icon.png',
   './assets/icons/icon-192x192.png', './assets/icons/icon-512x512.png',
-  './assets/music/meditation/meditation-1.mp3', 
-  './assets/music/sport/sport-1.mp3', 
-  './assets/music/focus/focus-1.mp3',
-  './assets/music/calm/calm-1.mp3',
+  
+  // Медитации (7 треков)
+  './assets/music/meditation/meditation-1.mp3', './assets/music/meditation/meditation-2.mp3', './assets/music/meditation/meditation-3.mp3',
+  './assets/music/meditation/meditation-4.mp3', './assets/music/meditation/meditation-5.mp3', './assets/music/meditation/meditation-6.mp3', './assets/music/meditation/meditation-7.mp3',
+  
+  // Спорт (7 треков)
+  './assets/music/sport/sport-1.mp3', './assets/music/sport/sport-2.mp3', './assets/music/sport/sport-3.mp3',
+  './assets/music/sport/sport-4.mp3', './assets/music/sport/sport-5.mp3', './assets/music/sport/sport-6.mp3', './assets/music/sport/sport-7.mp3',
+  
+  // Чтение/Фокус (7 треков)
+  './assets/music/focus/focus-1.mp3', './assets/music/focus/focus-2.mp3', './assets/music/focus/focus-3.mp3',
+  './assets/music/focus/focus-4.mp3', './assets/music/focus/focus-5.mp3', './assets/music/focus/focus-6.mp3', './assets/music/focus/focus-7.mp3',
+  
+  // Спокойствие (7 треков)
+  './assets/music/calm/calm-1.mp3', './assets/music/calm/calm-2.mp3', './assets/music/calm/calm-3.mp3',
+  './assets/music/calm/calm-4.mp3', './assets/music/calm/calm-5.mp3', './assets/music/calm/calm-6.mp3', './assets/music/calm/calm-7.mp3',
+  
+  // Книги
   './books/magic-morning.js', './books/atomic-habits.js',
   './books/transurfing.js', './books/registry.js'
 ].map(path => new URL(path, APP_SCOPE).href);

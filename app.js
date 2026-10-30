@@ -364,11 +364,42 @@ document.addEventListener('click',(e)=>{
 // ─── МУЗЫКА ───
 // Разделяем музыку по типам практик
 const MUSIC_TRACKS = {
-  // Точные пути к файлам внутри папок, как на скриншотах
-  default: ['assets/music/meditation/meditation-1.mp3'],
-  sport: ['assets/music/sport/sport-1.mp3'], 
-  read: ['assets/music/focus/focus-1.mp3'], 
-  silence: ['assets/music/calm/calm-1.mp3'] 
+  default: [
+    'assets/music/meditation/meditation-1.mp3', 
+    'assets/music/meditation/meditation-2.mp3', 
+    'assets/music/meditation/meditation-3.mp3',
+    'assets/music/meditation/meditation-4.mp3',
+    'assets/music/meditation/meditation-5.mp3',
+    'assets/music/meditation/meditation-6.mp3',
+    'assets/music/meditation/meditation-7.mp3'
+  ],
+  sport: [
+    'assets/music/sport/sport-1.mp3', 
+    'assets/music/sport/sport-2.mp3', 
+    'assets/music/sport/sport-3.mp3',
+    'assets/music/sport/sport-4.mp3',
+    'assets/music/sport/sport-5.mp3',
+    'assets/music/sport/sport-6.mp3',
+    'assets/music/sport/sport-7.mp3'
+  ], 
+  read: [
+    'assets/music/focus/focus-1.mp3', 
+    'assets/music/focus/focus-2.mp3', 
+    'assets/music/focus/focus-3.mp3',
+    'assets/music/focus/focus-4.mp3',
+    'assets/music/focus/focus-5.mp3',
+    'assets/music/focus/focus-6.mp3',
+    'assets/music/focus/focus-7.mp3'
+  ], 
+  silence: [
+    'assets/music/calm/calm-1.mp3', 
+    'assets/music/calm/calm-2.mp3', 
+    'assets/music/calm/calm-3.mp3',
+    'assets/music/calm/calm-4.mp3',
+    'assets/music/calm/calm-5.mp3',
+    'assets/music/calm/calm-6.mp3',
+    'assets/music/calm/calm-7.mp3'
+  ] 
 };
 let currentTrackIdx = 0;
 let currentPlaylist = [];
@@ -8203,6 +8234,11 @@ const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
         subEl.classList.remove('show');
         setTimeout(() => { subEl.textContent = ''; }, 500);
       }
+      
+      // Возвращаем громкость музыки обратно, когда голос закончил говорить
+      if (musicAudio && state.soundMode === 'sound') {
+        fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000); // Плавно возвращаем к 0.2
+      }
     };
     // Всегда проверяем текущий режим звука. 
     // Если выключено — громкость 0, иначе 1.
@@ -9130,8 +9166,9 @@ function switchMusicTrack() {
     return;
   }
   nextTrack();
-  const trackName = currentPlaylist[currentTrackIdx].split('/').pop().replace('.mp3', '');
-  toast('🎵 Играет: ' + trackName);
+  // Берем номер текущего трека в плейлисте и прибавляем 1 (так как индекс с 0)
+  const trackNumber = currentTrackIdx + 1; 
+  toast(`🎵 Музыка №${trackNumber}`);
 }
 async function loadAdminDashboard() {
   const wrap = document.getElementById('adminDashboardContent');

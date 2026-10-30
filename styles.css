@@ -1897,20 +1897,38 @@ body, #screensRoot {
 /* ═══════════════════════════════════════════════ */
 /* ЧЕК-ЛИСТ ШАГОВ В РЕЖИМЕ ТАЙМЕРА */
 /* ═══════════════════════════════════════════════ */
+/* По умолчанию чек-лист полностью скрыт */
 .practice-checklist {
+  display: none; 
   width: 100%;
-  max-width: 320px;
-  margin: auto; 
+  max-width: 360px; /* Сделали чуть шире (было 320px) */
+  margin: auto;
+  text-align: left;
+  overflow-y: auto;
+  max-height: 40vh; /* Увеличили высоту, чтобы текст помещался (было 32vh) */
+  padding-right: 4px;
+  
+  /* СКРЫВАЕМ ПОЛОСУ ПРОКРУТКИ */
+  scrollbar-width: none; /* Для Firefox */
+  -ms-overflow-style: none; /* Для IE/Edge */
 }
-.focus-mode .practice-checklist {
-  display: block; /* Показываем в фокусе */
+
+/* Скрываем скроллбар для Chrome/Safari/iOS */
+.practice-checklist::-webkit-scrollbar {
+  display: none;
+}
+
+/* Показываем чек-лист ТОЛЬКО когда включен режим фокуса (запущен таймер) */
+#practiceScreen.focus-mode .practice-checklist,
+#ritualScreen.focus-mode .practice-checklist {
+  display: block; 
 }
 
 .checklist-item {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 8px; 
+  padding: 8px 10px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
