@@ -157,6 +157,7 @@ function getGlobalStats() {
     Object.values(bbs.days).forEach(rec => {
       if(rec.practices) totalEarnedXP += rec.practices.length * 10;
       if(rec.closed) totalEarnedXP += 50;
+      if(rec.microActionDone) totalEarnedXP += 5;
     });
   });
 
@@ -1949,6 +1950,24 @@ if (mpcQuoteAuthor) mpcQuoteAuthor.textContent = q ? `— ${q.author || b.author
   renderWeekCalendar();
   updateNotifBadge();
   updateSoundUI();
+    // Логика микро-действия
+  const microWrap = document.getElementById('microActionWidget');
+  const microText = document.getElementById('microActionText');
+  const microBtn = document.getElementById('microActionBtn');
+  
+  if (microWrap && microText && microBtn) {
+    // Ищем практику на сегодня, которая еще не сделана и у которой есть микро-действие
+    const pendingPractice = b.practices.find(p => !(todayRec.practices||[]).includes(p.id) && p.micro_action);
+    const isMicroDone = todayRec.microActionDone;
+
+    if (pendingPractice && !isMicroDone) {
+      microWrap.style.display = 'block';
+      microText.textContent = pendingPractice.micro_action;
+      microBtn.onclick = () => completeMicroAction(currentBook.id, pendingPractice.id);
+    } else {
+      microWrap.style.display = 'none';
+    }
+  }
 }
 
 // ЕДИНСТВЕННАЯ ПРАВИЛЬНАЯ КАРУСЕЛЬ
@@ -2596,6 +2615,7 @@ function startRitual(){
     bs.start = todayStr();
     saveState();
     renderToday(); 
+    
   }
 
   const day = currentDay(currentBook.id);
@@ -2965,35 +2985,44 @@ function finishRitual(isSinglePractice = false){
   }
 
   // ПОКАЗЫВАЕМ ОКНО ОТЗЫВА, ЕСЛИ КНИГА ПРОЙДЕНА (с задержкой, чтобы не перекрывать окно с поздравлением)
-  if (completedBookId) {
+    if (completedBookId) {
       sb.from('reviews').select('id').eq('user_id', user.id).eq('book_id', completedBookId).maybeSingle().then(({data}) => {
           if (!data) {
-              setTimeout(() => showReviewModal(completedBookId), 1500); 
+              setTimeout(() => showBookCompleteSuccess(completedBookId), 1500); 
           }
       });
   }
 
-  if (anyClosed) {
+    if (anyClosed) {
     // Праздник!
     fireConfetti();
     playFanfare();
     
     const streak=calcStreak(closedBookInfo.b.id),best=calcBest(closedBookInfo.b.id);
-    const emoji=closedBookInfo.count===closedBookInfo.total?'🔥':'✅';
-    const title=closedBookInfo.count===closedBookInfo.total?'Идеальный день!':'День закрыт!';
-    const text='День '+closedBookInfo.day+'. Практик: '+closedBookInfo.count+' из '+closedBookInfo.total+'.';
+
+    // --- АВТО-ПОСТ В ЛЕНТУ ---
+    let postText = '';
+    if (closedBookInfo.count === closedBookInfo.total) {
+      postText = `🔥 Идеальный день! Закрыл(а) все практики книги «${closedBookInfo.b.title}». Огонь: ${streak} дней!`;
+    } else if (streak === best && streak > 1) {
+      postText = `🏆 Новый рекорд! ${streak} дней подряд в книге «${closedBookInfo.b.title}». Не сбавляю обороты!`;
+    } else if (streak % 7 === 0) {
+      postText = `⚡ Неделя силы! ${streak} дней непрерывной практики по книге «${closedBookInfo.b.title}».`;
+    }
+
+    if (postText && user) {
+      sb.from('messages').insert({
+        user_id: user.id,
+        user_name: user.name,
+        user_avatar: state.avatar || '👤',
+        room: 'feed',
+        text: postText
+      }).then(() => {
+        // Если мы сейчас в Ленте, обновим её
+        if (currentScreen === 'community') loadFeed();
+      }).catch(e => console.warn('Auto-post error:', e));
+    }
     
-    let items=[];
-    if(streak>=3)items.push({ico:'🔥',txt:streak+' дней огня',sub:'Не сбавляй'});
-    else items.push({ico:'🌱',txt:'День '+closedBookInfo.day+' в копилке',sub:'Продолжай'});
-    if(streak===best&&streak>1)items.push({ico:'🏆',txt:'Новый рекорд!',sub:best+' дней подряд'});
-    if(closedBookInfo.count===closedBookInfo.total)items.push({ico:'💎',txt:'Все практики выполнены',sub:'Идеальный день'});
-    const nextAch=getNextAch(closedBookInfo.b.id,streak);
-    if(nextAch)items.push({ico:'🎯',txt:'До награды "'+nextAch.name+'"',sub:nextAch.remaining});
-    
-    showAchModal(emoji,title,text,items);
-    
-  } else if (!isSinglePractice && ritualQueue.length > 0) {
     // Если просто дошли до конца ритуала, но день не закрыт
     const b = currentBook || BOOKS.find(x=>x.id===Array.from(booksToCheck)[0]);
     if (b) {
@@ -3369,10 +3398,23 @@ function previewPractice(bookId, practiceId) {
 }
 
 // ─── ОВЕРЛЕЙ ЗАВЕРШЕНИЯ ───
+let currentMood = 0; // Переменная для хранения выбранного настроения
+
 function showCompleteOverlay(practice,context){
   // ─── ОСТАНАВЛИВАЕМ МУЗЫКУ И ГОЛОС ───
   stopMusic(); 
   if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
+  
+  // Генерируем смайлики
+  currentMood = 0;
+  const moodWrap = document.getElementById('moodTrackerContainer');
+  if (moodWrap) {
+    moodWrap.innerHTML = MOODS.map((svg, i) => `
+      <div onclick="setMood(${i+1}, this)" class="mood-smiley" style="width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(255,255,255,0.05); border:1px solid var(--d-border); cursor:pointer; transition:0.2s; color:var(--d-text-dim);">
+        ${svg}
+      </div>
+    `).join('');
+  }
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   // Сброс звезд
   currentPracticeRating = 0;
@@ -3431,6 +3473,17 @@ async function completePracticeDone(){
     closePractice();
     finishRitual(true);
   }
+    // Сохраняем настроение в БД
+  if (currentMood > 0 && practice) {
+    sb.from('moods').insert({
+      user_id: user.id,
+      practice_id: practice.id,
+      book_id: currentBook ? currentBook.id : 'general',
+      mood: currentMood,
+      date: todayStr()
+    }).then(() => console.log('Mood saved'));
+  }
+
   // Сохраняем оценку в БД и обновляем её в памяти
   if (currentPracticeRating > 0 && practice) {
     sb.from('practice_ratings').upsert({
@@ -3825,6 +3878,10 @@ function closeAndgerConfirm(accepted = false) {
       document.getElementById('profileSubsCount').textContent = subs || 0;
       document.getElementById('profileSubscribersCount').textContent = fans || 0;
     } catch(e) { console.error('Ошибка загрузки подписок', e); }
+
+    syncGodModeUI();
+        // Загружаем график настроения
+    loadMoodChart();
 
     syncGodModeUI();
 
@@ -4378,16 +4435,43 @@ function switchCommunityTab(tab,el){
   else if(tab==='chats')loadChats();
   else loadPeople();
 }
+let rankFilter = 'all';
+let feedFilter = 'all'; // 'all' или 'friends'
+
+function toggleFeedFilter() {
+  feedFilter = feedFilter === 'all' ? 'friends' : 'all';
+  const btn = document.getElementById('feedFilterBtn');
+  if (btn) {
+    btn.classList.toggle('on', feedFilter === 'friends');
+    btn.textContent = feedFilter === 'friends' ? '🌍 Весь мир' : '👥 Только друзья';
+  }
+  playClick();
+  loadFeed();
+}
 
 async function loadFeed(){
   const feedList = document.getElementById('feedList');
   if (!feedList) return;
+  renderChallenge(); 
 
   feedList.innerHTML = `
     <div class="d-card-glass" style="height:100px; animation: shimmer 2s infinite linear;"></div>
     <div class="d-card-glass" style="height:120px; animation: shimmer 2s infinite linear;"></div>
   `;
-  const{data,error}=await sb.from('messages').select('*').eq('room','feed').order('created_at',{ascending:false}).limit(50);
+  
+  let query = sb.from('messages').select('*').eq('room','feed');
+  
+  if (feedFilter === 'friends') {
+    const { data: fData } = await sb.from('friends').select('friend_id').eq('user_id', user.id);
+    let friendIds = (fData || []).map(f => f.friend_id);
+    friendIds.push(user.id); // Свои посты тоже показываем
+    
+    if (friendIds.length > 0) {
+      query = query.in('user_id', friendIds);
+    }
+  }
+
+  const {data, error} = await query.order('created_at',{ascending:false}).limit(50);
   
   if(error || !data || !data.length){
     feedList.innerHTML = `
@@ -4929,11 +5013,18 @@ async function loadPeople(){
       else if(u.xp >= 100) u.lvl = 2;
     });
 
-    // 1. Собираем всех (включая себя) и сортируем. Если XP равны, выше тот, у кого больше огня.
-    const list = Object.values(userStats).sort((a, b) => {
+        // 1. Собираем всех и сортируем
+    let list = Object.values(userStats).sort((a, b) => {
       if (b.xp !== a.xp) return b.xp - a.xp;
       return b.fire - a.fire;
     });
+
+    // Фильтрация по друзьям
+    if (rankFilter === 'friends') {
+      const { data: fData } = await sb.from('friends').select('friend_id').eq('user_id', user.id);
+      const friendIds = (fData || []).map(f => f.friend_id);
+      list = list.filter(p => friendIds.includes(p.id) || p.id === user.id);
+    }
 
     if(!list.length){
       el.innerHTML = `
@@ -5758,6 +5849,7 @@ function openPracticeEditor(index) {
   document.getElementById('peIcoInp').value = p?.ico || 'brain';
   
   // Новые поля
+  document.getElementById('peTriggerInp').value = p?.trigger || '';
   document.getElementById('peIdentityInp').value = p?.identity || '';
   document.getElementById('peMicroActionInp').value = p?.micro_action || '';
   document.getElementById('peJournalPromptInp').value = p?.journal_prompt || '';
@@ -5804,7 +5896,8 @@ function savePracticeEditor() {
   const sub = document.getElementById('peSubInp').value.trim();
   const ico = document.getElementById('peIcoInp').value.trim() || 'brain';
   
-  // Новые поля
+    // Новые поля
+  const trigger = document.getElementById('peTriggerInp').value.trim();
   const identity = document.getElementById('peIdentityInp').value.trim();
   const micro_action = document.getElementById('peMicroActionInp').value.trim();
   const journal_prompt = document.getElementById('peJournalPromptInp').value.trim();
@@ -5841,7 +5934,8 @@ function savePracticeEditor() {
   const p = {
     id: editingPracticeIndex >= 0 ? (window._tempPractices[editingPracticeIndex].id || 'practice-' + Date.now()) : 'practice-' + Date.now(),
     title, time: timeMins * 60, sub, ico, 
-    identity,        
+    trigger,           
+    identity,                
     micro_action,      
     journal_prompt,    
     why, how, result, mistakes, advice,
@@ -5933,8 +6027,15 @@ function renderAdminBookList(list) {
 
   let html = '';
   
-  // 2. Рисуем папки
-  Object.keys(grouped).forEach((catName) => {
+  // 2. Сортируем папки: "В разработке" всегда первая
+  const sortedCategories = Object.keys(grouped).sort((a, b) => {
+    if (a === '__DRAFTS__') return -1; // Если A - черновики, ставим в начало
+    if (b === '__DRAFTS__') return 1;  // Если B - черновики, ставим в начало
+    return 0; // Остальные оставляем в текущем порядке
+  });
+
+  // 3. Рисуем папки (используем отсортированный массив)
+  sortedCategories.forEach((catName) => {
     const isDraftFolder = catName === '__DRAFTS__';
     const displayCatName = isDraftFolder ? 'В разработке' : catName;
 
@@ -7036,7 +7137,6 @@ async function deleteBookFromEditor(){
     toast('Ошибка удаления: ' + e.message, 'danger');
   }
 }
-
 function parseSmartJson() {
   const raw = document.getElementById('edSmartJson').value.trim();
   if(!raw) return;
@@ -7048,38 +7148,48 @@ function parseSmartJson() {
     
     const data = JSON.parse(jsonStr.trim());
     
-    // Заполняем основные поля книги
-    if(data.title) document.getElementById('edTitle').value = data.title;
-    if(data.author) document.getElementById('edAuthor').value = data.author;
-    if(data.emoji) document.getElementById('edEmoji').value = data.emoji;
-    if(data.icon) document.getElementById('edEmoji').value = data.icon; // На случай если ИИ использует "icon"
-    if(data.days) document.getElementById('edDays').value = data.days;
-    if(data.category) document.getElementById('edCategory').value = data.category;
-    if(data.about) document.getElementById('edAbout').value = data.about;
+    // УМНЫЙ ПАРСЕР: понимает любые вариации ключей от ИИ
+    const setVal = (id, val) => { 
+      const el = document.getElementById(id);
+      if (el && val !== undefined && val !== null && val !== '') {
+        el.value = val; 
+        console.log(`✅ Поле ${id} заполнено.`);
+      } else {
+        console.warn(`⚠️ Поле ${id} не найдено или данные пустые.`);
+      }
+    };
+
+    setVal('edTitle', data.title);
+    setVal('edAuthor', data.author);
+    setVal('edEmoji', data.emoji || data.icon || '📖');
+    setVal('edDays', data.days || 21);
+    setVal('edCategory', data.category || 'Разное');
+    setVal('edAbout', data.about || data.description);
+    setVal('edMethod', Array.isArray(data.method) ? data.method.join(', ') : data.method);
+    setVal('edResult', data.result || data.outcome);
     
-    if(data.method) document.getElementById('edMethod').value = Array.isArray(data.method) ? data.method.join(', ') : data.method;
-    if(data.authorBio) document.getElementById('edAuthorBio').value = data.authorBio;
-    if(data.forWhom) document.getElementById('edForWhom').value = data.forWhom;
-    if(data.result) document.getElementById('edResult').value = data.result;
+    // Жесткий поиск полей, которые ИИ любит переименовывать
+    setVal('edAuthorBio', data.authorBio || data.author_bio || data.authorInfo || data.author);
+    setVal('edForWhom', data.forWhom || data.for_whom || data.targetAudience || data.audience);
     
-    // ЧИТАЕМ ССЫЛКУ НА ОБЛОЖКУ
-    if(data.cover_url) document.getElementById('edCoverUrl').value = data.cover_url;
+    // Заполняем ссылку на обложку, если она есть
+    setVal('edCoverUrl', data.cover_url || data.coverUrl || data.image);
     
-    // Заполняем практики в НАШУ НОВУЮ ПЕРЕМЕННУЮ
+    // Заполняем практики
     if(Array.isArray(data)) {
       window._tempPractices = data;
     } else if(data.practices) {
       window._tempPractices = data.practices;
     }
-    renderAdminPracticesList(); // Перерисовываем визуальный список
+    renderAdminPracticesList(); 
     
     if(data.quotes) window._tempQuotes = data.quotes;
     
     toast('✅ Данные распознаны!');
-    document.getElementById('edSmartJson').value = ''; // Очищаем поле
+    document.getElementById('edSmartJson').value = ''; 
   } catch(e) {
     toast('Ошибка парсинга JSON. Проверь текст.', 'danger');
-    console.error(e);
+    console.error('❌ Ошибка парсинга:', e);
   }
 }
 // ─── УМНЫЙ СБРОС ПРОГРЕССА ───
@@ -7821,7 +7931,7 @@ function applyShields(bookId) {
   }
 }
 // ─── ГЕНЕРАТОР СТОРИС ───
-function openShareStory() {
+function openShareStory(bookId = null) {
   // 1. Собираем данные
   let maxStreak = 0;
   let totalPractices = 0;
@@ -7835,6 +7945,20 @@ function openShareStory() {
       if (rec.practices) totalPractices += rec.practices.length;
     });
   });
+
+  // Проверяем, есть ли книга для отображения
+  const badge = document.getElementById('storyBookBadge');
+  if (badge) {
+    if (bookId) {
+      const b = BOOKS.find(x => x.id === bookId);
+      if (b) {
+        badge.textContent = `🏆 Пройдено: «${b.title}»`;
+        badge.style.display = 'block';
+      }
+    } else {
+      badge.style.display = 'none';
+    }
+  }
 
   // Получаем уровень
   const stats = getGlobalStats();
@@ -8776,6 +8900,13 @@ async function loadAdminFeedbacks() {
 }
 function buildPracticeHtml(p) {
   return `
+    <!-- Блок Триггера (Якоря) -->
+    ${p.trigger ? `
+    <div class="d-card-glass" style="margin-bottom: 12px; background: rgba(255,184,0,0.08); border-color: rgba(255,184,0,0.3); padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+      <div style="font-size: 24px;">⚓</div>
+      <div style="font-size: 13px; font-weight: 700; color: var(--d-gold); line-height: 1.4;">${escapeHtml(p.trigger)}</div>
+    </div>` : ''}
+
     <!-- Блок Идентичности -->
     ${p.identity ? `
     <div class="d-card-glass" style="margin-bottom: 12px; background: linear-gradient(135deg, rgba(124,92,255,0.15), transparent); border-color: rgba(124,92,255,0.3); padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
@@ -9102,5 +9233,326 @@ async function exportAllBooks() {
   } catch (e) {
     console.error(e);
     toast('Ошибка экспорта', 'danger');
+  }
+}
+function setMood(moodValue, el) {
+  currentMood = moodValue;
+  document.querySelectorAll('.mood-smiley').forEach(s => {
+    s.style.background = 'rgba(255,255,255,0.05)';
+    s.style.borderColor = 'var(--d-border)';
+    s.style.color = 'var(--d-text-dim)';
+    s.style.transform = 'scale(1)';
+  });
+  el.style.background = 'rgba(124,92,255,0.2)';
+  el.style.borderColor = 'var(--d-accent)';
+  el.style.color = 'var(--d-text)';
+  el.style.transform = 'scale(1.1)';
+  playClick();
+}
+  // Устанавливаем бейдж на иконку приложения (iOS 16.4+)
+  if ('setAppBadge' in navigator) {
+    const unreadCount = notifications.filter(n => !n.read).length;
+    const totalBadge = unreadCount + (isDayClosed ? 0 : 1); // +1 если день не закрыт
+    if (totalBadge > 0) {
+      navigator.setAppBadge(totalBadge).catch(()=>{});
+    } else {
+      navigator.clearAppBadge().catch(()=>{});
+    }
+  }
+  function completeMicroAction(bookId, practiceId) {
+  const day = currentDay(bookId);
+  const date = dateByDay(bookId, day);
+  const bs = getBookState(bookId);
+  
+  if (!bs.days[date]) bs.days[date] = { practices: [] };
+  bs.days[date].microActionDone = true; // Помечаем, что сделано
+  
+  saveState();
+  playSuccess();
+  haptic('success');
+  toast('🚀 +5 XP за микро-действие!');
+  
+  renderToday(); // Перерисовываем экран
+}
+function showBookCompleteSuccess(bookId) {
+  const b = BOOKS.find(x => x.id === bookId);
+  if (!b) return showReviewModal(bookId);
+
+  showSimpleModal('👑', 'Книга пройдена!', `Ты завершил курс «${b.title}». Это огромный шаг!`);
+  
+  // Добавляем кнопки в модалку
+  document.getElementById('modalAchList').innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+      <button class="d-btn-primary" style="background:linear-gradient(135deg, #ffb800, #ff7a2a); box-shadow:0 6px 20px rgba(255,184,0,0.4);" onclick="document.getElementById('modal').classList.add('hidden'); openShareStory('${bookId}');">📸 Поделиться успехом</button>
+      <button class="d-btn-secondary" onclick="document.getElementById('modal').classList.add('hidden'); showReviewModal('${bookId}');">✍️ Оставить отзыв</button>
+    </div>
+  `;
+  
+  // Скрываем стандартную кнопку "Продолжить", чтобы не мешала
+  const btn = document.querySelector('#modal .modal-box > button.d-btn-primary');
+  if (btn) btn.style.display = 'none';
+  
+  fireConfetti();
+  playFanfare();
+}
+
+// Обновляем стандартную модалку, чтобы кнопка "Продолжить" возвращалась для других окон
+function showSimpleModal(emoji,title,text){
+  document.getElementById('modalEmoji').textContent=emoji;
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalText').textContent=text;
+  document.getElementById('modalAchList').innerHTML='';
+  
+  const btn = document.querySelector('#modal .modal-box > button.d-btn-primary');
+  if (btn) btn.style.display = 'flex'; // Возвращаем видимость
+  
+  document.getElementById('modal').classList.remove('hidden');
+}
+function toggleRankFilter() {
+  rankFilter = rankFilter === 'all' ? 'friends' : 'all';
+  const btn = document.getElementById('rankFilterBtn');
+  if (btn) {
+    btn.classList.toggle('on', rankFilter === 'friends');
+    btn.textContent = rankFilter === 'friends' ? '🌍 Все участники' : '👥 Только друзья';
+  }
+  playClick();
+  loadPeople();
+}
+function showWeeklyReview() {
+  const content = document.getElementById('weeklyReviewContent');
+  if(!content) return;
+  content.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Сбор данных...</div>';
+  
+  document.getElementById('weeklyReviewModal').classList.remove('hidden');
+
+  // Берем последние 7 дней
+  let totalClosed = 0;
+  let totalPractices = 0;
+  let totalXP = 0;
+  let totalTime = 0; // в минутах
+  let daysData = [];
+  
+  const today = new Date();
+  const dow = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const dateStr = localDate(d);
+    
+    let dayPractices = 0;
+    let dayClosed = false;
+    let dayTime = 0;
+
+    BOOKS.forEach(b => {
+      const bs = getBookState(b.id);
+      const rec = bs.days[dateStr];
+      if (rec) {
+        if (rec.closed) dayClosed = true;
+        if (rec.practices) {
+          dayPractices += rec.practices.length;
+          rec.practices.forEach(pid => {
+            const p = b.practices.find(x => x.id === pid);
+            if(p && p.time) dayTime += p.time;
+          });
+        }
+      }
+    });
+
+    if (dayClosed) totalClosed++;
+    totalPractices += dayPractices;
+    totalTime += dayTime;
+    totalXP += (dayPractices * 10) + (dayClosed ? 50 : 0);
+
+    daysData.push({
+      label: dow[d.getDay()],
+      date: d.getDate(),
+      practices: dayPractices,
+      closed: dayClosed
+    });
+  }
+
+  const totalMins = Math.round(totalTime / 60);
+
+  // Строим красивый HTML-отчет
+  let html = `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+      <div class="d-card-glass" style="padding:16px; text-align:center; border-color:var(--d-accent);">
+        <div style="font-size:28px; font-weight:900; color:var(--d-accent-2); line-height:1;">${totalPractices}</div>
+        <div style="font-size:10px; color:var(--muted); font-weight:800; text-transform:uppercase; margin-top:4px;">Практик</div>
+      </div>
+      <div class="d-card-glass" style="padding:16px; text-align:center; border-color:var(--d-gold);">
+        <div style="font-size:28px; font-weight:900; color:var(--d-gold); line-height:1;">+${totalXP}</div>
+        <div style="font-size:10px; color:var(--muted); font-weight:800; text-transform:uppercase; margin-top:4px;">Опыта</div>
+      </div>
+      <div class="d-card-glass" style="padding:16px; text-align:center; border-color:var(--d-success);">
+        <div style="font-size:28px; font-weight:900; color:var(--d-success); line-height:1;">${totalClosed}</div>
+        <div style="font-size:10px; color:var(--muted); font-weight:800; text-transform:uppercase; margin-top:4px;">Дней закрыто</div>
+      </div>
+      <div class="d-card-glass" style="padding:16px; text-align:center; border-color:var(--d-warm);">
+        <div style="font-size:28px; font-weight:900; color:var(--d-warm); line-height:1;">${totalMins}<span style="font-size:14px;">м</span></div>
+        <div style="font-size:10px; color:var(--muted); font-weight:800; text-transform:uppercase; margin-top:4px;">Времени</div>
+      </div>
+    </div>
+
+    <div style="font-size:11px; font-weight:900; color:var(--muted); text-transform:uppercase; margin-bottom:10px;">Активность по дням</div>
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; height:120px; background:rgba(255,255,255,0.02); padding:10px; border-radius:16px; border:1px solid var(--border);">
+  `;
+
+  // Находим максимум для графика, чтобы столбики были пропорциональными
+  const maxPractices = Math.max(...daysData.map(d => d.practices), 1);
+
+  daysData.forEach(d => {
+    const heightPct = Math.max((d.practices / maxPractices) * 100, 5); // минимум 5% чтобы было видно
+    const color = d.closed ? 'var(--d-success)' : (d.practices > 0 ? 'var(--d-accent)' : 'rgba(255,255,255,0.05)');
+    
+    html += `
+      <div style="display:flex; flex-direction:column; align-items:center; gap:6px; flex:1;">
+        <div style="font-size:10px; font-weight:800; color:var(--d-text);">${d.practices > 0 ? d.practices : ''}</div>
+        <div style="width:100%; max-width:20px; height:${heightPct}%; background:${color}; border-radius:6px 6px 0 0; transition:height 0.5s; box-shadow: ${d.closed ? '0 0 10px rgba(62,207,142,0.4)' : 'none'};"></div>
+        <div style="font-size:9px; color:var(--muted); font-weight:800;">${d.label}</div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  // Мотивационный текст
+  if (totalClosed >= 5) {
+    html += `<div style="margin-top:16px; padding:12px; background:rgba(62,207,142,0.1); border:1px solid rgba(62,207,142,0.3); border-radius:12px; text-align:center; font-size:13px; color:var(--d-text); font-weight:700;">🔥 Отличная неделя! Ты закрыл ${totalClosed} дней. Так держать!</div>`;
+  } else if (totalClosed > 0) {
+    html += `<div style="margin-top:16px; padding:12px; background:rgba(124,92,255,0.1); border:1px solid rgba(124,92,255,0.3); border-radius:12px; text-align:center; font-size:13px; color:var(--d-text); font-weight:700;">💪 Неплохо! ${totalClosed} дней в копилке. На следующей неделе сделаем больше?</div>`;
+  } else {
+    html += `<div style="margin-top:16px; padding:12px; background:rgba(255,154,86,0.1); border:1px solid rgba(255,154,86,0.3); border-radius:12px; text-align:center; font-size:13px; color:var(--d-text); font-weight:700;">🌱 Новая неделя — новый шанс! Начни с одной практики сегодня.</div>`;
+  }
+
+  content.innerHTML = html;
+}
+function renderChallenge() {
+  const banner = document.getElementById('challengeBanner');
+  const streakEl = document.getElementById('challengeStreak');
+  const bar = document.getElementById('challengeBar');
+  const titleEl = document.getElementById('challengeTitle');
+  const btn = document.getElementById('challengeBtn');
+  
+  if(!banner || !streakEl || !bar || !titleEl || !btn) return;
+
+  // Проверяем, участвует ли человек в марафоне (сохраняем в localStorage)
+  const isJoined = localStorage.getItem('andger_challenge_joined') === 'true';
+
+  // Ищем максимальный огонь по всем книгам
+  let maxStreak = 0;
+  if (typeof BOOKS !== 'undefined' && BOOKS.length) {
+    BOOKS.forEach(b => {
+      const s = calcStreak(b.id);
+      if (s > maxStreak) maxStreak = s;
+    });
+  }
+
+  // Показываем баннер всегда, если это первый день или если участвуем
+  banner.style.display = 'block';
+  streakEl.textContent = maxStreak;
+  
+  const pct = Math.min(100, Math.round((maxStreak / 7) * 100));
+  bar.style.width = pct + '%';
+
+  if (maxStreak >= 7) {
+    titleEl.innerHTML = '🏆 Марафон пройден! Ты легенда!';
+    titleEl.style.color = 'var(--d-success)';
+    bar.style.background = 'linear-gradient(90deg, var(--d-success), #2ea870)';
+    btn.style.display = 'none'; // Прячем кнопку, если уже победил
+  } else {
+    titleEl.innerHTML = isJoined ? '🏆 Марафон: 7 дней силы' : '🏆 Брось себе вызов!';
+    titleEl.style.color = 'var(--d-gold)';
+    bar.style.background = 'linear-gradient(90deg, var(--d-warm), var(--d-gold))';
+    
+    if (isJoined) {
+      btn.style.display = 'none'; // Если участвует, кнопка не нужна
+    } else {
+      btn.style.display = 'block'; // Если не участвует, показываем кнопку
+    }
+  }
+}
+
+function joinChallenge() {
+  localStorage.setItem('andger_challenge_joined', 'true');
+  playSuccess();
+  toast('🔥 Вызов принят! Держи огонь 7 дней!');
+  renderChallenge(); // Перерисовываем баннер
+}
+async function loadMoodChart() {
+  const chartEl = document.getElementById('moodChart');
+  const avgEl = document.getElementById('moodAvg');
+  if(!chartEl || !user) return;
+
+  chartEl.innerHTML = '<div style="color:var(--d-muted); font-size:11px; margin:auto;">Загрузка...</div>';
+
+  try {
+    // Берем настроения за последние 7 дней
+    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+    const { data: moods } = await sb.from('moods')
+      .select('mood, date')
+      .eq('user_id', user.id)
+      .gte('date', weekAgo.split('T')[0])
+      .order('date', {ascending: true});
+
+    if (!moods || moods.length === 0) {
+      chartEl.innerHTML = '<div style="color:var(--d-muted); font-size:11px; margin:auto; text-align:center;">Пока нет данных.<br>Оценивай практики смайликами!</div>';
+      if (avgEl) avgEl.textContent = '—';
+      return;
+    }
+
+    // Группируем по дням (среднее за день)
+    const byDay = {};
+    moods.forEach(m => {
+      if (!byDay[m.date]) byDay[m.date] = [];
+      byDay[m.date].push(m.mood);
+    });
+
+    // Строим массив за 7 дней
+    const days = [];
+    const dayNames = ['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = localDate(d);
+      const arr = byDay[dateStr] || [];
+      const avg = arr.length ? (arr.reduce((s,v) => s+v, 0) / arr.length) : 0;
+      days.push({ date: dateStr, avg, label: dayNames[d.getDay()] });
+    }
+
+    // Средний балл за неделю
+    const validDays = days.filter(d => d.avg > 0);
+    const weekAvg = validDays.length ? (validDays.reduce((s,d) => s+d.avg, 0) / validDays.length) : 0;
+
+    if (avgEl) {
+      if (weekAvg > 0) {
+        const moodEmoji = weekAvg >= 4.5 ? '😍' : weekAvg >= 3.5 ? '😊' : weekAvg >= 2.5 ? '😐' : '😔';
+        avgEl.innerHTML = `${moodEmoji} ${weekAvg.toFixed(1)} / 5`;
+      } else {
+        avgEl.textContent = '—';
+      }
+    }
+
+    // Рисуем столбики
+    chartEl.innerHTML = days.map(d => {
+      const heightPct = d.avg > 0 ? (d.avg / 5) * 100 : 4;
+      let color = 'rgba(255,255,255,0.05)';
+      if (d.avg >= 4) color = 'linear-gradient(180deg, #3ecf8e, #2ea870)';
+      else if (d.avg >= 3) color = 'linear-gradient(180deg, #ffb800, #ff9d00)';
+      else if (d.avg >= 2) color = 'linear-gradient(180deg, #ff9d00, #ff7a2a)';
+      else if (d.avg > 0) color = 'linear-gradient(180deg, #ff5c5c, #cc4444)';
+
+      return `
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end;">
+          <div style="width:100%; max-width:24px; height:${heightPct}%; background:${color}; border-radius:6px 6px 0 0; transition:height 0.6s;"></div>
+          <div style="font-size:9px; color:var(--d-muted); font-weight:800;">${d.label}</div>
+        </div>
+      `;
+    }).join('');
+
+  } catch(e) {
+    console.error('Mood chart error:', e);
+    chartEl.innerHTML = '<div style="color:var(--d-muted); font-size:11px; margin:auto;">Нет данных</div>';
   }
 }

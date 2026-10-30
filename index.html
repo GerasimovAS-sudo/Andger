@@ -31,6 +31,22 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="manifest" href="manifest.json">
   <title>ANDGER</title>
+  <meta name="yandex-verification" content="d778ff1fd8f717d1" />
+  
+  <!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=113911907', 'ym');
+
+    ym(113911907, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/113911907" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -239,6 +255,17 @@
         
         <!-- 1. Календарь -->
         <div class="d-calendar-strip" id="weekCalendar" style="margin-bottom: 0;"></div>
+                <!-- Микро-действие на день -->
+        <div id="microActionWidget" class="d-card-glass" style="display:none; padding:16px; background:linear-gradient(135deg, rgba(62, 207, 142, 0.1), rgba(25, 18, 45, 0.8)); border-color:rgba(62, 207, 142, 0.3); margin-bottom: 0;">
+          <div style="display:flex; align-items:flex-start; gap:12px;">
+            <div style="font-size:24px; filter:drop-shadow(0 0 10px rgba(62,207,142,0.5));">🚀</div>
+            <div style="flex:1;">
+              <div style="font-size:11px; font-weight:900; color:var(--d-success); text-transform:uppercase; margin-bottom:4px;">Сделай прямо сейчас</div>
+              <div id="microActionText" style="font-size:13px; font-weight:700; color:#fff; line-height:1.4; margin-bottom:12px;"></div>
+              <button id="microActionBtn" class="d-btn-secondary" style="margin:0; width:auto; padding:8px 16px; height:auto; font-size:12px; border-color:var(--d-success); color:var(--d-success);">✓ Выполнено (+5 XP)</button>
+            </div>
+          </div>
+        </div>
            
         <!-- 2. Текущая книга / Фокус дня -->
         <div class="d-focus-card" style="margin-bottom: 0; padding: 12px; width: 100%; box-sizing: border-box;">
@@ -593,14 +620,36 @@
           <div class="tab-pill" onclick="switchCommunityTab('people', this)">🏆 Рейтинг</div>
         </div>
 
-        <!-- Контент -->
+                <!-- Контент -->
         <div id="communityFeed">
+          <!-- БАННЕР ЧЕЛЛЕНДЖА -->
+          <div id="challengeBanner" class="d-card-glass" style="display:none; padding:16px; margin-bottom:16px; background:linear-gradient(135deg, rgba(255,184,0,0.15), rgba(25,18,45,0.8)); border-color:rgba(255,184,0,0.4);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-size:14px; font-weight:900; color:var(--d-gold);" id="challengeTitle">🏆 Марафон: 7 дней силы</div>
+                <div style="font-size:11px; color:var(--d-text-dim); margin-top:2px;">Твой текущий огонь: <b id="challengeStreak">0</b> / 7 дней</div>
+              </div>
+              <div style="font-size:24px;">🔥</div>
+            </div>
+            <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:4px; margin-top:12px; overflow:hidden;">
+              <div id="challengeBar" style="height:100%; width:0%; background:linear-gradient(90deg, var(--d-warm), var(--d-gold)); border-radius:4px; transition:0.5s;"></div>
+            </div>
+            <button class="d-btn-secondary" id="challengeBtn" onclick="joinChallenge()" style="margin-top:12px; width:100%; height:36px; font-size:12px; border-color:var(--d-gold); color:var(--d-gold);">Принять вызов 🔥</button>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+            <div class="d-lib-chip" id="feedFilterBtn" onclick="toggleFeedFilter()" style="cursor:pointer;">👥 Только друзья</div>
+          </div>
           <div id="feedList" style="display:flex; flex-direction:column; gap:10px;"></div>
         </div>
+        
         <div id="communityChats" class="hidden">
           <div id="chatsList" style="display:flex; flex-direction:column; gap:8px;"></div>
         </div>
         <div id="communityPeople" class="hidden">
+          <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+            <div class="d-lib-chip" id="rankFilterBtn" onclick="toggleRankFilter()" style="cursor:pointer;">👥 Только друзья</div>
+          </div>
           <div id="leadersList"></div>
         </div>
       </div>
@@ -656,12 +705,34 @@
               <div style="width:36px; height:36px; border-radius:12px; background:var(--d-accent); display:flex; align-items:center; justify-content:center; color:#fff;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
               </div>
-              <div>
+                            <div>
                 <div style="font-size:14px; font-weight:900; color:var(--d-text);">Моя статистика</div>
                 <div style="font-size:11px; color:var(--d-text-dim);">Уровни, огонь, награды и книги</div>
               </div>
             </div>
             <div style="color:var(--d-accent-2); font-size:20px;">›</div>
+          </div>
+          
+          <div onclick="showWeeklyReview()" style="background: linear-gradient(135deg, rgba(62,207,142,0.15), rgba(255,154,86,0.1)); border: 1px solid var(--d-success); border-radius: 16px; padding: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(62,207,142,0.1);">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="width:36px; height:36px; border-radius:12px; background:var(--d-success); display:flex; align-items:center; justify-content:center; color:#fff;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              </div>
+              <div>
+                <div style="font-size:14px; font-weight:900; color:var(--d-text);">Моя неделя</div>
+                <div style="font-size:11px; color:var(--d-text-dim);">Отчет за последние 7 дней</div>
+              </div>
+            </div>
+                        <div style="color:var(--d-success); font-size:20px;">›</div>
+          </div>
+
+          <!-- ГРАФИК НАСТРОЕНИЯ -->
+          <div class="d-card-glass" style="padding:16px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <div style="font-size:11px; font-weight:900; color:var(--d-muted); text-transform:uppercase; letter-spacing:1px;">😊 Настроение за 7 дней</div>
+              <div id="moodAvg" style="font-size:11px; font-weight:800; color:var(--d-accent-2);">—</div>
+            </div>
+            <div id="moodChart" style="display:flex; justify-content:space-between; align-items:flex-end; height:80px; gap:6px;"></div>
           </div>
           
           <div onclick="showPremium()" style="background:linear-gradient(135deg, rgba(255,184,0,0.15), rgba(255,122,42,0.05)); border:1px solid rgba(255,184,0,0.3); border-radius:16px; padding:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; margin-bottom:12px;">
@@ -1332,12 +1403,20 @@
             <!-- Оценка практики -->
           <div style="margin-bottom: 16px;">
             <div style="font-size: 12px; color: var(--d-text-dim); margin-bottom: 8px;">Оцени практику:</div>
-            <div id="practiceStarsContainer" style="display: flex; justify-content: center; gap: 8px;">
+                        <div id="practiceStarsContainer" style="display: flex; justify-content: center; gap: 8px;">
               <span onclick="setPracticeRating(1)" class="p-star" style="font-size: 32px; cursor: pointer; color: var(--border); transition: 0.2s;">★</span>
               <span onclick="setPracticeRating(2)" class="p-star" style="font-size: 32px; cursor: pointer; color: var(--border); transition: 0.2s;">★</span>
               <span onclick="setPracticeRating(3)" class="p-star" style="font-size: 32px; cursor: pointer; color: var(--border); transition: 0.2s;">★</span>
               <span onclick="setPracticeRating(4)" class="p-star" style="font-size: 32px; cursor: pointer; color: var(--border); transition: 0.2s;">★</span>
               <span onclick="setPracticeRating(5)" class="p-star" style="font-size: 32px; cursor: pointer; color: var(--border); transition: 0.2s;">★</span>
+            </div>
+          </div>
+          
+          <!-- ТРЕКЕР НАСТРОЕНИЯ -->
+          <div style="margin-bottom: 16px;">
+            <div style="font-size: 12px; color: var(--d-text-dim); margin-bottom: 8px;">Как ты себя чувствуешь?</div>
+            <div id="moodTrackerContainer" style="display: flex; justify-content: center; gap: 12px;">
+              <!-- Сюда JS вставит смайлики -->
             </div>
           </div>
             <textarea id="completeNoteInput" placeholder="Что ты осознал? Запиши мысль в дневник..." style="width:100%; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:12px; color:#f5f4fa; font-size:14px; min-height:100px; resize:vertical;"></textarea>
@@ -1442,8 +1521,11 @@
             <!-- Логотип -->
             <div style="z-index: 1; font-size: 14px; font-weight: 900; letter-spacing: 4px; color: rgba(255,255,255,0.3); margin-bottom: auto;">ANDGER</div>
 
-            <!-- Профиль -->
+                        <!-- Профиль -->
             <div style="z-index: 1; display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
+              
+              <div id="storyBookBadge" style="display: none; font-size: 12px; font-weight: 900; color: #ffb800; margin-bottom: 12px; text-align: center; background: rgba(255,184,0,0.1); padding: 6px 16px; border-radius: 100px; border: 1px solid rgba(255,184,0,0.4);">Книга пройдена!</div>
+
               <div id="storyAvatar" style="width: 90px; height: 90px; border-radius: 28px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border: 2px solid var(--d-accent); margin-bottom: 16px; box-shadow: 0 0 30px rgba(124,92,255,0.4);"></div>
               <div id="storyName" style="font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 8px; text-align: center;">Имя</div>
               <div id="storyLevel" style="font-size: 11px; font-weight: 800; color: var(--d-warm); background: rgba(255,154,86,0.1); padding: 6px 16px; border-radius: 100px; border: 1px solid rgba(255,154,86,0.3);">
@@ -1598,6 +1680,10 @@
             <input type="number" id="peSpeedInp" step="0.1" min="0.5" max="2.0" placeholder="1.0">
           </div>
           </div>
+                    <div class="field">
+            <label>Якорь (К чему привязать?)</label>
+            <input type="text" id="peTriggerInp" placeholder="Например: После утреннего кофе">
+          </div>
           <div class="field"><label>Идентичность (Я — тот, кто...)</label><input type="text" id="peIdentityInp" placeholder="Я — тот, кто управляет своим вниманием"></div>
           <div class="field"><label>Микро-действие (Сделай прямо сейчас)</label><input type="text" id="peMicroActionInp" placeholder="Сделай 10 приседаний"></div>
           <div class="field"><label>Вопрос в дневник</label><textarea id="peJournalPromptInp" rows="2" placeholder="Что ты почувствовал?"></textarea></div>
@@ -1707,6 +1793,21 @@
           <textarea id="feedbackInput" placeholder="Твои мысли..." style="width:100%; background:var(--d-surface-2); border:1px solid var(--d-border); border-radius:12px; padding:12px; color:var(--d-text); font-size:14px; min-height:120px; resize:vertical; margin-bottom:16px;"></textarea>
           <button class="d-btn-primary" onclick="submitFeedback()">Отправить</button>
           <button class="d-btn-secondary" onclick="document.getElementById('feedbackModal').classList.add('hidden')" style="margin-top:8px;">Отмена</button>
+        </div>
+      </div>
+            <!-- Модалка Еженедельного обзора -->
+      <div class="modal hidden" id="weeklyReviewModal">
+        <div class="modal-box" style="text-align:left; padding: 24px;">
+          <div style="text-align:center; margin-bottom:20px;">
+            <div style="font-size:40px; margin-bottom:8px;">📊</div>
+            <h2 style="font-size:20px; margin:0;">Твоя неделя</h2>
+          </div>
+          
+          <div id="weeklyReviewContent" style="margin-bottom:20px;">
+            <!-- Сюда JS вставит данные -->
+          </div>
+          
+          <button class="d-btn-primary" onclick="document.getElementById('weeklyReviewModal').classList.add('hidden')">Закрыть</button>
         </div>
       </div>
 
