@@ -6689,6 +6689,8 @@ function showDayStats(dateStr) {
   title.textContent = `${d.getDate()} ${months[d.getMonth()]}`;
 
   let totalPracticesDone = 0;
+  let totalTimeSpent = 0; // Считаем время
+  let totalXP = 0;        // Считаем опыт
   let booksHtml = '';
 
   BOOKS.forEach(b => {
@@ -6697,12 +6699,14 @@ function showDayStats(dateStr) {
     
     if (rec && rec.practices && rec.practices.length > 0) {
       totalPracticesDone += rec.practices.length;
+      totalXP += rec.practices.length * 10; // +10 XP за каждую
+      if (rec.closed) totalXP += 50;        // +50 XP за закрытый день
       
-      // Собираем выполненные практики
       let pListHtml = '';
       rec.practices.forEach(pid => {
         const p = b.practices.find(x => x.id === pid);
         if (p) {
+          totalTimeSpent += (p.time || 0); // Прибавляем время практики
           pListHtml += `
             <div style="display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px dashed rgba(255,255,255,0.05);">
               <div style="width:24px; height:24px; border-radius:8px; background:rgba(62,207,142,0.15); display:flex; align-items:center; justify-content:center; color:var(--d-success); font-size:12px; font-weight:900;">✓</div>
@@ -6715,7 +6719,6 @@ function showDayStats(dateStr) {
         }
       });
 
-      // Карточка книги: заголовок сворачивает/разворачивает список практик.
       const dayBookListId = `day-book-practices-${String(b.id).replace(/[^a-zA-Z0-9_-]/g, '-')}`;
       booksHtml += `
         <div class="d-card-glass day-book-card" style="margin-bottom:12px; padding:14px;">
@@ -6728,7 +6731,9 @@ function showDayStats(dateStr) {
               <div style="font-size:11px; color:var(--d-text-dim);">${escapeHtml(b.author || '')}</div>
             </div>
             ${rec.closed ? `<div style="background:var(--d-success); color:#fff; padding:4px 8px; border-radius:8px; font-size:10px; font-weight:900; box-shadow:0 0 10px rgba(62,207,142,0.4);">День закрыт</div>` : ''}
-            <span class="day-book-chevron" aria-hidden="true" style="margin-left:auto; color:var(--d-text-dim); transition:transform .2s;">⌄</span>
+            <span class="day-book-chevron" aria-hidden="true" style="margin-left:auto; color:var(--d-accent-2); transition:transform .2s; display:flex; align-items:center;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </span>
           </button>
           <div id="${dayBookListId}" class="day-book-practices">${pListHtml}</div>
         </div>
@@ -6748,14 +6753,30 @@ function showDayStats(dateStr) {
       </div>
     `;
   } else {
+    const minSpent = Math.round(totalTimeSpent / 60);
     finalHtml = `
-      <!-- Плашка со статистикой -->
-      <div style="background: linear-gradient(135deg, rgba(124,92,255,0.15), rgba(255,154,86,0.08)); border: 1px solid rgba(124,92,255,0.3); border-radius: 16px; padding: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-        <div>
-          <div style="font-size: 10px; font-weight: 800; color: var(--d-accent-2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Твой результат</div>
-          <div style="font-size: 24px; font-weight: 900; color: #fff; line-height: 1;">${totalPracticesDone} <span style="font-size: 14px; font-weight: 700; color: var(--d-text-dim);">практик</span></div>
+      <!-- НОВАЯ BENTO-ПЛАШКА С 3 КОЛОНКАМИ -->
+      <div class="d-card-glass" style="padding:16px; margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, rgba(124,92,255,0.15), rgba(25,18,45,0.8)); border-color: rgba(124,92,255,0.4);">
+        
+        <div style="text-align:center; flex:1;">
+          <div style="font-size:24px; font-weight:900; color:#fff; line-height:1;">${totalPracticesDone}</div>
+          <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px; letter-spacing:0.5px;">Практик</div>
         </div>
-        <div style="font-size: 32px; filter: drop-shadow(0 0 10px rgba(255,184,0,0.5));">🏆</div>
+        
+        <div style="width:1px; height:32px; background:rgba(255,255,255,0.1);"></div>
+        
+        <div style="text-align:center; flex:1;">
+          <div style="font-size:24px; font-weight:900; color:var(--d-gold); line-height:1; text-shadow:0 0 10px rgba(255,184,0,0.3);">+${totalXP}</div>
+          <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px; letter-spacing:0.5px;">Опыт</div>
+        </div>
+        
+        <div style="width:1px; height:32px; background:rgba(255,255,255,0.1);"></div>
+        
+        <div style="text-align:center; flex:1;">
+          <div style="font-size:24px; font-weight:900; color:var(--d-accent-2); line-height:1;">${minSpent}<span style="font-size:14px; font-weight:700;">м</span></div>
+          <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px; letter-spacing:0.5px;">Время</div>
+        </div>
+        
       </div>
       
       <!-- Список книг -->
