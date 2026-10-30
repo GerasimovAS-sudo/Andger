@@ -363,10 +363,11 @@ document.addEventListener('click',(e)=>{
 // ─── МУЗЫКА ───
 // Разделяем музыку по типам практик
 const MUSIC_TRACKS = {
-  default: ['assets/meditation.mp3'],
-  sport: ['assets/energy.mp3'], 
-  read: ['assets/focus.mp3'], 
-  silence: ['assets/meditation.mp3'] 
+  // Просто добавляй новые файлы через запятую
+  default: ['assets/music/meditation/meditation.mp3', 'assets/music/meditation/meditation-1.mp3'],
+  sport: ['assets/music/sport/sport.mp3', 'assets/music/sport/sport-1.mp3'], 
+  read: ['assets/music/focus/focus.mp3'], 
+  silence: ['assets/music/calm/calm-1.mp3'] 
 };
 let currentTrackIdx = 0;
 let currentPlaylist = [];
@@ -375,8 +376,8 @@ function startMusic(practiceId = 'default'){
   if(!musicAudio){
     musicAudio=new Audio();
     musicAudio.volume=0;
-    musicAudio.loop = true; // Музыка будет играть по кругу без остановки
-    // musicAudio.addEventListener('ended',nextTrack); // Больше не нужно, если стоит loop
+    musicAudio.loop = false; // Отключаем зацикливание одного трека
+    musicAudio.addEventListener('ended', nextTrack); // Включаем плавный переход к следующему
   }
   function resumeMusic(){
   if(state.soundMode === 'sound' && musicAudio && musicAudio.paused){
@@ -384,15 +385,18 @@ function startMusic(practiceId = 'default'){
   }
 }
   
-  // Умный выбор плейлиста по ключевым словам в ID практики
+  // Умный выбор плейлиста по ID практики или её названию
   const pid = (practiceId || '').toLowerCase();
-  
-  if (pid.includes('sport') || pid.includes('zaryadka') || pid.includes('action')) {
+  const activeP = currentPractice || (ritualQueue && ritualQueue[ritualIndex]);
+  const pTitle = activeP && activeP.title ? activeP.title.toLowerCase() : '';
+  const pSub = activeP && activeP.sub ? activeP.sub.toLowerCase() : '';
+  const searchStr = pid + ' ' + pTitle + ' ' + pSub;
+
+  if (searchStr.includes('sport') || searchStr.includes('зарядк') || searchStr.includes('спорт') || searchStr.includes('трениров') || searchStr.includes('action')) {
     currentPlaylist = MUSIC_TRACKS.sport;
-  } else if (pid.includes('read') || pid.includes('journal')) {
+  } else if (searchStr.includes('read') || searchStr.includes('чтени') || searchStr.includes('journal')) {
     currentPlaylist = MUSIC_TRACKS.read;
   } else {
-    // Для всего остального (тишина, аффирмации, визуализация, дыхание) — медитация
     currentPlaylist = MUSIC_TRACKS.silence; 
   }
 
@@ -1151,11 +1155,13 @@ async function loadProgress(){
 
 async function syncProgress(){
   if(!user||!state.books)return;
-  const rows=Object.keys(state.books).map(bookId=>({
-    user_id:user.id,book_id:bookId,
-    data:state.books[bookId],
-    updated_at:new Date().toISOString()
-  }));
+  const rows=Object.keys(state.books)
+    .filter(bookId => !bookId.startsWith('__preview_')) // <--- Игнорируем тестовые книги
+    .map(bookId=>({
+      user_id:user.id,book_id:bookId,
+      data:state.books[bookId],
+      updated_at:new Date().toISOString()
+    }));
   if(rows.length)await sb.from('progress').upsert(rows,{onConflict:'user_id,book_id'});
   
   await sb.from('profiles').update({
@@ -1339,7 +1345,13 @@ async function showCommunityScreen(){
 function showRitualBuilderScreen(){
   hideAll();
   document.getElementById('ritualBuilderScreen').classList.remove('hidden');
-  renderRitualBuilder();updateSoundUI();
+  
+  // Показываем нижнее меню, чтобы кнопка «Запустить» висела над ним
+  const nav = document.getElementById('bottomNav');
+  if(nav) {
+    nav.classList.remove('hidden');
+    nav.style.display = 'flex';
+  }
 }
 function backFromRitualBuilder(){smartHome()}
 
@@ -1522,21 +1534,22 @@ function toggleSound(){
   sb.from('profiles').update({ sound_on: state.soundOn, sound_mode: state.soundMode }).eq('id',user.id).then(()=>{});
 
   if (state.soundMode === 'sound') {
-    // Включение общего звука не должно само запускать музыку. Музыка запускается
-    // только явным стартом практики через toggleTimer()/startMusic().
     playClick();
     if (musicAudio) {
       if (musicAudio.paused) musicAudio.volume = 0;
       else fadeAudio(musicAudio, musicAudio.volume, 0.2, 500);
     }
-    if (ttsAudio) ttsAudio.volume = 1;
+    if (ttsAudio) {
+      ttsAudio.volume = 1; // Включаем громкость обратно
+    }
   } else {
     if (musicAudio) {
-      fadeAudio(musicAudio, musicAudio.volume, 0, 250, () => {
-        try { musicAudio.pause(); } catch (e) {}
-      });
+      fadeAudio(musicAudio, musicAudio.volume, 0, 250); // Просто плавно убавляем до 0
     }
-    if (ttsAudio) ttsAudio.volume = 0;
+    // Просто выкручиваем громкость голоса в 0. Мы его НЕ ставим на паузу.
+    if (ttsAudio) { 
+      ttsAudio.volume = 0; 
+    }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   }
 }
@@ -2081,19 +2094,21 @@ function toggleLibCategory(el) {
 function openBookDetail(id){
   const b=BOOKS.find(x=>x.id===id);if(!b)return;
   bookDetailSource = b._isPreview ? 'preview' : (currentScreen || 'lib');
+  
   if(!hasBookAccess(id) && !b._isPreview){
     document.getElementById('premiumUpsellModal').classList.remove('hidden');
     return;
   }
+  
   bookDetailId=id;
   document.getElementById('bdEmoji').innerHTML = `<div style="display:flex; justify-content:center; margin-bottom:12px;">${getEmojiOrSvg(b.emoji, 72, b.title)}</div>`;
   document.getElementById('bdTitle').textContent=b.title;
   document.getElementById('bdAuthor').textContent=(b.author||'—')+' · '+b.days+' дней';
   document.getElementById('bdAbout').textContent=b.about||'Описание скоро появится.';
-  // Вставляем автоматический дисклеймер
+  
   const disclaimerEl = document.getElementById('bdDisclaimer');
   if (disclaimerEl) {
-    disclaimerEl.textContent = `Данная программа разработана на основе ключевых идей книги «${b.title}». Это практический тренинг по внедрению привычек, а не полный пересказ. Для глубокого понимания рекомендуем прочитать оригинал.`;
+    disclaimerEl.textContent = `Данная программа разработана на основе ключевых идей книги «${b.title}». Это практический тренинг по внедрению привычек, а не полный пересказ. Для получения глубокого понимания рекомендуем прочитать оригинал.`;
   }
 
   const totalTime=Math.round(b.practices.reduce((s,p)=>s+p.time,0)/60);
@@ -2137,9 +2152,10 @@ function openBookDetail(id){
   const bs=getBookState(b.id);
   const closed=countClosedDays(b.id);
   const btn=document.getElementById('bdStartBtn');
+  
   if (b._isPreview) {
-    btn.textContent = '✕ Закрыть предпросмотр';
-    btn.setAttribute('onclick', 'backFromBookDetail()');
+    btn.textContent = '▶ Тест практики';
+    btn.setAttribute('onclick', 'startTestPractice()');
   } else {
     if(bs.start&&closed<b.days)btn.textContent='▶ Продолжить практику';
     else if(closed>=b.days)btn.textContent='🔄 Пройти заново';
@@ -2181,6 +2197,8 @@ function previewBookDraft() {
 
   // Собираем черновик из текущих значений формы (даже несохранённых)
   const draftId = '__preview_' + Date.now();
+
+  // Собираем черновик из текущих значений формы (даже несохранённых)
   const draft = {
     id: draftId,
     emoji: document.getElementById('edEmoji').value.trim() || '📖',
@@ -2208,6 +2226,30 @@ function previewBookDraft() {
 
   playClick();
   openBookDetail(draftId);
+  
+}
+function startTestPractice() {
+  const draft = BOOKS.find(b => b._isPreview);
+  if (!draft) {
+    toast('Черновик не найден', 'danger');
+    return;
+  }
+  if (!draft.practices || draft.practices.length === 0) {
+    toast('В книге нет практик для теста', 'warm');
+    return;
+  }
+  
+  currentBook = draft;
+  
+  // Обязательно ставим дату старта, чтобы окно выбора не сломалось
+  const bs = getBookState(currentBook.id);
+  if (!bs.start) bs.start = todayStr();
+
+  hideAll();
+  document.getElementById('bookDetailScreen').classList.add('hidden');
+  
+  // Открываем то самое окно со списком практик (как на Главной)
+  openPracticeSelector();
 }
 async function startBookFromDetail(){
   const b=BOOKS.find(x=>x.id===bookDetailId);if(!b)return;
@@ -2600,7 +2642,7 @@ function renderRitualStep(){
     if (!p) { closeRitual(); return; }
     
     const rpStep = document.getElementById('rpStep');
-    if(rpStep) rpStep.textContent = (ritualIndex + 1) + ' из ' + ritualQueue.length;
+    if(rpStep) rpStep.textContent = 'Практика ' + (ritualIndex + 1) + ' из ' + ritualQueue.length;
     
     const fill = document.getElementById('rpFill');
     if (fill) fill.style.width = (ritualIndex / ritualQueue.length * 100) + '%';
@@ -2634,6 +2676,8 @@ function toggleTimer(ctx){
     if (ttsAudio) ttsAudio.pause();
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     if(btn){ btn.innerHTML='▶ Продолжить'; btn.classList.add('paused'); }
+    const ringWrap = screen.querySelector('.d-timer-ring-wrap');
+    if (ringWrap) ringWrap.classList.add('paused-ring'); // Останавливаем дыхание
   } else if(timerState === 'done'){
     // Ничего не делаем
   } else {
@@ -2660,6 +2704,12 @@ function toggleTimer(ctx){
     timerState = 'running';
     
     if(btn){ btn.innerHTML='⏸ Пауза'; btn.classList.remove('paused'); }
+    const focusControls = screen.querySelector('.focus-controls');
+    if (focusControls) focusControls.style.display = 'flex';
+     const ringWrap2 = screen.querySelector('.d-timer-ring-wrap');
+    if (ringWrap2) ringWrap2.classList.remove('paused-ring'); // Запускаем дыхание
+    const musicFab = screen.querySelector('.music-fab-btn');
+    if (musicFab) musicFab.style.display = 'flex';
     
     const zenBtn = screen ? screen.querySelector('.exit-zen-btn') : null;
     if (zenBtn) {
@@ -2797,10 +2847,9 @@ function stopTimer(){
   document.body.style.position = '';
   document.body.style.width = '';
   
-  // Прячем кнопку "Свернуть таймер" на всех экранах сразу
-  document.querySelectorAll('.exit-zen-btn').forEach(btn => {
-    btn.style.display = 'none';
-    btn.textContent = 'Свернуть таймер';
+  // Прячем кнопку музыки при закрытии таймера
+  document.querySelectorAll('.music-fab-btn').forEach(el => {
+    el.style.display = 'none';
   });
 }
 
@@ -3009,10 +3058,8 @@ function updateCustomSummary(){
   const sum = document.getElementById('ritualBuilderSummary');
   if(!sum) return;
 
-  if(!customRitual.length){
-    sum.style.display = 'none';
-    return;
-  }
+  // Всегда показываем плашку на экране сборки практики
+  sum.style.display = 'flex';
 
   let totalSec = 0;
   customRitual.forEach(key => {
@@ -3025,11 +3072,23 @@ function updateCustomSummary(){
 
   const countEl = document.getElementById('rbsCount');
   const timeEl = document.getElementById('rbsTime');
+  const launchBtn = document.getElementById('rbsLaunchBtn'); // Находим кнопку по ID
 
   if(countEl) countEl.textContent = customRitual.length + ' ' + plural(customRitual.length, 'практика', 'практики', 'практик');
   if(timeEl) timeEl.textContent = '~' + Math.round(totalSec/60) + ' минут';
 
-  sum.style.display = 'flex'; // Показываем плашку
+  // Логика блокировки кнопки
+  if(launchBtn) {
+    if(customRitual.length === 0) {
+      launchBtn.disabled = true;
+      launchBtn.style.opacity = '0.5';
+      launchBtn.style.pointerEvents = 'none';
+    } else {
+      launchBtn.disabled = false;
+      launchBtn.style.opacity = '1';
+      launchBtn.style.pointerEvents = 'auto';
+    }
+  }
 }
 
 // Запуск своей практики (для кнопки "Запустить")
@@ -4870,7 +4929,11 @@ async function loadPeople(){
       else if(u.xp >= 100) u.lvl = 2;
     });
 
-    const list = Object.values(userStats).filter(p => p.id !== user.id).sort((a, b) => b.xp - a.xp);
+    // 1. Собираем всех (включая себя) и сортируем. Если XP равны, выше тот, у кого больше огня.
+    const list = Object.values(userStats).sort((a, b) => {
+      if (b.xp !== a.xp) return b.xp - a.xp;
+      return b.fire - a.fire;
+    });
 
     if(!list.length){
       el.innerHTML = `
@@ -4879,33 +4942,84 @@ async function loadPeople(){
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
           </div>
           <div class="d-empty-title">Пока никого нет</div>
-          <div class="d-empty-text">Пригласите друзей в ANDGER, чтобы соревноваться в рейтинге и прокачивать привычки вместе!</div>
+          <div class="d-empty-text">Пригласите друзей в ANDGER, чтобы соревноваться в рейтинге!</div>
         </div>
       `;
       return;
     }
 
-    const top3 = list.slice(0, 3);
-    const rest = list.slice(3);
+    // 2. Ищем себя в списке
+    const myIndex = list.findIndex(p => p.id === user.id);
+    const myRank = myIndex !== -1 ? myIndex + 1 : 0;
+    const myStats = list[myIndex];
+    let motivationHtml = '';
+
+    // 3. Считаем, сколько XP не хватает до следующего места (для мотивации)
+    if (myStats && myRank > 1) {
+      const nextPerson = list[myIndex - 1];
+      const diff = nextPerson.xp - myStats.xp;
+      if (diff > 0) {
+        motivationHtml = `<div style="font-size:10px; color:var(--d-gold); font-weight:800; margin-top:4px;">🎯 До ${myRank - 1} места: ${diff} XP</div>`;
+      }
+    }
+
+    // 4. Формируем карточку "Твоя позиция"
     let html = '';
-    
+    if (myStats) {
+      const myTimeStr = myStats.minutes > 60 ? Math.floor(myStats.minutes/60) + 'ч ' + (myStats.minutes%60) + 'м' : myStats.minutes + 'м';
+      const myMedal = myRank <= 3 ? ['🥇','🥈','🥉'][myRank-1] : `#${myRank}`;
+      
+      html += `
+        <div class="d-card-glass" style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, rgba(124,92,255,0.2), rgba(255,154,86,0.05)); border-color: var(--d-accent); box-shadow: 0 8px 25px rgba(124,92,255,0.15); position: relative; overflow: hidden;">
+          <!-- Декоративное свечение на фоне -->
+          <div style="position:absolute; top:-20px; right:-20px; width:100px; height:100px; background:radial-gradient(circle, rgba(255,184,0,0.2) 0%, transparent 70%); pointer-events:none;"></div>
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="font-size:11px; font-weight:900; color:var(--d-accent-2); text-transform:uppercase; letter-spacing:1px;">Твоя позиция</div>
+            <div style="font-size:10px; font-weight:800; color:var(--d-text-dim); background:rgba(255,255,255,0.08); padding:2px 8px; border-radius:10px;">в рейтинге</div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="font-size:24px; font-weight:900; color:${myRank <= 3 ? 'var(--d-gold)' : 'var(--d-text)'}; width:44px; text-align:center; filter: ${myRank <= 3 ? 'drop-shadow(0 0 10px var(--d-gold))' : 'none'};">
+              ${myMedal}
+            </div>
+            <div class="d-lib-book-cover" style="width:48px; height:48px; border-radius:50%; background:var(--d-surface-2); border:2px solid var(--d-accent);">
+              ${getAvatarHtml(state.avatar, 24)}
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:15px; font-weight:900; color:#fff;">${escapeHtml(user.name || 'Ты')} <span style="font-size:10px; color:var(--d-accent-2); font-weight:800; margin-left:4px;">(это ты)</span></div>
+              <div style="font-size:11px; color:var(--d-text-dim); margin-top:2px;">🔥 ${myStats.fire} · ✅ ${myStats.practices} · ⏱ ${myTimeStr}</div>
+              ${motivationHtml}
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:16px; font-weight:900; color:var(--d-accent-2);">⭐ ${myStats.xp} XP</div>
+              <div style="font-size:10px; color:var(--d-text-dim); margin-top:2px;">Ур. ${myStats.lvl}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // 5. Рендерим Топ-3 (или всех, если их меньше 3)
+    const top3 = list.slice(0, 3);
     if(top3.length > 0){
-      html += '<h3 style="font-size:11px; font-weight:900; color:var(--d-text-dim); text-transform:uppercase; margin:10px 0;">🔥 Лучшие участники</h3>';
-            top3.forEach((p, i) => {
+      html += '<h3 style="font-size:11px; font-weight:900; color:var(--d-text-dim); text-transform:uppercase; margin:10px 0 10px; display:flex; align-items:center; gap:6px;">🔥 Лучшие участники</h3>';
+      
+      top3.forEach((p, i) => {
         const medal = ['🥇', '🥈', '🥉'][i];
         const fullName = (p.name || 'Аноним') + (p.last_name ? ' ' + p.last_name : '');
         const timeStr = p.minutes > 60 ? Math.floor(p.minutes/60) + 'ч ' + (p.minutes%60) + 'м' : p.minutes + 'м';
+        const isMe = p.id === user.id;
         
-        // Красивые цвета для Топ-3
         const borderColors = ['#ffb800', '#c0c0c0', '#cd7f32']; 
         const glowColors = ['rgba(255,184,0,0.15)', 'rgba(192,192,192,0.15)', 'rgba(205,127,50,0.15)'];
 
         html += `
-        <div class="d-lib-book-card" onclick="viewUserProfile('${p.id}', 'people')" style="border-color:${borderColors[i]}; background:linear-gradient(135deg, ${glowColors[i]}, var(--d-surface)); margin-bottom:8px; box-shadow: 0 4px 15px ${glowColors[i]};">
+        <div class="d-lib-book-card" onclick="${isMe ? '' : `viewUserProfile('${p.id}', 'people')`}" style="border-color:${borderColors[i]}; background:linear-gradient(135deg, ${glowColors[i]}, var(--d-surface)); margin-bottom:8px; box-shadow: 0 4px 15px ${glowColors[i]};">
           <div style="font-size:28px; width:40px; text-align:center; filter: drop-shadow(0 0 10px ${borderColors[i]});">${medal}</div>
           <div class="d-lib-book-cover" style="width:48px; height:48px; border-radius:50%; background:var(--d-surface-2); border:2px solid ${borderColors[i]}; box-shadow: 0 0 10px ${glowColors[i]};">${getAvatarHtml(p.avatar, 24)}</div>
           <div class="d-lib-book-body">
-            <div class="d-lib-book-title" style="font-size:15px; color:#fff;">${escapeHtml(fullName)}</div>
+            <div class="d-lib-book-title" style="font-size:15px; color:#fff;">${escapeHtml(fullName)} ${isMe ? '<span style="font-size:9px; color:var(--d-gold); opacity:0.8;">(ты)</span>' : ''}</div>
             <div style="font-size:11px; color:var(--d-text-dim); margin-top:2px;">🔥 ${p.fire} · ✅ ${p.practices} · ⏱ ${timeStr}</div>
           </div>
           <div style="text-align:right; padding-left:8px;">
@@ -4916,19 +5030,23 @@ async function loadPeople(){
       });
     }
 
+    // 6. Рендерим остальных (начиная с 4-го места)
+    const rest = list.slice(3);
     if(rest.length > 0) {
       html += '<h3 style="font-size:11px; font-weight:900; color:var(--d-text-dim); text-transform:uppercase; margin:20px 0 10px;">👥 Все участники</h3>';
-            rest.forEach((p, index) => {
+      
+      rest.forEach((p, index) => {
         const fullName = (p.name || 'Аноним') + (p.last_name ? ' ' + p.last_name : '');
         const rankNumber = index + 4;
         const timeStr = p.minutes > 60 ? Math.floor(p.minutes/60) + 'ч ' + (p.minutes%60) + 'м' : p.minutes + 'м';
+        const isMe = p.id === user.id;
         
         html += `
-        <div class="d-lib-book-card" onclick="viewUserProfile('${p.id}', 'people')" style="padding:10px 14px; margin-bottom:8px;">
-          <div style="font-size:14px; font-weight:900; color:var(--d-text-dim); width:24px; text-align:center;">${rankNumber}</div>
-          <div class="d-lib-book-cover" style="width:40px; height:40px; border-radius:50%;">${getAvatarHtml(p.avatar, 20)}</div>
+        <div class="d-lib-book-card" onclick="${isMe ? '' : `viewUserProfile('${p.id}', 'people')`}" style="padding:10px 14px; margin-bottom:8px; ${isMe ? 'border-color: var(--d-accent); background: rgba(124,92,255,0.05);' : ''}">
+          <div style="font-size:14px; font-weight:900; color:${isMe ? 'var(--d-accent-2)' : 'var(--d-text-dim)'}; width:24px; text-align:center;">${rankNumber}</div>
+          <div class="d-lib-book-cover" style="width:40px; height:40px; border-radius:50%; ${isMe ? 'border: 2px solid var(--d-accent);' : ''}">${getAvatarHtml(p.avatar, 20)}</div>
           <div class="d-lib-book-body">
-            <div class="d-lib-book-title" style="font-size:13px; color:var(--d-text);">${escapeHtml(fullName)}</div>
+            <div class="d-lib-book-title" style="font-size:13px; color:${isMe ? '#fff' : 'var(--d-text)'};">${escapeHtml(fullName)} ${isMe ? '<span style="font-size:9px; color:var(--d-accent-2);">(ты)</span>' : ''}</div>
             <div style="font-size:10px; color:var(--d-text-dim); margin-top:2px;">🔥 ${p.fire} · ✅ ${p.practices}</div>
           </div>
           <div style="text-align:right;">
@@ -4938,6 +5056,7 @@ async function loadPeople(){
         </div>`;
       });
     }
+    
     el.innerHTML = html;
   } catch(e) {
     console.error(e);
@@ -5015,23 +5134,28 @@ async function showAdmin(initialSection = 'books'){
 }
 
 function loadAdminSection(section, btnEl) {
-  // Подсветка активной кнопки
   document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('on'));
   if (btnEl) btnEl.classList.add('on');
   
   const area = document.getElementById('adminDynamicArea');
   if (!area) return;
 
-  // Очищаем область и ставим спиннер
   area.innerHTML = '<div style="text-align:center; padding:40px; color:var(--d-text-dim);">Загрузка...</div>';
 
-  // Загружаем нужный раздел
   setTimeout(() => {
+    if (section === 'dashboard') {
+      area.innerHTML = '<div id="adminDashboardContent"></div>';
+      loadAdminDashboard();
+      return;
+    }
     if (section === 'books') {
       area.innerHTML = `
-        <div class="d-lib-search" style="margin-bottom:16px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" id="adminBookSearch" placeholder="Поиск книги или автора" oninput="filterAdminBooks()" autocomplete="off">
+        <div style="display:flex; gap:8px; margin-bottom:16px;">
+          <div class="d-lib-search" style="flex:1; margin-bottom:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="adminBookSearch" placeholder="Поиск книги или автора" oninput="filterAdminBooks()" autocomplete="off">
+          </div>
+          <button class="d-btn-primary" onclick="showJsonImportModal()" style="width:auto; margin:0; padding:0 16px; height:48px; white-space:nowrap;">+ Добавить</button>
         </div>
         <div id="adminBookList"></div>
       `;
@@ -5079,19 +5203,39 @@ function loadAdminSection(section, btnEl) {
       `;
       loadAdminQuotes();
     }
-    else if (section === 'system') {
+    else if (section === 'faq') {
       area.innerHTML = `
-        <div class="d-card-glass" style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h3 style="font-size:14px; font-weight:900; color:var(--d-text);">❓ Вопросы и ответы</h3>
+          <button class="d-btn-primary" onclick="openFaqEditor()" style="margin:0; width:auto; min-height:36px; padding:0 16px;">+ Добавить</button>
+        </div>
+        <div id="adminFaqList"></div>
+      `;
+      loadAdminFaq();
+    }
+    else if (section === 'texts') {
+      area.innerHTML = `<div id="adminTextsList"></div>`;
+      loadAdminTexts();
+    }
+   else if (section === 'system') {
+      area.innerHTML = `
+        <div class="d-card-glass" style="margin-bottom:16px; border-color:rgba(124,92,255,0.3);">
           <h3 style="font-size:14px; margin-bottom:12px; font-weight:900; color:var(--d-text);">📢 Рассылка уведомлений</h3>
           <input type="text" id="broadcastTitle" placeholder="Заголовок" style="margin-bottom:8px; width:100%; background:var(--d-surface-2); border:1px solid var(--d-border); padding:12px; border-radius:10px; color:var(--d-text); font-size:14px;">
           <textarea id="broadcastText" rows="3" placeholder="Текст уведомления..." style="margin-bottom:12px; width:100%; background:var(--d-surface-2); border:1px solid var(--d-border); padding:12px; border-radius:10px; color:var(--d-text); font-size:14px;"></textarea>
           <button class="d-btn-primary" style="margin-top:0; width:100%;" onclick="sendBroadcast()">Отправить всем</button>
         </div>
         
-        <div class="d-card-glass" id="systemContent" style="margin-bottom:16px;"></div>
+        <div id="systemContent" style="margin-bottom:16px;"></div>
         
-        <div class="d-card-glass" style="margin-bottom:16px;">
-          <button class="d-btn-secondary" style="margin:0; width:100%;" onclick="loadAdminLogs()">📜 История действий</button>
+        <h3 style="font-size:11px; font-weight:900; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; margin-left:4px;">Данные и логи</h3>
+        <div class="d-card-glass" style="margin-bottom:16px; padding:16px;">
+          <button class="d-btn-secondary" style="margin:0; width:100%; margin-bottom:12px; border-color:rgba(124,92,255,0.3); color:var(--accent-2);" onclick="exportAllBooks()">
+            📦 Скачать все книги (JSON)
+          </button>
+          <button class="d-btn-secondary" style="margin:0; width:100%;" onclick="loadAdminLogs()">
+            📜 Посмотреть историю действий
+          </button>
           <div id="adminLogsContainer" style="margin-top:16px;"></div>
         </div>
       `;
@@ -5142,19 +5286,19 @@ function renderAdminList(list){
     let subBadge = '';
     if (p.sub_until && new Date(p.sub_until) > new Date()) subBadge = `💎`;
 
-    return `<div class="user-card-bento" onclick="openAdminUser('${p.id}')">
-      <div class="uc-ava">${getAvatarHtml(p.avatar, 24)}</div>
-      <div class="uc-info">
-        <div class="uc-name">${escapeHtml(p.name||'Без имени')} ${p.is_admin?'👑':''} ${subBadge}</div>
-        <div class="uc-email">${phoneShown}</div>
-        <div class="uc-lvl">${p.last_seen ? 'Был(а) ' + timeAgo(p.last_seen) : 'Не заходил(а)'}</div>
+    return `<div class="user-card-bento" style="width:100%; display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:10px; box-sizing:border-box; padding:12px;" onclick="openAdminUser('${p.id}')">
+      <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+        <div class="uc-ava" style="flex-shrink:0;">${getAvatarHtml(p.avatar, 24)}</div>
+        <div class="uc-info" style="flex:1; min-width:0;">
+          <div class="uc-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name||'Без имени')} ${p.is_admin?'👑':''} ${subBadge}</div>
+          <div class="uc-email">${phoneShown}</div>
+          <div class="uc-lvl">${p.last_seen ? 'Был(а) ' + timeAgo(p.last_seen) : 'Не заходил(а)'}</div>
+        </div>
       </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; border-top:1px solid var(--border); padding-top:16px;">
-        <button class="d-btn-secondary" style="margin:0; height:40px; font-size:12px; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="adminSendMessage('${p.id}')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-          Написать
-        </button>
-      </div>`;
+      <button class="d-btn-secondary" style="margin:0; height:36px; font-size:11px; width:auto; padding:0 12px; flex-shrink:0;" onclick="event.stopPropagation(); adminSendMessage('${p.id}')">
+        Написать
+      </button>
+    </div>`;
   }).join('');
 }
 
@@ -5209,10 +5353,8 @@ async function openAdminUser(id){
     }
   }
 
-  // Генерируем красивый список книг с тумблерами
   const access = p.book_access || [];
   let booksHtml = '';
-  
   const categories = {};
   BOOKS.forEach(b => {
     const cat = b.category || 'Разное';
@@ -5221,12 +5363,12 @@ async function openAdminUser(id){
   });
 
   Object.keys(categories).forEach(cat => {
-    booksHtml += `<div style="font-size:11px; font-weight:900; color:var(--accent-2); text-transform:uppercase; margin-top:16px; margin-bottom:8px;">📁 ${cat}</div>`;
+    booksHtml += `<div style="font-size:10px; font-weight:900; color:var(--accent-2); text-transform:uppercase; margin-top:12px; margin-bottom:6px;">📁 ${cat}</div>`;
     categories[cat].forEach(b => {
       const has = p.is_admin || access.includes(b.id);
       booksHtml += `
-        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card2); padding:10px 12px; border-radius:12px; margin-bottom:6px;">
-          <div style="font-size:13px; font-weight:700; color:var(--text);">${escapeHtml(b.title)}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px 10px; border-radius:10px; margin-bottom:4px;">
+          <div style="font-size:12px; font-weight:700; color:var(--text);">${escapeHtml(b.title)}</div>
           <div class="d-toggle ${has ? 'on' : ''}" onclick="toggleBookAccess('${id}','${b.id}',${!has})"></div>
         </div>
       `;
@@ -5234,59 +5376,87 @@ async function openAdminUser(id){
   });
 
   wrap.innerHTML = `
-    <div class="bento-card" style="margin-top:20px; border-color: var(--accent);">
-      <!-- Шапка карточки -->
+    <div class="bento-card" style="margin-top:16px; border-color: var(--accent); animation: fadeIn 0.3s;">
       <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
-        <div class="uc-ava" style="width:56px; height:56px; font-size:24px;">${getAvatarHtml(p.avatar, 32)}</div>
+        <div class="uc-ava" style="width:60px; height:60px; font-size:28px;">${getAvatarHtml(p.avatar, 36)}</div>
         <div style="flex:1;">
           <h3 style="font-size:18px; font-weight:900; margin:0; display:flex; align-items:center; gap:6px;">${escapeHtml(p.name||'Без имени')} ${p.is_admin?'👑':''}</h3>
           <div style="font-size:12px; color:var(--muted); margin-top:4px;">${isMe ? 'Это вы' : 'Пользователь'}</div>
         </div>
-        <div style="font-size:20px; color:var(--muted); cursor:pointer; padding:8px;" onclick="document.getElementById('adminDetailWrap').innerHTML=''">✕</div>
+        <div style="font-size:20px; color:var(--muted); cursor:pointer; padding:8px; background:var(--card2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center;" onclick="document.getElementById('adminDetailWrap').innerHTML=''">✕</div>
       </div>
 
-      <!-- Инфо (компактно) -->
-      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-        <div style="display:flex; justify-content:space-between; font-size:14px;"><span style="color:var(--muted);">Телефон:</span> <b>${phoneShown}</b></div>
-        <div style="display:flex; justify-content:space-between; font-size:14px;"><span style="color:var(--muted);">Регистрация:</span> <b>${regDate}</b></div>
-        <div style="display:flex; justify-content:space-between; font-size:14px;"><span style="color:var(--muted);">Последний визит:</span> <b>${lastSeen}</b></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; background:rgba(255,255,255,0.02); padding:12px; border-radius:12px;">
+        <div><div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Телефон</div><div style="font-size:13px; font-weight:700;">${phoneShown}</div></div>
+        <div><div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Регистрация</div><div style="font-size:13px; font-weight:700;">${regDate}</div></div>
+        <div style="grid-column: 1 / -1;"><div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Был(а) в сети</div><div style="font-size:13px; font-weight:700;">${lastSeen}</div></div>
       </div>
 
-      <!-- Подписка -->
-      <div style="background:rgba(62,207,142,0.08); border:1px solid rgba(62,207,142,0.2); padding:12px; border-radius:12px; margin-bottom:20px;">
+      <div style="background:rgba(62,207,142,0.08); border:1px solid rgba(62,207,142,0.2); padding:12px; border-radius:12px; margin-bottom:16px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <span style="font-size:12px; font-weight:800; color:var(--text);">Подписка</span>
+          <span style="font-size:12px; font-weight:800; color:var(--text);">💎 Premium</span>
           <span style="font-size:12px; color:${isSubActive?'var(--success)':'var(--muted)'}; font-weight:800;">${subDateText}</span>
         </div>
         <div style="display:flex; gap:8px;">
-          <button class="btn" style="margin:0; padding:8px; font-size:12px; background:var(--success);" onclick="adminGrantSub('${id}', 30)">🎁 +1 Месяц</button>
-          ${isSubActive ? `<button class="btn" style="margin:0; padding:8px; font-size:12px; background:transparent; border:1px solid var(--danger); color:var(--danger);" onclick="adminGrantSub('${id}', 0)">Забрать</button>` : ''}
+          <button class="btn" style="margin:0; padding:8px; font-size:11px; background:var(--success); border-radius:10px;" onclick="adminGrantSub('${id}', 30)">🎁 +1 Месяц</button>
+          ${isSubActive ? `<button class="btn" style="margin:0; padding:8px; font-size:11px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:10px;" onclick="adminGrantSub('${id}', 0)">Забрать</button>` : ''}
         </div>
       </div>
 
-      <!-- Книги -->
+      <div style="margin-bottom:16px;">
+        <div onclick="this.nextElementSibling.classList.toggle('hidden')" style="font-size:11px; font-weight:900; color:var(--muted); text-transform:uppercase; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+          <span>📊 Последние действия</span>
+          <span style="font-size:14px;">⌄</span>
+        </div>
+        <div id="adminUserActivity" style="background:rgba(255,255,255,0.02); padding:12px; border-radius:12px; font-size:12px; color:var(--muted);">Загрузка...</div>
+      </div>
+
       <div style="margin-bottom:20px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <div style="font-size:12px; font-weight:800; color:var(--text);">📚 Доступ к книгам</div>
-          <div style="display:flex; gap:6px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="font-size:11px; font-weight:900; color:var(--muted); text-transform:uppercase;">📚 Доступ к книгам</div>
+          <div style="display:flex; gap:8px;">
             <span style="font-size:10px; color:var(--success); cursor:pointer; font-weight:800;" onclick="setAllBooksAccess('${id}', true)">ВСЕ ВКЛ</span>
             <span style="font-size:10px; color:var(--danger); cursor:pointer; font-weight:800;" onclick="setAllBooksAccess('${id}', false)">ВСЕ ВЫКЛ</span>
           </div>
         </div>
-        <div style="max-height:200px; overflow-y:auto; padding-right:4px;">
+        <div style="max-height:150px; overflow-y:auto; padding-right:4px;">
           ${booksHtml}
         </div>
       </div>
 
-      <!-- Действия -->
       ${!isMe ? `
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; border-top:1px solid var(--border); padding-top:16px;">
-        <button class="d-btn-secondary" style="margin:0; height:40px; font-size:12px;" onclick="adminSendMessage('${id}')">💬 Написать</button>
-        <button class="d-btn-secondary" style="margin:0; height:40px; font-size:12px; color:${p.blocked?'var(--d-success)':'var(--d-danger)'}; border-color:${p.blocked?'var(--d-success)':'var(--d-danger)'};" onclick="adminToggleBlock('${id}',${!p.blocked})">${p.blocked?'✓ Разблок':'🚫 Блок'}</button>
+        <button class="d-btn-secondary" style="margin:0; height:40px; font-size:11px; border-radius:12px;" onclick="adminSendMessage('${id}')">💬 Написать</button>
+        <button class="d-btn-secondary" style="margin:0; height:40px; font-size:11px; border-radius:12px; color:${p.blocked?'var(--d-success)':'var(--d-danger)'}; border-color:${p.blocked?'var(--d-success)':'var(--d-danger)'};" onclick="adminToggleBlock('${id}',${!p.blocked})">${p.blocked?'✓ Разблок':'🚫 Блок'}</button>
+      </div>
+      <div style="margin-top:8px;">
+        <button class="d-btn-secondary" style="margin:0; width:100%; height:40px; font-size:11px; border-radius:12px; background:rgba(124,92,255,0.1); color:var(--accent-2); border-color:rgba(124,92,255,0.3);" onclick="adminTestPush('${id}')">🔔 Отправить тестовый Push</button>
       </div>` : ''}
     </div>
   `;
   wrap.scrollIntoView({behavior:'smooth'});
+
+  try {
+    const [notesRes, feedRes] = await Promise.all([
+      sb.from('notes').select('practice_title, created_at').eq('user_id', id).order('created_at', {ascending:false}).limit(2),
+      sb.from('messages').select('text, created_at').eq('user_id', id).eq('room','feed').order('created_at', {ascending:false}).limit(2)
+    ]);
+    
+    let actHtml = '';
+    if (notesRes.data && notesRes.data.length) {
+      notesRes.data.forEach(n => {
+        actHtml += `<div style="margin-bottom:6px; padding-left:8px; border-left:2px solid var(--accent); color:var(--text);">📝 <i>${escapeHtml(n.practice_title)}</i></div>`;
+      });
+    }
+    if (feedRes.data && feedRes.data.length) {
+      feedRes.data.forEach(m => {
+        actHtml += `<div style="margin-bottom:6px; padding-left:8px; border-left:2px solid var(--d-warm); color:var(--text);">💬 <i>"${escapeHtml(m.text.slice(0, 30))}..."</i></div>`;
+      });
+    }
+    
+    const actEl = document.getElementById('adminUserActivity');
+    if (actEl) actEl.innerHTML = actHtml || '<div style="color:var(--muted); font-style:italic; text-align:center;">Нет недавней активности</div>';
+  } catch(e) { console.warn('Activity load error', e); }
 }
 
 async function adminToggleBlock(id, blocked) {
@@ -5448,23 +5618,16 @@ async function sendBroadcast() {
 // ─── СИСТЕМА ───
 async function renderSystem(){
   document.getElementById('systemContent').innerHTML=`
-    <div class="admin-detail" style="margin-top:12px">
-      <h3 style="font-size:14px;margin-bottom:10px">⚙️ Глобальные настройки</h3>
+    <div class="d-card-glass" style="padding:16px;">
+      <h3 style="font-size:14px; margin-bottom:16px; font-weight:900; color:var(--d-text);">⚙️ Глобальные настройки</h3>
       
-      <div class="admin-row" style="padding:14px 0; border-bottom:none; display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
         <div>
-          <span style="display:block; font-weight:800; color:var(--text); margin-bottom:4px;">Режим доступа к книгам</span>
-          <span style="font-size:11px; color:var(--muted);">Всем открыто или по подписке</span>
+          <span style="display:block; font-weight:800; color:var(--text); font-size:13px; margin-bottom:4px;">Режим доступа к книгам</span>
+          <span style="font-size:11px; color:var(--muted); line-height:1.3; display:block;">Всем открыто (для тестов) или по подписке</span>
         </div>
-        <div class="toggle-switch ${bookAccessMode === 'everyone' ? 'on' : ''}" onclick="toggleBookAccessMode()"></div>
+        <div class="d-toggle ${bookAccessMode === 'everyone' ? 'on' : ''}" onclick="toggleBookAccessMode()" style="flex-shrink:0;"></div>
       </div>
-      
-    </div>
-  `;
-    document.getElementById('systemContent').innerHTML += `
-    <div style="margin-top:24px;">
-      <button class="btn" style="margin-top:0; background:var(--card2); color:var(--text); border:1px solid var(--border);" onclick="loadAdminLogs()">📜 Посмотреть историю действий</button>
-      <div id="adminLogsContainer" style="margin-top:16px;"></div>
     </div>
   `;
 }
@@ -5517,7 +5680,11 @@ function showBookEditor(id){
   // Показываем блок умной вставки ТОЛЬКО админам
   const smartBlock = document.getElementById('smartJsonBlock');
   if (smartBlock) smartBlock.style.display = isAdmin() ? 'block' : 'none';
-  const b=id?BOOKS.find(x=>x.id===id):null;
+    // Ищем в обоих массивах — это чинит баг с пустыми полями у черновиков
+  const b = id ? (BOOKS.find(x=>x.id===id) || (adminAllBooks||[]).find(x=>x.id===id)) : null;
+
+  // Показываем плашку статуса
+  updateEditorStatusBanner(b);
 
   const catList = document.getElementById('edCategoryList');
   if(catList) {
@@ -5589,6 +5756,12 @@ function openPracticeEditor(index) {
   document.getElementById('peTimeInp').value = p?.time ? Math.round(p.time/60) : 5;
   document.getElementById('peSubInp').value = p?.sub || '';
   document.getElementById('peIcoInp').value = p?.ico || 'brain';
+  
+  // Новые поля
+  document.getElementById('peIdentityInp').value = p?.identity || '';
+  document.getElementById('peMicroActionInp').value = p?.micro_action || '';
+  document.getElementById('peJournalPromptInp').value = p?.journal_prompt || '';
+
   document.getElementById('peWhyInp').value = p?.why || '';
   document.getElementById('peHowInp').value = p?.how ? p.how.join('\n') : '';
   document.getElementById('peResultInp').value = p?.result || '';
@@ -5630,6 +5803,12 @@ function savePracticeEditor() {
   const timeMins = parseInt(document.getElementById('peTimeInp').value) || 5;
   const sub = document.getElementById('peSubInp').value.trim();
   const ico = document.getElementById('peIcoInp').value.trim() || 'brain';
+  
+  // Новые поля
+  const identity = document.getElementById('peIdentityInp').value.trim();
+  const micro_action = document.getElementById('peMicroActionInp').value.trim();
+  const journal_prompt = document.getElementById('peJournalPromptInp').value.trim();
+
   const why = document.getElementById('peWhyInp').value.trim();
   const how = document.getElementById('peHowInp').value.split('\n').map(s => s.trim()).filter(Boolean);
   const result = document.getElementById('peResultInp').value.trim();
@@ -5661,9 +5840,12 @@ function savePracticeEditor() {
 
   const p = {
     id: editingPracticeIndex >= 0 ? (window._tempPractices[editingPracticeIndex].id || 'practice-' + Date.now()) : 'practice-' + Date.now(),
-    title, time: timeMins * 60, sub, ico, why, how, result, mistakes, advice,
+    title, time: timeMins * 60, sub, ico, 
+    identity,        
+    micro_action,      
+    journal_prompt,    
+    why, how, result, mistakes, advice,
     voiceTimeline: tl,
-    // Сохраняем настройки, только если они заданы
     voice_settings: Object.keys(vSettings).length > 0 ? vSettings : null 
   };
 
@@ -5699,13 +5881,6 @@ function backFromBookEditor(){
 
 async function loadAdminBooks(){
   const el=document.getElementById('adminBookList');
-    // Добавляем кнопку импорта JSON, если её нет
-  const adminBooksPanel = document.getElementById('adminBooks');
-  if (adminBooksPanel && !document.getElementById('btnImportJson')) {
-    const btnWrap = document.createElement('div');
-    btnWrap.innerHTML = `<button id="btnImportJson" class="d-btn-primary" onclick="showJsonImportModal()" style="margin-bottom:16px;">📥 Добавить книгу (JSON)</button>`;
-    adminBooksPanel.insertBefore(btnWrap, adminBooksPanel.firstChild);
-  }
   if(!el)return;
   
   el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Загрузка...</div>';
@@ -5735,21 +5910,88 @@ function renderAdminBookList(list) {
     el.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Книг не найдено.</div>';
     return;
   }
-  
-  el.innerHTML = list.map(b => `
-    <div class="bento-card" style="display:flex; align-items:center; gap:14px; padding:14px; margin-bottom:10px; cursor:pointer;" onclick="showBookEditor('${b.id}')">
-      <div style="width:44px; height:44px; border-radius:12px; background:var(--card2); display:flex; align-items:center; justify-content:center;">
-        ${getEmojiOrSvg(b.emoji, 24, b.title)}
-      </div>
-      <div style="flex:1;">
-        <div style="font-size:15px; font-weight:800; color:var(--text);">${escapeHtml(b.title)} ${b._isLocal ? '<span style="font-size:9px; color:var(--warm); font-weight:normal; background:rgba(255,154,86,0.1); padding:2px 6px; border-radius:6px; margin-left:6px;">из кода</span>' : ''}</div>
-        <div style="font-size:12px; color:var(--muted); margin-top:2px;">${escapeHtml(b.author||'Автор не указан')} · ${b.days} дней</div>
-      </div>
-      <div style="color:var(--muted); font-size:18px;">›</div>
-    </div>
-  `).join('');
-}
 
+  // 1. Разделяем на Черновики и Опубликованные
+  const drafts = [];
+  const grouped = {};
+  
+  list.forEach(b => {
+    const isPublished = b.published === true || b.published === 'true';
+    if (!isPublished) {
+      drafts.push(b); // Все неопубликованные идут в черновики
+    } else {
+      const cat = b.category || 'Разное';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(b);
+    }
+  });
+
+  // Если есть черновики, добавляем их в начало списка как отдельную папку
+  if (drafts.length > 0) {
+    grouped['__DRAFTS__'] = drafts; 
+  }
+
+  let html = '';
+  
+  // 2. Рисуем папки
+  Object.keys(grouped).forEach((catName) => {
+    const isDraftFolder = catName === '__DRAFTS__';
+    const displayCatName = isDraftFolder ? 'В разработке' : catName;
+
+    html += `
+      <div style="margin-bottom: 8px;">
+        <div class="d-lib-folder" onclick="toggleAccordion(this)">
+          <div class="d-lib-folder-left">
+            <div class="d-lib-folder-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+            <div>
+              <div class="d-lib-folder-title">${displayCatName}</div>
+              <div class="d-lib-folder-count">${grouped[catName].length} книг</div>
+            </div>
+          </div>
+          <div class="lc-arrow" style="color:var(--d-text-dim); font-size:20px; transition:0.3s;">›</div>
+        </div>
+        <div class="lib-category-list-bento" style="display:none; flex-direction:column; gap:8px; padding:4px 0 0 0;">
+    `;
+
+    // 3. Рисуем книги внутри папки
+    grouped[catName].forEach(b => {
+      // Проверяем статус: опубликовано или нет
+      let statusIcon = '';
+      if (b.published === true || b.published === 'true') {
+        // Зеленая галочка (Опубликовано)
+        statusIcon = `<div title="Опубликовано" style="display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:rgba(62,207,142,0.15); color:var(--d-success); flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`;
+      } else {
+        // Оранжевый карандаш (Черновик / В разработке)
+        statusIcon = `<div title="В разработке" style="display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:rgba(255,154,86,0.15); color:var(--d-warm); flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>`;
+      }
+
+      html += `
+        <div class="bento-card" style="display:flex; align-items:center; gap:14px; padding:14px; margin-bottom:0; cursor:pointer;" onclick="showBookEditor('${b.id}')">
+          <div style="width:44px; height:44px; border-radius:12px; background:var(--card2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            ${getEmojiOrSvg(b.emoji, 24, b.title)}
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:15px; font-weight:800; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${escapeHtml(b.title)} ${b._isLocal ? '<span style="font-size:9px; color:var(--warm); font-weight:normal; background:rgba(255,154,86,0.1); padding:2px 6px; border-radius:6px; margin-left:6px;">из кода</span>' : ''}
+            </div>
+            <div style="font-size:12px; color:var(--muted); margin-top:2px;">${escapeHtml(b.author||'Автор не указан')} · ${b.days} дней</div>
+          </div>
+          
+          <div style="display:flex; align-items:center; gap:8px;">
+            ${statusIcon}
+            <div style="color:var(--muted); font-size:18px;">›</div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div></div>`;
+  });
+
+  el.innerHTML = html;
+}
 function filterAdminBooks() {
   const q = document.getElementById('adminBookSearch').value.toLowerCase().trim();
   if (!q) {
@@ -5834,16 +6076,22 @@ async function loadAdminTexts() {
     }
 
     const labels = {
-      'splash_quote': '💬 Цитата на заставке', 'splash_author': '✍️ Автор цитаты',
-      'onb_step1_title': '1. Заголовок онбординга', 'onb_step1_text': '1. Текст онбординга',
-      'onb_step2_title': '2. Заголовок онбординга', 'onb_step2_text': '2. Текст онбординга',
-      'onb_step3_title': '3. Заголовок онбординга', 'onb_step3_text': '3. Текст онбординга',
-      'onb_step4_title': '4. Заголовок онбординга', 'onb_step4_text': '4. Текст онбординга',
-      'onb_step5_title': '5. Заголовок онбординга', 'onb_step5_text': '5. Текст онбординга'
+      'splash_quote': '⏳ Экран загрузки: Цитата', 
+      'splash_author': '⏳ Экран загрузки: Автор цитаты',
+      'onb_step1_title': '📱 Онбординг (Шаг 1): Заголовок', 
+      'onb_step1_text': '📱 Онбординг (Шаг 1): Текст',
+      'onb_step2_title': '📱 Онбординг (Шаг 2): Заголовок', 
+      'onb_step2_text': '📱 Онбординг (Шаг 2): Текст',
+      'onb_step3_title': '📱 Онбординг (Шаг 3): Заголовок', 
+      'onb_step3_text': '📱 Онбординг (Шаг 3): Текст',
+      'onb_step4_title': '📱 Онбординг (Шаг 4): Заголовок', 
+      'onb_step4_text': '📱 Онбординг (Шаг 4): Текст',
+      'onb_step5_title': '📱 Онбординг (Шаг 5): Заголовок', 
+      'onb_step5_text': '📱 Онбординг (Шаг 5): Текст'
     };
 
     el.innerHTML = data.map(item => `
-      <div class="admin-text-item">
+      <div class="d-card-glass" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; margin-bottom:8px;">
         <div style="font-size:13px; font-weight:700; color:var(--d-text);">${labels[item.key] || item.key}</div>
         <div class="action-btn-glass" onclick="openTextEditor('${item.key}')" title="Редактировать">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
@@ -5983,11 +6231,9 @@ async function deleteFaq(id) {
 
 // ─── УПРАВЛЕНИЕ ПОДПИСКАМИ ───
 async function loadAdminSubs() {
-  // Единственная точка рендера подписок: только панель #adminSubs.
-  const panel = document.getElementById('adminSubs');
-  const el = panel ? panel.querySelector('#adminSubsList') : null;
+  const el = document.getElementById('adminSubsList');
   const countEl = document.getElementById('adminSubsCount');
-  if (!panel || !el) return;
+  if (!el) return;
   // Never inject this panel into a global/root container; keep it inside the admin tab.
   el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Загрузка...</div>';
   
@@ -6225,12 +6471,12 @@ async function loadAdminQuotes(){
       return;
     }
     el.innerHTML=quotes.map(q=>`
-      <div class="admin-item" style="cursor:default">
-        <div class="ai-info" style="flex:1">
-          <div class="ai-name" style="font-style:italic;line-height:1.4;font-weight:600">«${escapeHtml(q.text)}»</div>
-          <div class="ai-phone">${q.active?'🟢 Активна':'⚫ Скрыта'} · ${escapeHtml(q.author||'Андрей Герасимов')}</div>
+      <div class="d-card-glass" style="display:flex; justify-content:space-between; align-items:flex-start; padding:14px; margin-bottom:10px;">
+        <div style="flex:1; padding-right:10px;">
+          <div style="font-size:14px; font-weight:800; color:var(--accent-2); margin-bottom:6px; font-style:italic; line-height:1.4;">«${escapeHtml(q.text)}»</div>
+          <div style="font-size:11px; color:var(--muted); font-weight:600;">${q.active?'🟢 Активна':'⚫ Скрыта'} · ${escapeHtml(q.author||'Андрей Герасимов')}</div>
         </div>
-        <div style="display:flex; gap:6px; margin-left:10px;">
+        <div style="display:flex; gap:6px; flex-shrink:0;">
           <div class="action-btn-glass" onclick="editQuote('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
           <div class="action-btn-glass" onclick="toggleQuoteActive('${q.id}',${!q.active})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${q.active ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>' : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'}</svg></div>
           <div class="action-btn-glass danger" onclick="deleteQuote('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>
@@ -7670,6 +7916,7 @@ function setAvatarFromModal(avatarKey) {
 }
 async function speakBackgroundGuide(text, context = 'practice') {
   if (!text) return;
+  if (state.soundMode !== 'sound') return; // Если звук выключен — даже не пытаемся говорить
   
   // Приглушаем музыку
   if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, state.soundMode === 'sound' ? 0.05 : 0, 300);
@@ -7743,6 +7990,8 @@ const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
         setTimeout(() => { subEl.textContent = ''; }, 500);
       }
     };
+    // Всегда проверяем текущий режим звука. 
+    // Если выключено — громкость 0, иначе 1.
     ttsAudio.volume = state.soundMode === 'sound' ? 1 : 0;
     await ttsAudio.play();
     
@@ -7787,10 +8036,13 @@ async function deleteReportedPost(reportId, postId) {
 // ─── ИСТОРИЯ ДЕЙСТВИЙ АДМИНА ───
 async function loadAdminLogs() {
   const el = document.getElementById('adminLogsContainer');
+  if(!el) return;
+  
   el.innerHTML = '<div style="text-align:center; color:var(--muted); padding:20px;">Загрузка...</div>';
 
   try {
-    const { data: logs } = await sb.from('admin_logs').select('*').order('created_at', {ascending: false}).limit(30);
+    const { data: logs, error } = await sb.from('admin_logs').select('*').order('created_at', {ascending: false}).limit(30);
+    if (error) throw error;
     
     if (!logs || logs.length === 0) {
       el.innerHTML = '<div style="text-align:center; color:var(--muted); padding:20px;">История пуста.</div>';
@@ -7828,10 +8080,26 @@ async function loadAdminLogs() {
         </div>
       `;
     });
-    html += '</div>';
+    html += `
+      <div style="margin-top:16px;">
+        <button class="d-btn-secondary" style="margin:0; width:100%; border-color:var(--danger); color:var(--danger);" onclick="clearAdminLogs()">🗑 Очистить историю</button>
+      </div>
+    `;
     el.innerHTML = html;
   } catch(e) {
-    el.innerHTML = '<div style="text-align:center; color:var(--danger); padding:20px;">Ошибка загрузки истории</div>';
+    console.error('Logs error:', e);
+    el.innerHTML = '<div style="text-align:center; color:var(--danger); padding:20px;">История действий недоступна (таблица admin_logs не найдена или нет прав).</div>';
+  }
+}
+
+async function clearAdminLogs() {
+  if(!(await appConfirm('Очистить всю историю действий?', 'Очистка истории'))) return;
+  try {
+    await sb.from('admin_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Удаляем всё
+    toast('История очищена');
+    loadAdminLogs();
+  } catch(e) {
+    toast('Ошибка очистки', 'danger');
   }
 }
 
@@ -7847,6 +8115,12 @@ function showJsonImportModal() {
         <h2 style="font-size:20px; margin-bottom:16px; text-align:center;">📥 Импорт книги из JSON</h2>
         <p style="font-size:12px; color:var(--d-text-dim); margin-bottom:12px; text-align:center;">Вставь JSON от ИИ сюда, и книга появится в приложении.</p>
         <textarea id="adminJsonInput" rows="8" placeholder='{ "id": "new-book", "title": "Название", ... }' style="width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--d-border); border-radius:12px; padding:12px; color:var(--d-text); font-family:monospace; font-size:12px; resize:vertical; margin-bottom:16px;"></textarea>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; background:rgba(255,255,255,0.03); padding:12px 16px; border-radius:12px; border:1px solid var(--d-border);">
+          <span style="font-size:14px; font-weight:700; color:var(--d-text);">Опубликовать сразу</span>
+          <div class="d-toggle" id="jsonPublishToggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+
         <button class="d-btn-primary" onclick="addBookFromJSON()">Добавить в базу</button>
         <button class="d-btn-secondary" onclick="document.getElementById('jsonImportModal').classList.add('hidden')" style="margin-top:8px;">Отмена</button>
       </div>
@@ -7866,8 +8140,12 @@ async function addBookFromJSON() {
     // Парсим JSON
     const bookData = JSON.parse(jsonStr);
     
-    // Принудительно ставим статус "опубликовано"
-    bookData.published = true; 
+    // Читаем состояние тумблера (если выключен - черновик)
+    const toggle = document.getElementById('jsonPublishToggle');
+    const isPublish = toggle ? toggle.classList.contains('on') : false;
+    
+    // Устанавливаем статус на основе тумблера
+    bookData.published = isPublish; 
 
     // Отправляем в Supabase
         // Переводим названия полей в формат базы данных
@@ -8547,10 +8825,14 @@ function buildPracticeHtml(p) {
       <div style="font-size: 14px; font-weight: 700; color: #fff;">${escapeHtml(p.micro_action)}</div>
     </div>` : ''}
 
-    <!-- Таймер -->
+    <!-- ТАЙМЕР -->
     <div class="ps-block timer-wrapper" style="margin-top:20px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+          <!-- Плавающая иконка музыки (только для экрана таймера) -->
+      <div class="music-fab-btn" onclick="switchMusicTrack()" style="display:none; position:absolute; top: 80px; right: 20px; width: 44px; height: 44px; border-radius: 50%; background: rgba(124,92,255,0.15); border: 1px solid rgba(124,92,255,0.3); backdrop-filter: blur(10px); color: #fff; align-items: center; justify-content: center; cursor: pointer; z-index: 100; transition: all 0.2s;" title="Сменить трек">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+      </div>
       
-      <div class="d-timer-ring-wrap" style="position: relative; margin-bottom: 24px;">
+      <div class="d-timer-ring-wrap" style="position: relative; margin-bottom: 24px; filter: drop-shadow(0 0 25px rgba(124,92,255,0.3));">
         <svg class="d-timer-ring-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="dTimerGradGlobal" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -8560,14 +8842,16 @@ function buildPracticeHtml(p) {
           <circle class="d-timer-ring-bg" cx="100" cy="100" r="85"></circle>
           <circle class="d-timer-ring-fill timer-circle" cx="100" cy="100" r="85" stroke-dasharray="534" stroke-dashoffset="0" style="stroke: url(#dTimerGradGlobal);"></circle>
         </svg>
-        <div class="d-timer-text timer-display" id="timerDisplay">${formatTime(p.time || 300)}</div>
+        <div class="d-timer-text timer-display" id="timerDisplay" style="font-size: 52px; text-shadow: 0 0 20px rgba(255,255,255,0.3);">${formatTime(p.time || 300)}</div>
       </div>
 
+      <!-- Субтитры (фикс. высота) -->
       <div class="voice-subtitle practice-subtitle"></div>
 
+      <!-- Кнопки -->
       <div class="zen-buttons-wrap" style="display:flex; flex-direction:column; gap:10px; width: 100%; max-width:260px;">
-        <button class="d-btn-primary" id="timerBtn" onclick="toggleTimer('practice')" style="height:52px;">▶ Старт</button>
-        <button class="d-btn-secondary exit-zen-btn" onclick="toggleZenMode()" style="display: none;">Свернуть таймер</button>
+        <button class="d-btn-primary" id="timerBtn" onclick="toggleTimer('practice')" style="height:52px; font-size:15px;">▶ Начать практику</button>
+        <button class="d-btn-secondary exit-zen-btn" onclick="toggleZenMode()" style="display: none; width:100%;">Свернуть таймер</button>
       </div>
     </div>
 
@@ -8599,3 +8883,203 @@ document.addEventListener('visibilitychange', () => {
     }
   }
 });
+function switchMusicTrack() {
+  if (!currentPlaylist || currentPlaylist.length <= 1) {
+    toast('Для этой практики доступен только один трек', 'warm');
+    return;
+  }
+  nextTrack();
+  const trackName = currentPlaylist[currentTrackIdx].split('/').pop().replace('.mp3', '');
+  toast('🎵 Играет: ' + trackName);
+}
+async function loadAdminDashboard() {
+  const wrap = document.getElementById('adminDashboardContent');
+  if(!wrap) return;
+
+  try {
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+    const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString();
+
+    // Параллельные запросы для скорости
+    const [usersRes, progressRes, activeSubsRes] = await Promise.all([
+      sb.from('profiles').select('id, created_at, last_seen'),
+      sb.from('progress').select('book_id'),
+      sb.from('profiles').select('id').gt('sub_until', now.toISOString())
+    ]);
+
+    const users = usersRes.data || [];
+    const progress = progressRes.data || [];
+    const activeSubs = activeSubsRes.data || [];
+
+    // Считаем метрики
+    const totalUsers = users.length;
+    const newToday = users.filter(u => u.created_at && u.created_at.startsWith(todayStr)).length;
+    const dau = users.filter(u => u.last_seen && u.last_seen.startsWith(todayStr)).length;
+    const wau = users.filter(u => u.last_seen && u.last_seen > weekAgo).length;
+    const mau = users.filter(u => u.last_seen && u.last_seen > monthAgo).length;
+    const mrr = activeSubs.length * 299;
+
+    // Считаем популярность книг
+    const bookCounts = {};
+    progress.forEach(p => {
+      bookCounts[p.book_id] = (bookCounts[p.book_id] || 0) + 1;
+    });
+    const topBooks = Object.entries(bookCounts).sort((a,b) => b[1] - a[1]).slice(0, 3);
+
+    wrap.innerHTML = `
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+        <div class="d-card-glass" style="padding:16px; text-align:center;">
+          <div style="font-size:28px; font-weight:900; color:var(--d-accent-2);">${totalUsers}</div>
+          <div style="font-size:10px; color:var(--muted); font-weight:800; text-transform:uppercase;">Всего юзеров</div>
+        </div>
+        <div class="d-card-glass" style="padding:16px; text-align:center; border-color:var(--d-success);">
+          <div style="font-size:28px; font-weight:900; color:var(--d-success);">${mrr} ₽</div>
+          <div style="font-size:10px; color:var(--muted); font-weight:800; text-transform:uppercase;">MRR (Доход)</div>
+        </div>
+      </div>
+
+      <h3 style="font-size:12px; font-weight:900; color:var(--muted); text-transform:uppercase; margin-bottom:10px;">Активность (Retention)</h3>
+      <div class="d-card-glass" style="padding:16px; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:13px;">
+          <span style="color:var(--muted);">Сегодня (DAU):</span> <b>${dau}</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:13px;">
+          <span style="color:var(--muted);">За неделю (WAU):</span> <b>${wau}</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:13px;">
+          <span style="color:var(--muted);">За месяц (MAU):</span> <b>${mau}</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; padding-top:12px; border-top:1px solid var(--border);">
+          <span style="color:var(--muted);">Новых сегодня:</span> <b style="color:var(--d-gold);">+${newToday}</b>
+        </div>
+      </div>
+
+      <h3 style="font-size:12px; font-weight:900; color:var(--muted); text-transform:uppercase; margin-bottom:10px;">Топ-3 книги по стартам</h3>
+      <div class="d-card-glass" style="padding:16px;">
+        ${topBooks.map((b, i) => `
+          <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
+            <span>${i+1}. ${b[0]}</span> <b>${b[1]} юзеров</b>
+          </div>
+        `).join('') || 'Нет данных'}
+      </div>
+    `;
+  } catch(e) {
+    wrap.innerHTML = '<div style="color:var(--d-danger);">Ошибка загрузки статистики</div>';
+  }
+}
+async function adminTestPush(userId) {
+  if(!(await appConfirm('Отправить тестовый push этому пользователю?', 'Проверка Push'))) return;
+  try {
+    // В Supabase Edge Functions вызываем отправку
+    const { error } = await sb.functions.invoke('send-scheduled-push', {
+      body: { target_user_id: userId, is_test: true }
+    });
+    if (error) throw error;
+    toast('Тестовый Push отправлен!');
+  } catch (e) {
+    console.error(e);
+    toast('Ошибка: ' + e.message, 'danger');
+  }
+}
+function updateEditorStatusBanner(b) {
+  const banner = document.getElementById('edStatusBanner');
+  const dot = document.getElementById('edStatusDot');
+  const text = document.getElementById('edStatusText');
+  const btn = document.getElementById('edStatusBtn');
+  if(!banner || !dot || !text || !btn) return;
+
+  // Для новой книги (b = null) плашку не показываем
+  if(!b) {
+    banner.style.display = 'none';
+    return;
+  }
+
+  banner.style.display = 'flex';
+  const isPublished = (b.published === true || b.published === 'true');
+
+  if (isPublished) {
+    banner.style.background = 'rgba(62,207,142,0.1)';
+    banner.style.borderColor = 'rgba(62,207,142,0.3)';
+    dot.style.background = 'var(--d-success)';
+    text.textContent = 'Опубликована · видна пользователям';
+    btn.textContent = 'Скрыть';
+    btn.style.color = 'var(--d-warm)';
+    btn.style.borderColor = 'rgba(255,154,86,0.4)';
+  } else {
+    banner.style.background = 'rgba(255,184,0,0.1)';
+    banner.style.borderColor = 'rgba(255,184,0,0.3)';
+    dot.style.background = 'var(--d-gold)';
+    text.textContent = 'В разработке · скрыта от пользователей';
+    btn.textContent = 'Опубликовать';
+    btn.style.color = 'var(--d-success)';
+    btn.style.borderColor = 'rgba(62,207,142,0.4)';
+  }
+}
+
+async function toggleBookPublication() {
+  if(!editingBookId) return;
+  
+  const b = (BOOKS.find(x=>x.id===editingBookId) || (adminAllBooks||[]).find(x=>x.id===editingBookId));
+  if(!b) return;
+
+  const isCurrentlyPublished = (b.published === true || b.published === 'true');
+  const newStatus = !isCurrentlyPublished;
+
+  // Если скрываем — просим подтверждение
+  if (newStatus === false) {
+    if(!(await appConfirm('Скрыть книгу от пользователей? Она переместится в «В разработке».', 'Скрыть книгу', 'Скрыть'))) return;
+  }
+
+  try {
+    const { error } = await sb.from('books').update({ published: newStatus }).eq('id', editingBookId);
+    if (error) throw error;
+
+    // Обновляем в памяти
+    b.published = newStatus;
+    const ab = (adminAllBooks||[]).find(x => x.id === editingBookId);
+    if (ab) ab.published = newStatus;
+
+    updateEditorStatusBanner(b);
+    playSuccess();
+    toast(newStatus ? '✅ Книга опубликована' : '📁 Книга скрыта (в разработке)');
+  } catch(e) {
+    console.error('[ANDGER] toggleBookPublication:', e);
+    toast('Ошибка: ' + (e.message || e), 'danger');
+  }
+}
+async function exportAllBooks() {
+  try {
+    toast('Сбор данных...');
+    const { data: books, error } = await sb.from('books').select('*');
+    if (error) throw error;
+    
+    if (!books || !books.length) {
+      toast('В базе нет книг', 'warm');
+      return;
+    }
+
+    // Приводим к формату, в котором они изначально загружались
+    const exportData = books.map(b => ({
+      id: b.id, title: b.title, author: b.author, emoji: b.emoji, days: b.days,
+      category: b.category, about: b.about, method: b.method,
+      authorBio: b.author_bio, forWhom: b.for_whom, result: b.result,
+      cover_url: b.cover_url, lumi_tips: b.lumi_tips, summary: b.summary,
+      voice_settings: b.voice_settings, practices: b.practices, quotes: b.quotes,
+      published: b.published
+    }));
+
+    const jsonStr = JSON.stringify(exportData, null, 2);
+    const link = document.createElement('a');
+    link.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(jsonStr);
+    link.download = 'andger_books_backup_' + todayStr() + '.json';
+    link.click();
+    
+    playSuccess();
+    toast('Бэкап скачан!');
+  } catch (e) {
+    console.error(e);
+    toast('Ошибка экспорта', 'danger');
+  }
+}

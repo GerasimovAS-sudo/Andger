@@ -38,7 +38,6 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<body>
 
   <!-- ГЛОБАЛЬНЫЕ ГРАДИЕНТЫ ДЛЯ АВАТАРОК (Никогда не удаляются) -->
   <svg style="position:absolute; width:0; height:0; overflow:hidden;" aria-hidden="true">
@@ -943,7 +942,11 @@
 
         <!-- Сетка кнопок навигации -->
         <div class="admin-bento-grid">
-          <div class="admin-nav-btn on" onclick="loadAdminSection('books', this)">
+          <div class="admin-nav-btn on" onclick="loadAdminSection('dashboard', this)">
+            <div class="anb-icon">📊</div>
+            <div class="anb-text">Обзор</div>
+          </div>
+          <div class="admin-nav-btn" onclick="loadAdminSection('books', this)">
             <div class="anb-icon">📚</div>
             <div class="anb-text">Книги</div>
           </div>
@@ -966,6 +969,14 @@
           <div class="admin-nav-btn" onclick="loadAdminSection('quotes', this)">
             <div class="anb-icon">✨</div>
             <div class="anb-text">Цитаты</div>
+          </div>
+          <div class="admin-nav-btn" onclick="loadAdminSection('faq', this)">
+            <div class="anb-icon">❓</div>
+            <div class="anb-text">FAQ</div>
+          </div>
+          <div class="admin-nav-btn" onclick="loadAdminSection('texts', this)">
+            <div class="anb-icon">✍️</div>
+            <div class="anb-text">Тексты</div>
           </div>
           <div class="admin-nav-btn" onclick="loadAdminSection('system', this)">
             <div class="anb-icon">⚙️</div>
@@ -994,6 +1005,15 @@
       
       <div class="wrap" style="padding-top: calc(90px + env(safe-area-inset-top, 0px)); padding-bottom: 100px;">
         
+        <!-- Статус публикации -->
+        <div id="edStatusBanner" style="display:none; margin-bottom:14px; padding:12px 16px; border-radius:12px; background:rgba(62,207,142,0.1); border:1px solid rgba(62,207,142,0.3); align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div id="edStatusDot" style="width:10px; height:10px; border-radius:50%; background:var(--d-success);"></div>
+            <span id="edStatusText" style="font-size:13px; font-weight:800; color:var(--d-text);">Опубликовано</span>
+          </div>
+          <button onclick="toggleBookPublication()" id="edStatusBtn" class="d-btn-secondary" style="margin:0; padding:6px 12px; font-size:11px; height:auto; width:auto;">Скрыть</button>
+        </div>
+
         <!-- Вкладки -->
         <div class="ed-tabs">
           <div class="ed-tab-btn on" onclick="switchEditorTab('main', this)">📖 Основное</div>
@@ -1150,7 +1170,7 @@
           <div class="rp-bar" style="height:4px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden; margin-bottom:6px;">
             <div class="rp-fill" id="rpFill" style="height:100%; background:linear-gradient(90deg,var(--d-accent),var(--d-accent-2)); border-radius:2px; transition:width .4s; width:0%;"></div>
           </div>
-          <div class="rp-text" id="rpStep" style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--d-text-dim);">1 из 6</div>
+          <div class="rp-text" id="rpStep" style="font-size:12px; font-weight:700; color:var(--d-text);">Практика 1 из 6</div>
         </div>
         <button class="rp-close sound-btn" onclick="toggleSound()" style="margin-right: 8px;">🔊</button>
         <button class="rp-close" onclick="closeRitual()">✕</button>
@@ -1176,24 +1196,24 @@
         </div>
         
         <div id="ritualBuilderList"></div>
-        
-        <!-- НИЖНЯЯ ПЛАШКА ДЛЯ СВОЕЙ ПРАКТИКИ -->
-        <div class="ritual-builder-summary" id="ritualBuilderSummary" style="display:none">
-          <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-            <div class="rbs-info" style="flex:1;">
-              <h4 id="rbsCount" style="font-size:15px; font-weight:900; color:#fff; margin:0 0 2px 0;">0 практик</h4>
-              <p id="rbsTime" style="font-size:12px; color:rgba(255,255,255,0.8); margin:0; font-weight:600;">~0 минут</p>
-            </div>
-            <div style="display:flex; gap:8px;">
-              <button class="rbs-btn-save" onclick="saveCustomRitual()" title="Сохранить набор">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-              </button>
-              <button class="rbs-btn" onclick="launchCustomRitual()">Запустить</button>
-            </div>
+      </div> <!-- Закрывается .wrap -->
+      
+      <!-- НИЖНЯЯ ПЛАШКА ВЫНЕСЕНА СЮДА -->
+      <div class="ritual-builder-summary" id="ritualBuilderSummary" style="display:none">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+          <div class="rbs-info" style="flex:1;">
+            <h4 id="rbsCount" style="font-size:15px; font-weight:900; color:#fff; margin:0 0 2px 0;">0 практик</h4>
+            <p id="rbsTime" style="font-size:12px; color:rgba(255,255,255,0.8); margin:0; font-weight:600;">~0 минут</p>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="rbs-btn-save" onclick="saveCustomRitual()" title="Сохранить набор">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            </button>
+            <button class="rbs-btn" id="rbsLaunchBtn" onclick="launchCustomRitual()">ЗАПУСТИТЬ</button>
           </div>
         </div>
       </div>
-    </div>
+    </div> <!-- Закрывается #ritualBuilderScreen -->
 
       <div id="premiumScreen" class="hidden">
       <div class="d-header">
@@ -1578,6 +1598,10 @@
             <input type="number" id="peSpeedInp" step="0.1" min="0.5" max="2.0" placeholder="1.0">
           </div>
           </div>
+          <div class="field"><label>Идентичность (Я — тот, кто...)</label><input type="text" id="peIdentityInp" placeholder="Я — тот, кто управляет своим вниманием"></div>
+          <div class="field"><label>Микро-действие (Сделай прямо сейчас)</label><input type="text" id="peMicroActionInp" placeholder="Сделай 10 приседаний"></div>
+          <div class="field"><label>Вопрос в дневник</label><textarea id="peJournalPromptInp" rows="2" placeholder="Что ты почувствовал?"></textarea></div>
+
           <div class="field"><label>Зачем это нужно (why)</label><textarea id="peWhyInp" rows="3"></textarea></div>
           <div class="field"><label>Как делать (каждый шаг с новой строки)</label><textarea id="peHowInp" rows="4" placeholder="Шаг 1&#10;Шаг 2&#10;Шаг 3"></textarea></div>
           <div class="field"><label>Результат (result)</label><textarea id="peResultInp" rows="2"></textarea></div>

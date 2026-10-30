@@ -723,9 +723,9 @@ html.light, body.light { background: var(--bg); color: var(--text); }
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
 
-    padding: 90px 20px 20px;
+    padding-top: 120px;
 }
 .focus-mode .timer-box, .focus-mode .zen-circle-container { background: transparent; border: none; box-shadow: none; }
 .focus-mode .zen-circle-container { width: 260px; height: 260px; margin-bottom: 20px; position: relative; display: flex; align-items: center; justify-content: center; }
@@ -733,7 +733,31 @@ html.light, body.light { background: var(--bg); color: var(--text); }
 .focus-mode .timer-ring-track { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 10; }
 .focus-mode .timer-ring-progress { fill: none; stroke-width: 10; stroke-linecap: round; stroke-dasharray: 816.81; filter: drop-shadow(0 0 15px rgba(255,42,122,0.6)) drop-shadow(0 0 30px rgba(124,92,255,0.4)); }
 .focus-mode .timer-display { font-size: 56px; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
-.focus-mode .voice-subtitle { display: flex; align-items: center; justify-content: center; font-size: 14px; line-height: 1.4; color: rgba(255,255,255,0.9); font-style: italic; text-align: center; min-height: 50px; margin-bottom: 30px; padding: 0 16px; opacity: 0; transition: opacity 0.6s ease; }
+.focus-mode .voice-subtitle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50px; /* Сделали еще компактнее */
+    margin: 10px auto 15px;
+    padding: 0 16px;
+    background: rgba(30, 25, 45, 0.65);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(124, 92, 255, 0.4);
+    border-radius: 14px;
+    font-size: 12px; /* Уменьшили шрифт */
+    line-height: 1.3;
+    font-style: italic;
+    color: var(--color-white);
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    max-width: 85%;
+    width: 100%;
+    box-sizing: border-box;
+}
+.focus-mode .voice-subtitle.show {
+    opacity: 1;
+}
 .focus-mode .voice-subtitle.show { opacity: 1; }
 .focus-mode .zen-buttons-wrap { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 260px; margin: 0 auto; }
 .focus-mode .timer-big-btn { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border: none; padding: 16px; border-radius: 16px; font-size: 14px; font-weight: 900; width: 100%; }
@@ -876,7 +900,24 @@ html.light, body.light { background: var(--bg); color: var(--text); }
 .ritual-builder-item .rbi-title { font-size: 12px; font-weight: 700; margin-bottom: 1px; }
 .ritual-builder-item .rbi-time { font-size: 9px; color: var(--muted); }
 
-.ritual-builder-summary { position: sticky; bottom: 8px; left: auto; right: auto; width: calc(100% - 28px); max-width: 492px; margin: 14px auto 8px; background: rgba(26, 20, 40, 0.96); border: 1px solid rgba(124,92,255,.55); border-radius: 18px; padding: 10px 14px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.35); z-index: 30; animation: fadeIn 0.3s ease; }
+.ritual-builder-summary {
+    position: fixed !important;
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important; /* Висит над нижним меню */
+    left: 14px;
+    right: 14px;
+    max-width: 492px;
+    margin: 0 auto;
+    background: rgba(26, 20, 40, 0.98);
+    border: 1px solid rgba(124,92,255,.55);
+    border-radius: 18px;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    z-index: 1000 !important;
+    animation: fadeIn 0.3s ease;
+}
 .rbs-btn { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; padding: 10px 16px; border-radius: 16px; font-size: 12px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 12px var(--accent-glow); text-transform: uppercase; letter-spacing: 0.5px; transition: transform 0.1s; }
 .rbs-btn:active { transform: scale(0.95); }
 .rbs-btn-save { background: var(--card2); color: var(--text); border: 1px solid var(--border); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
@@ -976,12 +1017,18 @@ body.keyboard-open .bottom-nav, body.keyboard-open #quickNoteFab { display: none
 }
 
 .focus-mode .timer-wrapper {
-  background-color: var(--color-background-app);
-  background-image:
-    radial-gradient(circle at 10% 20%, rgba(124, 92, 255, 0.4) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(255, 122, 42, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(30, 92, 255, 0.2) 0%, transparent 60%);
-  background-attachment: scroll;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* или center, как было */
+    padding-top: 120px; /* или твой padding */
 }
 
 .focus-mode .voice-subtitle {
@@ -1113,22 +1160,27 @@ html, body, #screensRoot {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100px;
+    min-height: 120px;
     margin: 20px auto 30px;
-    padding: 16px 24px;
-    background: rgba(30, 25, 45, 0.65);
+    padding: 20px 24px;
+    background: linear-gradient(135deg, rgba(40, 30, 70, 0.85), rgba(25, 18, 45, 0.85));
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(124, 92, 255, 0.4);
-    border-radius: 20px;
-    font-size: 15px;
-    font-style: italic;
-    color: var(--color-white);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(124, 92, 255, 0.5);
+    border-radius: 24px;
+    font-size: 17px; /* Увеличили шрифт */
+    font-weight: 600; /* Убрали курсив */
+    line-height: 1.5;
+    color: #ffffff;
     text-align: center;
     opacity: 0;
+    transform: translateY(10px);
     transition: opacity 0.6s ease, transform 0.6s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 .focus-mode .voice-subtitle.show {
     opacity: 1;
+    transform: translateY(0);
 }
 
 @keyframes screenFadeIn {
@@ -1152,7 +1204,8 @@ html, body {
     radial-gradient(circle at 10% 10%, rgba(124, 92, 255, 0.25) 0%, transparent 50%),
     radial-gradient(circle at 90% 80%, rgba(255, 122, 42, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, rgba(30, 92, 255, 0.1) 0%, transparent 60%);
-  background-attachment: fixed;
+  background-attachment: scroll; /* Убрали fixed */
+  min-height: 100vh;
   min-height: 100dvh;
 }
 
@@ -1429,7 +1482,7 @@ input:-webkit-autofill:focus {
   -webkit-overflow-scrolling: touch;
   padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
 }
-#ritualBuilderScreen .wrap { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
+#ritualBuilderScreen .wrap { padding-bottom: 120px; }
 
 /* Normalize corners on timer controls; override older inline/legacy rules. */
 #practiceScreen .timer-big-btn,
@@ -1819,5 +1872,31 @@ body, #screensRoot {
   border: 1px solid rgba(124, 92, 255, 0.4) !important;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.1) !important;
   border-radius: 24px !important;
+}
+/* Пульсация кольца во время практики */
+@keyframes breatheGlow {
+  0% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(124,92,255,0.2)); }
+  50% { transform: scale(1.05); filter: drop-shadow(0 0 40px rgba(124,92,255,0.6)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(124,92,255,0.2)); }
+}
+
+.focus-mode .d-timer-ring-wrap {
+  animation: breatheGlow 4s ease-in-out infinite;
+}
+
+/* Если таймер на паузе — пульсация замирает */
+.focus-mode .d-timer-ring-wrap.paused-ring {
+  animation: none;
+}
+.focus-mode .timer-wrapper {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: transparent;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Центрируем всё по вертикали */
+    padding: 80px 20px 40px; /* Отступ сверху 80px (чтобы не заезжало под шапку), снизу 40px */
 }
 
