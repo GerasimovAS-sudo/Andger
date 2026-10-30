@@ -1218,6 +1218,49 @@ function saveState(){
   syncTimeout=setTimeout(()=>syncProgress(),1500);
 }
 
+// ─── ОФФЛАЙН ОЧЕРЕДЬ ───
+const OFFLINE_QUEUE_KEY = 'andger_offline_queue';
+
+function addToOfflineQueue(actionType, payload) {
+  const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+  queue.push({ type: actionType, payload, timestamp: Date.now() });
+  localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+}
+
+async function processOfflineQueue() {
+  const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+  if (!queue.length || !user || !navigator.onLine) return;
+  
+  console.log(`[ANDGER] Найдено ${queue.length} оффлайн-действий. Синхронизация...`);
+  let successCount = 0;
+  const remainingQueue = [];
+  
+  for (const item of queue) {
+    try {
+      if (item.type === 'note') {
+        const { error } = await sb.from('notes').insert(item.payload);
+        if (error) throw error;
+        successCount++;
+      } else if (item.type === 'journal') {
+        const { error } = await sb.from('journals').upsert(item.payload, { onConflict: 'user_id,date' });
+        if (error) throw error;
+        successCount++;
+      }
+    } catch (e) {
+      console.warn('[ANDGER] Не удалось отправить элемент из очереди, оставляем на потом:', e);
+      remainingQueue.push(item); 
+    }
+  }
+  
+  localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(remainingQueue));
+  
+  if (successCount > 0) {
+    playSuccess();
+    toast(`✅ Синхронизировано ${successCount} записей`, 'success');
+    if (currentScreen === 'journal') renderJournal(); // Обновляем экран, если мы в дневнике
+  }
+}
+
 // ─── ЭКРАНЫ ───
 function cleanupRealtimeSubscriptions(){
   // Закрываем только канал диалога, так как он уникален для каждого собеседника
@@ -4426,14 +4469,25 @@ async function saveJournal(){
   const q2 = document.getElementById('jq2').value;
   const q3 = document.getElementById('jq3').value;
 
+    const journalData = {
+    user_id: user.id,
+    date: today,
+    q1: q1,
+    q2: q2,
+    q3: q3
+  };
+
+  if (!navigator.onLine) {
+    addToOfflineQueue('journal', journalData);
+    playSuccess();
+    const msg = document.getElementById('journalMsg');
+    if(msg) msg.textContent = '✓ Сохранено (оффлайн)';
+    setTimeout(() => { if(msg) msg.textContent = ''; }, 2000);
+    return;
+  }
+
   try {
-    await sb.from('journals').upsert({
-      user_id: user.id,
-      date: today,
-      q1: q1,
-      q2: q2,
-      q3: q3
-    }, { onConflict: 'user_id,date' });
+    await sb.from('journals').upsert(journalData, { onConflict: 'user_id,date' });
 
     playSuccess();
     const msg = document.getElementById('journalMsg');
@@ -7554,18 +7608,35 @@ async function savePracticeNote(practiceTitle, noteText, bookId) {
     toast('Войди в аккаунт, чтобы сохранить заметку', 'warm');
     return { ok: false, reason: 'unauthenticated' };
   }
+    const noteData = {
+    user_id: user.id,
+    book_id: bookId || (currentBook ? currentBook.id : 'general'),
+    practice_title: practiceTitle || 'Заметка к практике',
+    text
+  };
+
+  // 1. Если интернета нет вообще, сразу кладем в очередь
+  if (!navigator.onLine) {
+    addToOfflineQueue('note', noteData);
+    toast('📡 Нет сети. Заметка сохранена и отправится позже.', 'warm');
+    return { ok: true, offline: true };
+  }
+
   try {
-    const { error } = await sb.from('notes').insert({
-      user_id: user.id,
-      book_id: bookId || (currentBook ? currentBook.id : 'general'),
-      practice_title: practiceTitle || 'Заметка к практике',
-      text
-    });
+    const { error } = await sb.from('notes').insert(noteData);
     if (error) throw error;
     toast('Заметка сохранена в дневник');
     return { ok: true };
   } catch (e) {
     console.error('[ANDGER] Ошибка сохранения заметки:', e);
+    
+    // 2. Если сеть есть, но произошел сбой (например, таймаут), тоже кладем в очередь
+    if (e.message && (e.message.includes('fetch') || e.message.includes('network'))) {
+       addToOfflineQueue('note', noteData);
+       toast('📡 Сбой сети. Заметка сохранена локально.', 'warm');
+       return { ok: true, offline: true };
+    }
+    
     toast('Не удалось сохранить заметку. Проверь соединение и попробуй ещё раз.', 'danger');
     return { ok: false, reason: 'save_failed', error: e };
   }
@@ -7948,13 +8019,24 @@ async function saveQuickNote() {
   btn.disabled = true;
 
   try {
-    if (!user || !user.id) throw new Error('Пользователь не авторизован');
-    const { error } = await sb.from('notes').insert({
+        if (!user || !user.id) throw new Error('Пользователь не авторизован');
+    
+    const noteData = {
       user_id: user.id,
       book_id: currentBook ? currentBook.id : 'general',
       practice_title: 'Быстрая мысль',
       text
-    });
+    };
+
+    if (!navigator.onLine) {
+      addToOfflineQueue('note', noteData);
+      playSuccess();
+      toast('📡 Нет сети. Мысль сохранена и отправится позже!', 'warm');
+      closeQuickNote();
+      return;
+    }
+
+    const { error } = await sb.from('notes').insert(noteData);
     if (error) throw error;
     
     playSuccess();
@@ -8472,6 +8554,17 @@ function setVoice(v) {
     speakBackgroundGuide("Приветствую тебя в лучшем приложении для практик Andger. Теперь я буду читать все практики.", 'practice');
   }
 }
+
+// Слушатель восстановления сети
+window.addEventListener('online', () => {
+  console.log('[ANDGER] Сеть восстановлена!');
+  processOfflineQueue();
+});
+
+// При запуске приложения тоже проверяем, нет ли "зависших" записей
+setTimeout(() => {
+  if (navigator.onLine && user) processOfflineQueue();
+}, 3000);
 
 // ─── ANDGER HARDENING / UX PATCH v2.1 ───
 (function andgerHardening(){
