@@ -1981,51 +1981,63 @@ input, textarea, select {
   touch-action: manipulation;
 }
 .focus-mode .timer-wrapper {
-    position: fixed !important;
-    top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-    background: transparent !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    padding: calc(90px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
-    overflow: hidden !important;
-    width: 100% !important;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: transparent;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: calc(90px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+    width: 100%;
 }
 
 .focus-mode .d-timer-ring-wrap {
-    width: 240px !important; 
-    height: 240px !important;
-    margin: 0 auto 20px auto !important; 
-    flex-shrink: 0 !important; 
+    width: 240px; 
+    height: 240px;
+    margin: 0 auto 20px auto; 
+    flex-shrink: 0; 
 }
 
 #practiceScreen.focus-mode .practice-checklist,
 #ritualScreen.focus-mode .practice-checklist {
-  display: block !important; 
-  width: 100% !important;
-  max-width: 360px !important; 
-  margin: 0 auto !important;
-  text-align: left !important;
-  overflow-y: auto !important; 
-  flex: 1 !important; 
-  min-height: 0 !important; 
-  padding-right: 4px !important;
+  display: block; 
+  width: 100%;
+  max-width: 360px; 
+  margin: 0 auto;
+  text-align: left;
+  overflow-y: auto; 
+  flex: 1; 
+  min-height: 0; 
+  padding-right: 4px;
+}
+
+/* МАГИЯ ЗДЕСЬ: margin-top: auto прижимает субтитры и кнопки к низу */
+.focus-mode .voice-subtitle {
+    margin-top: auto; 
+    margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 .focus-mode .zen-buttons-wrap { 
-    display: flex !important; 
-    flex-direction: column !important; 
-    gap: 10px !important; 
-    width: 100% !important; 
-    max-width: 260px !important; 
-    margin: auto auto 0 auto !important; 
-    padding-top: 15px !important;
-    padding-bottom: 0 !important;
-    flex-shrink: 0 !important; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    width: 100%; 
+    max-width: 260px; 
+    margin: 0 auto; 
+    padding-top: 0;
+    padding-bottom: 0;
+    flex-shrink: 0; 
 }
 @keyframes slideUpFade {
   from { opacity: 0; transform: translateY(20px) scale(0.95); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+#appUpdateBanner:not(.hidden) {
+  display: flex !important;
+}
+
 

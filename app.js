@@ -2914,7 +2914,7 @@ function startTimer(ctx){
        circle.style.strokeDashoffset = circumference - (percent * circumference);
     }
 
-    if (currentP && currentP.voiceTimeline && timerState === 'running' && remaining > 1) {
+    if (currentP && currentP.voiceTimeline && timerState === 'running' && remaining > 1 && document.visibilityState === 'visible') {
       const elapsed = totalDuration - remaining;
       currentP.voiceTimeline.forEach((item, index) => {
         if (elapsed >= item.time && !currentP._spokenIndices.includes(index)) {
@@ -6606,13 +6606,19 @@ function forceUpdate() {
   const banner = document.getElementById('appUpdateBanner');
   if (banner) {
     const btn = banner.querySelector('button');
-    if (btn) { btn.textContent = 'Загрузка...'; btn.style.opacity = '0.7'; }
+    if (btn) { 
+      btn.textContent = 'Загрузка...'; 
+      btn.style.opacity = '0.5'; 
+      btn.disabled = true; // Блокируем кнопку, чтобы не нажать дважды
+    }
   }
   
   if (newWorker) {
     newWorker.postMessage({ type: 'SKIP_WAITING' });
+    // Страховка на случай, если Service Worker зависнет: перезагружаем через 1 сек
+    setTimeout(() => { window.location.reload(); }, 1000);
   } else {
-    window.location.reload();
+    setTimeout(() => { window.location.reload(); }, 500);
   }
 }
 
@@ -8277,12 +8283,12 @@ function setAvatarFromModal(avatarKey) {
 }
 async function speakBackgroundGuide(text, context = 'practice') {
   if (!text) return;
-  if (state.soundMode !== 'sound') return; 
+  if (state.soundMode !== 'sound') return;
+  if (document.visibilityState === 'hidden') return; // ЖЕСТКИЙ ЗАПРЕТ НА ОЗВУЧКУ В ФОНЕ
   
   // Приглушаем музыку
   if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, state.soundMode === 'sound' ? 0.04 : 0, 400);
-  }
-  
+
   // Показываем субтитры
   const isRitual = (context === 'ritual');
   const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
@@ -8373,14 +8379,15 @@ async function speakBackgroundGuide(text, context = 'practice') {
     }
     
     if (typeof toast === 'function') toast('Ошибка озвучки: ' + errorMsg, 'danger');
-    
-    // Восстанавливаем музыку при ошибке (если таймер идет)
-    if (musicAudio && state.soundMode === 'sound' && timerState === 'running') {
-      fadeAudio(musicAudio, musicAudio.volume, 0.2, 800);
-    }
-    if (subEl) subEl.classList.remove('show');
-  }
-// ─── ПРОСМОТР ЗАМЕТОК ПОЛЬЗОВАТЕЛЯ ───
+        
+        // Восстанавливаем музыку при ошибке (если таймер идет)
+        if (musicAudio && state.soundMode === 'sound' && timerState === 'running') {
+          fadeAudio(musicAudio, musicAudio.volume, 0.2, 800);
+        }
+        if (subEl) subEl.classList.remove('show');
+      }
+    } 
+
 
 // ─── УДАЛЕНИЕ ПОСТА ИЗ ЖАЛОБ ───
 async function deleteReportedPost(reportId, postId) {
@@ -8615,8 +8622,7 @@ setTimeout(() => {
 
   window.addEventListener('pagehide', pauseAllAudio);
 
-  document.addEventListener('visibilitychange', function(){
-
+ document.addEventListener('visibilitychange', function(){
     if (document.visibilityState === 'hidden') {
       pauseAllAudio();
     } else if (document.visibilityState === 'visible') {
@@ -8629,6 +8635,12 @@ setTimeout(() => {
         if (typeof getCtx === 'function') {
           const ctx = getCtx();
           if (ctx && ctx.state === 'suspended') ctx.resume();
+        }
+        
+        // ВОЗОБНОВЛЯЕМ МУЗЫКУ ПРИ ВОЗВРАТЕ
+        if (state.soundMode === 'sound' && musicAudio) {
+          musicAudio.play().catch(()=>{});
+          fadeAudio(musicAudio, musicAudio.volume, 0.2, 500);
         }
       }
     }
@@ -9275,11 +9287,11 @@ function buildPracticeHtml(p) {
         </svg>
         <div class="d-timer-text timer-display" id="timerDisplay" style="font-size: 52px; text-shadow: 0 0 20px rgba(255,255,255,0.3);">${formatTime(p.time || 300)}</div>
       </div>
-            <!-- СУБТИТРЫ -->
-      <div class="voice-subtitle practice-subtitle" style="margin-top: 10px; min-height: 60px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 15px; color: var(--d-text); font-weight: 500; transition: opacity 0.3s; padding: 0 10px;"></div>
+      <!-- СУБТИТРЫ -->
+      <div class="voice-subtitle practice-subtitle"></div>
            
       <!-- Кнопки -->
-      <div class="zen-buttons-wrap" style="display:flex; flex-direction:column; gap:10px; width: 100%; max-width:260px; margin: 0 auto;">
+      <div class="zen-buttons-wrap">
         <button class="d-btn-primary" id="timerBtn" onclick="toggleTimer('practice')">▶ Начать практику</button>
         <button class="d-btn-secondary exit-zen-btn" onclick="toggleZenMode()" style="display: none; width:100%;">Свернуть таймер</button>
       </div>
@@ -9305,14 +9317,7 @@ function switchEditorTab(tabId, btnEl) {
   const target = document.getElementById('edTab-' + tabId);
   if (target) target.classList.remove('hidden');
 }
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    if (typeof getCtx === 'function') {
-      const ctx = getCtx();
-      if (ctx && ctx.state === 'suspended') ctx.resume();
-    }
-  }
-});
+
 function switchMusicTrack() {
   if (!currentPlaylist || currentPlaylist.length <= 1) {
     toast('Для этой практики доступен только один трек', 'warm');
