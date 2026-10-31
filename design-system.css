@@ -1882,3 +1882,110 @@ html.light .andger-bubble {
   box-shadow: 0 0 15px rgba(124, 92, 255, 0.2) !important;
   transform: scale(1.02);
 }
+/* ═══════════════════════════════════════════════ */
+/* ПРЕМИАЛЬНЫЙ ВЫБОР ТЕМЫ (3D СФЕРЫ) */
+/* ═══════════════════════════════════════════════ */
+
+.theme-selector-container {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: var(--d-surface);
+  border: 1px solid var(--d-border);
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+.theme-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 8px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-card:active {
+  transform: scale(0.95);
+}
+
+/* Сферы */
+.theme-sphere {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  position: relative;
+  box-shadow: inset -3px -3px 8px rgba(0, 0, 0, 0.6), inset 3px 3px 8px rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+/* Блик на сфере (эффект стекла) */
+.theme-sphere::after {
+  content: '';
+  position: absolute;
+  top: 15%;
+  left: 15%;
+  width: 30%;
+  height: 30%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  filter: blur(2px);
+}
+
+/* Темная сфера */
+.dark-sphere {
+  background: radial-gradient(circle at 30% 30%, #3b1f66, #0d0a18);
+  border: 1px solid rgba(124, 92, 255, 0.4);
+  box-shadow: inset -3px -3px 8px rgba(0, 0, 0, 0.8), 0 0 15px rgba(124, 92, 255, 0.2);
+}
+
+/* Светлая сфера */
+.light-sphere {
+  background: radial-gradient(circle at 30% 30%, #ffffff, #dcdae5);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: inset -3px -3px 8px rgba(0, 0, 0, 0.15), 0 0 15px rgba(255, 255, 255, 0.1);
+}
+.light-sphere::after {
+  background: rgba(255, 255, 255, 0.9); /* Более яркий блик для светлой */
+}
+
+/* Сфера Авто (идеальный плавный переход) */
+.auto-sphere {
+  background: linear-gradient(135deg, #0d0a18 0%, #2a164a 30%, #7c5cff 60%, #f5f4fa 100%);
+  border: 1px solid rgba(124, 92, 255, 0.6);
+  box-shadow: inset -3px -3px 8px rgba(0, 0, 0, 0.7), inset 2px 2px 10px rgba(255, 255, 255, 0.4), 0 0 20px rgba(124, 92, 255, 0.4);
+}
+
+/* Текст */
+.theme-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--d-text-dim);
+  transition: color 0.3s;
+  letter-spacing: 0.5px;
+}
+
+/* АКТИВНОЕ СОСТОЯНИЕ */
+.theme-card.active {
+  background: rgba(124, 92, 255, 0.1);
+  border-color: rgba(124, 92, 255, 0.4);
+  box-shadow: 0 8px 20px rgba(124, 92, 255, 0.15);
+}
+
+.theme-card.active .theme-label {
+  color: var(--d-text);
+}
+
+.theme-card.active .theme-sphere {
+  transform: scale(1.1);
+  box-shadow: inset -3px -3px 8px rgba(0, 0, 0, 0.5), 0 0 25px rgba(124, 92, 255, 0.6);
+  border-color: var(--d-accent-2);
+}

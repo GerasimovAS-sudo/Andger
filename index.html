@@ -904,20 +904,20 @@
       
             <h3 style="font-size:11px; font-weight:900; color:var(--d-text-dim); text-transform:uppercase; margin-top: 8px;">Внешний вид</h3>
       
-      <div class="d-card-glass" style="padding: 10px; display: flex; gap: 8px; justify-content: space-between;">
-        <div class="theme-option" data-theme="dark" onclick="setTheme('dark')" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px 8px; border-radius: 12px; border: 1px solid var(--d-border); background: rgba(0,0,0,0.2); cursor: pointer; transition: 0.2s;">
-          <div style="width: 28px; height: 28px; border-radius: 50%; background: #0d0a18; border: 2px solid rgba(255,255,255,0.2); box-shadow: inset 0 0 10px rgba(124,92,255,0.5);"></div>
-          <span style="font-size: 11px; font-weight: 700; color: var(--d-text);">Тёмная</span>
+            <div class="theme-selector-container">
+        <div class="theme-card" data-theme="dark" onclick="setTheme('dark')">
+          <div class="theme-sphere dark-sphere"></div>
+          <span class="theme-label">Тёмная</span>
         </div>
-        <div class="theme-option" data-theme="light" onclick="setTheme('light')" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px 8px; border-radius: 12px; border: 1px solid var(--d-border); background: rgba(0,0,0,0.2); cursor: pointer; transition: 0.2s;">
-          <div style="width: 28px; height: 28px; border-radius: 50%; background: #f5f4fa; border: 2px solid rgba(0,0,0,0.1); box-shadow: inset 0 0 10px rgba(255,184,0,0.3);"></div>
-          <span style="font-size: 11px; font-weight: 700; color: var(--d-text);">Светлая</span>
+        <div class="theme-card" data-theme="light" onclick="setTheme('light')">
+          <div class="theme-sphere light-sphere"></div>
+          <span class="theme-label">Светлая</span>
         </div>
-        <div class="theme-option" data-theme="auto" onclick="setTheme('auto')" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px 8px; border-radius: 12px; border: 1px solid var(--d-border); background: rgba(0,0,0,0.2); cursor: pointer; transition: 0.2s;">
-          <div style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #0d0a18 50%, #f5f4fa 50%); border: 2px solid rgba(124,92,255,0.5);"></div>
-          <span style="font-size: 11px; font-weight: 700; color: var(--d-text);">Авто</span>
+        <div class="theme-card" data-theme="auto" onclick="setTheme('auto')">
+          <div class="theme-sphere auto-sphere"></div>
+          <span class="theme-label">Авто</span>
         </div>
-      </div>  
+      </div>
         
       <h3 style="font-size:11px; font-weight:900; color:var(--d-text-dim); text-transform:uppercase;">Звук и уведомления</h3>
       <!-- Отдельная карточка для Админа -->
