@@ -456,6 +456,7 @@ function startMusic(practiceId = 'default'){
     
     currentTrackIdx = newIdx;
     musicAudio.src = currentPlaylist[currentTrackIdx];
+    musicAudio.load(); // Принудительно загружаем новый трек
     musicAudio.currentTime = 0;
   }
   musicAudio.play().then(() => {
@@ -474,8 +475,8 @@ function nextTrack(){
   
   currentTrackIdx = (currentTrackIdx + 1) % currentPlaylist.length;
   musicAudio.src = currentPlaylist[currentTrackIdx];
-  // Если голос играет, не перебиваем его громкой музыкой
-  musicAudio.volume = isVoicePlaying ? 0.05 : 0.2;
+  musicAudio.load();
+  musicAudio.volume = 0.2;
   musicAudio.play().catch(()=>{});
 }
 function stopMusic(){
@@ -487,14 +488,21 @@ function stopMusic(){
     isVoicePlaying = false; // Сбрасываем флаг при полной остановке
   } catch(e) {}
 }
-function fadeAudio(audio,from,to,duration,onEnd){
-  const start=performance.now();
-  function tick(now){
-    const t=Math.min((now-start)/duration,1);
-    audio.volume=Math.max(0,Math.min(1,from+(to-from)*t));
-    if(t<1)requestAnimationFrame(tick);else if(onEnd)onEnd();
+function fadeAudio(audio, from, to, duration, onEnd) {
+  if (!audio) return;
+  if (audio._fadeRAF) cancelAnimationFrame(audio._fadeRAF);
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min((now - start) / duration, 1);
+    audio.volume = Math.max(0, Math.min(1, from + (to - from) * t));
+    if (t < 1) {
+      audio._fadeRAF = requestAnimationFrame(tick);
+    } else {
+      audio._fadeRAF = null;
+      if (onEnd) onEnd();
+    }
   }
-  requestAnimationFrame(tick);
+  audio._fadeRAF = requestAnimationFrame(tick);
 }
 
 // ─── ЗВУКИ И ВИБРАЦИЯ (v4 · premium) ───
@@ -1643,9 +1651,9 @@ function toggleSound(){
     if (musicAudio) {
       fadeAudio(musicAudio, musicAudio.volume, 0, 250); // Просто плавно убавляем до 0
     }
-    // Просто выкручиваем громкость голоса в 0. Мы его НЕ ставим на паузу.
     if (ttsAudio) { 
       ttsAudio.volume = 0; 
+      ttsAudio.pause(); 
     }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   }
@@ -2750,8 +2758,9 @@ function startRitual(){
 function renderRitualStep(){
   try {
     if (ritualIndex >= ritualQueue.length) { finishRitual(); return; }
-    const p = ritualQueue[ritualIndex];
+    let p = ritualQueue[ritualIndex];
     if (!p) { closeRitual(); return; }
+    p = normalizeVoiceTimeline(p); // <--- ПРИМЕНЯЕМ МАСШТАБИРОВАНИЕ
     
     const rpStep = document.getElementById('rpStep');
     if(rpStep) rpStep.textContent = 'Практика ' + (ritualIndex + 1) + ' из ' + ritualQueue.length;
@@ -2865,7 +2874,7 @@ function startTimer(ctx){
   if (!screen) return; 
 
   // ВОТ ЭТА СТРОЧКА БЫЛА ПОТЕРЯНА:
-  const circle = screen.querySelector('#timerCircle'); 
+  const circle = screen.querySelector('.timer-circle'); 
   
   if (circle) circle.style.transition = 'stroke-dashoffset 1s linear';
   
@@ -2890,6 +2899,12 @@ function startTimer(ctx){
     if(el){
       el.textContent = formatTime(timerRemaining);
       el.classList.add('timer-pulsing');
+    }
+
+    // ПЛАВНОЕ ЗАТУХАНИЕ МУЗЫКИ (Последние 15 секунд)
+    if (timerRemaining <= 15 && timerRemaining > 0 && musicAudio && state.soundMode === 'sound') {
+      // Вычисляем громкость от 0.2 до 0.0 пропорционально оставшемуся времени
+      musicAudio.volume = (timerRemaining / 15) * 0.2;
     }
 
     if (circle) {
@@ -2947,8 +2962,8 @@ function stopTimer(){
   const rScreen = document.getElementById('ritualScreen');
   
   // Сбрасываем кружок таймера на обоих экранах
-  if(pScreen) { const c = pScreen.querySelector('#timerCircle'); if(c) c.style.strokeDashoffset = 0; }
-  if(rScreen) { const c = rScreen.querySelector('#timerCircle'); if(c) c.style.strokeDashoffset = 0; }
+  if(pScreen) { const c = pScreen.querySelector('.timer-circle'); if(c) c.style.strokeDashoffset = 0; }
+  if(rScreen) { const c = rScreen.querySelector('.timer-circle'); if(c) c.style.strokeDashoffset = 0; }
 
   if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
   releaseWakeLock(); 
@@ -3641,7 +3656,7 @@ function openPractice(id){
   }
 
   const p=currentBook.practices.find(x=>x.id===id);if(!p)return;
-  currentPractice=p;
+  currentPractice=normalizeVoiceTimeline(p); // <--- ПРИМЕНЯЕМ МАСШТАБИРОВАНИЕ
   
   const psTitleEl = document.getElementById('psTitle');
   if(psTitleEl) psTitleEl.textContent = p.title;
@@ -6562,10 +6577,8 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register(new URL('./sw.js', window.location.href)).then(reg => {
       
-      // Проверяем обновления каждые 10 минут
       setInterval(() => { reg.update(); }, 10 * 60 * 1000);
 
-      // Проверяем обновления, когда пользователь возвращается в приложение
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
           reg.update();
@@ -6577,18 +6590,9 @@ if ('serviceWorker' in navigator) {
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              
-              const isRitualActive = !document.getElementById('ritualScreen').classList.contains('hidden');
-              const isPracticeActive = !document.getElementById('practiceScreen').classList.contains('hidden');
-              
-              if (!isRitualActive && !isPracticeActive) {
-                setTimeout(() => {
-                  newWorker.postMessage({ type: 'SKIP_WAITING' });
-                }, 2000);
-              } else {
-                const banner = document.getElementById('updateBanner');
-                if (banner) banner.style.display = 'flex';
-              }
+              // Показываем красивую плашку вместо принудительной перезагрузки
+              const banner = document.getElementById('appUpdateBanner');
+              if (banner) banner.classList.remove('hidden');
             }
           });
         }
@@ -6599,6 +6603,12 @@ if ('serviceWorker' in navigator) {
 
 // Обработка кнопки "Обновить" на баннере
 function forceUpdate() {
+  const banner = document.getElementById('appUpdateBanner');
+  if (banner) {
+    const btn = banner.querySelector('button');
+    if (btn) { btn.textContent = 'Загрузка...'; btn.style.opacity = '0.7'; }
+  }
+  
   if (newWorker) {
     newWorker.postMessage({ type: 'SKIP_WAITING' });
   } else {
@@ -8269,11 +8279,8 @@ async function speakBackgroundGuide(text, context = 'practice') {
   if (!text) return;
   if (state.soundMode !== 'sound') return; 
   
-  isVoicePlaying = true;
-
-  // Приглушаем музыку (если она играет)
-  if (musicAudio && !musicAudio.paused) {
-    fadeAudio(musicAudio, musicAudio.volume, 0.05, 400);
+  // Приглушаем музыку
+  if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, state.soundMode === 'sound' ? 0.04 : 0, 400);
   }
   
   // Показываем субтитры
@@ -8331,17 +8338,15 @@ async function speakBackgroundGuide(text, context = 'practice') {
     const blob = new Blob([bytes], { type: 'audio/mpeg' });
     ttsAudio.src = URL.createObjectURL(blob);
     
-    ttsAudio.onended = () => {
+   ttsAudio.onended = () => {
       if (subEl) {
         subEl.classList.remove('show');
         setTimeout(() => { subEl.textContent = ''; }, 500);
       }
       
-      isVoicePlaying = false;
-      
-      // Возвращаем громкость музыки (только если таймер еще идет)
-      if (musicAudio && state.soundMode === 'sound' && timerState === 'running') {
-        fadeAudio(musicAudio, musicAudio.volume, 0.2, 800);
+      // Возвращаем громкость, ТОЛЬКО если до конца таймера осталось больше 15 секунд
+      if (musicAudio && state.soundMode === 'sound' && timerRemaining > 15) {
+        fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000); 
       }
     };
     
@@ -8375,7 +8380,6 @@ async function speakBackgroundGuide(text, context = 'practice') {
     }
     if (subEl) subEl.classList.remove('show');
   }
-}
 // ─── ПРОСМОТР ЗАМЕТОК ПОЛЬЗОВАТЕЛЯ ───
 
 // ─── УДАЛЕНИЕ ПОСТА ИЗ ЖАЛОБ ───
@@ -8603,16 +8607,18 @@ setTimeout(() => {
     const msg = document.getElementById('globalErrorToast');
     if (msg) { msg.textContent = 'Проблема с соединением. Проверь интернет и попробуй ещё раз.'; msg.classList.remove('hidden'); }
   });
-    document.addEventListener('visibilitychange', function(){
+    function pauseAllAudio() {
+    try { if (musicAudio) musicAudio.pause(); } catch(e) {}
+    if (ttsAudio) { ttsAudio.pause(); }
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  }
+
+  window.addEventListener('pagehide', pauseAllAudio);
+
+  document.addEventListener('visibilitychange', function(){
+
     if (document.visibilityState === 'hidden') {
-      // 1. Останавливаем музыку, чтобы не играла в кармане
-      try { if (musicAudio) musicAudio.pause(); } catch(e) {}
-      
-      // 2. Останавливаем голос
-      if (ttsAudio) { ttsAudio.pause(); }
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-      
-      // 3. ТАЙМЕР НЕ ТРОГАЕМ. Он продолжит идти в фоне благодаря Date.now()
+      pauseAllAudio();
     } else if (document.visibilityState === 'visible') {
       // Пользователь вернулся в приложение
       if (timerState === 'running') {
@@ -9061,9 +9067,21 @@ function setPracticeRating(val) {
   playClick();
 }
 function openFeedbackModal() {
+  // Запоминаем, открыта ли была модалка завершения
+  window._feedbackFromComplete = !document.getElementById('completeOverlay').classList.contains('hidden');
+  
   document.getElementById('completeOverlay').classList.add('hidden');
   document.getElementById('feedbackInput').value = '';
   document.getElementById('feedbackModal').classList.remove('hidden');
+}
+
+function closeFeedbackModal() {
+  document.getElementById('feedbackModal').classList.add('hidden');
+  // Если пришли с экрана завершения — возвращаем его
+  if (window._feedbackFromComplete) {
+    document.getElementById('completeOverlay').classList.remove('hidden');
+    window._feedbackFromComplete = false;
+  }
 }
 
 async function submitFeedback() {
@@ -9085,9 +9103,9 @@ async function submitFeedback() {
       }
     }
 
-    document.getElementById('feedbackModal').classList.add('hidden');
     playSuccess();
     toast('Спасибо! Твой отзыв отправлен разработчику.');
+    closeFeedbackModal();
   } catch(e) {
     console.error(e);
     toast('Ошибка отправки', 'danger');
@@ -9131,6 +9149,32 @@ async function loadAdminFeedbacks() {
     el.innerHTML = '<div style="text-align:center; color:var(--danger);">Ошибка загрузки</div>';
   }
 }
+
+function normalizeVoiceTimeline(practice) {
+  if (!practice || !practice.voiceTimeline || !practice.voiceTimeline.length) return practice;
+  
+  // Клонируем практику, чтобы не портить исходный объект в базе
+  const p = JSON.parse(JSON.stringify(practice)); 
+  const totalTime = p.time || 300;
+  const safeBuffer = 15; // Оставляем 15 секунд в конце, чтобы голос успел договорить
+  const maxAllowedTime = totalTime - safeBuffer;
+  
+  let maxTimelineTime = 0;
+  p.voiceTimeline.forEach(v => {
+    if (v.time > maxTimelineTime) maxTimelineTime = v.time;
+  });
+  
+  // Если таймлайн в JSON длиннее, чем время практики, или короче — масштабируем его
+  if (maxTimelineTime > 0) {
+    const ratio = maxAllowedTime / maxTimelineTime;
+    p.voiceTimeline.forEach(v => {
+      v.time = Math.floor(v.time * ratio);
+    });
+  }
+  
+  return p;
+}
+
 function buildPracticeHtml(p) {
   return `
     <div class="practice-focus-hide">
@@ -9231,20 +9275,9 @@ function buildPracticeHtml(p) {
         </svg>
         <div class="d-timer-text timer-display" id="timerDisplay" style="font-size: 52px; text-shadow: 0 0 20px rgba(255,255,255,0.3);">${formatTime(p.time || 300)}</div>
       </div>
-      
-      <!-- ЧЕК-ЛИСТ ШАГОВ -->
-      <div class="practice-checklist">
-        <div style="font-size: 10px; font-weight: 900; color: var(--d-text-dim); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px;">Шаги практики</div>
-        ${(p.how || []).map((step, i) => `
-          <div class="checklist-item" onclick="this.classList.toggle('done')">
-            <div class="check-circle">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            </div>
-            <div class="check-text">${i+1}. ${step}</div>
-          </div>
-        `).join('')}
-      </div>
-
+            <!-- СУБТИТРЫ -->
+      <div class="voice-subtitle practice-subtitle" style="margin-top: 10px; min-height: 60px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 15px; color: var(--d-text); font-weight: 500; transition: opacity 0.3s; padding: 0 10px;"></div>
+           
       <!-- Кнопки -->
       <div class="zen-buttons-wrap" style="display:flex; flex-direction:column; gap:10px; width: 100%; max-width:260px; margin: 0 auto;">
         <button class="d-btn-primary" id="timerBtn" onclick="toggleTimer('practice')">▶ Начать практику</button>
