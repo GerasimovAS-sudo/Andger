@@ -6614,6 +6614,12 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (refreshing) return;
     refreshing = true;
+    
+    // Если таймер запущен или идет практика — НЕ перезагружаем!
+    if (timerState === 'running' || document.body.classList.contains('app-focus-mode')) {
+      console.log('⚠️ Обновление отложено: идет практика.');
+      return;
+    }
     window.location.reload();
   });
 
@@ -8380,26 +8386,32 @@ async function speakBackgroundGuide(text, context = 'practice') {
         bytes[i] = binaryString.charCodeAt(i);
     }
 
-    if (!ttsAudio) ttsAudio = new Audio();
+      if (!ttsAudio) ttsAudio = new Audio();
     ttsAudio.pause();
     ttsAudio.currentTime = 0;
+    
+    // Очищаем память от предыдущего файла озвучки, чтобы iOS не крашился
+    if (ttsAudio.src && ttsAudio.src.startsWith('blob:')) {
+        URL.revokeObjectURL(ttsAudio.src);
+    }
 
     const blob = new Blob([bytes], { type: 'audio/mpeg' });
     ttsAudio.src = URL.createObjectURL(blob);
     
-   ttsAudio.onended = () => {
+    // Настраиваем возврат музыки, если голос закончился или произошла ошибка
+    const restoreMusic = () => {
       if (subEl) {
         subEl.classList.remove('show');
         setTimeout(() => { subEl.textContent = ''; }, 500);
       }
-      
-      // Возвращаем громкость, ТОЛЬКО если до конца таймера осталось больше 15 секунд
-      if (musicAudio && state.soundMode === 'sound' && timerRemaining > 15) {
-        fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000); 
+      if (musicAudio && state.soundMode === 'sound') {
+        fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000);
       }
     };
-    
-   // Если звук выключили во время загрузки запроса — отменяем воспроизведение
+
+    ttsAudio.onended = restoreMusic;
+    ttsAudio.onerror = restoreMusic;
+
     if (state.soundMode !== 'sound') {
        if (subEl) subEl.classList.remove('show');
        if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000);
@@ -8408,10 +8420,16 @@ async function speakBackgroundGuide(text, context = 'practice') {
 
     ttsAudio.volume = 1;
     
-    // Защита от ошибки AbortError, если таймер закончился ровно в этот момент
+    // Защита от ошибки AbortError
     try {
+      // Приглушаем музыку прямо перед тем, как голос заговорит
+      if (musicAudio) {
+        fadeAudio(musicAudio, musicAudio.volume, 0.05, 300);
+      }
       await ttsAudio.play();
     } catch (playError) {
+      restoreMusic(); // Возвращаем музыку, если произошла ошибка
+      
       if (playError.name === 'AbortError') {
         console.log('Голос был прерван (таймер остановлен).');
       } else {
