@@ -376,11 +376,10 @@ html.light, body.light { background: var(--bg); color: var(--text); }
     padding-bottom: 8px;
     scrollbar-width: none;
 }
-#journalFilters .active-book-card, #statsBooksSwipe .active-book-card {
-    min-width: calc(100% - 20px);
-    scroll-snap-align: start;
-    flex-shrink: 0;
-    margin-bottom: 0;
+#journalFilters .d-lib-book-card {
+  min-width: calc(100% - 20px);
+  scroll-snap-align: start;
+  flex-shrink: 0;
 }
 #journalFilters .active-book-card, #statsBooksSwipe .active-book-card { min-width: calc(100% - 20px); scroll-snap-align: start; flex-shrink: 0; }
 

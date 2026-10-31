@@ -1491,7 +1491,14 @@ function backFromProfile(){
   else if(profilePrev==='admin')showAdmin();
   else smartHome();
 }
-function backFromStats(){smartHome()}
+function goToRating() {
+  showCommunityScreen();
+  setTimeout(() => {
+    switchCommunityTab('people', document.querySelectorAll('.tab-pill')[2]);
+  }, 100);
+}
+
+function backFromStats(){ showProfile(); }
 function backFromJournal(){smartHome()}
 function backFromPublicProfile(){
 
@@ -2522,6 +2529,7 @@ function renderStatsScreen(){
   const sStreak = document.getElementById('statStreakBig'); if(sStreak) sStreak.textContent = calcStreak(b.id);
   const sBest = document.getElementById('statBestBig'); if(sBest) sBest.textContent = calcBest(b.id);
   renderAchievements();
+  loadMoodChart(); // <--- ДОБАВИЛИ ВОТ ЭТУ СТРОКУ
 }
 function selectStatsBook(id){statsBookId=id;renderStatsScreen()}
 
@@ -3967,7 +3975,8 @@ function closeAndgerConfirm(accepted = false) {
         </div>`;
     }
    
-    document.getElementById('profileTopAvatar').innerHTML = getAvatarHtml(state.avatar, 20);
+    const topAva = document.getElementById('profileTopAvatar');
+    if (topAva) topAva.innerHTML = getAvatarHtml(state.avatar, 20);
     
     const nameEl = document.getElementById('profileFullName');
     if(nameEl) nameEl.value = ((user.name || '') + (user.lastName ? ' ' + user.lastName : '')).trim();
@@ -4379,7 +4388,12 @@ async function renderJournal(){
   const filterWrap = document.getElementById('journalFilters');
   if (filterWrap) {
     const filterList = [{ id: 'all', title: 'Все записи', author: 'Общий дневник', emoji: 'book', days: 0, isAll: true }];
-    BOOKS.forEach(b => filterList.push(b));
+    
+    // Показываем книгу, если она начата ИЛИ если в ней уже есть записи
+    BOOKS.filter(b => {
+        const bs = getBookState(b.id);
+        return bs.start || Object.keys(bs.journal || {}).length > 0;
+    }).forEach(b => filterList.push(b));
 
     let filterHtml = '';
     let dotsHtml = '';
@@ -4387,29 +4401,50 @@ async function renderJournal(){
     filterList.forEach(item => {
       const isActive = journalFilter === item.id;
       
-      let title = item.isAll ? 'Все записи' : item.title;
-      let sub = item.isAll ? 'Общий дневник' : item.author;
-      let emojiHtml = getEmojiOrSvg(item.emoji, 38, item.title);
-      
-      const coverImg = item.cover_url 
-        ? `<img src="${item.cover_url}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">` 
-        : emojiHtml;
+      if (item.isAll) {
+        filterHtml += `
+          <div class="d-lib-book-card" onclick="setJournalFilter('${item.id}')" style="width: calc(100% - 20px); flex-shrink: 0; scroll-snap-align: start; ${isActive ? 'border-color: var(--d-accent); box-shadow: 0 0 15px rgba(124,92,255,0.15); background: rgba(124,92,255,0.05);' : 'opacity: 0.6;'}">
+            <div class="d-lib-book-cover" style="background:var(--d-gradient-soft);">
+              ${getEmojiOrSvg('book', 36, 'Журнал')}
+            </div>
+            <div class="d-lib-book-body">
+              <div class="d-lib-book-title">Все записи</div>
+              <div class="d-lib-book-author">Общий дневник</div>
+              <div style="font-size:10px; color:var(--d-text-dim); margin-top:8px;">Все твои инсайты в одном месте</div>
+            </div>
+          </div>
+        `;
+      } else {
+        const b = BOOKS.find(x => x.id === item.id);
+        const closed = countClosedDays(b.id);
+        const pct = Math.round(closed / (b.days || 1) * 100);
+        const day = currentDay(b.id);
 
-      filterHtml += `
-        <div class="d-lib-book-card" 
-             onclick="setJournalFilter('${item.id}')" 
-             style="min-width: 140px; max-width: 140px; height: 64px; flex-shrink: 0; padding: 8px; gap: 8px; ${isActive ? 'border-color: var(--d-accent); box-shadow: 0 0 15px rgba(124,92,255,0.15); background: rgba(124,92,255,0.05);' : 'opacity: 0.7;'}">
-          <div class="d-lib-book-cover" style="width:44px; height:100%; border-radius:8px; overflow:hidden; flex-shrink:0;">
-            ${coverImg}
+        filterHtml += `
+          <div class="d-lib-book-card" onclick="setJournalFilter('${item.id}')" style="width: calc(100% - 20px); flex-shrink: 0; scroll-snap-align: start; ${isActive ? 'border-color: var(--d-accent); box-shadow: 0 0 15px rgba(124,92,255,0.15);' : 'opacity: 0.6;'}">
+            <div class="d-lib-book-cover">${getEmojiOrSvg(b.emoji, 36, b.title)}</div>
+            <div class="d-lib-book-body">
+              <div class="d-lib-book-title">${b.title}</div>
+              <div class="d-lib-book-author">${b.author || 'Неизвестный автор'}</div>
+              <div style="font-size:10px; color:var(--d-text-dim); margin-bottom:6px;">День ${day} из ${b.days}</div>
+              <div class="d-lib-book-bar"><div class="d-lib-book-fill" style="width:${pct}%"></div></div>
+              <div class="d-lib-book-pct">${pct}%</div>
+            </div>
           </div>
-          <div class="d-lib-book-body" style="justify-content:center;">
-            <div class="d-lib-book-title" style="font-size:12px; -webkit-line-clamp: 2; line-height:1.2;">${title}</div>
-            <div class="d-lib-book-author" style="font-size:10px; margin-top:2px;">${sub}</div>
-          </div>
-        </div>
-      `;
+        `;
+      }
       dotsHtml += `<div class="b-dot ${isActive ? 'on' : ''}"></div>`;
     });
+    
+    // Если нет ни одной начатой книги, показываем подсказку под свайпером
+    if (filterList.length === 1) {
+        filterHtml += `
+          <div style="width: calc(100% - 20px); flex-shrink: 0; scroll-snap-align: start; display:flex; align-items:center; justify-content:center; padding: 20px; color: var(--d-text-dim); font-size: 12px; text-align:center; border: 1px dashed var(--d-border); border-radius: 16px;">
+            Начни проходить книгу, и она появится здесь
+          </div>
+        `;
+        dotsHtml += `<div class="b-dot"></div>`;
+    }
     
     filterWrap.innerHTML = filterHtml;
     const dotsEl = document.getElementById('journalDots');
@@ -8914,11 +8949,7 @@ function injectQuickNoteButton() {
     btn.className = 'd-icon-btn quick-note-header-btn';
     btn.title = 'Быстрая заметка';
     btn.onclick = openQuickNote;
-    // Фиолетовый градиент, чтобы выделялась
-    btn.style.background = 'linear-gradient(135deg, #7c5cff 0%, #6366f1 100%)';
-    btn.style.border = 'none';
-    btn.style.color = '#fff';
-    btn.style.boxShadow = '0 4px 12px rgba(124, 92, 255, 0.4)';
+    // Стили наследуются от .d-icon-btn, кнопка будет в едином стиле
     
     // Иконка карандаша (Lucide Edit)
     btn.innerHTML = `
@@ -9807,18 +9838,29 @@ async function loadMoodChart() {
     }
 
     // Рисуем столбики
+    const todayStr = localDate(new Date());
     chartEl.innerHTML = days.map(d => {
-      const heightPct = d.avg > 0 ? (d.avg / 5) * 100 : 4;
-      let color = 'rgba(255,255,255,0.05)';
-      if (d.avg >= 4) color = 'linear-gradient(180deg, #3ecf8e, #2ea870)';
-      else if (d.avg >= 3) color = 'linear-gradient(180deg, #ffb800, #ff9d00)';
-      else if (d.avg >= 2) color = 'linear-gradient(180deg, #ff9d00, #ff7a2a)';
-      else if (d.avg > 0) color = 'linear-gradient(180deg, #ff5c5c, #cc4444)';
+      const isToday = d.date === todayStr;
+      const heightPct = d.avg > 0 ? (d.avg / 5) * 100 : 8; // Чуть увеличили высоту пустого столбика
+      
+      let color = 'rgba(255,255,255,0.03)';
+      let border = '1px dashed rgba(255,255,255,0.1)'; // Пунктир для пустых дней
+
+      if (d.avg >= 4) { color = 'linear-gradient(180deg, #3ecf8e, #2ea870)'; border = 'none'; }
+      else if (d.avg >= 3) { color = 'linear-gradient(180deg, #ffb800, #ff9d00)'; border = 'none'; }
+      else if (d.avg >= 2) { color = 'linear-gradient(180deg, #ff9d00, #ff7a2a)'; border = 'none'; }
+      else if (d.avg > 0) { color = 'linear-gradient(180deg, #ff5c5c, #cc4444)'; border = 'none'; }
+
+      // Красиво подсвечиваем сегодняшний день, если за него еще нет оценки
+      if (isToday && d.avg === 0) {
+        border = '1px solid rgba(124, 92, 255, 0.4)';
+        color = 'rgba(124, 92, 255, 0.1)';
+      }
 
       return `
         <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end;">
-          <div style="width:100%; max-width:24px; height:${heightPct}%; background:${color}; border-radius:6px 6px 0 0; transition:height 0.6s;"></div>
-          <div style="font-size:9px; color:var(--d-muted); font-weight:800;">${d.label}</div>
+          <div style="width:100%; max-width:24px; height:${heightPct}%; background:${color}; border:${border}; border-radius:6px 6px 0 0; transition:height 0.6s; box-sizing: border-box;"></div>
+          <div style="font-size:9px; color:${isToday ? 'var(--d-accent)' : 'var(--d-muted)'}; font-weight:800;">${d.label}</div>
         </div>
       `;
     }).join('');

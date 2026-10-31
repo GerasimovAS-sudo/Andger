@@ -465,14 +465,19 @@
         
       </div>
     </div>
-        <!-- ЭКРАН: СТАТИСТИКА -->
+    <!-- ЭКРАН: СТАТИСТИКА -->
     <div id="statsScreen" class="hidden">
       <div class="d-header">
-        <div class="d-header-greet">
-          <div class="d-header-greet-label">СТАТИСТИКА</div>
-          <div class="d-header-greet-name" id="statsName">За всё время</div>
+        <div style="display:flex; align-items:center; gap:12px; flex:1;">
+          <button onclick="showProfile()" style="background:transparent; border:none; color:var(--d-text); cursor:pointer; padding:0; display:flex; align-items:center;">
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          </button>
+          <div class="d-header-greet">
+            <div class="d-header-greet-label">СТАТИСТИКА</div>
+            <div class="d-header-greet-name" id="statsName">За всё время</div>
+          </div>
         </div>
-                <div class="d-header-actions">
+        <div class="d-header-actions">
           <div class="d-icon-btn sound-btn" onclick="toggleSound()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
           </div>
@@ -539,6 +544,15 @@
               <div style="font-size:15px; font-weight:900; color:var(--d-text);"><span id="statBestBig">0</span> дней</div>
             </div>
           </div>
+        </div>
+
+                <!-- ГРАФИК НАСТРОЕНИЯ -->
+        <div class="d-card-glass" style="padding:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="font-size:11px; font-weight:900; color:var(--d-muted); text-transform:uppercase; letter-spacing:1px;">😊 Настроение за 7 дней</div>
+            <div id="moodAvg" style="font-size:11px; font-weight:800; color:var(--d-accent-2);">—</div>
+          </div>
+          <div id="moodChart" style="display:flex; justify-content:space-between; align-items:flex-end; height:80px; gap:6px;"></div>
         </div>
 
         <!-- Прогресс по книгам -->
@@ -662,7 +676,7 @@
       </div>
     </div>
     
-    <!-- ЭКРАН: ПРОФИЛЬ -->
+        <!-- ЭКРАН: ПРОФИЛЬ -->
     <div id="profileScreen" class="hidden">
       <div class="d-header">
         <div class="d-header-greet">
@@ -682,117 +696,125 @@
       </div>
 
       <div class="wrap">
-        <!-- Карточка юзера -->
-        <div class="d-card-glass" style="padding:16px;">
-          <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
-             <div onclick="showAvatarModal()" style="width:84px; height:84px; border-radius:24px; position:relative; background: linear-gradient(135deg, rgba(124, 92, 255, 0.2), rgba(124, 92, 255, 0.05)); border: 2px solid rgba(124, 92, 255, 0.5); box-shadow: 0 6px 16px rgba(124, 92, 255, 0.2);" id="profileAva"></div>
-            <div style="flex:1;">
-              <input type="text" id="profileFullName" placeholder="Имя и Фамилия" maxlength="60" onblur="saveName()" onkeydown="if(event.key === 'Enter') this.blur()" style="background:transparent; border:none; border-bottom:1px dashed transparent; color:var(--d-text); font-size:18px; font-weight:900; padding:2px 0; width:100%; outline:none;">
-              <div id="profileUserId" onclick="copyToClipboard(user.id); toast('ID скопирован');" style="font-size:10px; color:var(--d-text-dim); margin:4px 0 8px; cursor:pointer;">ID: #...</div>
-              <div id="profileLevelName" style="display:inline-block; background:rgba(124,92,255,0.15); color:var(--d-accent-2); padding:4px 10px; border-radius:16px; font-size:10px; font-weight:800;">🏅 Уровень 1</div>
+        <!-- 1. КАРТОЧКА ЛИЧНОСТИ -->
+        <div class="d-card-glass" style="padding:20px; display:flex; flex-direction:column; gap:16px;">
+          
+          <div style="display:flex; align-items:center; gap:16px;">
+             <div onclick="showAvatarModal()" style="width:84px; height:84px; border-radius:24px; position:relative; background: linear-gradient(135deg, rgba(124, 92, 255, 0.2), rgba(124, 92, 255, 0.05)); border: 2px solid rgba(124, 92, 255, 0.5); box-shadow: 0 6px 16px rgba(124, 92, 255, 0.2); flex-shrink:0;" id="profileAva"></div>
+            <div style="flex:1; min-width:0;">
+              <input type="text" id="profileFullName" placeholder="Имя и Фамилия" maxlength="60" onblur="saveName()" onkeydown="if(event.key === 'Enter') this.blur()" style="background:transparent; border:none; border-bottom:1px dashed transparent; color:var(--d-text); font-size:20px; font-weight:900; padding:2px 0; width:100%; outline:none; transition:0.2s;">
+              <div id="profileUserId" onclick="copyToClipboard(user.id); toast('ID скопирован');" style="font-size:11px; color:var(--d-text-dim); margin:6px 0 8px; cursor:pointer; display:flex; align-items:center; gap:4px;">
+                ID: #... <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </div>
+              <div id="profileLevelName" style="display:inline-block; background:rgba(124,92,255,0.15); color:var(--d-accent-2); padding:4px 10px; border-radius:16px; font-size:11px; font-weight:900; border: 1px solid rgba(124,92,255,0.3);">🏅 Уровень 1</div>
             </div>
           </div>
           
-          <div style="font-size:10px; font-weight:800; color:var(--d-text); margin-bottom:6px; display:flex; justify-content:space-between;">
-            <span id="profileXpText">0 / 100 XP</span>
-          </div>
-          <div style="height:6px; background:var(--d-surface-2); border-radius:3px; overflow:hidden; margin-bottom:16px;">
-            <div id="profileXpFill" style="height:100%; width:0%; background:linear-gradient(90deg, var(--d-accent), var(--d-warm)); border-radius:3px; transition:width 1s;"></div>
-          </div>
-          <div onclick="showStatsScreen()" style="background: linear-gradient(135deg, rgba(124,92,255,0.15), rgba(255,154,86,0.1)); border: 1px solid var(--d-accent); border-radius: 16px; padding: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(124,92,255,0.1);">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <div style="width:36px; height:36px; border-radius:12px; background:var(--d-accent); display:flex; align-items:center; justify-content:center; color:#fff;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-              </div>
-                            <div>
-                <div style="font-size:14px; font-weight:900; color:var(--d-text);">Моя статистика</div>
-                <div style="font-size:11px; color:var(--d-text-dim);">Уровни, огонь, награды и книги</div>
-              </div>
+          <div>
+            <div style="font-size:10px; font-weight:800; color:var(--d-text-dim); margin-bottom:6px; display:flex; justify-content:space-between;">
+              <span id="profileXpText">0 / 100 XP</span>
             </div>
-            <div style="color:var(--d-accent-2); font-size:20px;">›</div>
+            <div style="height:6px; background:var(--d-surface-2); border-radius:3px; overflow:hidden;">
+              <div id="profileXpFill" style="height:100%; width:0%; background:linear-gradient(90deg, var(--d-accent), var(--d-warm)); border-radius:3px; transition:width 1s;"></div>
+            </div>
           </div>
-          
-          <div onclick="showWeeklyReview()" style="background: linear-gradient(135deg, rgba(62,207,142,0.15), rgba(255,154,86,0.1)); border: 1px solid var(--d-success); border-radius: 16px; padding: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(62,207,142,0.1);">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <div style="width:36px; height:36px; border-radius:12px; background:var(--d-success); display:flex; align-items:center; justify-content:center; color:#fff;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </div>
+
+        <!-- 2. БЫСТРЫЕ МЕТРИКИ -->
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+          <div class="d-card-glass" style="padding:12px; text-align:center;">
+            <div id="statFire" style="font-size:20px; font-weight:900; color:var(--d-warm);">0</div>
+            <div style="font-size:9px; color:var(--d-text-dim); text-transform:uppercase; font-weight:800; margin-top:2px;">Огонь</div>
+          </div>
+          <div class="d-card-glass" style="padding:12px; text-align:center;">
+            <div id="statPractices" style="font-size:20px; font-weight:900; color:var(--d-text);">0</div>
+            <div style="font-size:9px; color:var(--d-text-dim); text-transform:uppercase; font-weight:800; margin-top:2px;">Практик</div>
+          </div>
+          <div class="d-card-glass" style="padding:12px; text-align:center;">
+            <div id="statTime" style="font-size:20px; font-weight:900; color:var(--d-accent-2);">0м</div>
+            <div style="font-size:9px; color:var(--d-text-dim); text-transform:uppercase; font-weight:800; margin-top:2px;">Время</div>
+          </div>
+        </div>
+
+        <!-- 3. ИНСТРУМЕНТЫ -->
+        <div class="d-card-glass" style="padding: 0; overflow: hidden;">
+          <div onclick="showStatsScreen()" style="display:flex; justify-content:space-between; align-items:center; padding:16px; border-bottom:1px solid var(--d-border); cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div style="width:36px; height:36px; border-radius:12px; background:rgba(124,92,255,0.1); display:flex; align-items:center; justify-content:center; color:var(--d-accent-2);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
               </div>
               <div>
-                <div style="font-size:14px; font-weight:900; color:var(--d-text);">Моя неделя</div>
-                <div style="font-size:11px; color:var(--d-text-dim);">Отчет за последние 7 дней</div>
+                <div style="font-size:14px; font-weight:900; color:var(--d-text);">Моя статистика</div>
+                <div style="font-size:11px; color:var(--d-text-dim);">Уровни, награды, книги и графики</div>
               </div>
             </div>
-                        <div style="color:var(--d-success); font-size:20px;">›</div>
-          </div>
-
-          <!-- ГРАФИК НАСТРОЕНИЯ -->
-          <div class="d-card-glass" style="padding:16px; margin-bottom:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-              <div style="font-size:11px; font-weight:900; color:var(--d-muted); text-transform:uppercase; letter-spacing:1px;">😊 Настроение за 7 дней</div>
-              <div id="moodAvg" style="font-size:11px; font-weight:800; color:var(--d-accent-2);">—</div>
-            </div>
-            <div id="moodChart" style="display:flex; justify-content:space-between; align-items:flex-end; height:80px; gap:6px;"></div>
+            <div style="color:var(--d-text-dim); font-size:20px;">›</div>
           </div>
           
-          <div onclick="showPremium()" style="background:linear-gradient(135deg, rgba(255,184,0,0.15), rgba(255,122,42,0.05)); border:1px solid rgba(255,184,0,0.3); border-radius:16px; padding:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; margin-bottom:12px;">
+          <div onclick="goToRating()" style="display:flex; justify-content:space-between; align-items:center; padding:16px; border-bottom:1px solid var(--d-border); cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div style="width:36px; height:36px; border-radius:12px; background:rgba(255,184,0,0.1); display:flex; align-items:center; justify-content:center; color:var(--d-gold);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+              </div>
+              <div>
+                <div style="font-size:14px; font-weight:900; color:var(--d-text);">Рейтинг</div>
+                <div style="font-size:11px; color:var(--d-text-dim);">Соревнуйся с друзьями</div>
+              </div>
+            </div>
+            <div style="color:var(--d-text-dim); font-size:20px;">›</div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; padding:16px;">
+            <div onclick="openFollowsModal('subscriptions')" style="flex:1; text-align:center; cursor:pointer; border-right:1px solid var(--d-border);">
+              <div id="profileSubsCount" style="font-size:18px; font-weight:900; color:var(--d-accent-2);">0</div>
+              <div style="font-size:10px; color:var(--d-text-dim); font-weight:800; text-transform:uppercase; margin-top:2px;">Подписки</div>
+            </div>
+            <div onclick="openFollowsModal('subscribers')" style="flex:1; text-align:center; cursor:pointer;">
+              <div id="profileSubscribersCount" style="font-size:18px; font-weight:900; color:var(--d-accent-2);">0</div>
+              <div style="font-size:10px; color:var(--d-text-dim); font-weight:800; text-transform:uppercase; margin-top:2px;">Подписчики</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. PREMIUM -->
+        <div onclick="showPremium()" style="background:linear-gradient(135deg, rgba(255,184,0,0.15), rgba(255,122,42,0.05)); border:1px solid rgba(255,184,0,0.3); border-radius:16px; padding:16px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; box-shadow: 0 4px 15px rgba(255,184,0,0.1);">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="font-size:24px; filter:drop-shadow(0 0 10px rgba(255,184,0,0.5));">👑</div>
             <div>
-              <div style="font-size:13px; font-weight:900; color:var(--d-gold);">👑 Premium доступ</div>
-              <div style="font-size:10px; color:var(--d-text-dim); margin-top:2px;">Открой все книги за 299 ₽/мес</div>
+              <div style="font-size:14px; font-weight:900; color:var(--d-gold);">Premium доступ</div>
+              <div style="font-size:11px; color:var(--d-text-dim); margin-top:2px;">Открой все книги за 299 ₽/мес</div>
             </div>
-            <div style="color:var(--d-gold); font-size:18px;">→</div>
           </div>
-          
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <button class="d-btn-secondary" onclick="openShareStory()" style="height:36px; font-size:11px;">Поделиться</button>
-            <button class="d-btn-secondary" onclick="showSettings()" style="height:36px; font-size:11px;">Настройки</button>
-          </div>
+          <div style="color:var(--d-gold); font-size:20px; font-weight:800;">→</div>
         </div>
 
-        <!-- 4 Плитки статистики -->
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px;">
-          <div class="d-card-glass" style="padding:10px 4px; text-align:center; border-radius:16px;">
-            <div id="statFire" style="font-size:18px; font-weight:900; color:var(--d-warm);">0</div>
-            <div style="font-size:8px; color:var(--d-text-dim); text-transform:uppercase; font-weight:800; margin-top:2px;">Огонь</div>
-          </div>
-          <div class="d-card-glass" style="padding:10px 4px; text-align:center; border-radius:16px;">
-            <div id="statPractices" style="font-size:18px; font-weight:900; color:var(--d-text);">0</div>
-            <div style="font-size:8px; color:var(--d-text-dim); text-transform:uppercase; font-weight:800; margin-top:2px;">Практик</div>
-          </div>
-          <div class="d-card-glass" style="padding:10px 4px; text-align:center; border-radius:16px;">
-            <div id="statTime" style="font-size:18px; font-weight:900; color:var(--d-accent-2);">0м</div>
-            <div style="font-size:8px; color:var(--d-text-dim); text-transform:uppercase; font-weight:800; margin-top:2px;">Время</div>
-          </div>
+        <!-- 5. ДЕЙСТВИЯ -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <button class="d-btn-secondary" onclick="openShareStory()" style="height:44px; font-size:12px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:6px;">
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+             Поделиться
+          </button>
+          <button class="d-btn-secondary" onclick="showSettings()" style="height:44px; font-size:12px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:6px;">
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+             Настройки
+          </button>
         </div>
 
-        <!-- Подписки -->
-        <div class="d-card-glass" style="display:flex; justify-content:space-between; padding:12px 16px;">
-          <div onclick="openFollowsModal('subscriptions')" style="flex:1; text-align:center; cursor:pointer;">
-            <div id="profileSubsCount" style="font-size:16px; font-weight:900; color:var(--d-accent-2);">0</div>
-            <div style="font-size:9px; color:var(--d-text-dim); font-weight:700; text-transform:uppercase;">Подписки</div>
-          </div>
-          <div style="width:1px; background:var(--d-border);"></div>
-          <div onclick="openFollowsModal('subscribers')" style="flex:1; text-align:center; cursor:pointer;">
-            <div id="profileSubscribersCount" style="font-size:16px; font-weight:900; color:var(--d-accent-2);">0</div>
-            <div style="font-size:9px; color:var(--d-text-dim); font-weight:700; text-transform:uppercase;">Подписчики</div>
-          </div>
-        </div>
-
-        <!-- Меню -->
-        <div class="d-card-glass" style="padding: 0; overflow: hidden;">
+        <div class="d-card-glass" style="padding: 0; overflow: hidden; margin-bottom: 20px;">
           <div onclick="showPublicProfile()" style="display:flex; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--d-border); cursor:pointer;">
-            <div style="font-size:13px; color:var(--d-text);">Публичная ссылка</div>
+            <div style="font-size:13px; color:var(--d-text); font-weight:600;">Публичная ссылка</div>
             <div style="color:var(--d-text-dim);">›</div>
           </div>
           <div onclick="copyReferral()" style="display:flex; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--d-border); cursor:pointer;">
-            <div style="font-size:13px; color:var(--d-text);">Пригласить друга</div>
+            <div style="font-size:13px; color:var(--d-text); font-weight:600;">Пригласить друга</div>
             <div style="color:var(--d-text-dim);">›</div>
           </div>
           <div onclick="showHelp()" style="display:flex; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--d-border); cursor:pointer;">
-            <div style="font-size:13px; color:var(--d-text);">Помощь / F.A.Q.</div>
+            <div style="font-size:13px; color:var(--d-text); font-weight:600;">Помощь / F.A.Q.</div>
             <div style="color:var(--d-text-dim);">›</div>
           </div>
           <div onclick="logout()" style="display:flex; justify-content:space-between; padding:14px 16px; cursor:pointer; color:var(--d-danger);">
-            <div style="font-size:13px;">Выйти из аккаунта</div>
+            <div style="font-size:13px; font-weight:600;">Выйти из аккаунта</div>
             <div>›</div>
           </div>
         </div>
