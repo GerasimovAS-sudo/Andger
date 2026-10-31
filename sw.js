@@ -1,5 +1,5 @@
 /* ANDGER service worker — cache versioned assets, online-first with offline fallback. */
-const CACHE_VERSION = 'andger-v11.11.12';
+const CACHE_VERSION = 'andger-v11.11.13';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const APP_SCOPE = new URL(self.registration.scope);

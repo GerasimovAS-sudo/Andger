@@ -476,8 +476,13 @@ function nextTrack(){
   currentTrackIdx = (currentTrackIdx + 1) % currentPlaylist.length;
   musicAudio.src = currentPlaylist[currentTrackIdx];
   musicAudio.load();
-  musicAudio.volume = 0.2;
-  musicAudio.play().catch(()=>{});
+  
+  if (state.soundMode === 'sound') {
+    musicAudio.volume = 0.2;
+    musicAudio.play().catch(()=>{});
+  } else {
+    musicAudio.volume = 0;
+  }
 }
 function stopMusic(){
   if(!musicAudio) return;
@@ -1654,16 +1659,19 @@ function toggleSound(){
     if (ttsAudio) {
       ttsAudio.volume = 1; // Включаем громкость обратно
     }
-  } else {
-    if (musicAudio) {
-      fadeAudio(musicAudio, musicAudio.volume, 0, 250); // Просто плавно убавляем до 0
-    }
-    if (ttsAudio) { 
-      ttsAudio.volume = 0; 
-      ttsAudio.pause(); 
-    }
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-  }
+    } else {
+            if (musicAudio) {
+              fadeAudio(musicAudio, musicAudio.volume, 0, 250, () => {
+                // Жестко ставим на паузу, если звук так и остался выключенным
+                if(state.soundMode === 'off' && musicAudio) musicAudio.pause();
+              });
+            }
+            if (ttsAudio) {
+              ttsAudio.volume = 0;
+              ttsAudio.pause();
+            }
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+          }
 }
 
 function updateSoundUI(){
@@ -8391,7 +8399,14 @@ async function speakBackgroundGuide(text, context = 'practice') {
       }
     };
     
-    ttsAudio.volume = state.soundMode === 'sound' ? 1 : 0;
+   // Если звук выключили во время загрузки запроса — отменяем воспроизведение
+    if (state.soundMode !== 'sound') {
+       if (subEl) subEl.classList.remove('show');
+       if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000);
+       return;
+    }
+
+    ttsAudio.volume = 1;
     
     // Защита от ошибки AbortError, если таймер закончился ровно в этот момент
     try {
