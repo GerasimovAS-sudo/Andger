@@ -1461,7 +1461,7 @@ input:-webkit-autofill:focus {
     radial-gradient(circle at 10% 20%, rgba(124, 92, 255, 0.25) 0%, transparent 50%),
     radial-gradient(circle at 90% 80%, rgba(255, 122, 42, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, rgba(30, 92, 255, 0.1) 0%, transparent 60%);
-  background-attachment: fixed;
+  background-attachment: scroll;
 }
 
 /* Practice screens do not add a separate dark pseudo-overlay. */

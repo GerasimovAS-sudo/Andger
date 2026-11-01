@@ -465,7 +465,7 @@ function startMusic(practiceId = 'default'){
     musicAudio.play().then(() => {
       // Если звук включен - нарастаем до 0.3 (или 0.01, если говорит голос)
       let targetVol = state.soundMode === 'sound' ? 0.3 : 0;
-      if (isVoicePlaying) targetVol = 0.01;
+      if (isVoicePlaying) targetVol = 0.08;
       fadeAudio(musicAudio, musicAudio.volume, targetVol, 1500);
     }).catch((e) => {
       console.log('Ошибка воспроизведения (нужно нажать на экран):', e);
@@ -481,7 +481,7 @@ function nextTrack(){
   musicAudio.load();
   
   if (state.soundMode === 'sound') {
-    musicAudio.volume = isVoicePlaying ? 0.01 : 0.2;
+    musicAudio.volume = isVoicePlaying ? 0.08 : 0.3;
     musicAudio.play().catch(()=>{});
   } else {
     musicAudio.volume = 0;
@@ -1683,13 +1683,13 @@ function toggleSound(){
            if (isPracticeActive && musicAudio.src) {
           // Включаем воспроизведение с того же места (currentTime сохранился при pause)
           musicAudio.play().then(() => {
-            const targetVol = isVoicePlaying ? 0.01 : 0.3;
+            const targetVol = isVoicePlaying ? 0.08 : 0.3;
             fadeAudio(musicAudio, 0, targetVol, 500); // Плавно поднимаем громкость с нуля
           }).catch(e => console.log('Ошибка возобновления музыки:', e));
         }
       } else {
         // Музыка играет, просто меняем громкость
-        const targetVol = isVoicePlaying ? 0.01 : 0.3;
+        const targetVol = isVoicePlaying ? 0.08 : 0.3;
         fadeAudio(musicAudio, musicAudio.volume, targetVol, 500);
       }
     }
@@ -2996,7 +2996,7 @@ function toggleTimer(ctx){
             if (musicAudio) {
               musicAudio.play().catch(()=>{});
               // Если голос на паузе (готов продолжить), музыка не должна прыгать на 0.3
-              const targetVol = isVoicePlaying ? 0.01 : 0.3;
+              const targetVol = isVoicePlaying ? 0.08 : 0.3;
               fadeAudio(musicAudio, musicAudio.volume, targetVol, 500); 
             }
             if (ttsAudio && ttsAudio.paused && ttsAudio.currentTime > 0 && ttsAudio.src) {
@@ -3086,7 +3086,7 @@ function startTimer(ctx){
     // ПЛАВНОЕ ЗАТУХАНИЕ МУЗЫКИ (Последние 15 секунд)
     if (timerRemaining <= 15 && timerRemaining > 0 && musicAudio && state.soundMode === 'sound') {
       // Вычисляем громкость пропорционально оставшемуся времени, учитывая говорит ли голос
-      const maxVol = isVoicePlaying ? 0.01 : 0.3;
+      const maxVol = isVoicePlaying ? 0.08 : 0.3;
       musicAudio.volume = (timerRemaining / 15) * maxVol;
     }
 
@@ -8578,10 +8578,10 @@ async function speakBackgroundGuide(text, context = 'practice') {
   if (state.soundMode !== 'sound') return;
   if (document.visibilityState === 'hidden') return; // ЖЕСТКИЙ ЗАПРЕТ НА ОЗВУЧКУ В ФОНЕ
   
-  isVoicePlaying = true; // <--- УСТАНАВЛИВАЕМ ФЛАГ, ЧТО ГОЛОС ГОВОРИТ
+  isVoicePlaying = true; // Устанавливаем флаг, что голос говорит
 
-  // Приглушаем музыку почти в ноль и делаем это быстро (за 150мс)
-  if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.01, 150);
+  // Приглушаем музыку (делаем тише, чтобы не перебивала голос)
+  if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.08, 300);
 
   // Показываем субтитры
   const isRitual = (context === 'ritual');
@@ -8649,9 +8649,9 @@ async function speakBackgroundGuide(text, context = 'practice') {
         subEl.classList.remove('show');
         setTimeout(() => { subEl.textContent = ''; }, 500);
       }
-      isVoicePlaying = false; // <--- СБРАСЫВАЕМ ФЛАГ, КОГДА ГОЛОС ЗАКОНЧИЛ
+      isVoicePlaying = false; // Сбрасываем флаг, когда голос закончил
       if (musicAudio && state.soundMode === 'sound') {
-        fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000);
+        fadeAudio(musicAudio, musicAudio.volume, 0.3, 600);
       }
     };
 
@@ -8671,7 +8671,7 @@ async function speakBackgroundGuide(text, context = 'practice') {
     try {
       // Приглушаем музыку прямо перед тем, как голос заговорит
       if (musicAudio) {
-        fadeAudio(musicAudio, musicAudio.volume, 0.01, 150);
+        fadeAudio(musicAudio, musicAudio.volume, 0.08, 300);
       }
       await ttsAudio.play();
     } catch (playError) {
@@ -8955,7 +8955,7 @@ setTimeout(() => {
                // ВОЗОБНОВЛЯЕМ МУЗЫКУ ПРИ ВОЗВРАТЕ
         if (state.soundMode === 'sound' && musicAudio) {
           musicAudio.play().catch(()=>{});
-          const targetVol = isVoicePlaying ? 0.01 : 0.3;
+          const targetVol = isVoicePlaying ? 0.08 : 0.3;
           fadeAudio(musicAudio, musicAudio.volume, targetVol, 500);
         }
       }
