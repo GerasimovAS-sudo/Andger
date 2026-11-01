@@ -10151,12 +10151,14 @@ async function loadMoodChart() {
 // ГЛОБАЛЬНЫЙ ПЕРЕХВАТ ОШИБОК (Для диагностики на телефонах)
 // ═══════════════════════════════════════════════
 window.addEventListener('error', function(event) {
-  // Показываем красную плашку, если на телефоне произошел сбой
+  // Игнорируем скрытые CORS-ошибки (Script error) и ошибки без файла
+  if (event.message === 'Script error.' || !event.filename) return;
+  
+  // Показываем красную плашку только для реальных JS-ошибок в коде
   const errBox = document.createElement('div');
   errBox.style.cssText = 'position:fixed; top:10px; left:10px; right:10px; background:rgba(255,92,92,0.95); color:#fff; padding:12px; border-radius:12px; z-index:999999; font-size:12px; font-family:monospace; box-shadow:0 4px 12px rgba(0,0,0,0.5);';
-  errBox.innerHTML = `<b>Ошибка приложения:</b><br>${event.message}<br><small>Файл: ${event.filename ? event.filename.split('/').pop() : 'неизвестно'} (строка ${event.lineno})</small>`;
+  errBox.innerHTML = `<b>Ошибка приложения:</b><br>${event.message}<br><small>Файл: ${event.filename.split('/').pop()} (строка ${event.lineno})</small>`;
   document.body.appendChild(errBox);
   
-  // Убираем плашку через 10 секунд
-  setTimeout(() => errBox.remove(), 10000);
+  setTimeout(() => errBox.remove(), 8000);
 });
