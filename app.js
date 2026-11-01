@@ -421,6 +421,9 @@ let currentTrackIdx = 0;
 let currentPlaylist = [];
 
 function startMusic(practiceId = 'default'){
+  // Сбрасываем флаг голоса, чтобы музыка не застревала в тихом режиме
+  isVoicePlaying = false;
+
   if(!musicAudio){
     musicAudio=new Audio();
     musicAudio.volume=0;
@@ -459,10 +462,10 @@ function startMusic(practiceId = 'default'){
     musicAudio.load(); // Принудительно загружаем новый трек
     musicAudio.currentTime = 0;
   }
-  musicAudio.play().then(() => {
-      // Если звук включен - нарастаем до 0.2 (или 0.05, если уже говорит голос)
-      let targetVol = state.soundMode === 'sound' ? 0.2 : 0;
-      if (isVoicePlaying) targetVol = 0.05;
+    musicAudio.play().then(() => {
+      // Если звук включен - нарастаем до 0.3 (или 0.01, если говорит голос)
+      let targetVol = state.soundMode === 'sound' ? 0.3 : 0;
+      if (isVoicePlaying) targetVol = 0.01;
       fadeAudio(musicAudio, musicAudio.volume, targetVol, 1500);
     }).catch((e) => {
       console.log('Ошибка воспроизведения (нужно нажать на экран):', e);
@@ -478,7 +481,7 @@ function nextTrack(){
   musicAudio.load();
   
   if (state.soundMode === 'sound') {
-    musicAudio.volume = 0.2;
+    musicAudio.volume = isVoicePlaying ? 0.01 : 0.2;
     musicAudio.play().catch(()=>{});
   } else {
     musicAudio.volume = 0;
@@ -963,10 +966,23 @@ window.addEventListener('DOMContentLoaded', async()=>{
 
   } catch(e) {
     console.error('❌ Init error:', e);
-  } finally {
+    } finally {
     await minSplashTime;
     hideLoader();
     
+    // ЖЕСТКАЯ СТРАХОВКА ДЛЯ МОБИЛЬНЫХ: Принудительно прячем загрузку через 10 секунд
+    setTimeout(() => {
+      if (document.getElementById('appLoader')) {
+        console.warn('⚠️ Принудительное скрытие загрузчика по таймауту (плохой интернет)');
+        hideLoader();
+        if (document.getElementById('landingScreen').classList.contains('hidden') && 
+            document.getElementById('authScreen').classList.contains('hidden') && 
+            document.getElementById('todayScreen').classList.contains('hidden')) {
+          showLanding();
+        }
+      }
+    }, 10000);
+
     // СТРАХОВКА: Если экран пустой, принудительно показываем лендинг
     setTimeout(() => {
       const visibleScreens = document.querySelectorAll('#landingScreen:not(.hidden), #authScreen:not(.hidden), #todayScreen:not(.hidden), #libScreen:not(.hidden), #onbScreen:not(.hidden)');
@@ -1115,8 +1131,9 @@ async function loadBooksFromSupabase(){
   try{
     const{data}=await sb.from('books').select('*').eq('published',true);
     if(!data||!data.length)return;
-    // Загружаем рейтинги практик
-    sb.from('practice_ratings').select('practice_id, rating').then(({data: rData}) => {
+    // Загружаем рейтинги практик (ЖДЕМ загрузку, чтобы умная практика работала корректно)
+    try {
+      const { data: rData } = await sb.from('practice_ratings').select('practice_id, rating');
       if (rData) {
         let sums = {};
         let counts = {};
@@ -1124,22 +1141,26 @@ async function loadBooksFromSupabase(){
           sums[r.practice_id] = (sums[r.practice_id] || 0) + r.rating;
           counts[r.practice_id] = (counts[r.practice_id] || 0) + 1;
         });
-        // Загружаем рейтинги книг
-    sb.from('reviews').select('book_id, stars').then(({data: revData}) => {
+        for (let pid in sums) {
+          allPracticeRatings[pid] = sums[pid] / counts[pid];
+        }
+      }
+      
+      const { data: revData } = await sb.from('reviews').select('book_id, stars');
       if (revData) {
         let sums = {}; let counts = {};
         revData.forEach(r => {
           sums[r.book_id] = (sums[r.book_id] || 0) + r.stars;
           counts[r.book_id] = (counts[r.book_id] || 0) + 1;
         });
-        for (let bid in sums) allBookRatings[bid] = sums[bid] / counts[bid];
-      }
-    });
-        for (let pid in sums) {
-          allPracticeRatings[pid] = sums[pid] / counts[pid]; // Средний балл
+        for (let bid in sums) {
+          allBookRatings[bid] = sums[bid] / counts[bid];
         }
       }
-    });
+    } catch(e) {
+      console.warn('Ошибка загрузки рейтингов', e);
+    }
+
     data.forEach(sbBook=>{
       const idx=BOOKS.findIndex(b=>b.id===sbBook.id);
       const normalized={
@@ -1147,7 +1168,8 @@ async function loadBooksFromSupabase(){
         days:sbBook.days,about:sbBook.about,method:sbBook.method||[],
         authorBio:sbBook.author_bio,forWhom:sbBook.for_whom,result:sbBook.result,
         category: sbBook.category || 'Разное',
-        practices:sbBook.practices||[],quotes:sbBook.quotes||[],
+        practices: (sbBook.practices && sbBook.practices.length > 0) ? sbBook.practices : (BOOKS[idx]?.practices || []),
+        quotes: (sbBook.quotes && sbBook.quotes.length > 0) ? sbBook.quotes : (BOOKS[idx]?.quotes || []),
         
         // НОВЫЕ ПОЛЯ С ЗАГЛУШКАМИ (если в БД пусто, не упадет)
         summary: sbBook.summary || [],
@@ -1650,28 +1672,48 @@ function toggleSound(){
   updateSoundUI();
   sb.from('profiles').update({ sound_on: state.soundOn, sound_mode: state.soundMode }).eq('id',user.id).then(()=>{});
 
-  if (state.soundMode === 'sound') {
+   if (state.soundMode === 'sound') {
     playClick();
     if (musicAudio) {
-      if (musicAudio.paused) musicAudio.volume = 0;
-      else fadeAudio(musicAudio, musicAudio.volume, 0.2, 500);
+      if (musicAudio.paused) {
+        // Если музыка была на паузе (потому что мы выключали звук)
+        // Проверяем, идет ли сейчас практика, чтобы не включить музыку на главном экране
+        const isPracticeActive = timerState === 'running' || timerState === 'paused' || document.body.classList.contains('app-focus-mode');
+        
+           if (isPracticeActive && musicAudio.src) {
+          // Включаем воспроизведение с того же места (currentTime сохранился при pause)
+          musicAudio.play().then(() => {
+            const targetVol = isVoicePlaying ? 0.01 : 0.3;
+            fadeAudio(musicAudio, 0, targetVol, 500); // Плавно поднимаем громкость с нуля
+          }).catch(e => console.log('Ошибка возобновления музыки:', e));
+        }
+      } else {
+        // Музыка играет, просто меняем громкость
+        const targetVol = isVoicePlaying ? 0.01 : 0.3;
+        fadeAudio(musicAudio, musicAudio.volume, targetVol, 500);
+      }
     }
     if (ttsAudio) {
-      ttsAudio.volume = 1; // Включаем громкость обратно
+      ttsAudio.volume = 1;
+      // Если голос был на паузе, продолжаем его с того же места
+      if (ttsAudio.paused && ttsAudio.currentTime > 0 && ttsAudio.src) {
+        isVoicePlaying = true; // Возвращаем флаг голоса
+        ttsAudio.play().catch(() => { isVoicePlaying = false; }); // Если ошибка — сбрасываем флаг
+      }
     }
-    } else {
-            if (musicAudio) {
-              fadeAudio(musicAudio, musicAudio.volume, 0, 250, () => {
-                // Жестко ставим на паузу, если звук так и остался выключенным
-                if(state.soundMode === 'off' && musicAudio) musicAudio.pause();
-              });
-            }
-            if (ttsAudio) {
-              ttsAudio.volume = 0;
-              ttsAudio.pause();
-            }
-            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-          }
+  } else {
+    isVoicePlaying = false; // <--- СБРАСЫВАЕМ ФЛАГ ГОЛОСА
+    if (musicAudio) {
+      fadeAudio(musicAudio, musicAudio.volume, 0, 250, () => {
+        if(state.soundMode === 'off' && musicAudio) musicAudio.pause();
+      });
+    }
+    if (ttsAudio) {
+      ttsAudio.volume = 0;
+      ttsAudio.pause();
+    }
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  }
 }
 
 function updateSoundUI(){
@@ -1811,7 +1853,9 @@ function showForgotPassword(){
   document.getElementById('forgotModal').classList.remove('hidden');
 }
 
-// Функция отправки СМС
+// ─── СБРОС ПАРОЛЯ ───
+let resetPhoneNumber = '';
+
 async function sendResetSms() {
   const phoneRaw = document.getElementById('resetPhone').value;
   const phone = normalizePhone(phoneRaw);
@@ -1826,20 +1870,20 @@ async function sendResetSms() {
   btn.textContent = 'Отправка...';
   
   try {
-    // Отправляем запрос в Supabase на генерацию OTP (одноразового пароля) по СМС
-    // ВНИМАНИЕ: В настройках Supabase (Auth -> Providers -> Phone) должен быть подключен SMS шлюз (Twilio и т.д.)
     const { error } = await sb.auth.signInWithOtp({
       phone: '+' + phone,
     });
     
     if (error) throw error;
     
+    resetPhoneNumber = '+' + phone;
     playSuccess();
     toast('Код отправлен на ваш номер!');
-    document.getElementById('forgotModal').classList.add('hidden');
     
-    // Тут нужно будет показать окно для ввода кода из СМС, но для начала настроим отправку.
-    // Если хочешь, следующим шагом я напишу окно для ввода кода и смены пароля.
+    // Показываем окно для ввода кода
+    document.getElementById('forgotModal').classList.add('hidden');
+    document.getElementById('verifyCodeModal').classList.remove('hidden');
+    document.getElementById('verifyCodeInput').value = '';
     
   } catch (e) {
     console.error(e);
@@ -1847,6 +1891,51 @@ async function sendResetSms() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Отправить код';
+  }
+}
+
+async function verifyResetCode() {
+  const code = document.getElementById('verifyCodeInput').value.trim();
+  const newPass = document.getElementById('newPasswordInput').value;
+  const btn = document.getElementById('verifyCodeBtn');
+
+  if (code.length < 4) return toast('Введите код из СМС', 'danger');
+  if (newPass.length < 6) return toast('Пароль минимум 6 символов', 'danger');
+
+  btn.disabled = true;
+  btn.textContent = 'Проверка...';
+
+  try {
+    // 1. Проверяем код
+    const { data, error } = await sb.auth.verifyOtp({
+      phone: resetPhoneNumber,
+      token: code,
+      type: 'sms'
+    });
+
+    if (error) throw error;
+
+    // 2. Меняем пароль
+    const { error: updateError } = await sb.auth.updateUser({
+      password: newPass
+    });
+
+    if (updateError) throw updateError;
+
+    playSuccess();
+    toast('Пароль успешно изменен!');
+    document.getElementById('verifyCodeModal').classList.add('hidden');
+    
+    // Выходим, чтобы пользователь зашел с новым паролем
+    await sb.auth.signOut();
+    showAuth();
+    
+  } catch (e) {
+    console.error(e);
+    toast('Неверный код или ошибка: ' + e.message, 'danger');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Подтвердить';
   }
 }
 function showContactMenu(){document.getElementById('contactModal').classList.remove('hidden')}
@@ -2026,16 +2115,56 @@ function renderToday() {
 
     // Обновляем новый блок прогресса
   const isStarted = !!bs.start;
-  const pctCourse = isStarted ? Math.round(day / b.days * 100) : 0;
+  const closedDays = countClosedDays(b.id);
+  const isCourseDone = isStarted && closedDays >= b.days;
+  
+  // Если книга пройдена, принудительно ставим 100%
+  const pctCourse = isCourseDone ? 100 : (isStarted ? Math.round(day / b.days * 100) : 0);
 
   const mpcCourseText = document.getElementById('mpcCourseText');
-  if (mpcCourseText) mpcCourseText.textContent = isStarted ? `День ${day} из ${b.days}` : 'Не начат';
+  if (mpcCourseText) {
+    if (isCourseDone) {
+      mpcCourseText.textContent = `Курс завершен 👑`;
+      mpcCourseText.style.color = 'var(--d-gold)';
+      mpcCourseText.style.textShadow = '0 0 10px rgba(255,184,0,0.5)';
+    } else {
+      mpcCourseText.textContent = isStarted ? `День ${day} из ${b.days}` : 'Не начат';
+      mpcCourseText.style.color = '';
+      mpcCourseText.style.textShadow = '';
+    }
+  }
   
   const mpcCourseBar = document.getElementById('mpcCourseBar');
-  if (mpcCourseBar) mpcCourseBar.style.width = pctCourse + '%';
+  if (mpcCourseBar) {
+    mpcCourseBar.style.width = pctCourse + '%';
+    if (isCourseDone) {
+      // Включаем золотое свечение и анимацию
+      mpcCourseBar.style.background = 'linear-gradient(90deg, #ffb800, #ff7a2a, #ffb800)';
+      mpcCourseBar.style.backgroundSize = '200% 100%';
+      mpcCourseBar.style.animation = 'shimmerProgress 2s linear infinite';
+      mpcCourseBar.style.boxShadow = '0 0 12px rgba(255,184,0,0.8)';
+    } else {
+      // Обычный вид
+      mpcCourseBar.style.background = 'linear-gradient(90deg, #4f46e5, #ff9d00)';
+      mpcCourseBar.style.backgroundSize = 'auto';
+      mpcCourseBar.style.animation = 'none';
+      mpcCourseBar.style.boxShadow = 'none';
+    }
+  }
 
-  const mpcDaysLeft = document.getElementById('mpcDaysLeft');
-  if (mpcDaysLeft) mpcDaysLeft.textContent = isStarted ? Math.max(0, b.days - day) : b.days;
+  // Обновляем текст "Дней до конца"
+  const mpcDaysLeftWrap = document.getElementById('mpcDaysLeft') ? document.getElementById('mpcDaysLeft').parentElement : null;
+  if (mpcDaysLeftWrap) {
+    if (isCourseDone) {
+      mpcDaysLeftWrap.innerHTML = 'Курс пройден! 🎉';
+      mpcDaysLeftWrap.style.color = 'var(--d-gold)';
+      mpcDaysLeftWrap.style.fontWeight = '900';
+    } else {
+      mpcDaysLeftWrap.innerHTML = `Дней до конца: <span id="mpcDaysLeft" style="color:var(--d-warm);">${isStarted ? Math.max(0, b.days - day) : b.days}</span>`;
+      mpcDaysLeftWrap.style.color = '';
+      mpcDaysLeftWrap.style.fontWeight = '';
+    }
+  }
 
   // Цитата дня (ТОЛЬКО ИЗ ТЕКУЩЕЙ КНИГИ)
   const mpcQuoteText = document.getElementById('mpcQuoteText');
@@ -2457,7 +2586,23 @@ async function renderBookStars(bookId){
 
 // ─── СТАТИСТИКА ───
 function renderStatsScreen(){
-  if(!currentBook)return;
+  if(!currentBook || BOOKS.length === 0) {
+    // Если книг нет, показываем заглушку
+    const wrap = document.querySelector('#statsScreen .wrap');
+    if (wrap) {
+        wrap.innerHTML = `
+          <div class="d-empty-state" style="margin-top: 40px;">
+            <div class="d-empty-ico-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            </div>
+            <div class="d-empty-title">Пока нет статистики</div>
+            <div class="d-empty-text">Начни проходить первую книгу, и здесь появится твой прогресс, награды и графики.</div>
+            <button class="d-btn-primary" onclick="showLibrary()" style="margin-top: 16px;">Перейти в библиотеку</button>
+          </div>
+        `;
+    }
+    return;
+  }
   
   const statsAva = document.getElementById('statsAvatar');
   if(statsAva) statsAva.innerHTML = getAvatarHtml(state.avatar, 26);
@@ -2469,14 +2614,35 @@ function renderStatsScreen(){
   const lcTitle = document.getElementById('lcTitle'); if(lcTitle) lcTitle.textContent = stats.lvlName;
   const lcIco = document.getElementById('lcIco'); if(lcIco) lcIco.textContent = stats.lvlIco;
   
+  const lcXpText = document.getElementById('lcXpText');
+  const lcBarFill = document.getElementById('lcBarFill');
+  
   if (stats.lvl === 6) {
-    const lcXpText = document.getElementById('lcXpText'); if(lcXpText) lcXpText.textContent = stats.totalXP + ' XP (Максимум)';
-    const lcBarFill = document.getElementById('lcBarFill'); if(lcBarFill) lcBarFill.style.width = '100%';
+    if(lcXpText) {
+      lcXpText.textContent = stats.totalXP + ' XP (Максимум)';
+      lcXpText.style.color = 'var(--d-gold)';
+    }
+    if(lcBarFill) {
+      lcBarFill.style.width = '100%';
+      lcBarFill.style.background = 'linear-gradient(90deg, #ffb800, #ff7a2a, #ffb800)';
+      lcBarFill.style.backgroundSize = '200% 100%';
+      lcBarFill.style.animation = 'shimmerProgress 2s linear infinite';
+      lcBarFill.style.boxShadow = '0 0 12px rgba(255,184,0,0.8)';
+    }
   } else {
-    const lcXpText = document.getElementById('lcXpText'); if(lcXpText) lcXpText.textContent = stats.xpInCurrentLvl + ' / ' + stats.xpNeededForNext + ' XP';
-    setTimeout(() => {
-      const lcBarFill = document.getElementById('lcBarFill'); if(lcBarFill) lcBarFill.style.width = stats.xpPct + '%';
-    }, 100);
+    if(lcXpText) {
+      lcXpText.textContent = stats.xpInCurrentLvl + ' / ' + stats.xpNeededForNext + ' XP';
+      lcXpText.style.color = '';
+    }
+    if(lcBarFill) {
+      setTimeout(() => {
+        lcBarFill.style.width = stats.xpPct + '%';
+        lcBarFill.style.background = 'linear-gradient(90deg, var(--d-accent), var(--d-warm))';
+        lcBarFill.style.backgroundSize = 'auto';
+        lcBarFill.style.animation = 'none';
+        lcBarFill.style.boxShadow = 'none';
+      }, 100);
+    }
   }
 
   // Глобальная статистика
@@ -2829,12 +2995,12 @@ function toggleTimer(ctx){
           } else {
             if (musicAudio) {
               musicAudio.play().catch(()=>{});
-              // Если голос на паузе (готов продолжить), музыка не должна прыгать на 0.2
-              const targetVol = isVoicePlaying ? 0.05 : 0.2;
+              // Если голос на паузе (готов продолжить), музыка не должна прыгать на 0.3
+              const targetVol = isVoicePlaying ? 0.01 : 0.3;
               fadeAudio(musicAudio, musicAudio.volume, targetVol, 500); 
             }
             if (ttsAudio && ttsAudio.paused && ttsAudio.currentTime > 0 && ttsAudio.src) {
-              ttsAudio.play().catch(()=>{});
+              ttsAudio.play().catch(() => { isVoicePlaying = false; }); // Защита от зависания флага
             }
           }
         }
@@ -2919,8 +3085,9 @@ function startTimer(ctx){
 
     // ПЛАВНОЕ ЗАТУХАНИЕ МУЗЫКИ (Последние 15 секунд)
     if (timerRemaining <= 15 && timerRemaining > 0 && musicAudio && state.soundMode === 'sound') {
-      // Вычисляем громкость от 0.2 до 0.0 пропорционально оставшемуся времени
-      musicAudio.volume = (timerRemaining / 15) * 0.2;
+      // Вычисляем громкость пропорционально оставшемуся времени, учитывая говорит ли голос
+      const maxVol = isVoicePlaying ? 0.01 : 0.3;
+      musicAudio.volume = (timerRemaining / 15) * maxVol;
     }
 
     if (circle) {
@@ -2982,6 +3149,7 @@ function stopTimer(){
   if(rScreen) { const c = rScreen.querySelector('.timer-circle'); if(c) c.style.strokeDashoffset = 0; }
 
   if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
+  isVoicePlaying = false; // <--- СБРАСЫВАЕМ ФЛАГ
   releaseWakeLock(); 
   if(timerInterval){clearInterval(timerInterval);timerInterval=null}
   
@@ -3602,12 +3770,15 @@ async function completePracticeDone(){
     closePractice();
     finishRitual(true);
   }
-    // Сохраняем настроение в БД
+  // Сохраняем настроение в БД
   if (currentMood > 0 && practice) {
+    // Ищем правильный ID книги (если это ритуал, берем из практики)
+    const targetBookId = practice._bookId || (currentBook ? currentBook.id : 'general');
+
     sb.from('moods').insert({
       user_id: user.id,
       practice_id: practice.id,
-      book_id: currentBook ? currentBook.id : 'general',
+      book_id: targetBookId,
       mood: currentMood,
       date: todayStr()
     }).then(() => console.log('Mood saved'));
@@ -3615,10 +3786,12 @@ async function completePracticeDone(){
 
   // Сохраняем оценку в БД и обновляем её в памяти
   if (currentPracticeRating > 0 && practice) {
+    const targetBookId = practice._bookId || (currentBook ? currentBook.id : 'general');
+
     sb.from('practice_ratings').upsert({
       user_id: user.id,
       practice_id: practice.id,
-      book_id: currentBook ? currentBook.id : 'general',
+      book_id: targetBookId,
       rating: currentPracticeRating
     }, { onConflict: 'user_id,practice_id' }).then(async () => {
       // Мгновенно обновляем рейтинг в памяти
@@ -3994,9 +4167,47 @@ function closeAndgerConfirm(accepted = false) {
     const idEl = document.getElementById('profileUserId');
     if(idEl) idEl.textContent = 'ID: #' + user.id.slice(0, 8).toUpperCase();
     
-    document.getElementById('profileLevelName').textContent = `${stats.lvlIco} ${stats.lvlName}`;
-    document.getElementById('profileXpText').textContent = (stats.xpInCurrentLvl).toLocaleString('ru-RU') + ' / ' + (stats.xpNeededForNext).toLocaleString('ru-RU') + ' XP';
-    document.getElementById('profileXpFill').style.width = stats.xpPct + '%';
+    const profileLvlEl = document.getElementById('profileLevelName');
+    if (profileLvlEl) {
+      profileLvlEl.textContent = `${stats.lvlIco} ${stats.lvlName}`;
+      if (stats.lvl === 6) {
+        // Золотой стиль для максимального уровня
+        profileLvlEl.style.background = 'linear-gradient(135deg, #ffb800, #ff7a2a)';
+        profileLvlEl.style.color = '#fff';
+        profileLvlEl.style.borderColor = 'transparent';
+        profileLvlEl.style.boxShadow = '0 0 15px rgba(255,184,0,0.5)';
+      } else {
+        // Обычный фиолетовый стиль
+        profileLvlEl.style.background = 'rgba(124,92,255,0.15)';
+        profileLvlEl.style.color = 'var(--d-accent-2)';
+        profileLvlEl.style.borderColor = 'rgba(124,92,255,0.3)';
+        profileLvlEl.style.boxShadow = 'none';
+      }
+    }
+
+    const profileXpTextEl = document.getElementById('profileXpText');
+    if (profileXpTextEl) {
+      profileXpTextEl.textContent = stats.lvl === 6 ? 'Максимальный уровень!' : (stats.xpInCurrentLvl).toLocaleString('ru-RU') + ' / ' + (stats.xpNeededForNext).toLocaleString('ru-RU') + ' XP';
+      profileXpTextEl.style.color = stats.lvl === 6 ? 'var(--d-gold)' : '';
+    }
+
+    const profileXpFillEl = document.getElementById('profileXpFill');
+    if (profileXpFillEl) {
+      profileXpFillEl.style.width = stats.xpPct + '%';
+      if (stats.lvl === 6) {
+        // Золотое переливание для макс. уровня
+        profileXpFillEl.style.background = 'linear-gradient(90deg, #ffb800, #ff7a2a, #ffb800)';
+        profileXpFillEl.style.backgroundSize = '200% 100%';
+        profileXpFillEl.style.animation = 'shimmerProgress 2s linear infinite';
+        profileXpFillEl.style.boxShadow = '0 0 10px rgba(255,184,0,0.6)';
+      } else {
+        // Обычный градиент
+        profileXpFillEl.style.background = 'linear-gradient(90deg, var(--d-accent), var(--d-warm))';
+        profileXpFillEl.style.backgroundSize = 'auto';
+        profileXpFillEl.style.animation = 'none';
+        profileXpFillEl.style.boxShadow = 'none';
+      }
+    }
 
     // 4. Заполняем 4 плитки статистики
     const timeStr = totalMinutes > 60 ? Math.floor(totalMinutes/60) + 'ч ' + (totalMinutes%60) + 'м' : totalMinutes + 'м';
@@ -4760,6 +4971,12 @@ async function sendFeedPost(){
 async function toggleLike(msgId, type, el) {
   const postEl = el.closest('.feed-post, .d-card-glass');
   if (!postEl || !user || !user.id) return;
+
+  // Добавляем анимацию прыжка при нажатии
+  el.classList.remove('jump');
+  void el.offsetWidth; // Трюк для перезапуска CSS-анимации, если жать быстро
+  el.classList.add('jump');
+  setTimeout(() => el.classList.remove('jump'), 300);
   
   // Мгновенный визуальный отклик (оптимистичный UI)
   const wasSame = el.classList.contains('on');
@@ -5379,12 +5596,14 @@ async function showAdmin(initialSection = 'books'){
   
   if (initialSection === 'feedback') {
     targetBtn = Array.from(allBtns).find(b => b.textContent.includes('Отзывы'));
+  } else if (initialSection === 'dashboard') {
+    targetBtn = Array.from(allBtns).find(b => b.textContent.includes('Обзор'));
   }
   
-  // Если не нашли специфичную кнопку, берем первую (Книги)
+  // Если не нашли специфичную кнопку, берем первую (Обзор)
   if (!targetBtn) {
     targetBtn = allBtns[0];
-    initialSection = 'books';
+    initialSection = 'dashboard'; // <--- ТЕПЕРЬ ПО УМОЛЧАНИЮ ОТКРЫВАЕТСЯ ОБЗОР
   }
 
   if (targetBtn) {
@@ -6652,19 +6871,25 @@ if ('serviceWorker' in navigator) {
 
 // Обработка кнопки "Обновить" на баннере
 function forceUpdate() {
+  // Если идет практика, предупреждаем пользователя
+  if (timerState === 'running' || document.body.classList.contains('app-focus-mode')) {
+    if (!confirm('У вас запущена практика. Обновление сбросит таймер. Продолжить?')) {
+      return;
+    }
+  }
+
   const banner = document.getElementById('appUpdateBanner');
   if (banner) {
     const btn = banner.querySelector('button');
     if (btn) { 
       btn.textContent = 'Загрузка...'; 
       btn.style.opacity = '0.5'; 
-      btn.disabled = true; // Блокируем кнопку, чтобы не нажать дважды
+      btn.disabled = true;
     }
   }
   
   if (newWorker) {
     newWorker.postMessage({ type: 'SKIP_WAITING' });
-    // Страховка на случай, если Service Worker зависнет: перезагружаем через 1 сек
     setTimeout(() => { window.location.reload(); }, 1000);
   } else {
     setTimeout(() => { window.location.reload(); }, 500);
@@ -7214,7 +7439,7 @@ function startSmartRitual(categoryName) {
       </div>
 
       <button class="d-btn-primary" onclick="launchSmartRitual()">▶ Начать (${Math.round(totalTime/60)} мин)</button>
-      <button class="d-btn-secondary" onclick="document.getElementById('customModeModal').classList.add('hidden')" style="margin-top:8px;">Отмена</button>
+      <button class="d-btn-secondary" onclick="document.getElementById('customModeModal').classList.add('hidden')" style="margin-top:10px;">Отмена</button>
     </div>
   `;
   modal.classList.remove('hidden');
@@ -7801,7 +8026,8 @@ function setReviewStars(val) {
 }
 
 function updateReviewStarsUI() {
-  const stars = document.querySelectorAll('#reviewModal .fa-star, #reviewModal span[onclick^="setReviewStars"]');
+  // Ищем все звездочки внутри модалки отзывов по атрибуту onclick
+  const stars = document.querySelectorAll('#reviewModal span[onclick^="setReviewStars"]');
   stars.forEach((s, idx) => {
     s.style.color = idx < currentReviewStars ? 'var(--gold)' : 'var(--border)';
   });
@@ -8335,8 +8561,10 @@ async function speakBackgroundGuide(text, context = 'practice') {
   if (state.soundMode !== 'sound') return;
   if (document.visibilityState === 'hidden') return; // ЖЕСТКИЙ ЗАПРЕТ НА ОЗВУЧКУ В ФОНЕ
   
-  // Приглушаем музыку
-  if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, state.soundMode === 'sound' ? 0.04 : 0, 400);
+  isVoicePlaying = true; // <--- УСТАНАВЛИВАЕМ ФЛАГ, ЧТО ГОЛОС ГОВОРИТ
+
+  // Приглушаем музыку почти в ноль и делаем это быстро (за 150мс)
+  if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.01, 150);
 
   // Показываем субтитры
   const isRitual = (context === 'ritual');
@@ -8399,11 +8627,12 @@ async function speakBackgroundGuide(text, context = 'practice') {
     ttsAudio.src = URL.createObjectURL(blob);
     
     // Настраиваем возврат музыки, если голос закончился или произошла ошибка
-    const restoreMusic = () => {
+       const restoreMusic = () => {
       if (subEl) {
         subEl.classList.remove('show');
         setTimeout(() => { subEl.textContent = ''; }, 500);
       }
+      isVoicePlaying = false; // <--- СБРАСЫВАЕМ ФЛАГ, КОГДА ГОЛОС ЗАКОНЧИЛ
       if (musicAudio && state.soundMode === 'sound') {
         fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000);
       }
@@ -8412,9 +8641,10 @@ async function speakBackgroundGuide(text, context = 'practice') {
     ttsAudio.onended = restoreMusic;
     ttsAudio.onerror = restoreMusic;
 
-    if (state.soundMode !== 'sound') {
+      if (state.soundMode !== 'sound') {
        if (subEl) subEl.classList.remove('show');
        if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000);
+       isVoicePlaying = false; // <--- СБРАСЫВАЕМ ФЛАГ
        return;
     }
 
@@ -8424,7 +8654,7 @@ async function speakBackgroundGuide(text, context = 'practice') {
     try {
       // Приглушаем музыку прямо перед тем, как голос заговорит
       if (musicAudio) {
-        fadeAudio(musicAudio, musicAudio.volume, 0.05, 300);
+        fadeAudio(musicAudio, musicAudio.volume, 0.01, 150);
       }
       await ttsAudio.play();
     } catch (playError) {
@@ -8705,10 +8935,11 @@ setTimeout(() => {
           if (ctx && ctx.state === 'suspended') ctx.resume();
         }
         
-        // ВОЗОБНОВЛЯЕМ МУЗЫКУ ПРИ ВОЗВРАТЕ
+               // ВОЗОБНОВЛЯЕМ МУЗЫКУ ПРИ ВОЗВРАТЕ
         if (state.soundMode === 'sound' && musicAudio) {
           musicAudio.play().catch(()=>{});
-          fadeAudio(musicAudio, musicAudio.volume, 0.2, 500);
+          const targetVol = isVoicePlaying ? 0.01 : 0.3;
+          fadeAudio(musicAudio, musicAudio.volume, targetVol, 500);
         }
       }
     }
@@ -9011,24 +9242,37 @@ document.addEventListener('DOMContentLoaded', () => {
 // УМНЫЙ ФИКС КЛАВИАТУРЫ ДЛЯ iOS / ANDROID
 // ═══════════════════════════════════════════════
 if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', () => {
-    // Ищем поля ввода (в чате и в ленте)
+  const handleKeyboard = () => {
     const wrap = document.getElementById('dialogInputWrap') || document.getElementById('feedInputWrap');
     if (!wrap || wrap.style.display === 'none') return;
 
-    // Проверяем, открыта ли клавиатура (высота экрана уменьшилась)
-    const isKeyboardOpen = window.visualViewport.height < window.innerHeight - 100;
+    const isKeyboardOpen = window.visualViewport.height < window.innerHeight - 50;
     
     if (isKeyboardOpen) {
-      // Вычисляем высоту клавиатуры и поднимаем поле ввода
       const keyboardHeight = window.innerHeight - window.visualViewport.height;
-      wrap.style.bottom = `${keyboardHeight + 16}px`;
+      // Поднимаем поле ввода ровно на высоту клавиатуры
+      wrap.style.bottom = `${keyboardHeight}px`;
+      wrap.style.borderRadius = '0'; 
+      wrap.style.paddingBottom = '10px';
+      
+      // Автоматически прокручиваем чат вниз, чтобы видеть последние сообщения
+      setTimeout(() => {
+        const dialogMessages = document.getElementById('dialogMessages');
+        if (dialogMessages) dialogMessages.scrollTop = dialogMessages.scrollHeight;
+        window.scrollTo(0, document.body.scrollHeight);
+      }, 100);
     } else {
-      // Возвращаем на место, когда клавиатура закрыта (75px — это высота нижнего меню)
-      wrap.style.bottom = 'calc(75px + var(--safe-bottom))';
+      // Возвращаем на место, когда клавиатура закрыта
+      wrap.style.bottom = 'calc(85px + env(safe-area-inset-bottom, 0px))';
+      wrap.style.borderRadius = '16px';
+      wrap.style.paddingBottom = '6px';
     }
-  });
-}// ═══════════════════════════════════════════════
+  };
+
+  window.visualViewport.addEventListener('resize', handleKeyboard);
+  window.visualViewport.addEventListener('scroll', handleKeyboard);
+}
+// ═══════════════════════════════════════════════
 // АВТО-СОВЕТЫ ОТ ЗВЕРЬКА (Каждые 15 секунд)
 // ═══════════════════════════════════════════════
 setInterval(() => {
@@ -9128,7 +9372,7 @@ function showPracticeModeInfo(mode) {
       <h2 style="font-size:20px; margin-bottom:16px;">${title}</h2>
       <p style="font-size:14px; color:var(--d-text-dim); margin-bottom:24px; line-height: 1.5;">${text}</p>
       <button class="d-btn-primary" onclick="document.getElementById('customModeModal').classList.add('hidden'); ${action}">Начать</button>
-      <button class="d-btn-secondary" onclick="document.getElementById('customModeModal').classList.add('hidden')" style="margin-top:8px;">Отмена</button>
+      <button class="d-btn-secondary" onclick="document.getElementById('customModeModal').classList.add('hidden')" style="margin-top:10px;">Отмена</button>
     </div>
   `;
   modal.classList.remove('hidden');
@@ -9297,12 +9541,12 @@ function buildPracticeHtml(p) {
       <h3 style="font-size:12px; font-weight:900; color:var(--d-accent-2); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">💡 Зачем это нужно</h3>
       <p style="font-size:14px; color:var(--d-text); line-height:1.6; margin-bottom:16px;">${escapeHtml(p.why || '')}</p>
       
-      <h3 style="font-size:12px; font-weight:900; color:var(--d-accent-2); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">🎬 Как делать</h3>
+<h3 style="font-size:12px; font-weight:900; color:var(--d-accent-2); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">🎬 Как делать</h3>
       <div style="display:flex; flex-direction:column; gap:10px;">
         ${(p.how || []).map((s, i) => `
           <div style="display:flex; gap:12px; align-items:flex-start;">
             <div style="width:24px; height:24px; border-radius:50%; background:var(--d-surface-2); border:1px solid var(--d-border); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; color:var(--d-text); flex-shrink:0;">${i+1}</div>
-            <div style="font-size:14px; color:var(--d-text); line-height:1.5; padding-top:2px;">${s}</div>
+            <div style="font-size:14px; color:var(--d-text); line-height:1.5; padding-top:2px;">${escapeHtml(s)}</div>
           </div>
         `).join('')}
       </div>
@@ -9314,7 +9558,7 @@ function buildPracticeHtml(p) {
       <ul style="list-style:none; padding:0; margin:0 0 16px 0;">
         ${(p.mistakes || []).map(m => `
           <li style="padding:8px 0 8px 24px; position:relative; font-size:13px; color:var(--d-text); line-height:1.5;">
-            <span style="position:absolute; left:0; top:8px; color:var(--d-danger); font-weight:900;">✕</span>${m}
+            <span style="position:absolute; left:0; top:8px; color:var(--d-danger); font-weight:900;">✕</span>${escapeHtml(m)}
           </li>
         `).join('')}
       </ul>
@@ -9365,7 +9609,7 @@ function buildPracticeHtml(p) {
     <div class="d-card-glass note-block" style="margin-top:20px; display: none;">
        <h3 style="font-size:12px; font-weight:900; color:var(--d-accent-2); text-transform:uppercase; margin-bottom:10px;">✍️ Твоя заметка</h3>
        <textarea id="practiceNoteInput" placeholder="Что получилось? С какими мыслями столкнулся?..." style="width:100%; background:var(--d-surface-2); border:1px solid var(--d-border); border-radius:12px; padding:12px; color:var(--d-text); font-size:14px; min-height:100px; resize:vertical; margin-bottom:16px;"></textarea>
-       <button class="d-btn-primary" onclick="markPracticeFromScreen('${p.id}')">✓ Отметить выполненным</button>
+       <button class="d-btn-primary" style="width: 100%;" onclick="markPracticeFromScreen('${p.id}')">✓ Отметить выполненным</button>
     </div>
   `;
 }
@@ -9903,3 +10147,16 @@ async function loadMoodChart() {
     chartEl.innerHTML = '<div style="color:var(--d-muted); font-size:11px; margin:auto;">Нет данных</div>';
   }
 }
+// ═══════════════════════════════════════════════
+// ГЛОБАЛЬНЫЙ ПЕРЕХВАТ ОШИБОК (Для диагностики на телефонах)
+// ═══════════════════════════════════════════════
+window.addEventListener('error', function(event) {
+  // Показываем красную плашку, если на телефоне произошел сбой
+  const errBox = document.createElement('div');
+  errBox.style.cssText = 'position:fixed; top:10px; left:10px; right:10px; background:rgba(255,92,92,0.95); color:#fff; padding:12px; border-radius:12px; z-index:999999; font-size:12px; font-family:monospace; box-shadow:0 4px 12px rgba(0,0,0,0.5);';
+  errBox.innerHTML = `<b>Ошибка приложения:</b><br>${event.message}<br><small>Файл: ${event.filename ? event.filename.split('/').pop() : 'неизвестно'} (строка ${event.lineno})</small>`;
+  document.body.appendChild(errBox);
+  
+  // Убираем плашку через 10 секунд
+  setTimeout(() => errBox.remove(), 10000);
+});

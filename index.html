@@ -6,7 +6,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="ANDGER">
+  <meta name="apple-mobile-web-app-title" content="Практикум">
   <meta name="theme-color" content="#0d0a18">
   <meta name="description" content="ANDGER — AI-коуч по внедрению книжных привычек.">
   <!-- Иконки для браузера и iOS (обновленные v5) -->
@@ -18,7 +18,7 @@
   <link rel="apple-touch-icon" sizes="1024x1024" href="assets/icons/apple-touch-icon-1024.png">
 
     <!-- OG-теги для красивого превью в мессенджерах -->
-  <meta property="og:title" content="ANDGER — практикум по книгам">
+  <meta property="og:title" content="Практикум — ANDGER">
   <meta property="og:description" content="Превращай идеи из сильных книг в ежедневные действия. Меньше читать — больше применять!">
   <meta property="og:image" content="https://andger.ru/assets/og-image.png">
   <meta property="og:image:width" content="1200">
@@ -1477,7 +1477,7 @@
           <button class="d-btn-primary" onclick="completePracticeDone()">Сохранить</button>
           
           <!-- КНОПКА ОБРАТНОЙ СВЯЗИ -->
-          <button class="d-btn-secondary" onclick="openFeedbackModal()" style="margin-top: 8px; border-color: transparent; background: transparent; color: var(--d-text-dim); font-size: 12px; text-decoration: underline;">
+          <button class="d-btn-secondary" onclick="openFeedbackModal()" style="margin-top: 10px;">
   💬 Обратная связь
 </button>
         </div>
@@ -1519,18 +1519,24 @@
         </div>
       </div>
 
-      <!-- Модалка восстановления пароля -->
-      <div class="modal hidden" id="forgotModal">
+      <!-- Модалка ввода кода из СМС -->
+      <div class="modal hidden" id="verifyCodeModal">
         <div class="modal-box">
-          <div class="emoji">🔑</div>
-          <h2>Восстановление</h2>
-          <p style="font-size:13px; margin-bottom:16px;">Введите номер телефона, привязанный к аккаунту.</p>
+          <div class="emoji">📩</div>
+          <h2>Введите код</h2>
+          <p style="font-size:13px; margin-bottom:16px; color:var(--d-text-dim);">Мы отправили код на ваш номер. Введите его ниже и придумайте новый пароль.</p>
+          
           <div class="field" style="text-align:left;">
-            <label>Номер телефона</label>
-            <input type="tel" id="resetPhone" placeholder="+7 999 123-45-67" inputmode="tel" maxlength="18">
+            <label>Код из СМС</label>
+            <input type="text" id="verifyCodeInput" placeholder="1234" inputmode="numeric" style="text-align:center; letter-spacing:5px; font-size:20px; font-weight:bold;">
           </div>
-          <button class="d-btn-primary" id="resetBtn" onclick="sendResetSms()" style="margin-top:10px;">Отправить код</button>
-          <button class="d-btn-secondary" onclick="document.getElementById('forgotModal').classList.add('hidden')" style="margin-top:8px;">Отмена</button>
+          <div class="field" style="text-align:left;">
+            <label>Новый пароль</label>
+            <input type="password" id="newPasswordInput" placeholder="Минимум 6 символов">
+          </div>
+          
+          <button class="d-btn-primary" id="verifyCodeBtn" onclick="verifyResetCode()" style="margin-top:10px;">Подтвердить</button>
+          <button class="d-btn-secondary" onclick="document.getElementById('verifyCodeModal').classList.add('hidden')" style="margin-top:8px;">Отмена</button>
         </div>
       </div>
 
@@ -1683,7 +1689,7 @@
           <p style="font-size:12px; color:var(--d-text-dim); margin-bottom:12px; text-align:center;">Дай название своему набору</p>
           <input type="text" id="saveRitualNameInput" placeholder="Например: Идеальное утро" style="width:100%; background:var(--d-surface-2); border:1px solid var(--d-border); border-radius:12px; padding:12px; color:var(--d-text); font-size:15px; margin-bottom:16px;">
           <button class="d-btn-primary" onclick="confirmSaveRitual()">Сохранить</button>
-          <button class="d-btn-secondary" onclick="document.getElementById('saveRitualModal').classList.add('hidden')" style="margin-top:8px;">Отмена</button>
+          <button class="d-btn-secondary" onclick="document.getElementById('saveRitualModal').classList.add('hidden')" style="margin-top:10px;">Отмена</button>
         </div>
       </div>
 
@@ -1773,7 +1779,7 @@
           </div>
 
           <button class="d-btn-primary" onclick="savePracticeEditor()">Сохранить практику</button>
-          <button class="d-btn-secondary" onclick="document.getElementById('practiceEditorModal').classList.add('hidden')" style="margin-top:8px;">Отмена</button>
+          <button class="d-btn-secondary" onclick="document.getElementById('practiceEditorModal').classList.add('hidden')" style="margin-top:10px;">Отмена</button>
         </div>
       </div>
 
@@ -1797,7 +1803,7 @@
           </div>
 
           <button class="d-btn-primary" onclick="saveReview()">Оставить отзыв</button>
-          <button class="d-btn-secondary" onclick="document.getElementById('reviewModal').classList.add('hidden')" style="margin-top:8px;">Пропустить</button>
+          <button class="d-btn-secondary" onclick="document.getElementById('reviewModal').classList.add('hidden')" style="margin-top:10px;">Пропустить</button>
         </div>
       </div>
         <!-- Модалка редактирования текста (Админка) -->

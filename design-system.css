@@ -684,11 +684,22 @@ html.light .d-lib-folder-title {
    ЭКРАН ЗАГРУЗКИ (SPLASH)
    ═══════════════════════════════════════════════ */
 #appLoader {
-  position: fixed; inset: 0; z-index: var(--z-loader);
-  background: radial-gradient(circle at 50% 40%, #15112a 0%, #05030a 100%);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 40px; padding: 40px 24px;
-  transition: opacity .6s ease; overflow: hidden;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh; /* Фолбэк для старых iOS */
+  height: 100dvh; /* Точная высота экрана */
+  background-color: #120c24;
+  background-image: 
+    radial-gradient(circle at 10% 10%, rgba(124, 92, 255, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(255, 122, 42, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(30, 92, 255, 0.1) 0%, transparent 60%);
+  z-index: var(--z-loader);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: env(safe-area-inset-bottom, 0px); /* Учитываем полосу жестов iPhone */
 }
 #appLoader.hide { opacity: 0; pointer-events: none; }
 
