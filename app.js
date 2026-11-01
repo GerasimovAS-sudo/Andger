@@ -4425,6 +4425,23 @@ function updateNotifBadge(){
       badge.classList.add('hidden');
     }
   });
+
+  // Безопасно устанавливаем бейдж на иконку приложения (iOS 16.4+)
+  if ('setAppBadge' in navigator) {
+    let isDayClosed = false;
+    if (currentBook) {
+      const bs = getBookState(currentBook.id);
+      const rec = bs.days[todayStr()];
+      isDayClosed = rec && rec.closed;
+    }
+    
+    const totalBadge = unread + (isDayClosed ? 0 : 1); // +1, если день не закрыт
+    if (totalBadge > 0) {
+      navigator.setAppBadge(totalBadge).catch(()=>{});
+    } else {
+      navigator.clearAppBadge().catch(()=>{});
+    }
+  }
 }
 function renderNotifications(){
   const el=document.getElementById('notifList');
@@ -9841,16 +9858,6 @@ function setMood(moodValue, el) {
   el.style.transform = 'scale(1.1)';
   playClick();
 }
-  // Устанавливаем бейдж на иконку приложения (iOS 16.4+)
-  if ('setAppBadge' in navigator) {
-    const unreadCount = notifications.filter(n => !n.read).length;
-    const totalBadge = unreadCount + (isDayClosed ? 0 : 1); // +1 если день не закрыт
-    if (totalBadge > 0) {
-      navigator.setAppBadge(totalBadge).catch(()=>{});
-    } else {
-      navigator.clearAppBadge().catch(()=>{});
-    }
-  }
   function completeMicroAction(bookId, practiceId) {
   const day = currentDay(bookId);
   const date = dateByDay(bookId, day);
