@@ -4284,7 +4284,7 @@ function renderSettings(){
   if(vSel) vSel.value = state.voice || 'alena';
   
   // Подсветка темы
-  document.querySelectorAll('.theme-option').forEach(el => {
+  document.querySelectorAll('.theme-card').forEach(el => {
     if (el.dataset.theme === (state.theme || 'dark')) {
       el.classList.add('active');
     } else {
@@ -4315,7 +4315,7 @@ function applyTheme(){
   if(effective==='light')root.classList.add('light');
   else root.classList.remove('light');
   // Подсветка выбранного варианта
-  document.querySelectorAll('.theme-option').forEach(el=>{
+  document.querySelectorAll('.theme-card').forEach(el=>{
     el.classList.toggle('on',el.dataset.theme===(state.theme||'dark'));
   });
 }
@@ -7818,15 +7818,10 @@ function parseSmartJson() {
     
     const data = JSON.parse(jsonStr.trim());
     
-    // УМНЫЙ ПАРСЕР: понимает любые вариации ключей от ИИ
+    // Заполняем текстовые поля формы
     const setVal = (id, val) => { 
       const el = document.getElementById(id);
-      if (el && val !== undefined && val !== null && val !== '') {
-        el.value = val; 
-        console.log(`✅ Поле ${id} заполнено.`);
-      } else {
-        console.warn(`⚠️ Поле ${id} не найдено или данные пустые.`);
-      }
+      if (el && val !== undefined && val !== null && val !== '') el.value = val; 
     };
 
     setVal('edTitle', data.title);
@@ -7837,15 +7832,11 @@ function parseSmartJson() {
     setVal('edAbout', data.about || data.description);
     setVal('edMethod', Array.isArray(data.method) ? data.method.join(', ') : data.method);
     setVal('edResult', data.result || data.outcome);
-    
-    // Жесткий поиск полей, которые ИИ любит переименовывать
     setVal('edAuthorBio', data.authorBio || data.author_bio || data.authorInfo || data.author);
     setVal('edForWhom', data.forWhom || data.for_whom || data.targetAudience || data.audience);
-    
-    // Заполняем ссылку на обложку, если она есть
     setVal('edCoverUrl', data.cover_url || data.coverUrl || data.image);
     
-    // Заполняем практики
+    // Обновляем массивы практик и цитат
     if(Array.isArray(data)) {
       window._tempPractices = data;
     } else if(data.practices) {
@@ -7855,11 +7846,15 @@ function parseSmartJson() {
     
     if(data.quotes) {
       window._tempQuotes = data.quotes;
-      renderAdminQuotesList(); // <--- Отрисовываем цитаты из JSON
+      renderAdminQuotesList();
     }
     
-    toast('✅ Данные распознаны!');
+    toast('✅ Данные JSON успешно распознаны и загружены в форму!');
     document.getElementById('edSmartJson').value = ''; 
+    
+    // Переключаем на вкладку "Основное", чтобы ты увидел, что поля заполнились
+    switchEditorTab('main', document.querySelector('.ed-tab-btn'));
+    
   } catch(e) {
     toast('Ошибка парсинга JSON. Проверь текст.', 'danger');
     console.error('❌ Ошибка парсинга:', e);
@@ -8799,7 +8794,16 @@ async function speakBackgroundGuide(text, context = 'practice') {
         vSettings = currentBook.voice_settings;
       }
       
-      voiceToUse = vSettings.voice || 'alena';
+      // 🧠 Умный выбор голоса, если ИИ не задал его в JSON
+      let defaultVoice = 'alena';
+      if (activePractice) {
+        const textSearch = (activePractice.title + ' ' + activePractice.sub + ' ' + (activePractice.ico||'')).toLowerCase();
+        if (textSearch.includes('спорт') || textSearch.includes('актив') || textSearch.includes('зарядк') || textSearch.includes('activity') || textSearch.includes('трениров')) {
+          defaultVoice = 'ermil'; // Мужской голос для энергичных практик
+        }
+      }
+      
+      voiceToUse = vSettings.voice || defaultVoice;
       speedToUse = vSettings.speed || 1.0;
       emotionToUse = vSettings.emotion || 'neutral';
     }
@@ -9005,12 +9009,8 @@ function showJsonImportModal() {
         <p style="font-size:12px; color:var(--d-text-dim); margin-bottom:12px; text-align:center;">Вставь JSON от ИИ сюда, и книга появится в приложении.</p>
         <textarea id="adminJsonInput" rows="8" placeholder='{ "id": "new-book", "title": "Название", ... }' style="width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--d-border); border-radius:12px; padding:12px; color:var(--d-text); font-family:monospace; font-size:12px; resize:vertical; margin-bottom:16px;"></textarea>
         
-        <div style="margin-bottom:16px;">
-          <label style="font-size:12px; color:var(--d-text-dim); margin-bottom:6px; display:block; font-weight:700;">Куда сохранить этот JSON?</label>
-          <select id="jsonTargetBook" style="width:100%; padding:12px; background:var(--d-surface-2); border:1px solid var(--d-border); border-radius:12px; color:var(--d-text); font-size:14px; outline:none;">
-            <option value="">✨ Создать новую книгу</option>
-            <!-- Сюда код вставит список твоих книг -->
-          </select>
+        <div style="background:rgba(124,92,255,0.1); border:1px solid rgba(124,92,255,0.3); padding:12px; border-radius:12px; margin-bottom:16px; font-size:12px; color:var(--d-text-dim); line-height:1.4;">
+          💡 <b>Создание новой книги.</b><br>Вставьте JSON от ИИ. Если вы хотите <i>обновить</i> существующую книгу — закройте это окно, зайдите в неё через список и используйте вкладку «JSON» там.
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; background:rgba(255,255,255,0.03); padding:12px 16px; border-radius:12px; border:1px solid var(--d-border);">
@@ -9030,13 +9030,6 @@ function showJsonImportModal() {
     document.body.appendChild(modal);
   }
   document.getElementById('adminJsonInput').value = '';
-    // Заполняем список книг для выбора
-  const select = document.getElementById('jsonTargetBook');
-  if (select) {
-    const allBooks = (typeof adminAllBooks !== 'undefined' && adminAllBooks.length) ? adminAllBooks : BOOKS;
-    const options = allBooks.map(b => `<option value="${b.id}">🔄 Обновить: «${escapeHtml(b.title)}»</option>`).join('');
-    select.innerHTML = `<option value="">✨ Создать новую книгу</option>${options}`;
-  }
   modal.classList.remove('hidden');
 }
 
@@ -9059,19 +9052,7 @@ async function addBookFromJSON() {
     // Устанавливаем статус на основе тумблеров
     bookData.published = isPublish; 
     bookData.is_free = isFree;
-
-    // 🤖 ЖЕЛЕЗОБЕТОННАЯ ПРОВЕРКА: Смотрим, что выбрал пользователь в списке
-    const targetBookId = document.getElementById('jsonTargetBook')?.value;
     
-    if (targetBookId) {
-      // Если выбрана существующая книга — принудительно берем её ID
-      bookData.id = targetBookId;
-      console.log('♻️ Обновляем существующую книгу. ID:', targetBookId);
-    } else if (!bookData.id) {
-      // Если выбрано "Создать новую" и в JSON нет ID — генерируем новый
-      bookData.id = 'book-' + Date.now();
-    }
-
     // Отправляем в Supabase
         // Переводим названия полей в формат базы данных
     const mappedData = {
@@ -10014,7 +9995,6 @@ function updateEditorStatusBanner(b) {
   const btn = document.getElementById('edStatusBtn');
   if(!banner || !dot || !text || !btn) return;
 
-  // Для новой книги (b = null) плашку не показываем
   if(!b) {
     banner.style.display = 'none';
     return;
@@ -10027,7 +10007,7 @@ function updateEditorStatusBanner(b) {
     banner.style.background = 'rgba(62,207,142,0.1)';
     banner.style.borderColor = 'rgba(62,207,142,0.3)';
     dot.style.background = 'var(--d-success)';
-    text.textContent = 'Опубликована · видна пользователям';
+    text.textContent = '✅ Опубликована (видна всем)';
     btn.textContent = 'Скрыть';
     btn.style.color = 'var(--d-warm)';
     btn.style.borderColor = 'rgba(255,154,86,0.4)';
@@ -10035,8 +10015,8 @@ function updateEditorStatusBanner(b) {
     banner.style.background = 'rgba(255,184,0,0.1)';
     banner.style.borderColor = 'rgba(255,184,0,0.3)';
     dot.style.background = 'var(--d-gold)';
-    text.textContent = 'В разработке · скрыта от пользователей';
-    btn.textContent = 'Опубликовать';
+    text.textContent = '📝 Черновик (скрыта от всех)';
+    btn.textContent = 'Опубликовать сейчас';
     btn.style.color = 'var(--d-success)';
     btn.style.borderColor = 'rgba(62,207,142,0.4)';
   }

@@ -1928,29 +1928,6 @@ html.light .andger-bubble {
   transform: scale(0.95);
 }
 
-/* Сферы */
-.theme-sphere {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  position: relative;
-  box-shadow: inset -3px -3px 8px rgba(0, 0, 0, 0.6), inset 3px 3px 8px rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-}
-
-/* Блик на сфере (эффект стекла) */
-.theme-sphere::after {
-  content: '';
-  position: absolute;
-  top: 15%;
-  left: 15%;
-  width: 30%;
-  height: 30%;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.6);
-  filter: blur(2px);
-}
-
 /* Темная сфера */
 .dark-sphere {
   background: radial-gradient(circle at 30% 30%, #3b1f66, #0d0a18);
@@ -1994,9 +1971,72 @@ html.light .andger-bubble {
 .theme-card.active .theme-label {
   color: var(--d-text);
 }
+/* ═══════════════════════════════════════════════ */
+/* НОВЫЙ ВЫБОР ЦВЕТОВОЙ СХЕМЫ (ИКОНКИ) */
+/* ═══════════════════════════════════════════════ */
 
-.theme-card.active .theme-sphere {
+.theme-selector-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 12px;
+  background: var(--d-surface);
+  border: 1px solid var(--d-border);
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+.theme-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 8px;
+  border-radius: 16px;
+  background: var(--d-surface-2);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.theme-card:active {
+  transform: scale(0.95);
+}
+
+.theme-card.active {
+  background: rgba(124, 92, 255, 0.15);
+  border-color: rgba(124, 92, 255, 0.4);
+  box-shadow: 0 4px 15px rgba(124, 92, 255, 0.1);
+}
+
+.theme-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--d-text-dim);
+  transition: all 0.3s;
+}
+
+.theme-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.theme-card.active .theme-icon {
+  color: var(--d-accent-2);
   transform: scale(1.1);
-  box-shadow: inset -3px -3px 8px rgba(0, 0, 0, 0.5), 0 0 25px rgba(124, 92, 255, 0.6);
-  border-color: var(--d-accent-2);
+}
+
+.theme-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--d-text-dim);
+  transition: color 0.3s;
+}
+
+.theme-card.active .theme-label {
+  color: var(--d-text);
 }

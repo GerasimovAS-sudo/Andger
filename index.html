@@ -914,22 +914,28 @@
         <div style="color: var(--d-accent-2); font-size: 18px;">›</div>
         </div>
 
-            <h3 style="font-size:11px; font-weight:900; color:var(--d-text-dim); text-transform:uppercase; margin-top: 8px;">Внешний вид</h3>
+            <h3 style="font-size:11px; font-weight:900; color:var(--d-text-dim); text-transform:uppercase; margin-top: 8px;">Цветовая схема</h3>
       
             <div class="theme-selector-container">
               <div class="theme-card" data-theme="dark" onclick="setTheme('dark')">
-                <div class="theme-sphere dark-sphere"></div>
+                <div class="theme-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </div>
                 <span class="theme-label">Тёмная</span>
               </div>
               <div class="theme-card" data-theme="light" onclick="setTheme('light')">
-                <div class="theme-sphere light-sphere"></div>
+                <div class="theme-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                </div>
                 <span class="theme-label">Светлая</span>
               </div>
               <div class="theme-card" data-theme="auto" onclick="setTheme('auto')">
-                <div class="theme-sphere auto-sphere"></div>
+                <div class="theme-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2v20"></path><path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor" opacity="0.3"></path></svg>
+                </div>
                 <span class="theme-label">Авто</span>
               </div>
-            </div>      
+            </div>     
         
       <h3 style="font-size:11px; font-weight:900; color:var(--d-text-dim); text-transform:uppercase;">Звук и уведомления</h3>      
         <div class="d-card-glass" style="padding:0; overflow:hidden;">
@@ -1114,6 +1120,11 @@
           </button>
           <div class="d-header-greet-label">РЕДАКТОР КНИГИ</div>
         </div>
+        <div class="d-header-actions">
+          <button class="d-icon-btn" onclick="previewBookDraft()" title="Предпросмотр">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </button>
+        </div>
       </div>
       
       <div class="wrap" style="padding-top: calc(90px + env(safe-area-inset-top, 0px)); padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));">
@@ -1137,31 +1148,37 @@
 
         <!-- Вкладка 1: Основное -->
         <div id="edTab-main" class="ed-tab-content">
-          <div class="field"><label>Название</label><input type="text" id="edTitle" placeholder="Атомные привычки"></div>
-          <div class="field"><label>Автор</label><input type="text" id="edAuthor" placeholder="Джеймс Клир"></div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div class="field"><label>Эмодзи</label><input type="text" id="edEmoji" placeholder="⚛️" maxlength="4"></div>
-            <div class="field"><label>Кол-во дней</label><input type="number" id="edDays" placeholder="21"></div>
+          <div class="d-card-glass" style="padding: 16px; margin-bottom: 16px;">
+            <div class="field"><label>Название</label><input type="text" id="edTitle" placeholder="Атомные привычки"></div>
+            <div class="field"><label>Автор</label><input type="text" id="edAuthor" placeholder="Джеймс Клир"></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div class="field" style="margin-bottom:0;"><label>Эмодзи</label><input type="text" id="edEmoji" placeholder="⚛️" maxlength="4"></div>
+              <div class="field" style="margin-bottom:0;"><label>Кол-во дней</label><input type="number" id="edDays" placeholder="21"></div>
+            </div>
           </div>
 
-          <div style="display:flex; justify-content:space-between; align-items:center; margin: 10px 0 16px 0; background:var(--d-surface-2); padding:12px 16px; border-radius:12px; border:1px solid var(--d-border);">
-            <span style="font-size:14px; font-weight:700; color:var(--d-text);">Бесплатная книга (без Premium)</span>
-            <div class="d-toggle" id="edIsFreeToggle" onclick="this.classList.toggle('on')"></div>
+          <div class="d-card-glass" style="padding: 16px; margin-bottom: 16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; background:var(--d-surface-2); padding:12px 16px; border-radius:12px; border:1px solid var(--d-border);">
+              <span style="font-size:14px; font-weight:700; color:var(--d-text);">Бесплатная книга (без Premium)</span>
+              <div class="d-toggle" id="edIsFreeToggle" onclick="this.classList.toggle('on')"></div>
+            </div>
+            
+            <div class="field">
+              <label>Категория книги</label>
+              <input type="text" id="edCategory" list="edCategoryList" placeholder="Например: Психология">
+              <datalist id="edCategoryList"></datalist>
+            </div>
+            
+            <div class="field" style="margin-bottom:0;">
+              <label>Обложка книги</label>
+              <input type="text" id="edCoverUrl" placeholder="https://..." style="margin-bottom: 8px;">
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="file" id="edCoverUpload" accept="image/*" style="display: none;" onchange="uploadBookCover(this)">
+                <button class="d-btn-secondary" onclick="document.getElementById('edCoverUpload').click()" style="margin:0; padding: 8px 16px; font-size: 12px; width: auto; flex: none;">📷 Выбрать фото</button>
+                <span id="edCoverStatus" style="font-size: 11px; color: var(--d-text-dim);">Файл не выбран</span>
+              </div>
+            </div>
           </div>
-          <div class="field">
-            <label>Категория книги</label>
-            <input type="text" id="edCategory" list="edCategoryList" placeholder="Например: Психология">
-            <datalist id="edCategoryList"></datalist>
-          </div>
-          <div class="field">
-  <label>Обложка книги</label>
-  <input type="text" id="edCoverUrl" placeholder="https://..." style="margin-bottom: 8px;">
-  <div style="display: flex; gap: 8px; align-items: center;">
-    <input type="file" id="edCoverUpload" accept="image/*" style="display: none;" onchange="uploadBookCover(this)">
-    <button class="d-btn-secondary" onclick="document.getElementById('edCoverUpload').click()" style="margin:0; padding: 8px 16px; font-size: 12px; width: auto; flex: none;">📷 Выбрать фото</button>
-    <span id="edCoverStatus" style="font-size: 11px; color: var(--d-text-dim);">Файл не выбран</span>
-  </div>
-</div>
         </div>
 
         <!-- Вкладка 2: Тексты -->
@@ -1194,24 +1211,35 @@
 
         <!-- Вкладка 4: JSON -->
         <div id="edTab-json" class="ed-tab-content hidden">
-          <div class="field" id="smartJsonBlock" style="background:rgba(62,207,142,0.1); padding:12px; border-radius:12px; border:1px solid var(--d-success); display: none;">
-            <label style="color:var(--d-success); font-size:14px; margin-bottom:8px;">✨ Умная вставка (JSON)</label>
-            <p style="font-size:11px; color:var(--d-text-dim); margin-bottom:8px;">Вставь сюда JSON от ИИ и нажми «Разобрать».</p>
-            <textarea id="edSmartJson" rows="8" placeholder='Вставь сюда ответ от ИИ...'></textarea>
-            <button class="d-btn-secondary" onclick="parseSmartJson()" style="margin-top:8px; border-color:var(--d-success); color:var(--d-success);">Разобрать текст</button>
+          <div id="smartJsonBlock" style="background:rgba(62,207,142,0.05); padding:16px; border-radius:16px; border:1px solid rgba(62,207,142,0.3); display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:12px;">
+              <label style="color:var(--d-success); font-size:14px; font-weight:900;">✨ Импорт из JSON</label>
+              <button onclick="document.getElementById('edSmartJson').value=''" style="background:transparent; border:none; color:var(--d-text-dim); font-size:12px; cursor:pointer;">Очистить</button>
+            </div>
+            <p style="font-size:12px; color:var(--d-text-dim); margin-bottom:12px; line-height: 1.4;">Вставь сюда JSON от ИИ. Нажми <b>«Распознать»</b>, и все поля (тексты, практики, цитаты) заполнятся автоматически.</p>
+            
+            <textarea id="edSmartJson" style="width: 100%; min-height: 300px; background: rgba(0,0,0,0.3); border: 1px solid var(--d-border); border-radius: 12px; padding: 12px; color: var(--d-text); font-family: monospace; font-size: 12px; resize: vertical; outline: none; margin-bottom: 12px;" placeholder='Вставь сюда ответ от ИИ...'></textarea>
+            
+            <button class="d-btn-primary" onclick="parseSmartJson()" style="margin-top:0; width:100%; background: linear-gradient(135deg, var(--d-success), #2ea870); box-shadow: 0 4px 15px rgba(62,207,142,0.3);">✨ Распознать JSON</button>
           </div>
         </div>
 
-        <!-- Кнопки сохранения -->
-        <div style="margin-top:30px; border-top:1px solid var(--d-border); padding-top:20px;">
-          <button class="d-btn-secondary" onclick="previewBookDraft()" style="margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            Предпросмотр
-          </button>
-          <button class="d-btn-primary" onclick="publishBook()">🚀 Опубликовать</button>
-          <button class="d-btn-secondary" onclick="saveBookDraft()" style="margin-top:8px;">💾 Сохранить черновик</button>
-          <button class="d-btn-secondary" id="edDeleteBtn" onclick="deleteBookFromEditor()" style="background:rgba(255,92,92,0.1); color:var(--d-danger); border-color:var(--d-danger); margin-top:16px; display:none;">🗑 Удалить книгу</button>
-          <div class="err" id="edErr" style="margin-top:16px;"></div>
+        <!-- Плавающие кнопки сохранения -->
+        <div style="position: fixed; bottom: 0; left: 0; right: 0; max-width: 520px; margin: 0 auto; background: rgba(30, 20, 55, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--d-border); z-index: 9999; display: flex; gap: 8px; box-shadow: 0 -10px 30px rgba(0,0,0,0.3);">
+          <button class="d-btn-secondary" onclick="saveBookDraft()" style="margin:0; flex:1; min-height:46px;">💾 Черновик</button>
+          <button class="d-btn-primary" onclick="publishBook()" style="margin:0; flex:2; min-height:46px;">🚀 Опубликовать</button>
+        </div>
+        
+        <!-- Опасная зона и ошибки -->
+        <div style="margin-top: 30px; margin-bottom: 100px; text-align: center;">
+          <div class="err" id="edErr" style="font-weight:800; font-size:14px; margin-bottom: 16px;"></div>
+          
+          <div id="edDeleteBtn" style="display:none; padding-top: 20px; border-top: 1px dashed var(--d-border);">
+            <div style="font-size: 11px; color: var(--d-text-dim); text-transform: uppercase; font-weight: 800; margin-bottom: 8px;">Опасная зона</div>
+            <button class="d-btn-secondary" onclick="deleteBookFromEditor()" style="background:rgba(255,92,92,0.05); color:var(--d-danger); border-color:rgba(255,92,92,0.3); width: 100%; padding: 12px; font-size: 13px; border-radius: 12px; font-weight: 700;">
+              🗑 Удалить книгу навсегда
+            </button>
+          </div>
         </div>
 
       </div>       

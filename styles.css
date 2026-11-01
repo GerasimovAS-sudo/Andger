@@ -2200,6 +2200,35 @@ body::after {
 .focus-mode .music-fab-btn {
   display: flex !important;
 }
+/* Закрепляем вкладки редактора при скролле */
+.ed-tabs {
+  position: sticky;
+  top: 60px; /* Высота шапки */
+  z-index: 100;
+  background: var(--color-background-app, #120c24);
+  padding: 10px 0;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  box-shadow: 0 10px 15px -10px rgba(0,0,0,0.8);
+}
+/* Красивая нижняя панель редактора */
+#bookEditorScreen div[style*="position: fixed; bottom: 0;"] {
+  background: rgba(30, 20, 55, 0.85) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-top: 1px solid rgba(124, 92, 255, 0.2) !important;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+  border-radius: 24px 24px 0 0 !important; /* Скруглили верхние углы */
+  box-shadow: 0 -10px 30px rgba(0,0,0,0.5) !important;
+}
+
+/* Делаем кнопки внутри панели аккуратнее */
+#bookEditorScreen div[style*="position: fixed; bottom: 0;"] button {
+  border-radius: 14px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  font-size: 13px !important;
+}
 
 
 
