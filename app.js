@@ -5784,7 +5784,7 @@ async function showAdmin(initialSection = 'books'){
     if (p.sub_until && new Date(p.sub_until) > new Date()) activeSubs++;
   });
   const mrrEl = document.getElementById('adminMRR');
-  if(mrrEl) mrrEl.textContent = (activeSubs * 299).toLocaleString('ru-RU') + ' ₽';
+  if(mrrEl) mrrEl.textContent = (activeSubs * 99).toLocaleString('ru-RU') + ' ₽';
 
   // Определяем, какую кнопку нажать и какой раздел загрузить
   let targetBtn = null;
@@ -10019,7 +10019,7 @@ async function loadAdminDashboard() {
     const dau = users.filter(u => u.last_seen && u.last_seen.startsWith(todayStr)).length;
     const wau = users.filter(u => u.last_seen && u.last_seen > weekAgo).length;
     const mau = users.filter(u => u.last_seen && u.last_seen > monthAgo).length;
-    const mrr = activeSubs.length * 299;
+    const mrr = activeSubs.length * 99;
 
     // Считаем популярность книг
     const bookCounts = {};
@@ -10286,14 +10286,19 @@ function showWeeklyReview() {
   const totalMins = Math.round(totalTime / 60);
   const maxPractices = Math.max(...daysData.map(d => d.practices), 1);
 
+  // Получаем текущий уровень для шапки
+  const stats = getGlobalStats();
+
   // Формируем красивый HTML
   let html = `
-    <div style="text-align: center; margin-bottom: 20px;">
-      <div style="width: 64px; height: 64px; margin: 0 auto 12px; background: var(--d-gradient-soft); border-radius: 20px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--d-border-strong);">
-         <svg viewBox="0 0 24 24" fill="none" stroke="url(#gradDefault)" stroke-width="2" style="width: 32px; height: 32px;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="width: 72px; height: 72px; margin: 0 auto 12px; background: var(--d-gradient-soft); border-radius: 24px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--d-accent); box-shadow: 0 8px 20px rgba(124,92,255,0.2);">
+         ${getAvatarHtml(state.avatar, 48)}
       </div>
-      <h2 style="font-size: 20px; font-weight: 900; color: var(--d-text); margin-bottom: 4px;">Твоя неделя</h2>
-      <p style="font-size: 12px; color: var(--d-text-dim);">Отчет от ANDGER</p>
+      <h2 style="font-size: 22px; font-weight: 900; color: var(--d-text); margin-bottom: 8px;">Твоя неделя</h2>
+      <div style="font-size: 11px; font-weight: 800; color: var(--d-gold); background: rgba(255,184,0,0.1); padding: 4px 12px; border-radius: 100px; border: 1px solid rgba(255,184,0,0.3); display: inline-block;">
+         ${stats.lvlIco} ${stats.lvlName} · ${stats.totalXP} XP
+      </div>
     </div>
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
