@@ -4524,8 +4524,16 @@ async function openNotification(id){
   }
   else if(n.type==='msg' && p.from){
     const fromId = p.from;
-    const{data:profile}=await sb.from('profiles').select('id,name,avatar,last_seen').eq('id',fromId).single();
-    if(profile) openDialog(fromId, profile);
+    try {
+      const { data: profile, error } = await sb.from('profiles').select('id,name,avatar,last_seen').eq('id',fromId).single();
+      if (error || !profile) {
+        toast('Пользователь не найден или удален', 'danger');
+      } else {
+        openDialog(fromId, profile);
+      }
+    } catch(e) {
+      toast('Ошибка загрузки чата', 'danger');
+    }
   }else if(n.type==='like'||n.type==='comment'){
     showCommunityScreen();
   }else if(n.type==='admin'){
@@ -6969,8 +6977,18 @@ function forceUpdate() {
 // ─── PWA SHORTCUTS ───
 const urlParams=new URLSearchParams(location.search);
 const action=urlParams.get('action');
-if(action==='ritual')setTimeout(()=>startRitual(),1500);
-else if(action==='journal')setTimeout(()=>showJournalScreen(),1500);
+const urlUser = urlParams.get('user');
+
+if(action==='ritual') {
+  setTimeout(()=>startRitual(),1500);
+} else if(action==='journal') {
+  setTimeout(()=>showJournalScreen(),1500);
+} else if(action==='dialog' && urlUser) {
+  // Если пришли из пуша — открываем чат с нужным человеком
+  setTimeout(() => {
+    if (typeof openDialog === 'function') openDialog(urlUser);
+  }, 1500);
+}
 
 // ─── SCROLL-ИНДИКАТОРЫ (КНИГИ И ПРАКТИКИ) ───
 document.addEventListener('scroll', (e) => {
