@@ -469,7 +469,7 @@ function startMusic(practiceId = 'default'){
     musicAudio.play().then(() => {
       // Если звук включен - нарастаем до 0.3 (или 0.01, если говорит голос)
       let targetVol = state.soundMode === 'sound' ? 0.3 : 0;
-      if (isVoicePlaying) targetVol = 0.08;
+      if (isVoicePlaying) targetVol = 0.15; // Подняли до 15%, чтобы было слышно
       fadeAudio(musicAudio, musicAudio.volume, targetVol, 1500);
     }).catch((e) => {
       console.log('Ошибка воспроизведения (нужно нажать на экран):', e);
@@ -3037,6 +3037,21 @@ function toggleTimer(ctx){
   } else if(timerState === 'done'){
     // Ничего не делаем
   } else {
+    let currentP = isRitual ? ritualQueue[ritualIndex] : currentPractice;
+    if (timerState === 'idle' && currentP) currentP._spokenIndices = [];
+
+    // ✨ ЖЕЛЕЗНЫЙ ФИКС: Запускаем музыку ПЕРВОЙ, чтобы браузер не заблокировал звук
+    if (state.soundMode === 'sound') {
+       if (timerState === 'idle' || !musicAudio || musicAudio.paused) {
+          startMusic(currentP ? currentP.id : 'default');
+       } else {
+          if (musicAudio) {
+             musicAudio.play().catch(()=>{});
+             fadeAudio(musicAudio, musicAudio.volume, isVoicePlaying ? 0.15 : 0.3, 500); 
+          }
+       }
+    }
+
     // 1. Разблокировка системного голоса (iOS Safari требует вызова speak() по клику)
     if ('speechSynthesis' in window) {
       const emptyUtterance = new SpeechSynthesisUtterance('');
@@ -3048,35 +3063,6 @@ function toggleTimer(ctx){
     if (!ttsAudio) ttsAudio = new Audio();
     ttsAudio.play().catch(()=>{});
     ttsAudio.pause();
-
-    let currentP = isRitual ? ritualQueue[ritualIndex] : currentPractice;
-    if (timerState === 'idle' && currentP) currentP._spokenIndices = [];
-    
-    // ✨ ЖЕЛЕЗНЫЙ ФИКС: Запускаем музыку СРАЗУ, синхронно с кликом, до всех проверок
-    if (state.soundMode === 'sound') {
-       if (timerState === 'idle' || !musicAudio || musicAudio.paused) {
-          startMusic(currentP ? currentP.id : 'default');
-       } else {
-          if (musicAudio) {
-             musicAudio.play().catch(()=>{});
-             fadeAudio(musicAudio, musicAudio.volume, isVoicePlaying ? 0.08 : 0.3, 500); 
-          }
-       }
-    }
-
-    if (state.soundMode === 'sound') {
-          if (timerState !== 'idle') {
-            if (musicAudio) {
-              musicAudio.play().catch(()=>{});
-              // Если голос на паузе (готов продолжить), музыка не должна прыгать на 0.3
-              const targetVol = isVoicePlaying ? 0.08 : 0.3;
-              fadeAudio(musicAudio, musicAudio.volume, targetVol, 500); 
-            }
-            if (ttsAudio && ttsAudio.paused && ttsAudio.currentTime > 0 && ttsAudio.src) {
-              ttsAudio.play().catch(() => { isVoicePlaying = false; }); // Защита от зависания флага
-            }
-          }
-        }
     
     startTimer(isRitual ? 'ritual' : 'practice'); 
     timerState = 'running';
@@ -3157,7 +3143,7 @@ function startTimer(ctx){
     // ПЛАВНОЕ ЗАТУХАНИЕ МУЗЫКИ (Последние 15 секунд)
     if (timerRemaining <= 15 && timerRemaining > 0 && musicAudio && state.soundMode === 'sound') {
       // Вычисляем громкость пропорционально оставшемуся времени, учитывая говорит ли голос
-      const maxVol = isVoicePlaying ? 0.08 : 0.3;
+      const maxVol = isVoicePlaying ? 0.15 : 0.3;
       musicAudio.volume = (timerRemaining / 15) * maxVol;
     }
 
@@ -8953,9 +8939,9 @@ async function speakBackgroundGuide(text, context = 'practice') {
     
     // Защита от ошибки AbortError
     try {
-      // ✨ ЖЕЛЕЗНЫЙ ФИКС ПРИТУХАНИЯ: Резко сбрасываем громкость перед стартом голоса
+      // ✨ УМНОЕ ПРИТУХАНИЕ: Плавно снижаем громкость до 15%, чтобы голос был слышен, а музыка не пропадала
       if (musicAudio) {
-        musicAudio.volume = 0.05; // Мгновенно делаем тихо
+        fadeAudio(musicAudio, musicAudio.volume, 0.15, 300);
       }
       await ttsAudio.play();
     } catch (playError) {
