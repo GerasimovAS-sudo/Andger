@@ -171,7 +171,7 @@ html.light, body.light { background: var(--bg); color: var(--text); }
   padding: calc(12px + var(--safe-top)) 16px 10px;
   max-width: 520px; margin: 0 auto;
   position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
-  background: rgba(30, 20, 55, 0.85);
+  background: var(--d-bg-header);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(124, 92, 255, 0.25);
@@ -231,7 +231,7 @@ html.light, body.light { background: var(--bg); color: var(--text); }
   bottom: 0; 
   left: 0; 
   right: 0;
-  background: rgba(30, 20, 55, 0.95);
+  background: var(--d-bg-nav);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid rgba(124, 92, 255, 0.25); 

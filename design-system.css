@@ -41,6 +41,8 @@
   --d-radius-xl: 24px;
   --d-safe-top: env(safe-area-inset-top, 0px);
   --d-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --d-bg-header: rgba(30, 20, 55, 0.85);
+  --d-bg-nav: rgba(30, 20, 55, 0.95);
 
   /* Legacy-compatible app tokens */
   --color-accent: #4f46e5;
@@ -191,7 +193,7 @@ body::before {
   max-width: 520px;
   margin: 0 auto;
   padding: calc(12px + var(--d-safe-top)) 16px 12px;
-  background: rgba(30, 20, 55, 0.85); /* Фиолетовый оттенок */
+  background: var(--d-bg-header);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(124, 92, 255, 0.25); /* Фиолетовая рамка */
@@ -214,7 +216,7 @@ body::before {
   max-width: 520px;
   margin: 0 auto;
   padding: 8px 4px calc(8px + var(--d-safe-bottom));
-  background: rgba(30, 20, 55, 0.95); /* Фиолетовый оттенок */
+  background: var(--d-bg-nav);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid rgba(124, 92, 255, 0.25); /* Фиолетовая рамка */
@@ -540,6 +542,8 @@ select option {
 html.light {
   --d-bg: #f5f4fa;
   --d-bg-2: #ffffff;
+  --d-bg-header: rgba(255, 255, 255, 0.85);
+  --d-bg-nav: rgba(255, 255, 255, 0.92);
   --d-surface: rgba(255, 255, 255, 0.7);
   --d-surface-2: rgba(0, 0, 0, 0.04);
   --d-surface-3: rgba(0, 0, 0, 0.08);
@@ -1978,11 +1982,11 @@ html.light .andger-bubble {
 .theme-selector-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  padding: 8px; /* Сделали контейнер тоньше */
   background: var(--d-surface);
   border: 1px solid var(--d-border);
-  border-radius: 20px;
+  border-radius: 16px;
   margin-bottom: 8px;
 }
 
@@ -1991,50 +1995,49 @@ html.light .andger-bubble {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 14px 8px;
-  border-radius: 16px;
-  background: var(--d-surface-2);
+  gap: 4px; /* Уменьшили отступ между иконкой и текстом */
+  padding: 10px 6px; /* Сделали карточку ниже */
+  border-radius: 12px;
+  background: transparent;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.2s ease;
 }
 
 .theme-card:active {
   transform: scale(0.95);
 }
 
+/* Активная тема теперь выделяется строгой нейтральной рамкой, без фиолетового */
 .theme-card.active {
-  background: rgba(124, 92, 255, 0.15);
-  border-color: rgba(124, 92, 255, 0.4);
-  box-shadow: 0 4px 15px rgba(124, 92, 255, 0.1);
+  background: var(--d-surface-3); 
+  border-color: var(--d-border-strong); 
 }
 
 .theme-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  color: var(--d-text-dim);
-  transition: all 0.3s;
+  width: 24px;
+  height: 24px;
+  color: var(--d-text-mute);
+  transition: all 0.2s;
 }
 
 .theme-icon svg {
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
 }
 
 .theme-card.active .theme-icon {
-  color: var(--d-accent-2);
-  transform: scale(1.1);
+  color: var(--d-text); /* Иконка становится яркой при выборе */
 }
 
 .theme-label {
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--d-text-dim);
-  transition: color 0.3s;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--d-text-mute);
+  transition: color 0.2s;
 }
 
 .theme-card.active .theme-label {

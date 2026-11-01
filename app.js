@@ -34,23 +34,27 @@ const SVG_ICONS = {
   'shield-check': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>',
   'camera': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>',
   'settings': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
-  'target': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>'
+  'target': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+  'crown': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>'
 };
 
 const AVATAR_ICONS = {
-  'default': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradDefault)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>',
-  'planet': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradPlanet)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path><path d="M2 12h20"></path><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-30 12 12)"></ellipse></svg>',
-  'crystal': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradCrystal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9l4-6z"></path><path d="M11 3 8 9l4 13 4-13-3-6"></path><path d="M2 9h20"></path><path d="M6 3l6 6 6-6"></path></svg>',
-  'comet': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradComet)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>',
-  'nova': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradNova)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path><path d="m5 5 2 2M19 5l-2 2M5 19l2-2M19 19l-2-2"></path></svg>',
+  'default': '<svg viewBox="0 0 24 24" fill="url(#gradStarFill)" stroke="url(#gradDefault)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
+  'planet': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradPlanet)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><ellipse cx="12" cy="12" rx="12" ry="4" transform="rotate(-30 12 12)"></ellipse><circle cx="12" cy="12" r="2"></circle></svg>',
+  'crystal': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradCrystal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9l4-6z"></path><path d="M11 3 8 9l4 13 4-13-3-6"></path><path d="M2 9h20"></path></svg>',
+  'flame': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradFlame)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>',
+  'lotus': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradLotus)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c-4.97 0-9-4.03-9-9 0-1.66 1.34-3 3-3 1.66 0 3 1.34 3 3 0-4.97 4.03-9 9-9 4.97 0 9 4.03 9 9 0 1.66-1.34 3-3 3-1.66 0-3-1.34-3-3 0 4.97-4.03 9-9 9z"></path><path d="M12 13c-2.5 0-4.5 2-4.5 4.5 0 0 4.5 2.5 9 0 0-2.5-2-4.5-4.5-4.5z"></path></svg>',
+  'moon': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradMoon)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path><path d="M12 3v2M12 19v2"></path></svg>',
+  'sun': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradSun)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>',
+  'infinity': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradInf)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4Z"></path></svg>',
+  'compass': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradCompass)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>',
   'shield': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradShield)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>',
-  'flame': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradFlame)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path><path d="M12 22v-5"></path></svg>',
-  'infinity': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradInf)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.739-8z"></path><circle cx="6" cy="12" r="1"></circle><circle cx="18" cy="12" r="1"></circle></svg>',
-  'target': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradTarget)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle><path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path></svg>',
   'leaf': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradLeaf)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>',
-  'eye': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradEye)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle><path d="M12 5v2M12 17v2M5 12h2M17 12h2"></path></svg>',
-  'moon': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradMoon)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path><path d="M12 3v4M12 17v4"></path></svg>',
-  'crown': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradCrown)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>'
+  'eye': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradEye)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+  'crown': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradCrown)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>',
+  'bolt': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradBolt)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>',
+  'target': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradTarget)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>',
+  'atom': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradAtom)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"></path><path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"></path></svg>'
 };
 
 // Функция для отрисовки аватарки (теперь поддерживает SVG)
@@ -1049,6 +1053,8 @@ async function handleSession(session) {
     state.theme=profile.theme||'dark';
     state.shields = profile.shields || 0;
     state.spentXP = profile.spent_xp || 0;
+    state.spentXP = profile.spent_xp || 0;
+    state.purchasedItems = profile.purchased_items || [];
   }else{
   state.soundOn = true;
   state.soundMode = 'sound';
@@ -1064,9 +1070,12 @@ async function handleSession(session) {
   const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   sb.from('profiles').update({ timezone: userTimeZone }).eq('id', user.id).then(()=>{});
 
-  await Promise.allSettled([
+  // Ждем только книги (они нужны для Главного экрана)
+  await loadBooksFromSupabase();
+  
+  // А уведомления, цитаты и тексты загружаем в фоне, чтобы не тормозить вход
+  Promise.allSettled([
     loadNotifications(),
-    loadBooksFromSupabase(),
     loadQuotes(),
     loadAppTexts()
   ]);
@@ -1131,36 +1140,8 @@ async function loadBooksFromSupabase(){
   try{
     const{data}=await sb.from('books').select('*').eq('published',true);
     if(!data||!data.length)return;
-    // Загружаем рейтинги практик (ЖДЕМ загрузку, чтобы умная практика работала корректно)
-    try {
-      const { data: rData } = await sb.from('practice_ratings').select('practice_id, rating');
-      if (rData) {
-        let sums = {};
-        let counts = {};
-        rData.forEach(r => {
-          sums[r.practice_id] = (sums[r.practice_id] || 0) + r.rating;
-          counts[r.practice_id] = (counts[r.practice_id] || 0) + 1;
-        });
-        for (let pid in sums) {
-          allPracticeRatings[pid] = sums[pid] / counts[pid];
-        }
-      }
-      
-      const { data: revData } = await sb.from('reviews').select('book_id, stars');
-      if (revData) {
-        let sums = {}; let counts = {};
-        revData.forEach(r => {
-          sums[r.book_id] = (sums[r.book_id] || 0) + r.stars;
-          counts[r.book_id] = (counts[r.book_id] || 0) + 1;
-        });
-        for (let bid in sums) {
-          allBookRatings[bid] = sums[bid] / counts[bid];
-        }
-      }
-    } catch(e) {
-      console.warn('Ошибка загрузки рейтингов', e);
-    }
-
+    
+    // Сначала быстро заполняем список книг
     data.forEach(sbBook=>{
       const idx=BOOKS.findIndex(b=>b.id===sbBook.id);
       const normalized={
@@ -1183,6 +1164,30 @@ async function loadBooksFromSupabase(){
       if(idx>=0)BOOKS[idx]={...BOOKS[idx],...normalized};
       else BOOKS.push(normalized);
     });
+
+    // ✨ ФИКС: Рейтинги грузим в фоне, чтобы не тормозить вход
+    (async () => {
+      try {
+        const { data: rData } = await sb.from('practice_ratings').select('practice_id, rating');
+        if (rData) {
+          let sums = {}; let counts = {};
+          rData.forEach(r => {
+            sums[r.practice_id] = (sums[r.practice_id] || 0) + r.rating;
+            counts[r.practice_id] = (counts[r.practice_id] || 0) + 1;
+          });
+          for (let pid in sums) allPracticeRatings[pid] = sums[pid] / counts[pid];
+        }
+        const { data: revData } = await sb.from('reviews').select('book_id, stars');
+        if (revData) {
+          let sums = {}; let counts = {};
+          revData.forEach(r => {
+            sums[r.book_id] = (sums[r.book_id] || 0) + r.stars;
+            counts[r.book_id] = (counts[r.book_id] || 0) + 1;
+          });
+          for (let bid in sums) allBookRatings[bid] = sums[bid] / counts[bid];
+        }
+      } catch(e) { console.warn('Ошибка загрузки рейтингов', e); }
+    })();
   }catch(e){ console.error('Ошибка загрузки книг:', e); }
 }
 
@@ -1338,7 +1343,7 @@ function hideAll(){
    'publicProfileScreen','adminScreen','bookDetailScreen','ritualBuilderScreen',
    'ritualScreen','practiceScreen','completeOverlay','settingsScreen',
    'helpScreen','notificationsScreen','dialogScreen','bookEditorScreen',
-   'premiumScreen'
+   'premiumScreen', 'shopScreen' // <--- ДОБАВИЛИ ЭТУ СТРОКУ
   ].forEach(id=>{
     const el=document.getElementById(id);
     if(el){
@@ -1426,6 +1431,32 @@ function showTodayScreen(){
   updateSoundUI();
   checkInstallBanner();
   updateNotifBadge();
+  
+  // ✨ АВТОМАТИЧЕСКИЙ ВЫЗОВ ОТЧЕТА РАЗ В НЕДЕЛЮ
+  setTimeout(checkWeeklyReview, 1500); 
+}
+
+// Функция проверки: не пора ли показать отчет
+function checkWeeklyReview() {
+  if (!user || !BOOKS.length) return;
+  
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0 = Воскресенье, 1 = Понедельник
+  
+  // Показываем только в ВС или ПН
+  if (dayOfWeek !== 0 && dayOfWeek !== 1) return;
+
+  // Формируем уникальный ключ для этой недели (Год-Неделя)
+  const firstJan = new Date(now.getFullYear(), 0, 1);
+  const weekNumber = Math.ceil((((now - firstJan) / 86400000) + firstJan.getDay() + 1) / 7);
+  const reviewKey = `andger_review_${now.getFullYear()}_${weekNumber}`;
+
+  // Если мы уже показывали отчет на этой неделе — выходим
+  if (localStorage.getItem(reviewKey)) return;
+
+  // Показываем отчет и ставим метку
+  showWeeklyReview();
+  localStorage.setItem(reviewKey, 'shown');
 }
 function showStatsScreen(){
   currentScreen='stats';
@@ -1794,7 +1825,7 @@ async function doAuth(){
   if(phone.length!==11){showError('Введите номер полностью',phoneEl);return}
   if(pass.length<6){showError('Пароль минимум 6 символов',passEl);return}
   if(authMode==='reg'&&!nameInp){showError('Введите имя',document.getElementById('name'));return}
-  btn.disabled=true;btn.textContent='Загрузка...';
+  btn.disabled=true;btn.textContent='Входим...';
   
   try{
     if(authMode==='reg'){
@@ -2081,12 +2112,13 @@ function renderToday() {
   if (mpcBookAuthor) mpcBookAuthor.textContent = b.author || 'Неизвестный автор';
   
   if (mpcBookIcon) {
+  mpcBookIcon.style.overflow = 'hidden'; 
     if (b.cover_url) {
-      // Если есть фото — растягиваем на весь квадрат
       mpcBookIcon.style.padding = '0';
+      mpcBookIcon.style.position = 'relative';
+      // Заполняем весь квадрат, как в остальном приложении
       mpcBookIcon.innerHTML = `<img src="${b.cover_url}" alt="${b.title}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
     } else {
-      // Если эмодзи — даем ему чуть больше места
       mpcBookIcon.style.padding = '8px';
       mpcBookIcon.innerHTML = getEmojiOrSvg(b.emoji, 70, b.title);
     }
@@ -2212,7 +2244,7 @@ if (mpcQuoteAuthor) mpcQuoteAuthor.textContent = q ? `— ${q.author || b.author
     const isMicroDone = todayRec.microActionDone;
 
     if (pendingPractice && !isMicroDone) {
-      microWrap.style.display = 'block';
+      microWrap.style.display = 'flex';
       microText.textContent = pendingPractice.micro_action;
       microBtn.onclick = () => completeMicroAction(currentBook.id, pendingPractice.id);
     } else {
@@ -2312,8 +2344,8 @@ async function renderLibrary(){
           ${allBookRatings[b.id] ? allBookRatings[b.id].toFixed(1) : '0.0'} <span style="font-size: 10px;">★</span>
         </div>
 
-        <div class="d-lib-book-cover" style="background: ${coverStyle.bg}; color: ${coverStyle.color};">
-          ${getEmojiOrSvg(b.emoji, 48, b.title)}
+        <div class="d-lib-book-cover" style="background: ${coverStyle.bg}; color: ${coverStyle.color}; padding: 0; overflow: hidden;">
+          ${b.cover_url ? `<img src="${b.cover_url}" style="width:100%; height:100%; object-fit:cover;">` : getEmojiOrSvg(b.emoji, 48, b.title)}
         </div>
         <div class="d-lib-book-body">
           <div class="d-lib-book-title" style="padding-right: 50px;">
@@ -2371,7 +2403,12 @@ function openBookDetail(id){
   }
   
   bookDetailId=id;
-  document.getElementById('bdEmoji').innerHTML = `<div style="display:flex; justify-content:center; margin-bottom:12px;">${getEmojiOrSvg(b.emoji, 72, b.title)}</div>`;
+  if (b.cover_url) {
+      // Делаем красивую вертикальную обложку с тенью
+      document.getElementById('bdEmoji').innerHTML = `<div style="display:flex; justify-content:center; margin-bottom:20px;"><img src="${b.cover_url}" style="width: 150px; height: 210px; object-fit: cover; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);"></div>`;
+  } else {
+      document.getElementById('bdEmoji').innerHTML = `<div style="display:flex; justify-content:center; margin-bottom:12px;">${getEmojiOrSvg(b.emoji, 72, b.title)}</div>`;
+  }
   document.getElementById('bdTitle').textContent=b.title;
   document.getElementById('bdAuthor').textContent=(b.author||'—')+' · '+b.days+' дней';
   document.getElementById('bdAbout').textContent=b.about||'Описание скоро появится.';
@@ -2527,7 +2564,17 @@ async function startBookFromDetail(){
   const bs=getBookState(b.id);
   
   if(!bs.start){
-    bs.start=todayStr();saveState();
+    // Вместо мгновенного старта, показываем письмо
+    const letterModal = document.getElementById('futureLetterModal');
+    if (letterModal) {
+      document.getElementById('futureLetterDays').textContent = b.days;
+      document.getElementById('futureLetterText').value = '';
+      letterModal.classList.remove('hidden');
+      playClick();
+      return; // Ждем, пока пользователь напишет или пропустит
+    } else {
+      bs.start=todayStr(); saveState();
+    }
   }else{
     const closed=countClosedDays(b.id);
     if(closed>=b.days){
@@ -2680,7 +2727,7 @@ function renderStatsScreen(){
     
     return `
       <div class="d-lib-book-card" onclick="selectStatsBook('${b.id}')" style="min-width: calc(100% - 20px); scroll-snap-align: start; ${isActive ? 'border-color: var(--d-accent); box-shadow: 0 0 15px rgba(124,92,255,0.15);' : 'opacity: 0.6;'}">
-        <div class="d-lib-book-cover">${getEmojiOrSvg(b.emoji, 36, b.title)}</div>
+        <div class="d-lib-book-cover" style="padding:0; overflow:hidden;">${b.cover_url ? `<img src="${b.cover_url}" style="width:100%; height:100%; object-fit:cover;">` : getEmojiOrSvg(b.emoji, 36, b.title)}</div>
         <div class="d-lib-book-body">
           <div class="d-lib-book-title">${b.title}</div>
           <div class="d-lib-book-author">${b.author || 'Неизвестный автор'}</div>
@@ -3005,10 +3052,20 @@ function toggleTimer(ctx){
     let currentP = isRitual ? ritualQueue[ritualIndex] : currentPractice;
     if (timerState === 'idle' && currentP) currentP._spokenIndices = [];
     
+    // ✨ ЖЕЛЕЗНЫЙ ФИКС: Запускаем музыку СРАЗУ, синхронно с кликом, до всех проверок
     if (state.soundMode === 'sound') {
-          if (timerState === 'idle') {
-            startMusic(currentP ? currentP.id : 'default');
-          } else {
+       if (timerState === 'idle' || !musicAudio || musicAudio.paused) {
+          startMusic(currentP ? currentP.id : 'default');
+       } else {
+          if (musicAudio) {
+             musicAudio.play().catch(()=>{});
+             fadeAudio(musicAudio, musicAudio.volume, isVoicePlaying ? 0.08 : 0.3, 500); 
+          }
+       }
+    }
+
+    if (state.soundMode === 'sound') {
+          if (timerState !== 'idle') {
             if (musicAudio) {
               musicAudio.play().catch(()=>{});
               // Если голос на паузе (готов продолжить), музыка не должна прыгать на 0.3
@@ -3293,12 +3350,18 @@ function finishRitual(isSinglePractice = false){
 
   // ПОКАЗЫВАЕМ ОКНО ОТЗЫВА, ЕСЛИ КНИГА ПРОЙДЕНА (с задержкой, чтобы не перекрывать окно с поздравлением)
     if (completedBookId) {
-      sb.from('reviews').select('id').eq('user_id', user.id).eq('book_id', completedBookId).maybeSingle().then(({data}) => {
-          if (!data) {
-              setTimeout(() => showBookCompleteSuccess(completedBookId), 1500); 
-          }
-      });
-  }
+      // Сначала проверяем, есть ли письмо
+      const letterShown = showFutureLetterIfExists(completedBookId);
+      
+      // Если письма нет, показываем обычное поздравление с отзывом
+      if (!letterShown) {
+        sb.from('reviews').select('id').eq('user_id', user.id).eq('book_id', completedBookId).maybeSingle().then(({data}) => {
+            if (!data) {
+                setTimeout(() => showBookCompleteSuccess(completedBookId), 1500); 
+            }
+        });
+      }
+    }
 
     if (anyClosed) {
     // Праздник!
@@ -3563,8 +3626,8 @@ function renderRitualBuilder() {
         <div class="d-card-glass" style="margin-bottom: 12px; padding: 14px;">
           <!-- Шапка книги -->
           <div onclick="toggleBuilderBook(this)" style="display:flex; align-items:center; gap:12px; cursor:pointer; margin-bottom: 10px;">
-            <div style="width:44px; height:44px; border-radius:12px; background:var(--d-surface-2); display:flex; align-items:center; justify-content:center; overflow:hidden;">
-              ${getEmojiOrSvg(b.emoji, 28, b.title)}
+            <div style="width:44px; height:44px; border-radius:12px; background:var(--d-surface-2); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
+              ${b.cover_url ? `<img src="${b.cover_url}" style="width:100%; height:100%; object-fit:cover;">` : getEmojiOrSvg(b.emoji, 28, b.title)}
             </div>
             <div style="flex:1;">
               <div style="font-size:15px; font-weight:800; color:var(--d-text);">${b.title}</div>
@@ -3592,7 +3655,7 @@ function renderRitualBuilder() {
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:6px;">
                   <span style="font-size:14px; font-weight:700; color:var(--d-text);">${p.title}</span>
-                  <span style="font-size:10px; color:var(--d-gold); font-weight:800;">⭐ ${allPracticeRatings[p.id] ? allPracticeRatings[p.id].toFixed(1) : '5.0'}</span>
+                  <span style="font-size:10px; color:var(--d-gold); font-weight:800; display:flex; align-items:center; gap:2px;"><svg viewBox="0 0 24 24" fill="url(#gradStarFill)" stroke="url(#gradDefault)" stroke-width="1.5" style="width:10px; height:10px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> ${allPracticeRatings[p.id] ? allPracticeRatings[p.id].toFixed(1) : '5.0'}</span>
                 </div>
                 <span style="font-size:16px; color:var(--d-accent-2); opacity:0.7;">ⓘ</span>
               </div>
@@ -4708,7 +4771,7 @@ async function renderJournal(){
 
         filterHtml += `
           <div class="d-lib-book-card" onclick="setJournalFilter('${item.id}')" style="width: calc(100% - 20px); flex-shrink: 0; scroll-snap-align: start; ${isActive ? 'border-color: var(--d-accent); box-shadow: 0 0 15px rgba(124,92,255,0.15);' : 'opacity: 0.6;'}">
-            <div class="d-lib-book-cover">${getEmojiOrSvg(b.emoji, 36, b.title)}</div>
+            <div class="d-lib-book-cover" style="padding:0; overflow:hidden;">${b.cover_url ? `<img src="${b.cover_url}" style="width:100%; height:100%; object-fit:cover;">` : getEmojiOrSvg(b.emoji, 36, b.title)}</div>
             <div class="d-lib-book-body">
               <div class="d-lib-book-title">${b.title}</div>
               <div class="d-lib-book-author">${b.author || 'Неизвестный автор'}</div>
@@ -5587,11 +5650,16 @@ async function loadPeople(){
             </div>
             <div style="flex:1;">
               <div style="font-size:15px; font-weight:900; color:#fff;">${escapeHtml(user.name || 'Ты')} <span style="font-size:10px; color:var(--d-accent-2); font-weight:800; margin-left:4px;">(это ты)</span></div>
-              <div style="font-size:11px; color:var(--d-text-dim); margin-top:2px;">🔥 ${myStats.fire} · ✅ ${myStats.practices} · ⏱ ${myTimeStr}</div>
+            <div style="font-size:11px; color:var(--d-text-dim); margin-top:2px; display:flex; align-items:center; gap:4px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="url(#gradFlame)" stroke-width="2.5" style="width:12px; height:12px; filter:drop-shadow(0 0 4px rgba(255,154,86,0.5));"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg> ${myStats.fire} · ✅ ${myStats.practices} · ⏱ ${myTimeStr}
+            </div>
               ${motivationHtml}
             </div>
             <div style="text-align:right;">
-              <div style="font-size:16px; font-weight:900; color:var(--d-accent-2);">⭐ ${myStats.xp} XP</div>
+              <div style="font-size:16px; font-weight:900; color:var(--d-accent-2); display:flex; align-items:center; justify-content:flex-end; gap:4px;">
+                <svg viewBox="0 0 24 24" fill="url(#gradStarFill)" stroke="url(#gradDefault)" stroke-width="1.5" style="width:14px; height:14px; filter:drop-shadow(0 0 6px rgba(124,92,255,0.5));"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                ${myStats.xp} XP
+              </div>
               <div style="font-size:10px; color:var(--d-text-dim); margin-top:2px;">Ур. ${myStats.lvl}</div>
             </div>
           </div>
@@ -5646,10 +5714,15 @@ async function loadPeople(){
           <div class="d-lib-book-cover" style="width:40px; height:40px; border-radius:50%; ${isMe ? 'border: 2px solid var(--d-accent);' : ''}">${getAvatarHtml(p.avatar, 20)}</div>
           <div class="d-lib-book-body">
             <div class="d-lib-book-title" style="font-size:13px; color:${isMe ? '#fff' : 'var(--d-text)'};">${escapeHtml(fullName)} ${isMe ? '<span style="font-size:9px; color:var(--d-accent-2);">(ты)</span>' : ''}</div>
-            <div style="font-size:10px; color:var(--d-text-dim); margin-top:2px;">🔥 ${p.fire} · ✅ ${p.practices}</div>
+            <div style="font-size:10px; color:var(--d-text-dim); margin-top:2px; display:flex; align-items:center; gap:4px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="url(#gradFlame)" stroke-width="2.5" style="width:10px; height:10px; filter:drop-shadow(0 0 4px rgba(255,154,86,0.5));"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg> ${p.fire} · ✅ ${p.practices}
+            </div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:12px; font-weight:800; color:var(--d-accent-2);">${p.xp} XP</div>
+            <div style="font-size:12px; font-weight:800; color:var(--d-accent-2); display:flex; align-items:center; justify-content:flex-end; gap:4px;">
+              <svg viewBox="0 0 24 24" fill="url(#gradStarFill)" stroke="url(#gradDefault)" stroke-width="1.5" style="width:12px; height:12px; filter:drop-shadow(0 0 6px rgba(124,92,255,0.5));"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              ${p.xp} XP
+            </div>
             <div style="font-size:9px; color:var(--d-text-dim);">Ур. ${p.lvl}</div>
           </div>
         </div>`;
@@ -6335,6 +6408,7 @@ function showBookEditor(id){
   setVal('edEmoji', b?.emoji||'');
   setVal('edDays', b?.days||30);
   setVal('edCategory', b?.category || 'Разное');
+  setVal('edCoverUrl', b?.cover_url || ''); // <--- ДОБАВИЛИ ЭТУ СТРОКУ
   setVal('edAbout', b?.about||'');
   setVal('edMethod', (b?.method && Array.isArray(b.method)) ? b.method.join(', ') : '');
   setVal('edAuthorBio', b?.authorBio || b?.author_bio || '');
@@ -6679,8 +6753,8 @@ function renderAdminBookList(list) {
 
       html += `
         <div class="bento-card" style="display:flex; align-items:center; gap:14px; padding:14px; margin-bottom:0; cursor:pointer;" onclick="showBookEditor('${b.id}')">
-          <div style="width:44px; height:44px; border-radius:12px; background:var(--card2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-            ${getEmojiOrSvg(b.emoji, 24, b.title)}
+          <div style="width:44px; height:44px; border-radius:12px; background:var(--card2); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;">
+            ${b.cover_url ? `<img src="${b.cover_url}" style="width:100%; height:100%; object-fit:cover;">` : getEmojiOrSvg(b.emoji, 24, b.title)}
           </div>
           <div style="flex:1; min-width:0;">
             <div style="font-size:15px; font-weight:800; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
@@ -7868,10 +7942,20 @@ function showResetOptions() {
     const bs = getBookState(b.id);
     const hasProgress = bs.start || Object.keys(bs.days).length > 0;
     if(hasProgress) {
-      html += `<div class="settings-row" style="border:1px solid var(--border); margin-bottom:8px; border-radius:10px;" onclick="resetSpecificBook('${b.id}')">
-        <div class="sr-left"><span class="sr-ico">${b.emoji}</span>${b.title}</div>
-        <div class="sr-arrow">🗑</div>
-      </div>`;
+      html += `
+        <div class="d-lib-book-card" style="margin-bottom: 8px; cursor: pointer;" onclick="resetSpecificBook('${b.id}')">
+          <div class="d-lib-book-cover" style="padding:0; overflow:hidden; border: none;">
+            ${b.cover_url ? `<img src="${b.cover_url}" style="width:100%; height:100%; object-fit:cover;">` : getEmojiOrSvg(b.emoji, 32, b.title)}
+          </div>
+          <div class="d-lib-book-body" style="justify-content: center;">
+            <div class="d-lib-book-title" style="font-size: 14px; margin-bottom: 2px;">${escapeHtml(b.title)}</div>
+            <div class="d-lib-book-author" style="color: var(--d-danger); font-weight: 600; font-size: 10px; margin: 0;">Сбросить прогресс</div>
+          </div>
+          <div class="action-btn-glass danger" style="margin-left: auto;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </div>
+        </div>
+      `;
     }
   });
   if(!html) html = '<div style="text-align:center; color:var(--muted); font-size:13px; padding:20px 0;">Нет активного прогресса по книгам</div>';
@@ -8629,7 +8713,7 @@ function applyShields(bookId) {
 }
 // ─── ГЕНЕРАТОР СТОРИС ───
 function openShareStory(bookId = null) {
-  // 1. Собираем данные
+  // Собираем статистику
   let maxStreak = 0;
   let totalPractices = 0;
 
@@ -8643,7 +8727,10 @@ function openShareStory(bookId = null) {
     });
   });
 
-  // Проверяем, есть ли книга для отображения
+  // Получаем уровень и XP
+  const stats = getGlobalStats();
+
+  // Бейдж книги
   const badge = document.getElementById('storyBookBadge');
   if (badge) {
     if (bookId) {
@@ -8657,22 +8744,20 @@ function openShareStory(bookId = null) {
     }
   }
 
-  // Получаем уровень
-  const stats = getGlobalStats();
-
-  // 2. Заполняем карточку
+  // Заполняем данные
   document.getElementById('storyAvatar').innerHTML = getAvatarHtml(state.avatar, 70);
   document.getElementById('storyName').textContent = (user.name || 'Друг') + (user.lastName ? ' ' + user.lastName : '');
   document.getElementById('storyStreak').textContent = maxStreak;
   document.getElementById('storyClosed').textContent = totalPractices;
+  document.getElementById('storyXP').textContent = stats.totalXP;
   
   const lvlEl = document.getElementById('storyLevel');
   if (lvlEl) {
-    lvlEl.innerHTML = `${stats.lvlIco} ${stats.lvlName} · ${stats.totalXP} XP`;
+    lvlEl.innerHTML = `${stats.lvlIco} ${stats.lvlName}`;
   }
 
-  // 3. Показываем модалку
   document.getElementById('storyModal').classList.remove('hidden');
+  playClick();
 }
 
 async function downloadStory() {
@@ -8691,15 +8776,17 @@ async function downloadStory() {
   }
 
   try {
-    // Превращаем HTML в картинку
     const canvas = await html2canvas(card, {
-      scale: 3, // Высокое качество (для Retina)
+      scale: 3,
       useCORS: true,
       backgroundColor: null,
       logging: false
     });
 
-    // Создаем ссылку на скачивание
+    // Сохраняем Blob для кнопки Поделиться
+    lastGeneratedStoryBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+
+    // Скачиваем
     const imgData = canvas.toDataURL('image/png');
     const link = document.createElement('a');
     link.download = `andger_story_${Date.now()}.png`;
@@ -8724,18 +8811,25 @@ function showAvatarModal() {
   
   let html = `<div style="background:linear-gradient(180deg, rgba(30,20,50,0.95), rgba(13,10,24,0.98)); border-radius:28px; padding:24px; width:100%; max-width:360px; text-align:center; border:1px solid rgba(124,92,255,0.3); box-shadow:0 20px 50px rgba(0,0,0,0.5); backdrop-filter:blur(20px);" onclick="event.stopPropagation()">`;
   html += `<div style="font-size:18px; font-weight:900; margin-bottom:20px; color:#fff;">Твой символ</div>`;
-  html += `<div class="premium-avatar-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px;">`;
+  
+  html += `<div class="premium-avatar-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px;">`;
   
   const avatarKeys = Object.keys(AVATAR_ICONS);
+  if (!state.purchasedItems) state.purchasedItems = [];
+
   avatarKeys.forEach((key) => {
     const isActive = state.avatar === key;
     const emoji = AVATAR_ICONS[key];
+    // Проверяем, платная ли это аватарка (ищем в магазине)
+    const shopItem = SHOP_ITEMS.find(i => i.type === 'avatar' && i.key === key);
+    const isLocked = shopItem && !state.purchasedItems.includes(shopItem.id);
 
     html += `
-    <div class="premium-avatar-item ${isActive ? 'active' : ''}" onclick="setAvatarFromModal('${key}')" style="background: ${isActive ? 'rgba(124, 92, 255, 0.15)' : 'rgba(255,255,255,0.03)'}; border-color: ${isActive ? 'var(--accent)' : 'rgba(255,255,255,0.08)'}; aspect-ratio: 1; border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); border: 1px solid transparent;">
-        <div style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; filter: ${isActive ? 'drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 'drop-shadow(0 0 5px rgba(0,0,0,0.3))'}; transform: ${isActive ? 'scale(1.1)' : 'scale(1)'}; transition: 0.3s;">
+    <div class="premium-avatar-item ${isActive ? 'active' : ''}" onclick="${isLocked ? `toast('Купи эту аватарку в Магазине!', 'warm')` : `setAvatarFromModal('${key}')`}" style="background: ${isActive ? 'rgba(124, 92, 255, 0.15)' : 'rgba(255,255,255,0.03)'}; border-color: ${isActive ? 'var(--accent)' : 'rgba(255,255,255,0.08)'}; aspect-ratio: 1; border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; border: 1px solid transparent; position: relative;">
+        <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; filter: ${isActive ? 'drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 'drop-shadow(0 0 5px rgba(0,0,0,0.3))'}; transform: ${isActive ? 'scale(1.1)' : 'scale(1)'}; opacity: ${isLocked ? '0.3' : '1'}; transition: 0.3s;">
           ${emoji}
         </div>
+        ${isLocked ? `<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.4); border-radius:16px; color:var(--d-gold);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>` : ''}
       </div>
     `;
   });
@@ -8763,28 +8857,29 @@ async function speakBackgroundGuide(text, context = 'practice') {
   
   isVoicePlaying = true; // Устанавливаем флаг, что голос говорит
 
-  // Приглушаем музыку (делаем тише, чтобы не перебивала голос)
-  if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.03, 300);
-
   // Показываем субтитры МГНОВЕННО
   const isRitual = (context === 'ritual');
   const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
   const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
   if (subEl) { 
     subEl.textContent = text; 
-    subEl.classList.add('show'); // Показываем сразу
+    subEl.classList.add('show'); 
   }
 
   try {
     // --- УМНАЯ ЛОГИКА ВЫБОРА ГОЛОСА ---
     let vSettings = {};
     let voiceToUse = 'alena';
-    let speedToUse = 1.0;
-    let emotionToUse = 'neutral';
+    let speedToUse = 0.9; // ✨ По умолчанию ставим мягкую скорость 0.9
+    let emotionToUse = 'good'; // ✨ По умолчанию ставим добрую эмоцию
 
     if (state.voice && state.voice !== 'auto') {
       voiceToUse = state.voice;
-      speedToUse = 1.0; 
+      // ✨ ФИКС: Если пользователь выбрал голос в настройках, не ломаем скорость из JSON
+      let activeP = context === 'ritual' ? ritualQueue[ritualIndex] : currentPractice;
+      if (activeP && activeP.voice_settings && activeP.voice_settings.speed) {
+          speedToUse = activeP.voice_settings.speed;
+      }
     } else {
       let activePractice = context === 'ritual' ? ritualQueue[ritualIndex] : currentPractice;
       
@@ -8858,9 +8953,9 @@ async function speakBackgroundGuide(text, context = 'practice') {
     
     // Защита от ошибки AbortError
     try {
-      // Приглушаем музыку прямо перед тем, как голос заговорит
+      // ✨ ЖЕЛЕЗНЫЙ ФИКС ПРИТУХАНИЯ: Резко сбрасываем громкость перед стартом голоса
       if (musicAudio) {
-        fadeAudio(musicAudio, musicAudio.volume, 0.08, 300);
+        musicAudio.volume = 0.05; // Мгновенно делаем тихо
       }
       await ttsAudio.play();
     } catch (playError) {
@@ -10151,17 +10246,10 @@ function toggleRankFilter() {
 function showWeeklyReview() {
   const content = document.getElementById('weeklyReviewContent');
   if(!content) return;
-  content.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Сбор данных...</div>';
   
-  document.getElementById('weeklyReviewModal').classList.remove('hidden');
-
   // Берем последние 7 дней
-  let totalClosed = 0;
-  let totalPractices = 0;
-  let totalXP = 0;
-  let totalTime = 0; // в минутах
+  let totalClosed = 0, totalPractices = 0, totalXP = 0, totalTime = 0;
   let daysData = [];
-  
   const today = new Date();
   const dow = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
 
@@ -10170,9 +10258,7 @@ function showWeeklyReview() {
     d.setDate(today.getDate() - i);
     const dateStr = localDate(d);
     
-    let dayPractices = 0;
-    let dayClosed = false;
-    let dayTime = 0;
+    let dayPractices = 0, dayClosed = false, dayTime = 0;
 
     BOOKS.forEach(b => {
       const bs = getBookState(b.id);
@@ -10194,69 +10280,74 @@ function showWeeklyReview() {
     totalTime += dayTime;
     totalXP += (dayPractices * 10) + (dayClosed ? 50 : 0);
 
-    daysData.push({
-      label: dow[d.getDay()],
-      date: d.getDate(),
-      practices: dayPractices,
-      closed: dayClosed
-    });
+    daysData.push({ label: dow[d.getDay()], practices: dayPractices, closed: dayClosed });
   }
 
   const totalMins = Math.round(totalTime / 60);
+  const maxPractices = Math.max(...daysData.map(d => d.practices), 1);
 
-  // Строим красивый HTML-отчет
+  // Формируем красивый HTML
   let html = `
+    <div style="text-align: center; margin-bottom: 20px;">
+      <div style="width: 64px; height: 64px; margin: 0 auto 12px; background: var(--d-gradient-soft); border-radius: 20px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--d-border-strong);">
+         <svg viewBox="0 0 24 24" fill="none" stroke="url(#gradDefault)" stroke-width="2" style="width: 32px; height: 32px;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+      </div>
+      <h2 style="font-size: 20px; font-weight: 900; color: var(--d-text); margin-bottom: 4px;">Твоя неделя</h2>
+      <p style="font-size: 12px; color: var(--d-text-dim);">Отчет от ANDGER</p>
+    </div>
+
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
       <div class="d-card-glass" style="padding:16px; text-align:center; border-color:var(--d-accent);">
         <div style="font-size:28px; font-weight:900; color:var(--d-accent-2); line-height:1;">${totalPractices}</div>
-        <div style="font-size:10px; color:var(--muted); font-weight:800; text-transform:uppercase; margin-top:4px;">Практик</div>
+        <div style="font-size:10px; color:var(--d-muted); font-weight:800; text-transform:uppercase; margin-top:4px;">Практик</div>
       </div>
       <div class="d-card-glass" style="padding:16px; text-align:center; border-color:var(--d-gold);">
-        <div style="font-size:28px; font-weight:900; color:var(--d-gold); line-height:1;">+${totalXP}</div>
-        <div style="font-size:10px; color:var(--muted); font-weight:800; text-transform:uppercase; margin-top:4px;">Опыта</div>
+        <div style="display:flex; align-items:center; justify-content:center; gap:4px; font-size:28px; font-weight:900; color:var(--d-gold); line-height:1;">
+          <svg viewBox="0 0 24 24" fill="url(#gradStarFill)" stroke="url(#gradDefault)" stroke-width="1.5" style="width:20px; height:20px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          ${totalXP}
+        </div>
+        <div style="font-size:10px; color:var(--d-muted); font-weight:800; text-transform:uppercase; margin-top:4px;">Опыта</div>
       </div>
       <div class="d-card-glass" style="padding:16px; text-align:center; border-color:var(--d-success);">
         <div style="font-size:28px; font-weight:900; color:var(--d-success); line-height:1;">${totalClosed}</div>
-        <div style="font-size:10px; color:var(--muted); font-weight:800; text-transform:uppercase; margin-top:4px;">Дней закрыто</div>
+        <div style="font-size:10px; color:var(--d-muted); font-weight:800; text-transform:uppercase; margin-top:4px;">Дней закрыто</div>
       </div>
       <div class="d-card-glass" style="padding:16px; text-align:center; border-color:var(--d-warm);">
         <div style="font-size:28px; font-weight:900; color:var(--d-warm); line-height:1;">${totalMins}<span style="font-size:14px;">м</span></div>
-        <div style="font-size:10px; color:var(--muted); font-weight:800; text-transform:uppercase; margin-top:4px;">Времени</div>
+        <div style="font-size:10px; color:var(--d-muted); font-weight:800; text-transform:uppercase; margin-top:4px;">Времени</div>
       </div>
     </div>
 
-    <div style="font-size:11px; font-weight:900; color:var(--muted); text-transform:uppercase; margin-bottom:10px;">Активность по дням</div>
-    <div style="display:flex; justify-content:space-between; align-items:flex-end; height:120px; background:rgba(255,255,255,0.02); padding:10px; border-radius:16px; border:1px solid var(--border);">
+    <div style="font-size:11px; font-weight:900; color:var(--d-muted); text-transform:uppercase; margin-bottom:10px;">Активность по дням</div>
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; height:100px; background:var(--d-surface); padding:12px; border-radius:16px; border:1px solid var(--d-border); margin-bottom: 20px;">
   `;
 
-  // Находим максимум для графика, чтобы столбики были пропорциональными
-  const maxPractices = Math.max(...daysData.map(d => d.practices), 1);
-
   daysData.forEach(d => {
-    const heightPct = Math.max((d.practices / maxPractices) * 100, 5); // минимум 5% чтобы было видно
+    const heightPct = Math.max((d.practices / maxPractices) * 100, 8);
     const color = d.closed ? 'var(--d-success)' : (d.practices > 0 ? 'var(--d-accent)' : 'rgba(255,255,255,0.05)');
     
     html += `
       <div style="display:flex; flex-direction:column; align-items:center; gap:6px; flex:1;">
         <div style="font-size:10px; font-weight:800; color:var(--d-text);">${d.practices > 0 ? d.practices : ''}</div>
-        <div style="width:100%; max-width:20px; height:${heightPct}%; background:${color}; border-radius:6px 6px 0 0; transition:height 0.5s; box-shadow: ${d.closed ? '0 0 10px rgba(62,207,142,0.4)' : 'none'};"></div>
-        <div style="font-size:9px; color:var(--muted); font-weight:800;">${d.label}</div>
+        <div style="width:100%; max-width:18px; height:${heightPct}%; background:${color}; border-radius:4px 4px 0 0; transition:height 0.5s; ${d.closed ? 'box-shadow: 0 0 10px rgba(62,207,142,0.4);' : ''}"></div>
+        <div style="font-size:9px; color:var(--d-muted); font-weight:800;">${d.label}</div>
       </div>
     `;
   });
 
   html += `</div>`;
 
-  // Мотивационный текст
+  // Мотивационный блок
   if (totalClosed >= 5) {
-    html += `<div style="margin-top:16px; padding:12px; background:rgba(62,207,142,0.1); border:1px solid rgba(62,207,142,0.3); border-radius:12px; text-align:center; font-size:13px; color:var(--d-text); font-weight:700;">🔥 Отличная неделя! Ты закрыл ${totalClosed} дней. Так держать!</div>`;
+    html += `<div class="d-card-glass" style="background:rgba(62,207,142,0.1); border-color:rgba(62,207,142,0.3); padding:12px; text-align:center; font-size:13px; color:var(--d-text); font-weight:700;">🔥 Отличная неделя! Ты закрыл ${totalClosed} дней. Так держать!</div>`;
   } else if (totalClosed > 0) {
-    html += `<div style="margin-top:16px; padding:12px; background:rgba(124,92,255,0.1); border:1px solid rgba(124,92,255,0.3); border-radius:12px; text-align:center; font-size:13px; color:var(--d-text); font-weight:700;">💪 Неплохо! ${totalClosed} дней в копилке. На следующей неделе сделаем больше?</div>`;
+    html += `<div class="d-card-glass" style="background:rgba(124,92,255,0.1); border-color:rgba(124,92,255,0.3); padding:12px; text-align:center; font-size:13px; color:var(--d-text); font-weight:700;">💪 Хороший старт! ${totalClosed} дней в копилке. На следующей неделе сделаем больше?</div>`;
   } else {
-    html += `<div style="margin-top:16px; padding:12px; background:rgba(255,154,86,0.1); border:1px solid rgba(255,154,86,0.3); border-radius:12px; text-align:center; font-size:13px; color:var(--d-text); font-weight:700;">🌱 Новая неделя — новый шанс! Начни с одной практики сегодня.</div>`;
+    html += `<div class="d-card-glass" style="background:rgba(255,154,86,0.1); border-color:rgba(255,154,86,0.3); padding:12px; text-align:center; font-size:13px; color:var(--d-text); font-weight:700;">🌱 Новая неделя — новый шанс! Начни с одной практики сегодня.</div>`;
   }
 
   content.innerHTML = html;
+  document.getElementById('weeklyReviewModal').classList.remove('hidden');
 }
 function renderChallenge() {
   const banner = document.getElementById('challengeBanner');
@@ -10449,5 +10540,200 @@ async function deletePrivateMessage(msgId) {
     loadDialog(); // Обновляем чат
   } catch(e) {
     toast('Ошибка удаления', 'danger');
+  }
+}
+// ─── ЛОГИКА ПИСЬМА В БУДУЩЕЕ ───
+function saveFutureLetter() {
+  const text = document.getElementById('futureLetterText').value.trim();
+  if (!text) {
+    toast('Напиши хотя бы одно слово или нажми «Пропустить»', 'warm');
+    return;
+  }
+  
+  const bs = getBookState(currentBook.id);
+  bs.startLetter = text; // Сохраняем письмо в прогресс
+  bs.start = todayStr(); // Официально стартуем
+  saveState();
+  
+  document.getElementById('futureLetterModal').classList.add('hidden');
+  playSuccess();
+  toast('Письмо сохранено. Увидимся через ' + currentBook.days + ' дней!', 'success');
+  
+  // Запускаем обычный сценарий старта
+  showTodayScreen();
+  setTimeout(() => openPracticeSelector(), 300);
+}
+
+function skipFutureLetter() {
+  const bs = getBookState(currentBook.id);
+  bs.start = todayStr();
+  saveState();
+  
+  document.getElementById('futureLetterModal').classList.add('hidden');
+  
+  showTodayScreen();
+  setTimeout(() => openPracticeSelector(), 300);
+}
+
+// Показ письма при завершении книги (вызывается из finishRitual)
+function showFutureLetterIfExists(bookId) {
+  const b = BOOKS.find(x => x.id === bookId);
+  const bs = getBookState(bookId);
+  
+  if (b && bs.startLetter) {
+    // Используем нашу красивую модалку успеха, но с письмом
+    document.getElementById('modalEmoji').textContent = '✉️';
+    document.getElementById('modalTitle').textContent = 'Ты это сделал!';
+    
+    // Форматируем текст письма
+    document.getElementById('modalAchList').innerHTML = `
+      <div style="background: var(--d-surface-2); border-left: 3px solid var(--d-accent-2); padding: 16px; border-radius: 0 12px 12px 0; margin: 16px 0; text-align: left;">
+        <div style="font-size: 10px; color: var(--d-text-dim); text-transform: uppercase; font-weight: 800; margin-bottom: 8px;">Твои слова ${b.days} дней назад:</div>
+        <div style="font-size: 14px; color: var(--d-text); font-style: italic; line-height: 1.5;">«${escapeHtml(bs.startLetter)}»</div>
+      </div>
+    `;
+    
+    document.getElementById('modalText').textContent = `Ты прошел курс «${b.title}». Оглянись назад — ты стал тем, кем хотел.`;
+    document.getElementById('modal').classList.remove('hidden');
+    fireConfetti();
+    playFanfare();
+    return true; // Письмо показано
+  }
+  return false;
+}
+// ─── МАГАЗИН НАГРАД ───
+const SHOP_ITEMS = [
+  { id: 'avatar_lotus', type: 'avatar', key: 'lotus', title: 'Лотос', price: 100, ico: 'lotus', rarity: 'common', desc: 'Символ спокойствия и баланса' },
+  { id: 'avatar_atom', type: 'avatar', key: 'atom', title: 'Атом', price: 100, ico: 'atom', rarity: 'common', desc: 'Энергия и фокус' },
+  { id: 'avatar_target', type: 'avatar', key: 'target', title: 'Мишень', price: 150, ico: 'target', rarity: 'rare', desc: 'Точность намерений' },
+  { id: 'shield', type: 'utility', key: 'shield', title: 'Заморозка', price: 200, ico: 'shield', rarity: 'rare', desc: 'Спасет твой огонь' },
+  { id: 'avatar_crown', type: 'avatar', key: 'crown', title: 'Корона', price: 250, ico: 'crown', rarity: 'epic', desc: 'Для истинных лидеров' }
+];
+
+function showShopScreen() {
+  hideAll();
+  document.getElementById('shopScreen').classList.remove('hidden');
+  document.getElementById('bottomNav').classList.add('hidden');
+  renderShop();
+}
+
+function renderShop() {
+  const grid = document.getElementById('shopGrid');
+  const stats = getGlobalStats();
+  
+  document.getElementById('shopXPBalance').textContent = stats.totalXP;
+
+  if (!state.purchasedItems) state.purchasedItems = [];
+
+  grid.innerHTML = SHOP_ITEMS.map(item => {
+    const isOwned = item.id === 'shield' ? false : state.purchasedItems.includes(item.id);
+    const canAfford = stats.totalXP >= item.price;
+
+    let rarityColor = 'var(--d-border)';
+    let glowColor = 'transparent';
+    if (item.rarity === 'rare') { rarityColor = '#4facfe'; glowColor = 'rgba(79,172,254,0.15)'; }
+    if (item.rarity === 'epic') { rarityColor = '#a78bfa'; glowColor = 'rgba(167,139,250,0.2)'; }
+    if (item.rarity === 'common') { rarityColor = 'var(--d-success)'; }
+
+    return `
+      <div class="d-card-glass" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px 12px; text-align:center; position:relative; background: linear-gradient(180deg, ${glowColor} 0%, var(--d-surface) 100%); border-color: ${item.rarity === 'epic' ? 'rgba(167,139,250,0.4)' : (item.rarity === 'rare' ? 'rgba(79,172,254,0.3)' : 'var(--d-border)')};">
+        
+        ${isOwned ? `<div style="position:absolute; top:10px; right:10px; color:var(--d-success); background:rgba(62,207,142,0.1); border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(62,207,142,0.3);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></div>` : ''}
+
+        <!-- УМЕНЬШИЛИ ИКОНКУ: было 64x64 и 36px, стало 48x48 и 24px -->
+        <div style="width:48px; height:48px; border-radius:14px; background:rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; margin-bottom:10px; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.4)); border: 1px solid ${rarityColor};">
+          ${getSvgIcon(item.ico, 24, 'url(#gradDefault)')}
+        </div>
+        
+        <div style="font-size:13px; font-weight:900; color:var(--d-text); margin-bottom:2px; line-height:1.2;">${item.title}</div>
+        <div style="font-size:10px; color:var(--d-text-dim); margin-bottom:12px; line-height:1.3; height: 26px;">${item.desc}</div>
+        
+        ${!isOwned ? `
+          <button onclick="buyShopItem('${item.id}', '${item.type}', '${item.key}', ${item.price})" style="margin-top:auto; width:100%; height:32px; border-radius:10px; border:none; background:${canAfford ? 'var(--d-gradient)' : 'var(--d-surface-2)'}; color:${canAfford ? '#fff' : 'var(--d-text-dim)'}; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:4px; cursor:${canAfford ? 'pointer' : 'not-allowed'}; box-shadow: ${canAfford ? '0 4px 12px rgba(124,92,255,0.3)' : 'none'}; transition: 0.2s;">
+            <svg viewBox="0 0 24 24" fill="url(#gradStarFill)" stroke="url(#gradDefault)" stroke-width="1.5" style="width:12px; height:12px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            ${item.price}
+          </button>
+        ` : `
+          <div style="margin-top:auto; width:100%; height:32px; border-radius:10px; background:rgba(62,207,142,0.1); border:1px solid rgba(62,207,142,0.3); display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--d-success); font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Куплено</div>
+        `}
+      </div>
+    `;
+  }).join('');
+}
+async function buyShopItem(itemId, type, key, price) {
+  const stats = getGlobalStats();
+  if (stats.totalXP < price) {
+    playError();
+    toast('Недостаточно XP! Проходи практики, чтобы заработать.', 'warm');
+    return;
+  }
+
+  const item = SHOP_ITEMS.find(i => i.id === itemId);
+  const isConfirm = await appConfirm(`Купить «${item.title}» за ${price} XP?`, 'Покупка');
+  if (!isConfirm) return;
+
+  // Списываем XP
+  state.spentXP = (state.spentXP || 0) + price;
+  
+  if (type === 'utility' && key === 'shield') {
+    state.shields = (state.shields || 0) + 1;
+    toast('🛡️ Заморозка куплена и добавлена в инвентарь!');
+  } else {
+    if (!state.purchasedItems) state.purchasedItems = [];
+    state.purchasedItems.push(itemId);
+    if (type === 'avatar') {
+       state.avatar = key; // Сразу надеваем купленную аватарку
+       sb.from('profiles').update({avatar: key}).eq('id', user.id).then(()=>{});
+    }
+    toast(`Покупка успешна! Предмет добавлен в профиль.`);
+  }
+
+  saveState();
+  playSuccess();
+  fireConfetti();
+  renderShop(); // Обновляем витрину
+}
+function showShopInfo() {
+  document.getElementById('shopInfoModal').classList.remove('hidden');
+  playClick();
+}
+// Нативный шаринг сторис (для мобильных)
+let lastGeneratedStoryBlob = null;
+
+async function shareStoryNative() {
+  if (!lastGeneratedStoryBlob) {
+    // Если картинка еще не сгенерирована, генерируем её на лету
+    const btn = document.getElementById('storyDownloadBtn');
+    const originalText = btn.textContent;
+    btn.textContent = 'Создаем...';
+    btn.disabled = true;
+    
+    try {
+      const card = document.getElementById('storyCard');
+      const canvas = await html2canvas(card, { scale: 3, useCORS: true, backgroundColor: null, logging: false });
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      lastGeneratedStoryBlob = blob;
+    } catch(e) {
+      console.error(e);
+      toast('Ошибка создания картинки', 'danger');
+      btn.textContent = originalText;
+      btn.disabled = false;
+      return;
+    }
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+
+  if (navigator.canShare && navigator.canShare({ files: [new File([lastGeneratedStoryBlob], 'story.png', { type: 'image/png' })] })) {
+    const file = new File([lastGeneratedStoryBlob], 'andger_story.png', { type: 'image/png' });
+    navigator.share({
+      files: [file],
+      title: 'Мои успехи в ANDGER',
+      text: 'Смотри, каких результатов я достиг! Присоединяйся к ANDGER.'
+    }).catch(err => {
+      console.log('Шаринг отменен', err);
+    });
+  } else {
+    toast('Ваш браузер не поддерживает нативный шаринг. Скачайте картинку и отправьте вручную.', 'warm');
   }
 }
