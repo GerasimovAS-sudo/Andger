@@ -4522,17 +4522,23 @@ async function openNotification(id){
       showSimpleModal('📬', 'Спасибо!', 'Твой отзыв получен. Мы обязательно его прочитаем.');
     }
   }
-  else if(n.type==='msg' && p.from){
+    else if(n.type==='msg') {
     const fromId = p.from;
-    try {
-      const { data: profile, error } = await sb.from('profiles').select('id,name,avatar,last_seen').eq('id',fromId).single();
-      if (error || !profile) {
-        toast('Пользователь не найден или удален', 'danger');
-      } else {
-        openDialog(fromId, profile);
+    if (fromId) {
+      try {
+        const { data: profile, error } = await sb.from('profiles').select('id,name,avatar,last_seen').eq('id',fromId).single();
+        if (error || !profile) {
+          toast('Пользователь не найден или удален', 'danger');
+        } else {
+          openDialog(fromId, profile);
+        }
+      } catch(e) {
+        toast('Ошибка загрузки чата', 'danger');
       }
-    } catch(e) {
-      toast('Ошибка загрузки чата', 'danger');
+    } else {
+      // Если ID нет, просто открываем вкладку "Сообщения"
+      showCommunityScreen();
+      setTimeout(() => switchCommunityTab('chats', document.querySelectorAll('.tab-pill')[1]), 150);
     }
   }else if(n.type==='like'||n.type==='comment'){
     showCommunityScreen();
@@ -7259,10 +7265,19 @@ async function handlePublicProfileUrl(){
     return false;
   }
 }
+
+function changeCalendarWeek(dir) {
+  calendarWeekOffset += dir;
+  if (calendarWeekOffset > 0) calendarWeekOffset = 0; // Ограничиваем будущим
+  playClick();
+  renderWeekCalendar();
+}
 // ─── НОВЫЙ КАЛЕНДАРЬ И БЫСТРЫЙ РИТУАЛ ───
 function renderWeekCalendar() {
   const el = document.getElementById('weekCalendar');
   if (!el || !currentBook) return;
+  
+  if (calendarWeekOffset > 0) calendarWeekOffset = 0; // Нельзя смотреть будущее
 
   const bs = getBookState(currentBook.id);
   const today = new Date();
@@ -8652,7 +8667,7 @@ async function speakBackgroundGuide(text, context = 'practice') {
   isVoicePlaying = true; // Устанавливаем флаг, что голос говорит
 
   // Приглушаем музыку (делаем тише, чтобы не перебивала голос)
-  if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.08, 300);
+  if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.03, 300);
 
   // Показываем субтитры МГНОВЕННО
   const isRitual = (context === 'ritual');
@@ -8717,9 +8732,9 @@ async function speakBackgroundGuide(text, context = 'practice') {
     // Настраиваем возврат музыки, если голос закончился или произошла ошибка
     const restoreMusic = () => {
       // СУБТИТРЫ БОЛЬШЕ НЕ СКРЫВАЕМ! Они остаются на экране до следующей фразы.
-      isVoicePlaying = false; // Сбрасываем флаг, когда голос закончил
+      isVoicePlaying = false; 
       if (musicAudio && state.soundMode === 'sound') {
-        fadeAudio(musicAudio, musicAudio.volume, 0.3, 600);
+        fadeAudio(musicAudio, musicAudio.volume, 0.3, 400);
       }
     };
 

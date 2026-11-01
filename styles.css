@@ -196,7 +196,7 @@ html.light, body.light { background: var(--bg); color: var(--text); }
 .wrap {
   max-width: 520px;
   margin: 0 auto;
-  padding: calc(90px + var(--safe-top)) 16px calc(140px + var(--safe-bottom)) 16px !important;
+  padding: calc(85px + var(--safe-top)) 16px calc(140px + var(--safe-bottom)) 16px !important;
   width: 100%;
   position: relative;
   display: flex;
