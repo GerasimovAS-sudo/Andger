@@ -1149,7 +1149,15 @@
             <input type="text" id="edCategory" list="edCategoryList" placeholder="Например: Психология">
             <datalist id="edCategoryList"></datalist>
           </div>
-          <div class="field"><label>Ссылка на обложку (если есть)</label><input type="text" id="edCoverUrl" placeholder="https://..."></div>
+          <div class="field">
+  <label>Обложка книги</label>
+  <input type="text" id="edCoverUrl" placeholder="https://..." style="margin-bottom: 8px;">
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <input type="file" id="edCoverUpload" accept="image/*" style="display: none;" onchange="uploadBookCover(this)">
+    <button class="d-btn-secondary" onclick="document.getElementById('edCoverUpload').click()" style="margin:0; padding: 8px 16px; font-size: 12px; width: auto; flex: none;">📷 Выбрать фото</button>
+    <span id="edCoverStatus" style="font-size: 11px; color: var(--d-text-dim);">Файл не выбран</span>
+  </div>
+</div>
         </div>
 
         <!-- Вкладка 2: Тексты -->

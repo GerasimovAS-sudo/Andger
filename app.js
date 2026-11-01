@@ -2083,9 +2083,13 @@ function renderToday() {
   
   if (mpcBookIcon) {
     if (b.cover_url) {
-      mpcBookIcon.innerHTML = `<img src="${b.cover_url}" alt="${b.title}" style="width:100%; height:100%; object-fit:cover; border-radius:14px;">`;
+      // Если есть фото — растягиваем на весь квадрат
+      mpcBookIcon.style.padding = '0';
+      mpcBookIcon.innerHTML = `<img src="${b.cover_url}" alt="${b.title}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
     } else {
-      mpcBookIcon.innerHTML = getEmojiOrSvg(b.emoji, 56, b.title);
+      // Если эмодзи — даем ему чуть больше места
+      mpcBookIcon.style.padding = '8px';
+      mpcBookIcon.innerHTML = getEmojiOrSvg(b.emoji, 70, b.title);
     }
   }
 
@@ -2942,7 +2946,10 @@ function renderRitualStep(){
     if (ritualIndex >= ritualQueue.length) { finishRitual(); return; }
     let p = ritualQueue[ritualIndex];
     if (!p) { closeRitual(); return; }
-    p = normalizeVoiceTimeline(p); // <--- ПРИМЕНЯЕМ МАСШТАБИРОВАНИЕ
+    
+    // ✨ ИСПРАВЛЕНИЕ: Генерируем фразы и ОБЯЗАТЕЛЬНО сохраняем их обратно в очередь!
+    p = normalizeVoiceTimeline(p); 
+    ritualQueue[ritualIndex] = p; 
     
     const rpStep = document.getElementById('rpStep');
     if(rpStep) rpStep.textContent = 'Практика ' + (ritualIndex + 1) + ' из ' + ritualQueue.length;
@@ -2984,8 +2991,18 @@ function toggleTimer(ctx){
   } else if(timerState === 'done'){
     // Ничего не делаем
   } else {
-    if ('speechSynthesis' in window) window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+    // 1. Разблокировка системного голоса (iOS Safari требует вызова speak() по клику)
+    if ('speechSynthesis' in window) {
+      const emptyUtterance = new SpeechSynthesisUtterance('');
+      emptyUtterance.volume = 0;
+      window.speechSynthesis.speak(emptyUtterance);
+    }
     
+    // 2. Разблокировка Audio-элемента для Яндекс.API
+    if (!ttsAudio) ttsAudio = new Audio();
+    ttsAudio.play().catch(()=>{});
+    ttsAudio.pause();
+
     let currentP = isRitual ? ritualQueue[ritualIndex] : currentPractice;
     if (timerState === 'idle' && currentP) currentP._spokenIndices = [];
     
@@ -3101,6 +3118,7 @@ function startTimer(ctx){
       const elapsed = totalDuration - remaining;
       currentP.voiceTimeline.forEach((item, index) => {
         if (elapsed >= item.time && !currentP._spokenIndices.includes(index)) {
+          console.log('🎤 Триггер озвучки:', item.text); // Проверка срабатывания
           speakBackgroundGuide(item.text, ctx);
           currentP._spokenIndices.push(index);
         }
@@ -6168,6 +6186,41 @@ function exportUsers(){
 
 let bookEditorReturnScreen = "adminScreen";
 let editingBookId = null;
+async function uploadBookCover(input) {
+  const file = input.files[0];
+  if (!file) return;
+  
+  const statusEl = document.getElementById('edCoverStatus');
+  if(statusEl) statusEl.textContent = 'Загрузка...';
+  
+  const fileExt = file.name.split('.').pop();
+  const fileName = `cover_${Date.now()}.${fileExt}`;
+  
+  try {
+    // Загружаем файл в Supabase Storage (bucket 'covers')
+    const { data, error } = await sb.storage.from('covers').upload(fileName, file);
+    if (error) throw error;
+    
+    // Получаем публичную ссылку
+    const { data: urlData } = sb.storage.from('covers').getPublicUrl(fileName);
+    
+    // Записываем ссылку в поле ввода
+    document.getElementById('edCoverUrl').value = urlData.publicUrl;
+    
+    if(statusEl) {
+      statusEl.textContent = '✅ Успешно загружено!';
+      statusEl.style.color = 'var(--d-success)';
+    }
+    playSuccess();
+  } catch (e) {
+    console.error('Ошибка загрузки обложки:', e);
+    toast('Ошибка загрузки: ' + e.message, 'danger');
+    if(statusEl) {
+      statusEl.textContent = '❌ Ошибка';
+      statusEl.style.color = 'var(--d-danger)';
+    }
+  }
+}
 function showBookEditor(id){
   const visible = Array.from(document.querySelectorAll("#todayScreen,#libScreen,#adminScreen,#bookDetailScreen")).find(el => !el.classList.contains("hidden"));
   bookEditorReturnScreen = visible ? visible.id : "adminScreen";
@@ -8583,13 +8636,13 @@ async function speakBackgroundGuide(text, context = 'practice') {
   // Приглушаем музыку (делаем тише, чтобы не перебивала голос)
   if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.08, 300);
 
-  // Показываем субтитры
+  // Показываем субтитры МГНОВЕННО
   const isRitual = (context === 'ritual');
   const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
   const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
   if (subEl) { 
     subEl.textContent = text; 
-    setTimeout(() => subEl.classList.add('show'), 50); 
+    subEl.classList.add('show'); // Показываем сразу
   }
 
   try {
@@ -8644,11 +8697,8 @@ async function speakBackgroundGuide(text, context = 'practice') {
     ttsAudio.src = URL.createObjectURL(blob);
     
     // Настраиваем возврат музыки, если голос закончился или произошла ошибка
-       const restoreMusic = () => {
-      if (subEl) {
-        subEl.classList.remove('show');
-        setTimeout(() => { subEl.textContent = ''; }, 500);
-      }
+    const restoreMusic = () => {
+      // СУБТИТРЫ БОЛЬШЕ НЕ СКРЫВАЕМ! Они остаются на экране до следующей фразы.
       isVoicePlaying = false; // Сбрасываем флаг, когда голос закончил
       if (musicAudio && state.soundMode === 'sound') {
         fadeAudio(musicAudio, musicAudio.volume, 0.3, 600);
@@ -8685,23 +8735,43 @@ async function speakBackgroundGuide(text, context = 'practice') {
     }
     
   } catch (error) {
-    console.error('Ошибка озвучки (Яндекс):', error);
-    isVoicePlaying = false;
+    console.error('Ошибка озвучки (Яндекс), включаем системный голос:', error);
     
     let errorMsg = error.message;
     if (error.context && typeof error.context.json === 'function') {
       try { const errData = await error.context.json(); errorMsg = errData.error || errorMsg; } catch(e) {}
     }
-    
-    if (typeof toast === 'function') toast('Ошибка озвучки: ' + errorMsg, 'danger');
-        
-        // Восстанавливаем музыку при ошибке (если таймер идет)
-        if (musicAudio && state.soundMode === 'sound' && timerState === 'running') {
-          fadeAudio(musicAudio, musicAudio.volume, 0.2, 800);
+    console.warn('Причина ошибки:', errorMsg);
+
+    // 🚨 FALLBACK: Если Яндекс не сработал или браузер заблокировал звук
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Очищаем очередь
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ru-RU';
+      
+      // Возвращаем музыку и убираем субтитры, когда робот закончит
+      utterance.onend = () => {
+        isVoicePlaying = false;
+        if (subEl) {
+          subEl.classList.remove('show');
+          setTimeout(() => { subEl.textContent = ''; }, 500);
         }
-        if (subEl) subEl.classList.remove('show');
+        if (musicAudio && state.soundMode === 'sound') {
+          fadeAudio(musicAudio, musicAudio.volume, 0.3, 600);
+        }
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      // Если даже системного голоса нет — возвращаем музыку
+      isVoicePlaying = false;
+      if (musicAudio && state.soundMode === 'sound' && timerState === 'running') {
+        fadeAudio(musicAudio, musicAudio.volume, 0.3, 800);
       }
-    } 
+      if (subEl) subEl.classList.remove('show');
+    }
+  }
+}
 
 
 // ─── УДАЛЕНИЕ ПОСТА ИЗ ЖАЛОБ ───
@@ -9488,12 +9558,42 @@ async function loadAdminFeedbacks() {
 }
 
 function normalizeVoiceTimeline(practice) {
-  if (!practice || !practice.voiceTimeline || !practice.voiceTimeline.length) return practice;
+  if (!practice) return practice;
   
   // Клонируем практику, чтобы не портить исходный объект в базе
   const p = JSON.parse(JSON.stringify(practice)); 
+  
+  // ✨ УМНАЯ ГЕНЕРАЦИЯ: Если админ не задал фразы, ведем человека по шагам (БЕЗ ЧТЕНИЯ ТЕОРИИ)
+  if (!p.voiceTimeline || !p.voiceTimeline.length) {
+    p.voiceTimeline = [];
+    const totalTime = p.time || 300;
+    
+    // 1. Стартовое приветствие (на 2-й секунде)
+    p.voiceTimeline.push({ time: 2, text: "Приготовься. Сделай глубокий вдох и выдох. Начинаем." });
+    
+    // 2. Распределяем шаги (how) равномерно по времени
+    if (p.how && p.how.length > 0) {
+      const timePerStep = Math.floor((totalTime - 30) / p.how.length); 
+      p.how.forEach((step, index) => {
+        if (step && step.trim().length > 2) {
+          p.voiceTimeline.push({ time: 10 + (index * timePerStep), text: step });
+        }
+      });
+    }
+    
+    // 3. Микро-действие ближе к концу
+    if (p.micro_action && p.micro_action.trim().length > 2) {
+      p.voiceTimeline.push({ time: totalTime - 40, text: "А теперь сделай прямо сейчас: " + p.micro_action });
+    }
+    
+    // 4. Завершение
+    p.voiceTimeline.push({ time: totalTime - 10, text: "Практика завершена. Сохрани это состояние." });
+  }
+
+  if (!p.voiceTimeline || !p.voiceTimeline.length) return p;
+  
   const totalTime = p.time || 300;
-  const safeBuffer = 15; // Оставляем 15 секунд в конце, чтобы голос успел договорить
+  const safeBuffer = 15; 
   const maxAllowedTime = totalTime - safeBuffer;
   
   let maxTimelineTime = 0;
@@ -9501,8 +9601,8 @@ function normalizeVoiceTimeline(practice) {
     if (v.time > maxTimelineTime) maxTimelineTime = v.time;
   });
   
-  // Если таймлайн в JSON длиннее, чем время практики, или короче — масштабируем его
-  if (maxTimelineTime > 0) {
+  // Сжимаем фразы, ТОЛЬКО если они не влезают в таймер. Растягивать не нужно!
+  if (maxTimelineTime > maxAllowedTime) {
     const ratio = maxAllowedTime / maxTimelineTime;
     p.voiceTimeline.forEach(v => {
       v.time = Math.floor(v.time * ratio);
