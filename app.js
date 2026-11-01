@@ -1605,7 +1605,6 @@ function navTo(page,el){
   else if(page==='stats')showStatsScreen();
   else if(page==='community')showCommunityScreen();  
   else if(page==='journal')showJournalScreen();
-  else if(page==='profile')showProfile(); 
 }
 
 function smartHome(){
@@ -3030,8 +3029,6 @@ function toggleTimer(ctx){
     if (focusControls) focusControls.style.display = 'flex';
      const ringWrap2 = screen.querySelector('.d-timer-ring-wrap');
     if (ringWrap2) ringWrap2.classList.remove('paused-ring'); // Запускаем дыхание
-    const musicFab = screen.querySelector('.music-fab-btn');
-    if (musicFab) musicFab.style.display = 'flex';
     
     const zenBtn = screen ? screen.querySelector('.exit-zen-btn') : null;
     if (zenBtn) {
@@ -3181,11 +3178,6 @@ function stopTimer(){
   document.body.style.overflow = '';
   document.body.style.position = '';
   document.body.style.width = '';
-  
-  // Прячем кнопку музыки при закрытии таймера
-  document.querySelectorAll('.music-fab-btn').forEach(el => {
-    el.style.display = 'none';
-  });
 }
 
 // Совместимый адаптер для существующих callback-сценариев: визуально используется только appDialog/appConfirm.
@@ -4436,10 +4428,11 @@ function updateNotifBadge(){
   const unread = notifications.filter(n => !n.read).length;
   const badges = document.querySelectorAll('.notif-badge'); // Ищем ВСЕ бейджи
   badges.forEach(badge => {
-    if(unread > 0){
+ if(unread > 0){
       badge.textContent = unread > 9 ? '9+' : unread;
       badge.classList.remove('hidden');
     } else {
+      badge.textContent = '';
       badge.classList.add('hidden');
     }
   });
@@ -4462,50 +4455,60 @@ function updateNotifBadge(){
   }
 }
 function renderNotifications(){
-  const el=document.getElementById('notifList');
-  if(!el)return;
+  const el = document.getElementById('notifList');
+  if(!el) return;
+  
   if(!notifications.length){
-    el.innerHTML='<div style="color:var(--muted);text-align:center;padding:40px 20px;font-size:14px">Пока нет уведомлений</div>';
+    el.innerHTML='<div class="d-empty-state" style="margin-top:20px; background:transparent; border:none;"><div class="d-empty-title" style="font-size:15px;">Тишина</div><div class="d-empty-text">У вас пока нет уведомлений</div></div>';
     return;
   }
+  
   el.innerHTML=notifications.map(n=>{
     let p = n.payload || {};
     if (typeof p === 'string') {
       try { p = JSON.parse(p); } catch(e) { p = {}; }
     }
-    let ico='🔔',title='',text='';
+    
+    let ico='🔔', title='', text='';
+    
     if(n.type==='msg'){
       ico='💬';
-      title = p.from_name ? 'Сообщение от ' + p.from_name : 'Новое сообщение';
-      text = p.text || '';
+      title = p.from_name || p.name || 'Новое сообщение';
+      // Если текста нет (старое уведомление) — пишем "Откройте чат"
+      text = p.text || 'Откройте чат, чтобы прочитать';
     }
     else if(n.type==='like'){
       ico='❤️';
       title='Новый лайк';
       text=p.from_name ? p.from_name + ' оценил(а) твой пост' : (p.text||'Кому-то понравился твой пост');
     }
-    else if(n.type==='comment'){ico='💬';title='Новый комментарий';text=p.text||''}
+    else if(n.type==='comment'){ico='💬';title='Новый комментарий';text=p.text||'Кто-то оставил комментарий'}
     else if(n.type==='ach'){ico='🏆';title='Новая награда';text=p.title||''}
     else if(n.type==='admin'){ico='📢';title=p.title||'Объявление';text=p.text||''} 
-    else if(n.type==='friend'){ico='🤝';title='Новый друг';text=p.text||''}
+    else if(n.type==='friend'){ico='🤝';title='Новый друг';text=p.text||'Кто-то добавил вас в друзья'}
     else {title='Уведомление';text=p.text||''}
     
-    return `<div class="notif-item ${n.read?'':'unread'}" onclick="openNotification('${n.id}')">
-      <div class="ni-ico">${ico}</div>
+    return `<div class="notif-item ${n.read?'':'unread'}" onclick="openNotification('${n.id}', this)">
+      <div class="ni-ico" style="font-size: 20px;">${ico}</div>
       <div class="ni-body">
-        <div class="ni-title">${escapeHtml(title)}</div>
-        <div class="ni-text">${escapeHtml(text)}</div>
-        <div class="ni-time">${timeAgo(n.created_at)}</div>
+        <div class="ni-title" style="font-size: 14px; color: #fff;">${escapeHtml(title)}</div>
+        <div class="ni-text" style="color: var(--muted); font-size: 12px; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(text)}</div>
+        <div class="ni-time" style="font-size: 10px; color: var(--d-accent-2); margin-top: 4px;">${timeAgo(n.created_at)}</div>
       </div>
     </div>`;
   }).join('');
 }
-async function openNotification(id){
-  const n=notifications.find(x=>x.id===id);if(!n)return;
+async function openNotification(id, el){
+  const n = notifications.find(x => x.id === id);
+  if (!n) return;
   
-  if(!n.read){
-    await sb.from('notifications').update({read:true}).eq('id',id);
-    n.read=true;
+  // Визуальный отклик, что нажалось
+  if (el) el.style.opacity = '0.5';
+
+  // Мгновенно помечаем прочитанным
+  if (!n.read) {
+    sb.from('notifications').update({read:true}).eq('id',id).then(() => {});
+    n.read = true;
     updateNotifBadge();
   }
   
@@ -4514,73 +4517,88 @@ async function openNotification(id){
     try { p = JSON.parse(p); } catch(e) { p = {}; }
   }
 
-  // НОВАЯ ЛОГИКА ДЛЯ ОТЗЫВОВ
-  if(n.type === 'feedback'){
-    if(isAdmin()) {
-      showAdmin('feedback'); // Передаем команду, чтобы открылась вкладка Отзывы
-    } else {
-      showSimpleModal('📬', 'Спасибо!', 'Твой отзыв получен. Мы обязательно его прочитаем.');
-    }
-  }
-    else if(n.type==='msg') {
-    const fromId = p.from;
-    if (fromId) {
-      try {
-        const { data: profile, error } = await sb.from('profiles').select('id,name,avatar,last_seen').eq('id',fromId).single();
-        if (error || !profile) {
-          toast('Пользователь не найден или удален', 'danger');
-        } else {
-          openDialog(fromId, profile);
+  // --- ЛОГИКА ДЛЯ СООБЩЕНИЙ ---
+  if (n.type === 'msg') {
+    // 1. Переходим на экран Сообщества
+    await showCommunityScreen();
+    
+    // 2. Ждем 200мс, чтобы экран отрисовался
+    setTimeout(async () => {
+      const tabs = document.querySelectorAll('#communityScreen .tab-pill');
+      // 3. Переключаем на вкладку "Сообщения"
+      if (tabs && tabs[1]) switchCommunityTab('chats', tabs[1]);
+      
+      // 4. Ищем ID отправителя (в разных ключах на всякий случай)
+      const fromId = p.from || p.from_user || p.sender_id || p.user_id;
+      
+      if (fromId) {
+        // Создаем профиль-заглушку, если не сможем загрузить
+        let profile = { id: fromId, name: p.from_name || 'Пользователь', avatar: '👤' };
+        try {
+          const { data } = await sb.from('profiles').select('*').eq('id', fromId).single();
+          if (data) profile = data; // Если нашли реальный профиль, используем его
+        } catch(e) {
+          console.warn('Профиль не найден, открываем с заглушкой');
         }
-      } catch(e) {
-        toast('Ошибка загрузки чата', 'danger');
+        
+        // 5. Открываем сам чат
+        setTimeout(() => openDialog(fromId, profile), 200);
+      } else {
+        toast('Открыт список сообщений', 'warm');
       }
-    } else {
-      // Если ID нет, просто открываем вкладку "Сообщения"
-      showCommunityScreen();
-      setTimeout(() => switchCommunityTab('chats', document.querySelectorAll('.tab-pill')[1]), 150);
-    }
-  }else if(n.type==='like'||n.type==='comment'){
-    showCommunityScreen();
-  }else if(n.type==='admin'){
-    showSimpleModal('📢', p.title || 'Сообщение', p.text || '');
-  }
-  else if(n.type==='friend' && p.from){
-    const{data:profile}=await sb.from('profiles').select('id,name,avatar,last_seen').eq('id',p.from).single();
-    if(profile) viewUserProfile(p.from, 'feed');
+      
+      if (el) el.style.opacity = '1'; // Возвращаем видимость
+    }, 200);
   }
   
-  renderNotifications();
+  // --- ЛОГИКА ДЛЯ ЛАЙКОВ И КОММЕНТАРИЕВ ---
+  else if (n.type === 'like' || n.type === 'comment') {
+    await showCommunityScreen();
+    const tabs = document.querySelectorAll('#communityScreen .tab-pill');
+    if (tabs && tabs[0]) switchCommunityTab('feed', tabs[0]);
+    if (el) el.style.opacity = '1';
+  }
+  
+  // --- ЛОГИКА ДЛЯ ОСТАЛЬНЫХ ---
+  else if (n.type === 'admin') {
+    showSimpleModal('📢', p.title || 'Объявление', p.text || '');
+    if (el) el.style.opacity = '1';
+  }
+  else if (n.type === 'friend' && p.from) {
+    viewUserProfile(p.from, 'feed');
+    if (el) el.style.opacity = '1';
+  }
+  else if (n.type === 'feedback') {
+    if (isAdmin()) showAdmin('feedback');
+    else showSimpleModal('📬', 'Спасибо!', 'Твой отзыв получен.');
+    if (el) el.style.opacity = '1';
+  }
+
+  renderNotifications(); // Обновляем список
 }
 async function createNotification(userId, type, payload) {
+  // Уведомления для 'msg' и 'like' теперь создаются автоматически на уровне Базы Данных (через SQL триггеры).
+  if (type === 'msg' || type === 'like') {
+    return; 
+  }
+  
   try {
-    if (type === 'like' || type === 'msg') {
-      // Для лайков и сообщений используем безопасную серверную функцию
-      const eventId = payload.msg_id || payload.message_id;
-      if (!eventId) {
-        console.warn('[ANDGER] Не передан ID для уведомления');
-        return;
-      }
-      const { error } = await sb.functions.invoke('create-notification', {
-        body: { type: type, event_id: eventId }
-      });
-      if (error) throw error;
-      console.log(`✅ Уведомление (${type}) отправлено через сервер`);
-    } else {
-      // Для остальных типов пока пишем напрямую, но защищаем от падения
-      const { error } = await sb.from('notifications').insert({ 
-        user_id: userId, 
-        type: type, 
-        payload: payload 
-      });
-      // Если RLS блокирует запись (что нормально для чужих уведомлений), 
-      // мы просто тихо игнорируем это, чтобы не ломать интерфейс
-      if (error && error.code !== '42501') { 
-        throw error; 
+    const { error } = await sb.from('notifications').insert({ 
+      user_id: userId, 
+      type: type, 
+      payload: payload 
+    });
+    
+    if (error) {
+      // Если ошибка связана с правилами безопасности (RLS), просто выводим в консоль
+      if (error.code === '42501' || error.status === 403) {
+        console.warn('⚠️ Уведомление заблокировано правилами БД. Выполни SQL-скрипт.');
+      } else {
+        throw error;
       }
     }
   } catch (e) {
-    console.warn('⚠️ Уведомление не отправлено (возможно, ограничено правилами безопасности):', e.message);
+    console.warn('⚠️ Ошибка отправки уведомления:', e.message);
   }
 }
 
@@ -4760,6 +4778,32 @@ async function renderJournal(){
       `;
     }).join('');
   }
+
+  async function deleteComment(commentId) {
+  if(!(await appConfirm('Удалить комментарий?', 'Он исчезнет навсегда.', 'Удалить'))) return;
+  try {
+    const { error } = await sb.from('comments').delete().eq('id', commentId);
+    if (error) throw error;
+    playSuccess();
+    toast('Комментарий удален');
+    loadFeed(); // Обновляем ленту
+  } catch(e) {
+    toast('Ошибка удаления', 'danger');
+  }
+}
+
+async function deleteFeedPost(postId) {
+  if(!(await appConfirm('Удалить свой пост?', 'Он исчезнет из ленты.', 'Удалить'))) return;
+  try {
+    const { error } = await sb.from('messages').delete().eq('id', postId);
+    if (error) throw error;
+    playSuccess();
+    toast('Пост удален');
+    loadFeed();
+  } catch(e) {
+    toast('Ошибка удаления', 'danger');
+  }
+}
 
   // 3. Статистика записей
   const statsHtml = `
@@ -4942,7 +4986,7 @@ async function loadFeed(){
           <div style="flex:1; min-width:0;">
             <div style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:800; color:var(--d-text);">
               <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(m.user_name||'Аноним')}${own?' · ты':''}</span>
-              ${isAdmin() ? `<div class="action-btn-glass danger" style="width:20px; height:20px; padding:0; margin-left:auto;" onclick="event.stopPropagation(); confirmGodDeletePost(${m.id}, 'пост')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px; height:12px;"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>` : ''}
+              ${own || isAdmin() ? `<div class="action-btn-glass danger" style="width:20px; height:20px; padding:0; margin-left:auto;" onclick="event.stopPropagation(); ${own ? `deleteFeedPost(${m.id})` : `confirmGodDeletePost(${m.id}, 'пост')`}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px; height:12px;"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>` : ''}
             </div>
             <div style="font-size:10px; color:var(--d-text-dim);">${t}</div>
           </div>
@@ -4988,7 +5032,16 @@ async function loadFeed(){
         </div>
         
         <div class="feed-comments" id="comments-${m.id}" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--d-border);">
-          ${postComments.map(c=>`<div style="display:flex; gap:8px; margin-bottom:8px;"><div class="d-avatar" style="width:24px; height:24px;">${getAvatarHtml(c.user_avatar, 14)}</div><div><div style="font-size:10px; font-weight:800; color:var(--d-accent-2);">${escapeHtml(c.user_name||'Аноним')}</div><div style="font-size:12px; color:var(--d-text);">${escapeHtml(c.text)}</div></div></div>`).join('')}
+                    ${postComments.map(c=>`
+            <div style="display:flex; gap:8px; margin-bottom:8px; align-items:flex-start;">
+              <div class="d-avatar" style="width:24px; height:24px;">${getAvatarHtml(c.user_avatar, 14)}</div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:10px; font-weight:800; color:var(--d-accent-2);">${escapeHtml(c.user_name||'Аноним')}</div>
+                <div style="font-size:12px; color:var(--d-text); word-break:break-word;">${escapeHtml(c.text)}</div>
+              </div>
+              ${c.user_id === user.id ? `<div onclick="deleteComment('${c.id}')" style="color:var(--muted); cursor:pointer; padding:2px 4px; font-size:12px; flex-shrink:0;" title="Удалить комментарий">✕</div>` : ''}
+            </div>
+          `).join('')}
           <div style="display:flex; gap:8px; margin-top:8px;">
             <input type="text" id="cin-${m.id}" placeholder="Ответить..." style="flex:1; background:var(--d-surface-2); border:1px solid var(--d-border); border-radius:100px; padding:6px 12px; color:var(--d-text); font-size:12px;">
             <button onclick="sendComment(${m.id},'${m.user_id}')" style="background:var(--d-accent); border:none; border-radius:50%; width:32px; height:32px; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:-2px;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button>
@@ -5327,12 +5380,33 @@ async function loadDialog(){
         }
       }
 
-      return `<div class="msg-bubble ${own?'own':'other'}">${escapeHtml(m.text)}<span class="msg-time" style="display:flex; align-items:center; justify-content:flex-end; gap:6px;">${t} ${tick} ${isAdmin() ? `<div class="action-btn-glass danger" style="width:20px; height:20px; flex-shrink:0;" onclick="event.stopPropagation(); confirmGodDeletePrivateMessage('${String(m.id).replace(/'/g, "\\'")}')" title="Удалить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px; height:10px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>` : ''}</span></div>`;
+      return `<div class="msg-bubble ${own?'own':'other'}">
+        ${escapeHtml(m.text)}
+        <span class="msg-time" style="display:flex; align-items:center; justify-content:flex-end; gap:6px;">
+          ${t} ${tick} 
+          ${own || isAdmin() ? `
+            <div class="action-btn-glass danger" style="width:20px; height:20px; flex-shrink:0;" onclick="event.stopPropagation(); ${own ? `deletePrivateMessage('${m.id}')` : `confirmGodDeletePrivateMessage('${m.id}')`}" title="Удалить">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px; height:10px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </div>` : ''}
+        </span>
+      </div>`;
     }).join('');
     el.scrollTop=el.scrollHeight;
     window.scrollTo(0,document.body.scrollHeight);
   }catch(e){
     el.innerHTML='<div style="color:var(--danger);text-align:center;padding:20px">Ошибка</div>';
+  }
+}
+
+async function deletePrivateMessage(msgId) {
+  if(!(await appConfirm('Удалить сообщение?', 'Оно исчезнет из чата.', 'Удалить'))) return;
+  try {
+    const { error } = await sb.from('private_messages').delete().eq('id', msgId);
+    if (error) throw error;
+    playSuccess();
+    loadDialog(); // Обновляем чат
+  } catch(e) {
+    toast('Ошибка удаления', 'danger');
   }
 }
 
@@ -6989,15 +7063,29 @@ if(action==='ritual') {
   setTimeout(()=>startRitual(),1500);
 } else if(action==='journal') {
   setTimeout(()=>showJournalScreen(),1500);
-} else if(action==='dialog' && urlUser) {
-  // Если пришли из пуша — открываем чат с нужным человеком
-  setTimeout(() => {
-    if (typeof openDialog === 'function') openDialog(urlUser);
-  }, 1500);
-}
+  } else if(action==='dialog' && urlUser) {
+    // Если пришли из пуша — открываем чат с нужным человеком
+    setTimeout(() => {
+      if (typeof openDialog === 'function') openDialog(urlUser);
+    }, 1500);
+  }
 
 // ─── SCROLL-ИНДИКАТОРЫ (КНИГИ И ПРАКТИКИ) ───
 document.addEventListener('scroll', (e) => {
+  // Обновление точек под календарем
+  if (e.target && e.target.id === 'weekCalendar') {
+    const wrap = e.target;
+    const children = wrap.children;
+    if (!children.length) return;
+    
+    const cardWidth = children[0].offsetWidth + 8; // 8 - это gap
+    const idx = Math.round(wrap.scrollLeft / cardWidth);
+    
+    document.querySelectorAll('#calendarDots .cal-dot').forEach((d, i) => {
+      d.classList.toggle('on', i === idx);
+    });
+  }
+
   // Точки для практик (внизу)
   if (e.target && e.target.id === 'heroScroll') {
     const wrap = e.target;
@@ -7266,73 +7354,87 @@ async function handlePublicProfileUrl(){
   }
 }
 
-function changeCalendarWeek(dir) {
-  calendarWeekOffset += dir;
-  if (calendarWeekOffset > 0) calendarWeekOffset = 0; // Ограничиваем будущим
-  playClick();
-  renderWeekCalendar();
-}
 // ─── НОВЫЙ КАЛЕНДАРЬ И БЫСТРЫЙ РИТУАЛ ───
 function renderWeekCalendar() {
   const el = document.getElementById('weekCalendar');
+  const dotsEl = document.getElementById('calendarDots');
   if (!el || !currentBook) return;
-  
-  if (calendarWeekOffset > 0) calendarWeekOffset = 0; // Нельзя смотреть будущее
 
   const bs = getBookState(currentBook.id);
   const today = new Date();
   const todayStr = localDate(today);
   
-  const baseDate = new Date(today);
-  baseDate.setDate(today.getDate() + (calendarWeekOffset * 7));
-
-  const dayOfWeek = baseDate.getDay() === 0 ? 6 : baseDate.getDay() - 1;
-  const monday = new Date(baseDate);
-  monday.setDate(baseDate.getDate() - dayOfWeek);
+  // Определяем, когда началась практика, чтобы не листать в пустоту
+  let minDate = today;
+  if (bs.start) {
+    minDate = new Date(bs.start + 'T00:00:00');
+  }
+  
+  const msDiff = today - minDate;
+  const daysDiff = Math.max(0, Math.floor(msDiff / 86400000));
+  const weeksDiff = Math.floor(daysDiff / 7); 
+  const totalWeeks = weeksDiff + 1; // Общее количество страниц (недель)
 
   const dows = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
   let html = '';
+  let dotsHtml = '';
 
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
+  // Рисуем все недели подряд (от самой первой до текущей)
+  for (let w = 0; w < totalWeeks; w++) {
+    const weekOffset = w - weeksDiff; // -N - это прошлые недели, 0 - текущая
     
-    const dateStr = localDate(d);
-    const isToday = dateStr === todayStr;
+    const baseDate = new Date(today);
+    baseDate.setDate(today.getDate() + (weekOffset * 7));
+
+    const dayOfWeek = baseDate.getDay() === 0 ? 6 : baseDate.getDay() - 1;
+    const monday = new Date(baseDate);
+    monday.setDate(baseDate.getDate() - dayOfWeek);
+
+    html += `<div class="d-calendar-week" data-week="${weekOffset}">`;
     
-    let hasActivity = false;
-    let isFullyClosed = false;
-    const rec = bs.days[dateStr];
-    
-    if (rec) {
-      if (rec.closed) isFullyClosed = true;
-      if (rec.practices && rec.practices.length > 0) hasActivity = true;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      
+      const dateStr = localDate(d);
+      const isToday = dateStr === todayStr;
+      
+      let hasActivity = false;
+      let isFullyClosed = false;
+      const rec = bs.days[dateStr];
+      
+      if (rec) {
+        if (rec.closed) isFullyClosed = true;
+        if (rec.practices && rec.practices.length > 0) hasActivity = true;
+      }
+
+      let isBeforeStart = d < minDate;
+      let cls = 'd-cal-day';
+      if (isToday) cls += ' today';
+      let opacity = isBeforeStart ? 'opacity: 0.3;' : '';
+      
+      let dotHtml = hasActivity ? `<div style="width: 5px; height: 5px; border-radius: 50%; background: ${isFullyClosed ? 'var(--d-success)' : 'var(--d-warm)'}; margin: 4px auto 0; box-shadow: 0 0 8px ${isFullyClosed ? 'var(--d-success)' : 'var(--d-warm)'};"></div>` : `<div style="height: 5px; margin-top: 4px;"></div>`;
+
+      html += `
+        <div class="${cls}" style="${opacity}" onclick="showDayStats('${dateStr}')">
+          <div class="d-cal-dow">${dows[i]}</div>
+          <div class="d-cal-dom">${d.getDate()}</div>
+          ${dotHtml}
+        </div>
+      `;
     }
-
-    let isBeforeStart = false;
-    if (bs.start) {
-      const bookStart = new Date(bs.start + 'T00:00:00');
-      isBeforeStart = d < bookStart;
-    }
-
-    let cls = 'd-cal-day';
-    if (isToday) cls += ' today';
-    
-    let opacity = isBeforeStart ? 'opacity: 0.3;' : '';
-    
-    // ОДНА ТОЧКА (без дублей)
-    let dotHtml = hasActivity ? `<div style="width: 5px; height: 5px; border-radius: 50%; background: ${isFullyClosed ? 'var(--d-success)' : 'var(--d-warm)'}; margin: 4px auto 0; box-shadow: 0 0 8px ${isFullyClosed ? 'var(--d-success)' : 'var(--d-warm)'};"></div>` : `<div style="height: 5px; margin-top: 4px;"></div>`;
-
-    html += `
-      <div class="${cls}" style="${opacity}" onclick="showDayStats('${dateStr}')">
-        <div class="d-cal-dow">${dows[i]}</div>
-        <div class="d-cal-dom">${d.getDate()}</div>
-        ${dotHtml}
-      </div>
-    `;
+    html += `</div>`;
+    // Точка активна на текущей неделе
+    dotsHtml += `<div class="cal-dot ${w === weeksDiff ? 'on' : ''}"></div>`;
   }
-  
+
   el.innerHTML = html;
+  if (dotsEl) dotsEl.innerHTML = dotsHtml;
+
+  // Прокручиваем в самый конец (на текущую неделю)
+  setTimeout(() => {
+    el.scrollLeft = el.scrollWidth;
+  }, 50);
 }
 
 // Функция для смены недели (при клике на точки)
@@ -8903,6 +9005,14 @@ function showJsonImportModal() {
         <p style="font-size:12px; color:var(--d-text-dim); margin-bottom:12px; text-align:center;">Вставь JSON от ИИ сюда, и книга появится в приложении.</p>
         <textarea id="adminJsonInput" rows="8" placeholder='{ "id": "new-book", "title": "Название", ... }' style="width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--d-border); border-radius:12px; padding:12px; color:var(--d-text); font-family:monospace; font-size:12px; resize:vertical; margin-bottom:16px;"></textarea>
         
+        <div style="margin-bottom:16px;">
+          <label style="font-size:12px; color:var(--d-text-dim); margin-bottom:6px; display:block; font-weight:700;">Куда сохранить этот JSON?</label>
+          <select id="jsonTargetBook" style="width:100%; padding:12px; background:var(--d-surface-2); border:1px solid var(--d-border); border-radius:12px; color:var(--d-text); font-size:14px; outline:none;">
+            <option value="">✨ Создать новую книгу</option>
+            <!-- Сюда код вставит список твоих книг -->
+          </select>
+        </div>
+
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; background:rgba(255,255,255,0.03); padding:12px 16px; border-radius:12px; border:1px solid var(--d-border);">
           <span style="font-size:14px; font-weight:700; color:var(--d-text);">Опубликовать сразу</span>
           <div class="d-toggle" id="jsonPublishToggle" onclick="this.classList.toggle('on')"></div>
@@ -8920,6 +9030,13 @@ function showJsonImportModal() {
     document.body.appendChild(modal);
   }
   document.getElementById('adminJsonInput').value = '';
+    // Заполняем список книг для выбора
+  const select = document.getElementById('jsonTargetBook');
+  if (select) {
+    const allBooks = (typeof adminAllBooks !== 'undefined' && adminAllBooks.length) ? adminAllBooks : BOOKS;
+    const options = allBooks.map(b => `<option value="${b.id}">🔄 Обновить: «${escapeHtml(b.title)}»</option>`).join('');
+    select.innerHTML = `<option value="">✨ Создать новую книгу</option>${options}`;
+  }
   modal.classList.remove('hidden');
 }
 
@@ -8941,7 +9058,19 @@ async function addBookFromJSON() {
     
     // Устанавливаем статус на основе тумблеров
     bookData.published = isPublish; 
-    bookData.is_free = isFree; // <--- ДОБАВИЛИ ЭТУ СТРОКУ
+    bookData.is_free = isFree;
+
+    // 🤖 ЖЕЛЕЗОБЕТОННАЯ ПРОВЕРКА: Смотрим, что выбрал пользователь в списке
+    const targetBookId = document.getElementById('jsonTargetBook')?.value;
+    
+    if (targetBookId) {
+      // Если выбрана существующая книга — принудительно берем её ID
+      bookData.id = targetBookId;
+      console.log('♻️ Обновляем существующую книгу. ID:', targetBookId);
+    } else if (!bookData.id) {
+      // Если выбрано "Создать новую" и в JSON нет ID — генерируем новый
+      bookData.id = 'book-' + Date.now();
+    }
 
     // Отправляем в Supabase
         // Переводим названия полей в формат базы данных
@@ -8959,7 +9088,8 @@ async function addBookFromJSON() {
     delete mappedData.forWhom;
     delete mappedData.coverUrl;
 
-    const { error } = await sb.from('books').insert(mappedData);
+    // Используем upsert (вставить или обновить, если такой ID уже есть)
+    const { error } = await sb.from('books').upsert(mappedData, { onConflict: 'id' });
     if (error) throw error;
 
     // Очищаем и закрываем
@@ -9729,7 +9859,7 @@ function buildPracticeHtml(p) {
     <!-- ТАЙМЕР -->
     <div class="ps-block timer-wrapper">
     <!-- Плавающая иконка музыки (только для экрана таймера) -->
-      <div class="music-fab-btn" onclick="switchMusicTrack()" style="display:none; position:absolute; top: calc(85px + env(safe-area-inset-top, 0px)); right: 20px; width: 44px; height: 44px; border-radius: 50%; background: rgba(124,92,255,0.15); border: 1px solid rgba(124,92,255,0.3); backdrop-filter: blur(10px); color: #fff; align-items: center; justify-content: center; cursor: pointer; z-index: 100; transition: all 0.2s;" title="Сменить трек">
+      <div class="music-fab-btn" onclick="switchMusicTrack()" style="position:absolute; top: calc(85px + env(safe-area-inset-top, 0px)); right: 20px; width: 44px; height: 44px; border-radius: 50%; background: rgba(124,92,255,0.15); border: 1px solid rgba(124,92,255,0.3); backdrop-filter: blur(10px); color: #fff; align-items: center; justify-content: center; cursor: pointer; z-index: 100; transition: all 0.2s;" title="Сменить трек">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
       </div>
       
@@ -10302,3 +10432,42 @@ window.addEventListener('error', function(event) {
   
   setTimeout(() => errBox.remove(), 8000);
 });
+// ─── УДАЛЕНИЕ КОММЕНТАРИЕВ, ПОСТОВ И СООБЩЕНИЙ ───
+
+async function deleteComment(commentId) {
+  if(!(await appConfirm('Удалить комментарий?', 'Он исчезнет навсегда.', 'Удалить'))) return;
+  try {
+    const { error } = await sb.from('comments').delete().eq('id', commentId);
+    if (error) throw error;
+    playSuccess();
+    toast('Комментарий удален');
+    loadFeed(); // Обновляем ленту
+  } catch(e) {
+    toast('Ошибка удаления', 'danger');
+  }
+}
+
+async function deleteFeedPost(postId) {
+  if(!(await appConfirm('Удалить свой пост?', 'Он исчезнет из ленты.', 'Удалить'))) return;
+  try {
+    const { error } = await sb.from('messages').delete().eq('id', postId);
+    if (error) throw error;
+    playSuccess();
+    toast('Пост удален');
+    loadFeed();
+  } catch(e) {
+    toast('Ошибка удаления', 'danger');
+  }
+}
+
+async function deletePrivateMessage(msgId) {
+  if(!(await appConfirm('Удалить сообщение?', 'Оно исчезнет из чата.', 'Удалить'))) return;
+  try {
+    const { error } = await sb.from('private_messages').delete().eq('id', msgId);
+    if (error) throw error;
+    playSuccess();
+    loadDialog(); // Обновляем чат
+  } catch(e) {
+    toast('Ошибка удаления', 'danger');
+  }
+}
