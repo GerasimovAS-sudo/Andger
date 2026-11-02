@@ -507,18 +507,17 @@ function nextTrack(){
   currentTrackIdx = (currentTrackIdx + 1) % currentPlaylist.length;
   musicAudio.src = currentPlaylist[currentTrackIdx];
   
-  // ✨ Убрали musicAudio.load() — он сбрасывает разрешение на воспроизведение на iOS!
-  
   if (state.soundMode === 'sound') {
-    musicAudio.volume = 0.01; // Снова ставим чуть больше нуля
+    musicAudio.volume = 0.01; 
     musicAudio.play().then(() => {
-      const targetVol = isVoicePlaying ? 0.05 : 0.3;
+      const targetVol = isVoicePlaying ? 0.15 : 0.3;
       fadeAudio(musicAudio, 0.01, targetVol, 1000);
     }).catch(()=>{});
   } else {
     musicAudio.volume = 0;
   }
 }
+
 function stopMusic(){
   if(!musicAudio) return;
   try {
@@ -3271,20 +3270,17 @@ function stopTimer(){
   const pScreen = document.getElementById('practiceScreen');
   const rScreen = document.getElementById('ritualScreen');
   
-  // ✨ ИСПРАВЛЕНИЕ: Очищаем субтитры при остановке таймера
   if(pScreen) { const sub = pScreen.querySelector('.practice-subtitle'); if(sub) { sub.textContent = ''; sub.classList.remove('show'); } }
   if(rScreen) { const sub = rScreen.querySelector('.practice-subtitle'); if(sub) { sub.textContent = ''; sub.classList.remove('show'); } }
 
-  // Сбрасываем кружок таймера на обоих экранах
   if(pScreen) { const c = pScreen.querySelector('.timer-circle'); if(c) c.style.strokeDashoffset = 0; }
   if(rScreen) { const c = rScreen.querySelector('.timer-circle'); if(c) c.style.strokeDashoffset = 0; }
 
   if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
-  isVoicePlaying = false; // <--- СБРАСЫВАЕМ ФЛАГ
+  isVoicePlaying = false; 
   releaseWakeLock(); 
   if(timerInterval){clearInterval(timerInterval);timerInterval=null}
   
-  // Убираем пульсацию цифр
   if(pScreen) { const t = pScreen.querySelector('#timerDisplay'); if(t) t.classList.remove('timer-pulsing'); }
   if(rScreen) { const t = rScreen.querySelector('#timerDisplay'); if(t) t.classList.remove('timer-pulsing'); }
 
@@ -3294,6 +3290,14 @@ function stopTimer(){
   document.body.style.overflow = '';
   document.body.style.position = '';
   document.body.style.width = '';
+
+  // ✨ ПЛАВНОЕ ЗАТУХАНИЕ МУЗЫКИ В КОНЦЕ ПРАКТИКИ
+  if (musicAudio && state.soundMode === 'sound' && !musicAudio.paused) {
+    fadeAudio(musicAudio, musicAudio.volume, 0, 1500, () => {
+      musicAudio.pause();
+      musicAudio.currentTime = 0;
+    });
+  }
 }
 
 // Совместимый адаптер для существующих callback-сценариев: визуально используется только appDialog/appConfirm.
@@ -8946,11 +8950,14 @@ function setAvatarFromModal(avatarKey) {
 async function speakBackgroundGuide(text, context = 'practice') {
   if (!text) return;
   if (state.soundMode !== 'sound') return;
-  if (document.visibilityState === 'hidden') return; // ЖЕСТКИЙ ЗАПРЕТ НА ОЗВУЧКУ В ФОНЕ
+  if (document.visibilityState === 'hidden') return; 
   
+  // 1. СРАЗУ приглушаем музыку, не дожидаясь ответа от сервера!
   isVoicePlaying = true; 
+  if (musicAudio) {
+    fadeAudio(musicAudio, musicAudio.volume, 0.15, 400); // Умное приглушение до 15%
+  }
 
-  // Показываем субтитры МГНОВЕННО
   const isRitual = (context === 'ritual');
   const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
   const subEl = screen ? screen.querySelector('.practice-subtitle') : null;
@@ -8960,7 +8967,6 @@ async function speakBackgroundGuide(text, context = 'practice') {
   }
 
   try {
-    // --- УМНАЯ ЛОГИКА ВЫБОРА ГОЛОСА ---
     let vSettings = {};
     let voiceToUse = 'alena';
     let speedToUse = 0.9; 
@@ -9001,15 +9007,15 @@ async function speakBackgroundGuide(text, context = 'practice') {
     if (error) throw error;
     if (data && data.error) throw new Error(data.error);
 
-    // ✨ ФИКС: Проверяем, не закрыл ли пользователь практику, пока мы ждали ответ от сервера
+    // Проверка, не закрыл ли пользователь практику
     const isPracticeHidden = document.getElementById('practiceScreen').classList.contains('hidden');
     const isRitualHidden = document.getElementById('ritualScreen').classList.contains('hidden');
     if (isPracticeHidden && isRitualHidden) {
       isVoicePlaying = false;
-      return; // Если экран закрыт — прерываем воспроизведение
+      if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.3, 400);
+      return; 
     }
 
-    // РАСШИФРОВКА Base64 в MP3
     const binaryString = window.atob(data.audio);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
@@ -9020,7 +9026,6 @@ async function speakBackgroundGuide(text, context = 'practice') {
     ttsAudio.pause();
     ttsAudio.currentTime = 0;
     
-    // Очищаем память от предыдущего файла озвучки, чтобы iOS не крашился
     if (ttsAudio.src && ttsAudio.src.startsWith('blob:')) {
         URL.revokeObjectURL(ttsAudio.src);
     }
@@ -9028,57 +9033,32 @@ async function speakBackgroundGuide(text, context = 'practice') {
     const blob = new Blob([bytes], { type: 'audio/mpeg' });
     ttsAudio.src = URL.createObjectURL(blob);
     
+    // Возврат музыки обратно
     const restoreMusic = () => {
       isVoicePlaying = false; 
       if (musicAudio && state.soundMode === 'sound') {
-        fadeAudio(musicAudio, musicAudio.volume, 0.3, 400);
+        fadeAudio(musicAudio, musicAudio.volume, 0.3, 800); // Плавно возвращаем на 30%
       }
     };
 
     ttsAudio.onended = restoreMusic;
     ttsAudio.onerror = restoreMusic;
 
-    if (state.soundMode !== 'sound') {
-       if (subEl) subEl.classList.remove('show');
-       if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000);
-       isVoicePlaying = false; 
-       return;
-    }
-
     ttsAudio.volume = 1;
     
     try {
       await ttsAudio.play();
-      
-      if (musicAudio) {
-        fadeAudio(musicAudio, musicAudio.volume, 0.05, 300);
-      }
-      
     } catch (playError) {
       restoreMusic(); 
-      if (playError.name === 'AbortError') {
-        console.log('Голос был прерван (таймер остановлен).');
-      } else {
-        throw playError;
-      }
+      if (playError.name !== 'AbortError') throw playError;
     }
     
   } catch (error) {
-    console.error('Ошибка озвучки (Яндекс), включаем системный голос:', error);
+    console.error('Ошибка озвучки, включаем системный голос:', error);
     
-    // ✨ ФИКС: Если произошла ошибка, и экран уже закрыт — не включаем системный голос
-    const isPracticeHidden = document.getElementById('practiceScreen').classList.contains('hidden');
-    const isRitualHidden = document.getElementById('ritualScreen').classList.contains('hidden');
-    if (isPracticeHidden && isRitualHidden) {
-      isVoicePlaying = false;
-      return;
-    }
-
-    let errorMsg = error.message;
-    if (error.context && typeof error.context.json === 'function') {
-      try { const errData = await error.context.json(); errorMsg = errData.error || errorMsg; } catch(e) {}
-    }
-    console.warn('Причина ошибки:', errorMsg);
+    // При ошибке тоже возвращаем музыку
+    isVoicePlaying = false;
+    if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.3, 800);
 
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel(); 
@@ -9086,22 +9066,11 @@ async function speakBackgroundGuide(text, context = 'practice') {
       utterance.lang = 'ru-RU';
       
       utterance.onend = () => {
-        isVoicePlaying = false;
-        if (subEl) {
-          subEl.classList.remove('show');
-          setTimeout(() => { subEl.textContent = ''; }, 500);
-        }
-        if (musicAudio && state.soundMode === 'sound') {
-          fadeAudio(musicAudio, musicAudio.volume, 0.3, 600);
-        }
+        if (subEl) { subEl.classList.remove('show'); setTimeout(() => { subEl.textContent = ''; }, 500); }
       };
       
       window.speechSynthesis.speak(utterance);
     } else {
-      isVoicePlaying = false;
-      if (musicAudio && state.soundMode === 'sound' && timerState === 'running') {
-        fadeAudio(musicAudio, musicAudio.volume, 0.3, 800);
-      }
       if (subEl) subEl.classList.remove('show');
     }
   }
@@ -10883,6 +10852,7 @@ async function shareStoryNative() {
   }
 }
 function startMusic(practiceId = 'default'){
+  // ЖЕСТКО сбрасываем флаг, чтобы музыка всегда стартовала на 30%, а не на 5%
   isVoicePlaying = false;
 
   if(!musicAudio){
@@ -10891,7 +10861,6 @@ function startMusic(practiceId = 'default'){
     musicAudio.addEventListener('ended', nextTrack); 
   }
   
-  // Умный выбор плейлиста по ID, названию, подзаголовку и ИКОНКЕ
   const pid = (practiceId || '').toLowerCase();
   const activeP = currentPractice || (ritualQueue && ritualQueue[ritualIndex]);
   const pTitle = activeP && activeP.title ? activeP.title.toLowerCase() : '';
@@ -10908,7 +10877,6 @@ function startMusic(practiceId = 'default'){
     currentPlaylist = MUSIC_TRACKS.silence; 
   }
 
-  // Всегда выбираем новый трек при старте
   let newIdx;
   do { newIdx = Math.floor(Math.random() * currentPlaylist.length) }
   while (currentPlaylist.length > 1 && newIdx === currentTrackIdx);
@@ -10917,8 +10885,7 @@ function startMusic(practiceId = 'default'){
   musicAudio.src = currentPlaylist[currentTrackIdx];
   musicAudio.currentTime = 0;
   
-  // ✨ ЖЕЛЕЗНЫЙ ФИКС ДЛЯ IOS: Ставим громкость ЧУТЬ-ЧУТЬ выше нуля ПЕРЕД play()
-  // Если volume = 0, iOS Safari блокирует запуск.
+  // Фикс iOS: ставим 0.01 перед play()
   musicAudio.volume = 0.01;
   musicAudio.muted = false; 
 
@@ -10926,13 +10893,10 @@ function startMusic(practiceId = 'default'){
   
   if (playPromise !== undefined) {
     playPromise.then(() => {
-      let targetVol = state.soundMode === 'sound' ? 0.3 : 0;
-      if (isVoicePlaying) targetVol = 0.05; 
-      // Плавно наращиваем громкость с 0.01 до 0.3
-      fadeAudio(musicAudio, 0.01, targetVol, 1500);
+      // Всегда наращиваем до 0.3, так как isVoicePlaying = false
+      fadeAudio(musicAudio, 0.01, 0.3, 1500);
     }).catch((e) => {
-      console.log('Музыка заблокирована браузером (autoplay):', e);
-      // НЕ ставим volume = 0, чтобы не сломать следующую попытку
+      console.log('Музыка заблокирована браузером:', e);
     });
   }
 }
