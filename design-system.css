@@ -704,6 +704,9 @@ html.light .d-lib-folder-title {
   align-items: center;
   justify-content: center;
   padding-bottom: env(safe-area-inset-bottom, 0px); /* Учитываем полосу жестов iPhone */
+  /* ФИКС: Растягиваем фон на всю высоту включая нижнюю безопасную зону */
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  box-sizing: border-box;
 }
 #appLoader.hide { opacity: 0; pointer-events: none; }
 

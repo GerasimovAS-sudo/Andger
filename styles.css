@@ -2158,21 +2158,15 @@ input, textarea, select {
    ЖЕЛЕЗНЫЙ ФИКС ЧЕРНОЙ ПОЛОСЫ СНИЗУ ДЛЯ iOS PWA
    ═══════════════════════════════════════════════ */
 html {
-  background-color: #0d0a18 !important; /* Красим сам корень страницы */
+  background-color: #0d0a18 !important; 
+  height: 100% !important;
+  min-height: 100dvh !important;
+}
+body {
+  background-color: #0d0a18 !important;
+  min-height: 100dvh !important;
 }
 
-/* Создаем невидимый слой на весь экран, который гарантированно закрашивает низ */
-body::after {
-  content: '';
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  width: 100vw;
-  height: 100vh; 
-  height: 100dvh;
-  background-color: #0d0a18;
-  z-index: -10;
-  pointer-events: none;
-}
 /* ═══════════════════════════════════════════════ */
 /* СВАЙПАЕМЫЙ КАЛЕНДАРЬ */
 /* ═══════════════════════════════════════════════ */

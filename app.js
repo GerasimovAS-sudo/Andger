@@ -220,6 +220,7 @@ let deferredInstallPrompt=null;
 let notifications=[];
 let globalQuotes=[];
 let ritualHowIndex = 0;
+let mascotInterval = null; // <--- ДОБАВИТЬ ВОТ ЭТО
 let godModeEnabled = false; // автоматически включается для подтверждённого администратора
 let currentPracticeRating = 0;
 let allPracticeRatings = {}; 
@@ -850,7 +851,7 @@ function appDialog({ title = 'Подтверждение', message = '', confirm
     actions.append(cancel, accept);
     panel.append(actions);
     overlay.append(panel);
-    document.body.append(overlay);
+    document.getElementById('modalsRoot').append(overlay);
 
     let finished = false;
     const finish = value => {
@@ -1258,9 +1259,12 @@ async function loadProgress(){
     const fetchPromise = sb.from('progress').select('*').eq('user_id',user.id);
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000));
     
-    const {data, error} = await Promise.race([fetchPromise, timeoutPromise]);
+    const response = await Promise.race([fetchPromise, timeoutPromise]);
     
-    if (!error && data && data.length > 0) {
+    if (response.error) throw response.error; // Если база вернула ошибку — идем в catch
+    
+    const data = response.data;
+    if (data && data.length > 0) {
       state.books = {};
       data.forEach(row=>{
         state.books[row.book_id] = row.data || {start:null, days:{}, journal:{}};
@@ -1275,15 +1279,20 @@ async function loadProgress(){
   if(!state.books) state.books = {};
 }
 
-async function syncProgress(){
+async function syncProgress(changedBookId = null){
   if(!user||!state.books)return;
-  const rows=Object.keys(state.books)
-    .filter(bookId => !bookId.startsWith('__preview_')) // <--- Игнорируем тестовые книги
+  
+  // Если передали ID книги, синхронизируем ТОЛЬКО её. Если нет — все.
+  const booksToSync = changedBookId ? [changedBookId] : Object.keys(state.books);
+  
+  const rows=booksToSync
+    .filter(bookId => !bookId.startsWith('__preview_'))
     .map(bookId=>({
       user_id:user.id,book_id:bookId,
       data:state.books[bookId],
       updated_at:new Date().toISOString()
     }));
+    
   if(rows.length)await sb.from('progress').upsert(rows,{onConflict:'user_id,book_id'});
   
   await sb.from('profiles').update({
@@ -1297,15 +1306,15 @@ async function syncProgress(){
     spent_xp: state.spentXP || 0
   }).eq('id',user.id);
 }
-function saveState(){
-  // 1. Сразу сохраняем в память телефона (LocalStorage) — это работает без интернета
+function saveState(changedBookId = null){
+  // 1. Сразу сохраняем в память телефона
   try {
     localStorage.setItem('andger_current_state', JSON.stringify(state));
   } catch(e) { console.log('LocalStorage error', e); }
 
   // 2. Отправляем на сервер с задержкой
   if(syncTimeout)clearTimeout(syncTimeout);
-  syncTimeout=setTimeout(()=>syncProgress(),1500);
+  syncTimeout=setTimeout(()=>syncProgress(changedBookId),1500);
 }
 
 // ─── ОФФЛАЙН ОЧЕРЕДЬ ───
@@ -1384,9 +1393,10 @@ function hideAll(){
     }
   });
     // Скрываем зависшие модальные слои при смене раздела.
-  document.querySelectorAll('#modalsRoot .modal, #modalsRoot .complete-overlay').forEach(el => {
+  document.querySelectorAll('#modalsRoot .modal, #modalsRoot .complete-overlay, .app-dialog-overlay').forEach(el => {
     el.classList.add('hidden');
     el.style.removeProperty('display');
+    if (el.classList.contains('app-dialog-overlay')) el.remove(); // Полностью удаляем кастомные окна
   });
   const bn=document.getElementById('bottomNav');
   if(bn) { bn.classList.add('hidden'); bn.style.display = 'none'; }
@@ -1465,6 +1475,29 @@ function showTodayScreen(){
   
   // ✨ АВТОМАТИЧЕСКИЙ ВЫЗОВ ОТЧЕТА РАЗ В НЕДЕЛЮ
   setTimeout(checkWeeklyReview, 1500); 
+
+  // Запускаем смену советов маскота ТОЛЬКО на главном экране
+  if (mascotInterval) clearInterval(mascotInterval);
+  mascotInterval = setInterval(() => {
+    if (currentScreen === 'today') {
+      const bubbleText = document.getElementById('lumiTip');
+      const bubble = document.getElementById('andgerBubble');
+      if (bubbleText && bubble) {
+        const tips = [
+          "Не забывай делать паузы.", "Твоя энергия заразительна!", "Один шаг сегодня — уже движение.",
+          "Маленькие шаги создают большие перемены.", "Фокус — это твоя суперсила.", "Продолжай в том же духе!",
+          "Вода и сон — твои лучшие друзья.", "Дыши глубже. Всё идёт по плану."
+        ];
+        let newTip = tips[Math.floor(Math.random() * tips.length)];
+        if (newTip !== bubbleText.textContent) {
+          bubbleText.textContent = newTip;
+          bubble.classList.remove('animate-in');
+          void bubble.offsetWidth;
+          bubble.classList.add('animate-in');
+        }
+      }
+    }
+  }, 15000);
 }
 
 // Функция проверки: не пора ли показать отчет
@@ -3505,7 +3538,7 @@ function markPracticeDoneForBook(bookId,pid){
     // ✨ ВИБРАЦИЯ ПРИ ВЫПОЛНЕНИИ (если телефон поддерживает)
     haptic('success');
   }
-  saveState();
+  saveState(bookId);
 }
 
 // ─── СВОЙ РИТУАЛ ───
@@ -8951,12 +8984,6 @@ async function speakBackgroundGuide(text, context = 'practice') {
   if (!text) return;
   if (state.soundMode !== 'sound') return;
   if (document.visibilityState === 'hidden') return; 
-  
-  // 1. СРАЗУ приглушаем музыку, не дожидаясь ответа от сервера!
-  isVoicePlaying = true; 
-  if (musicAudio) {
-    fadeAudio(musicAudio, musicAudio.volume, 0.15, 400); // Умное приглушение до 15%
-  }
 
   const isRitual = (context === 'ritual');
   const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
@@ -9015,6 +9042,13 @@ async function speakBackgroundGuide(text, context = 'practice') {
       if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.3, 400);
       return; 
     }
+
+    // Приглушаем музыку ТОЛЬКО когда аудио уже скачалось и готово к игре
+    isVoicePlaying = true; 
+    if (musicAudio) {
+      fadeAudio(musicAudio, musicAudio.volume, 0.15, 400);
+    }
+
 
     const binaryString = window.atob(data.audio);
     const bytes = new Uint8Array(binaryString.length);
@@ -9707,34 +9741,7 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', handleKeyboard);
   window.visualViewport.addEventListener('scroll', handleKeyboard);
 }
-// ═══════════════════════════════════════════════
-// АВТО-СОВЕТЫ ОТ ЗВЕРЬКА (Каждые 15 секунд)
-// ═══════════════════════════════════════════════
-setInterval(() => {
-  if (currentScreen === 'today') {
-    const bubbleText = document.getElementById('lumiTip');
-    const bubble = document.getElementById('andgerBubble');
-    if (bubbleText && bubble) {
-      const tips = [
-        "Не забывай делать паузы.",
-        "Твоя энергия заразительна!",
-        "Один шаг сегодня — уже движение.",
-        "Маленькие шаги создают большие перемены.",
-        "Фокус — это твоя суперсила.",
-        "Продолжай в том же духе!",
-        "Вода и сон — твои лучшие друзья.",
-        "Дыши глубже. Всё идёт по плану."
-      ];
-      let newTip = tips[Math.floor(Math.random() * tips.length)];
-      if (newTip !== bubbleText.textContent) {
-        bubbleText.textContent = newTip;
-        bubble.classList.remove('animate-in');
-        void bubble.offsetWidth;
-        bubble.classList.add('animate-in');
-      }
-    }
-  }
-}, 15000);
+
 // Функция для показа окна перед началом практики
 function showPracticeModeInfo(mode) {
   let modal = document.getElementById('customModeModal');
