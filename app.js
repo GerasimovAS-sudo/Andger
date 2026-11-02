@@ -205,6 +205,7 @@ const DEV_TELEGRAM = 'Gerasimov_And';
 let calendarWeekOffset = 0; // 0 - текущая неделя, -1 - прошлая, 1 - следующая
 let BOOKS=[], currentBook=null, currentPractice=null, ritualQueue=[], ritualIndex=0;
 let timerInterval=null, timerRemaining=0, timerState='idle';
+let timerTargetTime = 0;
 let user=null, state={}, onbIndex=0, statsBookId=null;
 let musicAudio=null, ttsAudio=null, syncTimeout=null, isAdminFlag=false, profileHeartbeatTimer=null;
 let isVoicePlaying = false;
@@ -424,56 +425,78 @@ const MUSIC_TRACKS = {
 let currentTrackIdx = 0;
 let currentPlaylist = [];
 
-function startMusic(practiceId = 'default'){
-  // Сбрасываем флаг голоса, чтобы музыка не застревала в тихом режиме
-  isVoicePlaying = false;
+function toggleTimer(ctx){
+  const isRitual = !document.getElementById('ritualScreen').classList.contains('hidden');
+  const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
+  const btn = screen.querySelector('#timerBtn'); 
 
-  if(!musicAudio){
-    musicAudio=new Audio();
-    musicAudio.volume=0;
-    musicAudio.loop = false; // Отключаем зацикливание одного трека
-    musicAudio.addEventListener('ended', nextTrack); // Включаем плавный переход к следующему
-  }
-  function resumeMusic(){
-  if(state.soundMode === 'sound' && musicAudio && musicAudio.paused){
-    musicAudio.play().catch(()=>{});
-  }
-}
-  
-  // Умный выбор плейлиста по ID практики или её названию
-  const pid = (practiceId || '').toLowerCase();
-  const activeP = currentPractice || (ritualQueue && ritualQueue[ritualIndex]);
-  const pTitle = activeP && activeP.title ? activeP.title.toLowerCase() : '';
-  const pSub = activeP && activeP.sub ? activeP.sub.toLowerCase() : '';
-  const searchStr = pid + ' ' + pTitle + ' ' + pSub;
-
-  if (searchStr.includes('sport') || searchStr.includes('зарядк') || searchStr.includes('спорт') || searchStr.includes('трениров') || searchStr.includes('action')) {
-    currentPlaylist = MUSIC_TRACKS.sport;
-  } else if (searchStr.includes('read') || searchStr.includes('чтени') || searchStr.includes('journal')) {
-    currentPlaylist = MUSIC_TRACKS.read;
+  if(timerState === 'running'){
+    // ПАУЗА
+    clearInterval(timerInterval);
+    timerState = 'paused';
+    if (musicAudio) musicAudio.pause();
+    if (ttsAudio) ttsAudio.pause();
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    if(btn){ btn.innerHTML='▶ Продолжить'; btn.classList.add('paused'); }
+    const ringWrap = screen.querySelector('.d-timer-ring-wrap');
+    if (ringWrap) ringWrap.classList.add('paused-ring'); 
+  } else if(timerState === 'done'){
+    // Ничего не делаем
   } else {
-    currentPlaylist = MUSIC_TRACKS.silence; 
-  }
+    // СТАРТ ИЛИ ПРОДОЛЖЕНИЕ
+    let currentP = isRitual ? ritualQueue[ritualIndex] : currentPractice;
 
-  // Новый трек при каждом запуске (если музыка не играет)
-  if(!musicAudio.src || musicAudio.paused){
-    let newIdx;
-    do { newIdx = Math.floor(Math.random() * currentPlaylist.length) }
-    while (currentPlaylist.length > 1 && newIdx === currentTrackIdx);
+    if (timerState === 'idle') {
+      // Если стартуем с нуля — сбрасываем фразы и включаем музыку
+      if (currentP) currentP._spokenIndices = [];
+      isVoicePlaying = false;
+      if (state.soundMode === 'sound') {
+         startMusic(currentP ? currentP.id : 'default');
+      }
+    } else if (timerState === 'paused') {
+      // Если продолжаем — просто включаем ту же музыку, что играла
+      if (state.soundMode === 'sound' && musicAudio) {
+         musicAudio.play().catch(()=>{});
+         fadeAudio(musicAudio, musicAudio.volume, isVoicePlaying ? 0.05 : 0.3, 500); 
+      }
+      if (ttsAudio && isVoicePlaying) {
+         ttsAudio.play().catch(()=>{});
+      }
+    }
+
+    // Разблокировка системного голоса
+    if ('speechSynthesis' in window) {
+      const emptyUtterance = new SpeechSynthesisUtterance('');
+      emptyUtterance.volume = 0;
+      window.speechSynthesis.speak(emptyUtterance);
+    }
     
-    currentTrackIdx = newIdx;
-    musicAudio.src = currentPlaylist[currentTrackIdx];
-    musicAudio.load(); // Принудительно загружаем новый трек
-    musicAudio.currentTime = 0;
+    if (!ttsAudio) ttsAudio = new Audio();
+    ttsAudio.play().catch(()=>{});
+    ttsAudio.pause();
+    
+    startTimer(isRitual ? 'ritual' : 'practice'); 
+    timerState = 'running';
+    
+    if(btn){ btn.innerHTML='⏸ Пауза'; btn.classList.remove('paused'); }
+    const focusControls = screen.querySelector('.focus-controls');
+    if (focusControls) focusControls.style.display = 'flex';
+     const ringWrap2 = screen.querySelector('.d-timer-ring-wrap');
+    if (ringWrap2) ringWrap2.classList.remove('paused-ring'); 
+    
+    const zenBtn = screen ? screen.querySelector('.exit-zen-btn') : null;
+    if (zenBtn) {
+      zenBtn.style.display = 'block';
+      zenBtn.textContent = 'Свернуть таймер';
+    }
+    
+    if(screen) {
+      screen.classList.add('focus-mode');
+      document.body.style.overflow = 'hidden'; 
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    }
   }
-    musicAudio.play().then(() => {
-      // Если звук включен - нарастаем до 0.3 (или 0.01, если говорит голос)
-      let targetVol = state.soundMode === 'sound' ? 0.3 : 0;
-      if (isVoicePlaying) targetVol = 0.15; // Подняли до 15%, чтобы было слышно
-      fadeAudio(musicAudio, musicAudio.volume, targetVol, 1500);
-    }).catch((e) => {
-      console.log('Ошибка воспроизведения (нужно нажать на экран):', e);
-    });
 }
 
 function nextTrack(){
@@ -485,7 +508,7 @@ function nextTrack(){
   musicAudio.load();
   
   if (state.soundMode === 'sound') {
-    musicAudio.volume = isVoicePlaying ? 0.08 : 0.3;
+    musicAudio.volume = isVoicePlaying ? 0.05 : 0.3;
     musicAudio.play().catch(()=>{});
   } else {
     musicAudio.volume = 0;
@@ -1713,13 +1736,13 @@ function toggleSound(){
            if (isPracticeActive && musicAudio.src) {
           // Включаем воспроизведение с того же места (currentTime сохранился при pause)
           musicAudio.play().then(() => {
-            const targetVol = isVoicePlaying ? 0.08 : 0.3;
+            const targetVol = isVoicePlaying ? 0.05 : 0.3;
             fadeAudio(musicAudio, 0, targetVol, 500); // Плавно поднимаем громкость с нуля
           }).catch(e => console.log('Ошибка возобновления музыки:', e));
         }
       } else {
         // Музыка играет, просто меняем громкость
-        const targetVol = isVoicePlaying ? 0.08 : 0.3;
+        const targetVol = isVoicePlaying ? 0.05 : 0.3;
         fadeAudio(musicAudio, musicAudio.volume, targetVol, 500);
       }
     }
@@ -2937,6 +2960,7 @@ function dateByDay(bookId,day){
 }
 
 // ─── РИТУАЛ ───
+
 function startRitual(){
   window._isCustomRitualFlow = false;
   if(!currentBook){toast('Сначала выбери книгу','warm');return}
@@ -2947,16 +2971,10 @@ function startRitual(){
     bs.start = todayStr();
     saveState();
     renderToday(); 
-    
   }
 
   const day = currentDay(currentBook.id);
   const date = dateByDay(currentBook.id, day);
-  
-  if (bs.days[date] && bs.days[date].closed) {
-    toast('Вы уже выполнили все практики на сегодня. Ждем завтра!', 'warm');
-    return;
-  }
 
   const b=currentBook;
   const donePractices = (bs.days[date] && bs.days[date].practices) ? bs.days[date].practices : [];
@@ -2987,6 +3005,7 @@ function startRitual(){
   window.scrollTo(0,0);
   renderRitualStep();
 }
+
 function renderRitualStep(){
   try {
     if (ritualIndex >= ritualQueue.length) { finishRitual(); return; }
@@ -3112,18 +3131,18 @@ function startTimer(ctx){
   const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
   if (!screen) return; 
 
-  // ВОТ ЭТА СТРОЧКА БЫЛА ПОТЕРЯНА:
   const circle = screen.querySelector('.timer-circle'); 
-  
   if (circle) circle.style.transition = 'stroke-dashoffset 1s linear';
   
   requestWakeLock(); 
-  const targetTime = Date.now() + (timerRemaining * 1000);
-  const totalDuration = timerRemaining; 
+  timerTargetTime = Date.now() + (timerRemaining * 1000);
+  const targetTime = timerTargetTime;
+  
+  // ✨ ФИКС: Сначала объявляем переменную, а потом используем
+  let currentP = isRitual ? ritualQueue[ritualIndex] : currentPractice;
+  const totalDuration = currentP ? currentP.time : timerRemaining; 
   
   if(timerInterval) clearInterval(timerInterval);
-  
-  let currentP = isRitual ? ritualQueue[ritualIndex] : currentPractice;
   
   if (currentP && !currentP._spokenIndices) {
     currentP._spokenIndices = []; 
@@ -3142,7 +3161,6 @@ function startTimer(ctx){
 
     // ПЛАВНОЕ ЗАТУХАНИЕ МУЗЫКИ (Последние 15 секунд)
     if (timerRemaining <= 15 && timerRemaining > 0 && musicAudio && state.soundMode === 'sound') {
-      // Вычисляем громкость пропорционально оставшемуся времени, учитывая говорит ли голос
       const maxVol = isVoicePlaying ? 0.15 : 0.3;
       musicAudio.volume = (timerRemaining / 15) * maxVol;
     }
@@ -3158,8 +3176,9 @@ function startTimer(ctx){
       const elapsed = totalDuration - remaining;
       currentP.voiceTimeline.forEach((item, index) => {
         if (elapsed >= item.time && !currentP._spokenIndices.includes(index)) {
-          console.log('🎤 Триггер озвучки:', item.text); // Проверка срабатывания
-          speakBackgroundGuide(item.text, ctx);
+          if (elapsed - item.time < 30) {
+            speakBackgroundGuide(item.text, ctx);
+          }
           currentP._spokenIndices.push(index);
         }
       });
@@ -3168,7 +3187,6 @@ function startTimer(ctx){
     if(timerRemaining <= 0){
       stopTimer();
       timerState='done';
-       // ✨ Автоматически ставим все галочки в чек-листе, когда время вышло
       screen.querySelectorAll('.checklist-item').forEach(item => {
         item.classList.add('done');
       });
@@ -3202,6 +3220,10 @@ function stopTimer(){
   const pScreen = document.getElementById('practiceScreen');
   const rScreen = document.getElementById('ritualScreen');
   
+  // ✨ ИСПРАВЛЕНИЕ: Очищаем субтитры при остановке таймера
+  if(pScreen) { const sub = pScreen.querySelector('.practice-subtitle'); if(sub) { sub.textContent = ''; sub.classList.remove('show'); } }
+  if(rScreen) { const sub = rScreen.querySelector('.practice-subtitle'); if(sub) { sub.textContent = ''; sub.classList.remove('show'); } }
+
   // Сбрасываем кружок таймера на обоих экранах
   if(pScreen) { const c = pScreen.querySelector('.timer-circle'); if(c) c.style.strokeDashoffset = 0; }
   if(rScreen) { const c = rScreen.querySelector('.timer-circle'); if(c) c.style.strokeDashoffset = 0; }
@@ -4548,83 +4570,77 @@ function renderNotifications(){
   }).join('');
 }
 async function openNotification(id, el){
-  const n = notifications.find(x => x.id === id);
-  if (!n) return;
-  
-  // Визуальный отклик, что нажалось
-  if (el) el.style.opacity = '0.5';
-
-  // Мгновенно помечаем прочитанным
-  if (!n.read) {
-    sb.from('notifications').update({read:true}).eq('id',id).then(() => {});
-    n.read = true;
-    updateNotifBadge();
-  }
-  
-  let p = n.payload || {};
-  if (typeof p === 'string') {
-    try { p = JSON.parse(p); } catch(e) { p = {}; }
-  }
-
-  // --- ЛОГИКА ДЛЯ СООБЩЕНИЙ ---
-  if (n.type === 'msg') {
-    // 1. Переходим на экран Сообщества
-    await showCommunityScreen();
+  try {
+    const n = notifications.find(x => x.id === id);
+    if (!n) return;
     
-    // 2. Ждем 200мс, чтобы экран отрисовался
-    setTimeout(async () => {
-      const tabs = document.querySelectorAll('#communityScreen .tab-pill');
-      // 3. Переключаем на вкладку "Сообщения"
-      if (tabs && tabs[1]) switchCommunityTab('chats', tabs[1]);
+    if (el) el.style.opacity = '0.5';
+
+    if (!n.read) {
+      sb.from('notifications').update({read:true}).eq('id',id).then(() => {});
+      n.read = true;
+      updateNotifBadge();
+    }
+    
+    let p = n.payload || {};
+    if (typeof p === 'string') {
+      try { p = JSON.parse(p); } catch(e) { p = {}; }
+    }
+
+    if (n.type === 'msg') {
+      await showCommunityScreen();
       
-      // 4. Ищем ID отправителя (в разных ключах на всякий случай)
-      const fromId = p.from || p.from_user || p.sender_id || p.user_id;
-      
-      if (fromId) {
-        // Создаем профиль-заглушку, если не сможем загрузить
-        let profile = { id: fromId, name: p.from_name || 'Пользователь', avatar: '👤' };
-        try {
-          const { data } = await sb.from('profiles').select('*').eq('id', fromId).single();
-          if (data) profile = data; // Если нашли реальный профиль, используем его
-        } catch(e) {
-          console.warn('Профиль не найден, открываем с заглушкой');
+      setTimeout(async () => {
+        const tabs = document.querySelectorAll('#communityScreen .tab-pill');
+        if (tabs && tabs[1]) switchCommunityTab('chats', tabs[1]);
+        
+        // Безопасный поиск ID отправителя
+        const fromId = p.from || p.from_user || p.sender_id || p.user_id;
+        
+        if (fromId) {
+          let profile = { id: fromId, name: p.from_name || 'Пользователь', avatar: '👤' };
+          try {
+            const { data } = await sb.from('profiles').select('*').eq('id', fromId).maybeSingle();
+            if (data) profile = data;
+          } catch(e) {
+            console.warn('Профиль не найден, открываем с заглушкой');
+          }
+          setTimeout(() => openDialog(fromId, profile), 200);
+        } else {
+          toast('Открыт список сообщений', 'warm');
         }
         
-        // 5. Открываем сам чат
-        setTimeout(() => openDialog(fromId, profile), 200);
-      } else {
-        toast('Открыт список сообщений', 'warm');
-      }
-      
-      if (el) el.style.opacity = '1'; // Возвращаем видимость
-    }, 200);
-  }
-  
-  // --- ЛОГИКА ДЛЯ ЛАЙКОВ И КОММЕНТАРИЕВ ---
-  else if (n.type === 'like' || n.type === 'comment') {
-    await showCommunityScreen();
-    const tabs = document.querySelectorAll('#communityScreen .tab-pill');
-    if (tabs && tabs[0]) switchCommunityTab('feed', tabs[0]);
-    if (el) el.style.opacity = '1';
-  }
-  
-  // --- ЛОГИКА ДЛЯ ОСТАЛЬНЫХ ---
-  else if (n.type === 'admin') {
-    showSimpleModal('📢', p.title || 'Объявление', p.text || '');
-    if (el) el.style.opacity = '1';
-  }
-  else if (n.type === 'friend' && p.from) {
-    viewUserProfile(p.from, 'feed');
-    if (el) el.style.opacity = '1';
-  }
-  else if (n.type === 'feedback') {
-    if (isAdmin()) showAdmin('feedback');
-    else showSimpleModal('📬', 'Спасибо!', 'Твой отзыв получен.');
-    if (el) el.style.opacity = '1';
-  }
+        if (el) el.style.opacity = '1';
+      }, 200);
+    }
+    
+    else if (n.type === 'like' || n.type === 'comment') {
+      await showCommunityScreen();
+      const tabs = document.querySelectorAll('#communityScreen .tab-pill');
+      if (tabs && tabs[0]) switchCommunityTab('feed', tabs[0]);
+      if (el) el.style.opacity = '1';
+    }
+    else if (n.type === 'admin') {
+      showSimpleModal('📢', p.title || 'Объявление', p.text || '');
+      if (el) el.style.opacity = '1';
+    }
+    else if (n.type === 'friend' && (p.from || p.user_id)) {
+      viewUserProfile(p.from || p.user_id, 'feed');
+      if (el) el.style.opacity = '1';
+    }
+    else if (n.type === 'feedback') {
+      if (isAdmin()) showAdmin('feedback');
+      else showSimpleModal('📬', 'Спасибо!', 'Твой отзыв получен.');
+      if (el) el.style.opacity = '1';
+    }
 
-  renderNotifications(); // Обновляем список
+    renderNotifications(); 
+  } catch (error) {
+    console.error('Ошибка при открытии уведомления:', error);
+    if (el) el.style.opacity = '1';
+  }
 }
+    
 async function createNotification(userId, type, payload) {
   // Уведомления для 'msg' и 'like' теперь создаются автоматически на уровне Базы Данных (через SQL триггеры).
   if (type === 'msg' || type === 'like') {
@@ -8939,11 +8955,14 @@ async function speakBackgroundGuide(text, context = 'practice') {
     
     // Защита от ошибки AbortError
     try {
-      // ✨ УМНОЕ ПРИТУХАНИЕ: Плавно снижаем громкость до 15%, чтобы голос был слышен, а музыка не пропадала
-      if (musicAudio) {
-        fadeAudio(musicAudio, musicAudio.volume, 0.15, 300);
-      }
+      // Включаем голос
       await ttsAudio.play();
+      
+      // ✨ КРАСИВЫЙ ФИКС: Музыка притухает ТОЛЬКО когда голос уже пошел
+      if (musicAudio) {
+        fadeAudio(musicAudio, musicAudio.volume, 0.05, 300); // Убавляем до 5%
+      }
+      
     } catch (playError) {
       restoreMusic(); // Возвращаем музыку, если произошла ошибка
       
@@ -9232,30 +9251,70 @@ setTimeout(() => {
 
   window.addEventListener('pagehide', pauseAllAudio);
 
- document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState === 'hidden') {
-      pauseAllAudio();
-    } else if (document.visibilityState === 'visible') {
-      // Пользователь вернулся в приложение
-      if (timerState === 'running') {
-        // Будим Wake Lock (чтобы экран снова не погас во время медитации)
-        if (typeof requestWakeLock === 'function') requestWakeLock();
+document.addEventListener('visibilitychange', function(){
+  if (document.visibilityState === 'hidden') {
+    pauseAllAudio();
+  } else if (document.visibilityState === 'visible') {
+    
+    // ✨ ФИКС: Проверяем, не закончился ли таймер, пока мы были в фоне
+    if (timerState === 'running' && timerTargetTime > 0) {
+      const remaining = Math.round((timerTargetTime - Date.now()) / 1000);
+      
+      if (remaining <= 0) {
+        timerRemaining = 0;
         
-        // Будим аудио-контекст (браузеры любят его усыплять)
-        if (typeof getCtx === 'function') {
-          const ctx = getCtx();
-          if (ctx && ctx.state === 'suspended') ctx.resume();
-        }
+        // Принудительно вызываем завершение практики
+        const isRitual = !document.getElementById('ritualScreen').classList.contains('hidden');
+        const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
+        const currentP = isRitual ? ritualQueue[ritualIndex] : currentPractice;
         
-               // ВОЗОБНОВЛЯЕМ МУЗЫКУ ПРИ ВОЗВРАТЕ
-        if (state.soundMode === 'sound' && musicAudio) {
-          musicAudio.play().catch(()=>{});
-          const targetVol = isVoicePlaying ? 0.08 : 0.3;
-          fadeAudio(musicAudio, musicAudio.volume, targetVol, 500);
+        stopTimer();
+        timerState = 'done';
+        
+        // Визуально завершаем практику
+        if(screen) {
+          screen.querySelectorAll('.checklist-item').forEach(item => item.classList.add('done'));
+          const noteBlock = screen.querySelector('.note-block');
+          if(noteBlock) noteBlock.style.display = 'block';
+          
+          const btn = screen.querySelector('#timerBtn');
+          if(btn){
+            btn.textContent = '✨ Время вышло';
+            btn.className = 'timer-big-btn done';
+            btn.disabled = true;
+          }
         }
+
+        // Озвучиваем завершение и показываем окно
+        if (currentP) {
+          speakTimerEnd(currentP.id);
+          playFanfare();
+          showCompleteOverlay(currentP, isRitual ? 'ritual' : 'practice');
+        }
+        return; // Выходим, чтобы не запускать музыку
       }
     }
-  });
+
+    // Если таймер еще идет — возобновляем работу приложения
+    if (timerState === 'running') {
+      // Будим Wake Lock (чтобы экран снова не погас)
+      if (typeof requestWakeLock === 'function') requestWakeLock();
+      
+      // Будим аудио-контекст (браузеры любят его усыплять)
+      if (typeof getCtx === 'function') {
+        const ctx = getCtx();
+        if (ctx && ctx.state === 'suspended') ctx.resume();
+      }
+      
+      // ВОЗОБНОВЛЯЕМ МУЗЫКУ ПРИ ВОЗВРАТЕ
+      if (state.soundMode === 'sound' && musicAudio) {
+        musicAudio.play().catch(()=>{});
+        const targetVol = isVoicePlaying ? 0.05 : 0.3;
+        fadeAudio(musicAudio, musicAudio.volume, targetVol, 500);
+      }
+    }
+  }
+});
   // Первичный onboarding-hint: не блокирует сценарий и показывается один раз на устройстве.
   const originalShowToday = window.showTodayScreen;
   if (typeof originalShowToday === 'function') {
@@ -10727,4 +10786,52 @@ async function shareStoryNative() {
   } else {
     toast('Ваш браузер не поддерживает нативный шаринг. Скачайте картинку и отправьте вручную.', 'warm');
   }
+}
+function startMusic(practiceId = 'default'){
+  // Сбрасываем флаг голоса, чтобы музыка не застревала в тихом режиме
+  isVoicePlaying = false;
+
+  if(!musicAudio){
+    musicAudio=new Audio();
+    musicAudio.volume=0;
+    musicAudio.loop = false; 
+    musicAudio.addEventListener('ended', nextTrack); 
+  }
+  
+  // Умный выбор плейлиста по ID, названию, подзаголовку и ИКОНКЕ
+  const pid = (practiceId || '').toLowerCase();
+  const activeP = currentPractice || (ritualQueue && ritualQueue[ritualIndex]);
+  const pTitle = activeP && activeP.title ? activeP.title.toLowerCase() : '';
+  const pSub = activeP && activeP.sub ? activeP.sub.toLowerCase() : '';
+  const pIco = activeP && activeP.ico ? activeP.ico.toLowerCase() : ''; // Читаем иконку
+  
+  const searchStr = pid + ' ' + pTitle + ' ' + pSub + ' ' + pIco;
+
+  // Теперь музыка будет правильно подбираться под "Упражнения" и "Дневник" из нового JSON
+  if (searchStr.includes('sport') || searchStr.includes('зарядк') || searchStr.includes('спорт') || searchStr.includes('трениров') || searchStr.includes('action') || searchStr.includes('activity') || searchStr.includes('упражн') || searchStr.includes('движен') || searchStr.includes('актив')) {
+    currentPlaylist = MUSIC_TRACKS.sport;
+  } else if (searchStr.includes('read') || searchStr.includes('чтени') || searchStr.includes('journal') || searchStr.includes('edit') || searchStr.includes('book') || searchStr.includes('дневник') || searchStr.includes('запис')) {
+    currentPlaylist = MUSIC_TRACKS.read;
+  } else {
+    currentPlaylist = MUSIC_TRACKS.silence; 
+  }
+
+  // Всегда выбираем новый трек при старте
+  let newIdx;
+  do { newIdx = Math.floor(Math.random() * currentPlaylist.length) }
+  while (currentPlaylist.length > 1 && newIdx === currentTrackIdx);
+  
+  currentTrackIdx = newIdx;
+  musicAudio.src = currentPlaylist[currentTrackIdx];
+  musicAudio.currentTime = 0;
+  
+  // Убрали load() — он ломал автозапуск на iOS
+  musicAudio.play().then(() => {
+    // Если звук включен - нарастаем до 0.3 (или 0.05, если говорит голос)
+    let targetVol = state.soundMode === 'sound' ? 0.3 : 0;
+    if (isVoicePlaying) targetVol = 0.05; 
+    fadeAudio(musicAudio, musicAudio.volume, targetVol, 1500);
+  }).catch((e) => {
+    console.log('Ошибка воспроизведения (нужно нажать на экран):', e);
+  });
 }
