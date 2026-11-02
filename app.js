@@ -3153,12 +3153,6 @@ function toggleTimer(ctx){
     if (!ttsAudio) ttsAudio = new Audio();
     ttsAudio.play().catch(()=>{});
     ttsAudio.pause();
-    // 2.1. Разблокировка элемента музыки
-    if (!musicAudio) musicAudio = new Audio();
-    if (musicAudio.paused) {
-       musicAudio.play().catch(()=>{});
-       musicAudio.pause();
-    }
     
     startTimer(isRitual ? 'ritual' : 'practice'); 
     timerState = 'running';
@@ -10895,6 +10889,9 @@ function startMusic(practiceId = 'default'){
   // Фикс iOS: ставим 0.01 перед play()
   musicAudio.volume = 0.01;
   musicAudio.muted = false; 
+
+  // ЖЕЛЕЗНЫЙ ФИКС ДЛЯ SAFARI: принудительно загружаем трек
+  musicAudio.load(); 
 
   const playPromise = musicAudio.play();
   
