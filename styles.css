@@ -2242,6 +2242,10 @@ body::after {
   min-height: 44px !important;
   font-size: 13px !important;
 }
+/* Фикс зума на iOS при вводе текста */
+input, textarea, select {
+  font-size: 16px !important;
+}
 
 
 

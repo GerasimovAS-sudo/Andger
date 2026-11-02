@@ -890,12 +890,17 @@ function toast(msg,type='success'){
     svgIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>';
   }
 
-  d.innerHTML = `
-    <div class="andger-toast-icon">${svgIcon}</div>
-    <div class="andger-toast-text">${msg}</div>
-  `;
+  const iconWrap = document.createElement('div');
+  iconWrap.className = 'andger-toast-icon';
+  iconWrap.innerHTML = svgIcon;
+
+  const textWrap = document.createElement('div');
+  textWrap.className = 'andger-toast-text';
+  textWrap.textContent = msg;
+
+  d.appendChild(iconWrap);
+  d.appendChild(textWrap);
   
-  // Клик по уведомлению закрывает его
   d.onclick = () => {
     d.style.animation = 'andgerToastOut 0.3s cubic-bezier(0.4, 0, 1, 1) forwards';
     setTimeout(() => d.remove(), 300);
@@ -903,7 +908,6 @@ function toast(msg,type='success'){
 
   document.body.appendChild(d);
   
-  // Автоматическое скрытие через 3.5 секунды
   setTimeout(()=>{
     if(document.body.contains(d)) {
       d.style.animation = 'andgerToastOut 0.3s cubic-bezier(0.4, 0, 1, 1) forwards';
@@ -10897,7 +10901,7 @@ function startMusic(practiceId = 'default'){
     currentPlaylist = MUSIC_TRACKS.silence; 
   }
 
-  // Всегда выбираем новый трек при старте
+// Всегда выбираем новый трек при старте
   let newIdx;
   do { newIdx = Math.floor(Math.random() * currentPlaylist.length) }
   while (currentPlaylist.length > 1 && newIdx === currentTrackIdx);
@@ -10907,12 +10911,17 @@ function startMusic(practiceId = 'default'){
   musicAudio.currentTime = 0;
   
   // Убрали load() — он ломал автозапуск на iOS
-  musicAudio.play().then(() => {
-    // Если звук включен - нарастаем до 0.3 (или 0.05, если говорит голос)
-    let targetVol = state.soundMode === 'sound' ? 0.3 : 0;
-    if (isVoicePlaying) targetVol = 0.05; 
-    fadeAudio(musicAudio, musicAudio.volume, targetVol, 1500);
-  }).catch((e) => {
-    console.log('Ошибка воспроизведения (нужно нажать на экран):', e);
-  });
+  const playPromise = musicAudio.play();
+  
+  if (playPromise !== undefined) {
+    playPromise.then(() => {
+      let targetVol = state.soundMode === 'sound' ? 0.3 : 0;
+      if (isVoicePlaying) targetVol = 0.05; 
+      fadeAudio(musicAudio, musicAudio.volume, targetVol, 1500);
+    }).catch((e) => {
+      console.log('Музыка заблокирована браузером, ждем клика:', e);
+      // Если заблокировал — принудительно ставим 0, чтобы не было резкого звука
+      musicAudio.volume = 0; 
+    });
+  }
 }
