@@ -2320,6 +2320,134 @@ input, textarea, select {
 .diff-btn.on .diff-title {
   color: #fff;
 }
+/* ═══════════════════════════════════════════════ */
+/* КНОПКА УДАЛЕНИЯ СООБЩЕНИЯ В ЧАТЕ */
+/* ═══════════════════════════════════════════════ */
+.msg-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.15); /* Легкое затемнение под иконкой */
+  color: rgba(255, 255, 255, 0.6); /* Полупрозрачный белый */
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+/* Для чужих сообщений (на темном фоне) */
+.msg-bubble.other .msg-delete-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--d-text-dim);
+}
+
+/* Эффект при нажатии (становится красным и чуть увеличивается) */
+.msg-delete-btn:hover, 
+.msg-delete-btn:active {
+  background: rgba(255, 92, 92, 0.2);
+  color: #ff5c5c;
+  transform: scale(1.15);
+  box-shadow: 0 0 10px rgba(255, 92, 92, 0.3);
+}
+
+.msg-delete-btn svg {
+  width: 12px;
+  height: 12px;
+}
+/* ═══════════════════════════════════════════════ */
+/* ПРЕМИАЛЬНЫЙ РЕДАКТОР КНИГ (ВКЛАДКИ И КНОПКИ) */
+/* ═══════════════════════════════════════════════ */
+
+/* 1. КОНТЕЙНЕР ВЕРХНИХ ВКЛАДОК (Segmented Control) */
+.ed-tabs {
+  position: sticky;
+  top: calc(60px + env(safe-area-inset-top, 0px)); /* Прилипает под шапкой */
+  z-index: 100;
+  display: flex;
+  gap: 4px;
+  background: rgba(40, 30, 70, 0.6); /* Стеклянный фон */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--d-border);
+  border-radius: 16px;
+  padding: 4px;
+  margin: -10px 0 20px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.ed-tabs::-webkit-scrollbar { display: none; }
+
+/* 2. КНОПКИ ВКЛАДОК */
+.ed-tab-btn {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--d-text-dim);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid transparent; /* Убираем старую рамку */
+  background: transparent;
+  text-align: center;
+}
+
+/* Активная вкладка (заливается градиентом) */
+.ed-tab-btn.on {
+  background: linear-gradient(135deg, #7c5cff 0%, #6366f1 100%);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(124, 92, 255, 0.4);
+  transform: scale(1.02);
+}
+
+/* 3. ПАРЯЩАЯ НИЖНЯЯ ПАНЕЛЬ (Floating Dock) */
+.editor-bottom-dock {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 520px;
+  margin: 0 auto;
+  background: rgba(25, 18, 45, 0.85); /* Темное стекло */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px)) 16px; /* Учет полоски iPhone */
+  border-top: 1px solid rgba(124, 92, 255, 0.2);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: flex;
+  gap: 12px;
+}
+
+/* Кнопки внутри панели */
+.editor-bottom-dock .d-btn-secondary {
+  margin: 0;
+  flex: 1;
+  min-height: 52px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.editor-bottom-dock .d-btn-primary {
+  margin: 0;
+  flex: 1.8;
+  min-height: 52px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 6px 20px rgba(124, 92, 255, 0.4);
+}
+
+/* 4. ОТСТУП ДЛЯ КОНТЕНТА (Чтобы кнопки не перекрывали текст) */
+#bookEditorScreen .wrap {
+  padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px)) !important;
+}
 
 
 

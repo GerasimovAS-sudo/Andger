@@ -1226,7 +1226,7 @@
         </div>
 
         <!-- Плавающие кнопки сохранения -->
-        <div style="position: fixed; bottom: 0; left: 0; right: 0; max-width: 520px; margin: 0 auto; background: rgba(30, 20, 55, 0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(124, 92, 255, 0.2); border-radius: 24px 24px 0 0; z-index: 9999; display: flex; gap: 12px; box-shadow: 0 -10px 40px rgba(0,0,0,0.5);">
+        <div class="editor-bottom-dock">
           
           <button class="d-btn-secondary" onclick="saveBookDraft()" style="margin:0; flex:1; min-height:52px; border-radius:16px; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
@@ -1519,9 +1519,9 @@
 
       <!-- Оверлей завершения -->
       <div class="complete-overlay hidden" id="completeOverlay" style="position:fixed; inset:0; background:rgba(13,10,24,.95); align-items:center; justify-content:center; padding:20px; animation: fadeIn .3s;">
-        <div class="complete-box" style="background:var(--d-surface); border:1px solid var(--d-border); border-radius:24px; padding:16px 16px; max-width:360px; width:100%; text-align:center; animation: modalIn .5s cubic-bezier(.34,1.56,.64,1);">
+          <div class="complete-box" style="background:var(--d-surface); border:1px solid var(--d-border); border-radius:24px; padding:16px 16px; max-width:360px; width:100%; text-align:center; animation: modalIn .5s cubic-bezier(.34,1.56,.64,1);">
             
-            <!-- ГАЛОЧКА СЛЕВА ОТ ТЕКСТА (Только заголовок и время) -->
+            <!-- ГАЛОЧКА СЛЕВА ОТ ТЕКСТА -->
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; text-align: left;">
               <div class="co-ico" style="width:44px; height:44px; border-radius:12px; background:var(--d-success); display:flex; align-items:center; justify-content:center; font-size:22px; color:#fff; flex-shrink: 0;">✓</div>
               <div style="flex: 1; min-width: 0;">
@@ -1530,26 +1530,37 @@
               </div>
             </div>
 
-            <!-- СЮДА БУДЕМ ВСТАВЛЯТЬ ЦИТАТУ И ВОПРОС (На всю ширину) -->
+            <!-- ЦИТАТА И ВОПРОС ИЗ ДНЕВНИКА (На всю ширину) -->
             <div id="completeExtraContent" style="margin-bottom: 16px; text-align: center;"></div>
 
-            <!-- ОЦЕНКА ПРАКТИКИ -->
-            <div style="margin-bottom: 12px;">
-              <div style="font-size: 12px; color: var(--d-text-dim); margin-bottom: 6px;">Как ты себя чувствуешь?</div>
-              <div id="moodTrackerContainer" style="display: flex; justify-content: center; gap: 8px;">
+            <!-- ОЦЕНКА ПРАКТИКИ (ЗВЕЗДЫ) -->
+            <div style="margin-bottom: 16px;">
+              <div style="font-size: 12px; color: var(--d-text-dim); margin-bottom: 8px;">Оцени практику:</div>
+              <div id="practiceStarsContainer" style="display: flex; justify-content: center; gap: 8px;">
+                <span onclick="setPracticeRating(1)" class="p-star" style="font-size: 32px; cursor: pointer; color: var(--border); transition: 0.2s;">★</span>
+                <span onclick="setPracticeRating(2)" class="p-star" style="font-size: 32px; cursor: pointer; color: var(--border); transition: 0.2s;">★</span>
+                <span onclick="setPracticeRating(3)" class="p-star" style="font-size: 32px; cursor: pointer; color: var(--border); transition: 0.2s;">★</span>
+                <span onclick="setPracticeRating(4)" class="p-star" style="font-size: 32px; cursor: pointer; color: var(--border); transition: 0.2s;">★</span>
+                <span onclick="setPracticeRating(5)" class="p-star" style="font-size: 32px; cursor: pointer; color: var(--border); transition: 0.2s;">★</span>
+              </div>
+            </div>
+            
+            <!-- ТРЕКЕР НАСТРОЕНИЯ -->
+            <div style="margin-bottom: 16px;">
+              <div style="font-size: 12px; color: var(--d-text-dim); margin-bottom: 8px;">Как ты себя чувствуешь?</div>
+              <div id="moodTrackerContainer" style="display: flex; justify-content: center; gap: 12px;">
                 <!-- Сюда JS вставит смайлики -->
               </div>
             </div>
             
-            <!-- ПОЛЕ ВВОДА (УМЕНЬШИЛИ ВЫСОТУ) -->
-            <textarea id="completeNoteInput" placeholder="Что ты осознал? Запиши мысль в дневник..." style="width:100%; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:10px; color:#f5f4fa; font-size:14px; min-height:60px; resize:none; margin-bottom:12px;"></textarea>
+            <textarea id="completeNoteInput" placeholder="Что ты осознал? Запиши мысль в дневник..." style="width:100%; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:12px; color:#f5f4fa; font-size:14px; min-height:80px; resize:vertical; margin-bottom:16px;"></textarea>
             
-            <button class="d-btn-primary" onclick="completePracticeDone()" style="height: 44px; min-height: 44px; font-size: 13px;">Сохранить</button>
+            <button class="d-btn-primary" onclick="completePracticeDone()" style="height: 48px; min-height: 48px; font-size: 14px;">Сохранить</button>
             
-            <button class="d-btn-secondary" onclick="openFeedbackModal()" style="margin-top: 8px; height: 40px; min-height: 40px; font-size: 12px;">
+            <button class="d-btn-secondary" onclick="openFeedbackModal()" style="margin-top: 10px; height: 44px; min-height: 44px; font-size: 13px;">
               💬 Обратная связь
             </button>
-          </div>
+          </div>    
 
       <!-- Модалка быстрой заметки -->
       <div class="modal hidden" id="quickNoteModal">

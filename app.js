@@ -3285,9 +3285,15 @@ function startTimer(ctx){
       const ratio = actualTime / baseTime; 
 
       currentP.voiceTimeline.forEach((item, index) => {
-        const scaledTime = item.time * ratio;
+        // Вычисляем время с учетом сложности
+        let scaledTime = item.time * ratio;
+        
+        // ЗАЩИТА: фраза не должна звучать раньше 5-й секунды (кроме самой первой)
+        if (scaledTime < 5 && index > 0) scaledTime = 5;
+
         if (elapsed >= scaledTime && !currentP._spokenIndices.includes(index)) {
-          if (elapsed - item.time < 30) {
+          // Если не прошло слишком много времени с момента триггера
+          if (elapsed - scaledTime < 30) {
             speakBackgroundGuide(item.text, ctx);
           }
           currentP._spokenIndices.push(index);
@@ -3902,8 +3908,7 @@ function previewPractice(bookId, practiceId) {
 // ─── ОВЕРЛЕЙ ЗАВЕРШЕНИЯ ───
 let currentMood = 0; // Переменная для хранения выбранного настроения
 
-function showCompleteOverlay(practice,context){
-  // ─── ОСТАНАВЛИВАЕМ МУЗЫКУ И ГОЛОС ───
+function showCompleteOverlay(practice, context) {
   stopMusic(); 
   if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
   
@@ -3912,42 +3917,41 @@ function showCompleteOverlay(practice,context){
   const moodWrap = document.getElementById('moodTrackerContainer');
   if (moodWrap) {
     moodWrap.innerHTML = MOODS.map((svg, i) => `
-      <div onclick="setMood(${i+1}, this)" class="mood-smiley" style="width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(255,255,255,0.05); border:1px solid var(--d-border); cursor:pointer; transition:0.2s; color:var(--d-text-dim);">
+      <div onclick="setMood(${i+1}, this)" class="mood-smiley" style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(255,255,255,0.05); border:1px solid var(--d-border); cursor:pointer; transition:0.2s; color:var(--d-text-dim);">
         ${svg}
       </div>
     `).join('');
   }
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  
   // Сброс звезд
   currentPracticeRating = 0;
   document.querySelectorAll('#practiceStarsContainer .p-star').forEach(s => s.style.color = 'var(--border)');
   fireConfetti();
-  completeCallback={practice,context};
-  document.getElementById('completeTitle').textContent='Практика завершена';
+  completeCallback = { practice, context };
+  document.getElementById('completeTitle').textContent = 'Практика завершена';
   
   // Выбираем умную цитату
   let quoteHtml = '';
-  if(currentBook && currentBook.quotes && currentBook.quotes.length > 0) {
+  if (currentBook && currentBook.quotes && currentBook.quotes.length > 0) {
     const randomQuote = currentBook.quotes[Math.floor(Math.random() * currentBook.quotes.length)];
-    quoteHtml = `<div style="margin-top: 15px; font-style: italic; color: var(--accent-2); font-size: 13px; border-top: 1px solid var(--border); padding-top: 15px;">«${randomQuote.text}»</div>`;
+    quoteHtml = `<div style="margin-top: 4px; font-style: italic; color: var(--accent-2); font-size: 13px;">«${randomQuote.text}»</div>`;
   }
 
-// 1. В подзаголовок (рядом с галочкой) пишем ТОЛЬКО название и время
-  document.getElementById('completeSub').innerHTML = `${escapeHtml(practice.title || 'Практика')}<br>Время: ${Math.round((practice.time || 0)/60)} минут`;
-  
-  // 2. Вопрос из дневника делаем красивым и полноширинным
+  // Вопрос из дневника
   const journalPrompt = practice.journal_prompt
-    ? `<div class="andger-journal-prompt" style="margin-top:16px;padding:12px;border:1px solid var(--border);border-radius:12px;color:var(--text);text-align:left;font-size:13px;line-height:1.5;">${escapeHtml(practice.journal_prompt)}</div>`
+    ? `<div class="andger-journal-prompt" style="margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:12px;color:var(--text);text-align:left;font-size:13px;line-height:1.5;">${escapeHtml(practice.journal_prompt)}</div>`
     : '';
     
-  // 3. Цитату тоже делаем по центру и аккуратной
-  const cleanQuoteHtml = quoteHtml.replace('border-top: 1px solid var(--border); padding-top: 15px;', 'padding-top: 0; border-top: none;');
-
-  // 4. Вставляем всё это в новый пустой блок ПОД галочкой
+  // Вставляем цитату и вопрос в отдельный блок под галочкой
   const extraEl = document.getElementById('completeExtraContent');
   if (extraEl) {
-    extraEl.innerHTML = cleanQuoteHtml + journalPrompt;
+    extraEl.innerHTML = quoteHtml + journalPrompt;
   }
+
+  // В подзаголовок пишем ТОЛЬКО название и время
+  document.getElementById('completeSub').innerHTML = `${escapeHtml(practice.title || 'Практика')}<br>Время: ${Math.round((practice.time || 0)/60)} минут`;
+  
   document.getElementById('completeOverlay').classList.remove('hidden');
 }
 async function completePracticeDone(){
@@ -4737,7 +4741,6 @@ async function renderNotifications(){
       <div class="ni-body" style="flex:1; min-width:0;">
         <div class="ni-title" style="font-size: 14px; color: #fff; font-weight: 800; display:flex; justify-content:space-between; align-items:center; line-height:1.3;">
           <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:8px;">${escapeHtml(title)}</span>
-          ${!n.read ? '<span style="min-width:8px; height:8px; background:#ff3b30; border-radius:50%; box-shadow:0 0 8px rgba(255,59,48,0.5);"></span>' : ''}
         </div>
         <div class="ni-text" style="color: var(--muted); font-size: 13px; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height:1.4;">${escapeHtml(text)}</div>
         <div class="ni-time" style="font-size: 11px; color: ${n.read ? 'var(--d-text-dim)' : 'var(--d-accent-2)'}; margin-top: 6px; font-weight: ${n.read ? '500' : '700'};">${timeAgo(n.created_at)}</div>
@@ -4747,7 +4750,13 @@ async function renderNotifications(){
 }
 async function openNotification(id, el){
   try {
-    const n = notifications.find(x => x.id === id);
+    // Принудительно приводим оба ID к строке для надежного поиска
+    const n = notifications.find(x => String(x.id) === String(id));
+    if (!n) { 
+      toast('Уведомление не найдено', 'danger'); 
+      if (el) el.style.opacity = '1';
+      return; 
+    }
     if (!n) return;
     
     // Визуальный отклик, что нажалось
@@ -4767,6 +4776,11 @@ async function openNotification(id, el){
 
     // --- ЛОГИКА ДЛЯ СООБЩЕНИЙ (САМАЯ ВАЖНАЯ) ---
     if (n.type === 'msg') {
+      let p = n.payload || {};
+      if (typeof p === 'string') {
+        try { p = JSON.parse(p); } catch(e) { p = {}; }
+      }
+      
       const fromId = p.from || p.from_user || p.sender_id || p.user_id;
       
       if (fromId) {
@@ -4778,11 +4792,11 @@ async function openNotification(id, el){
           console.warn('Профиль не найден, открываем с заглушкой');
         }
         
-        // ✨ МГНОВЕННО ОТКРЫВАЕМ ДИАЛОГ БЕЗ ПЕРЕХОДОВ ПО ЭКРАНАМ
+        // Открываем диалог
         openDialog(fromId, profile);
         
       } else {
-        // Если ID нет (старое уведомление), открываем список чатов
+        // Если ID скрыт, открываем список сообщений
         await showCommunityScreen();
         setTimeout(() => {
           const tabs = document.querySelectorAll('#communityScreen .tab-pill');
@@ -4798,6 +4812,39 @@ async function openNotification(id, el){
       await showCommunityScreen();
       const tabs = document.querySelectorAll('#communityScreen .tab-pill');
       if (tabs && tabs[0]) switchCommunityTab('feed', tabs[0]);
+      
+      // Достаем ID поста из уведомления
+      let p = n.payload || {};
+      if (typeof p === 'string') { try { p = JSON.parse(p); } catch(e) { p = {}; } }
+      const msgId = p.msg_id || p.message_id || p.post_id;
+      
+      if (msgId) {
+        // Ждем полсекунды, чтобы Лента успела загрузиться, и скроллим к посту
+        setTimeout(() => {
+          const commentsEl = document.getElementById(`comments-${msgId}`);
+          if (commentsEl) {
+            // Если это комментарий, принудительно открываем блок с комментариями
+            if (n.type === 'comment' && !commentsEl.classList.contains('open')) {
+               toggleComments(msgId);
+            }
+            
+            const postEl = commentsEl.closest('.d-card-glass');
+            if (postEl) {
+              // Плавно скроллим к посту
+              postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              
+              // Подсвечиваем пост фиолетовой рамкой на 2 секунды, чтобы человек понял, куда попал
+              const originalBorder = postEl.style.borderColor;
+              postEl.style.borderColor = 'var(--d-accent)';
+              postEl.style.boxShadow = '0 0 15px rgba(124,92,255,0.3)';
+              setTimeout(() => { 
+                postEl.style.borderColor = originalBorder; 
+                postEl.style.boxShadow = 'none';
+              }, 2000);
+            }
+          }
+        }, 400);
+      }
       if (el) el.style.opacity = '1';
     }
     
@@ -5630,11 +5677,11 @@ async function loadDialog(){
 
       return `<div class="msg-bubble ${own?'own':'other'}">
         ${escapeHtml(m.text)}
-        <span class="msg-time" style="display:flex; align-items:center; justify-content:flex-end; gap:6px;">
+        <span class="msg-time" style="display:flex; align-items:center; justify-content:flex-end; gap:4px;">
           ${t} ${tick} 
           ${own || isAdmin() ? `
-            <div class="action-btn-glass danger" style="width:20px; height:20px; flex-shrink:0;" onclick="event.stopPropagation(); ${own ? `deletePrivateMessage('${m.id}')` : `confirmGodDeletePrivateMessage('${m.id}')`}" title="Удалить">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px; height:10px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <div class="msg-delete-btn" onclick="event.stopPropagation(); ${own ? `deletePrivateMessage('${m.id}')` : `confirmGodDeletePrivateMessage('${m.id}')`}" title="Удалить">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </div>` : ''}
         </span>
       </div>`;
