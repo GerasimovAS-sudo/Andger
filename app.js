@@ -455,26 +455,22 @@ function toggleTimer(ctx){
     if (ringWrap) ringWrap.classList.add('paused-ring'); 
   } else if(timerState === 'done'){
     // Ничего не делаем
-  } else {
+} else {
     // СТАРТ ИЛИ ПРОДОЛЖЕНИЕ
     let currentP = isRitual ? ritualQueue[ritualIndex] : currentPractice;
+    if (timerState === 'idle' && currentP) currentP._spokenIndices = [];
 
-    if (timerState === 'idle') {
-      // Если стартуем с нуля — сбрасываем фразы и включаем музыку
-      if (currentP) currentP._spokenIndices = [];
-      isVoicePlaying = false;
-      if (state.soundMode === 'sound') {
-         startMusic(currentP ? currentP.id : 'default');
-      }
-    } else if (timerState === 'paused') {
-      // Если продолжаем — просто включаем ту же музыку, что играла
-      if (state.soundMode === 'sound' && musicAudio) {
-         musicAudio.play().catch(()=>{});
-         fadeAudio(musicAudio, musicAudio.volume, isVoicePlaying ? 0.05 : 0.3, 500); 
-      }
-      if (ttsAudio && isVoicePlaying) {
-         ttsAudio.play().catch(()=>{});
-      }
+    // ✨ ЗАПУСК МУЗЫКИ (строго синхронно при клике)
+    if (state.soundMode === 'sound') {
+       if (timerState === 'idle' || !musicAudio || musicAudio.paused) {
+          startMusic(currentP ? currentP.id : 'default');
+       } else {
+          if (musicAudio) {
+             musicAudio.play().catch(()=>{});
+             const targetVol = isVoicePlaying ? 0.15 : 0.3;
+             fadeAudio(musicAudio, musicAudio.volume, targetVol, 500); 
+          }
+       }
     }
 
     // Разблокировка системного голоса
@@ -530,13 +526,20 @@ function nextTrack(){
   }
 }
 
-function stopMusic(){
+function stopMusic(withFade = false){
   if(!musicAudio) return;
   try {
-    musicAudio.pause();
-    musicAudio.currentTime = 0;
-    musicAudio.volume = 0;
-    isVoicePlaying = false; // Сбрасываем флаг при полной остановке
+    if (withFade) {
+      fadeAudio(musicAudio, musicAudio.volume, 0, 1500, () => {
+        musicAudio.pause();
+        musicAudio.currentTime = 0;
+      });
+    } else {
+      musicAudio.pause();
+      musicAudio.currentTime = 0;
+      musicAudio.volume = 0;
+    }
+    isVoicePlaying = false; 
   } catch(e) {}
 }
 function fadeAudio(audio, from, to, duration, onEnd) {
@@ -1807,10 +1810,10 @@ function toggleSound(){
     }
     if (ttsAudio) {
       ttsAudio.volume = 1;
-      // Если голос был на паузе, продолжаем его с того же места
-      if (ttsAudio.paused && ttsAudio.currentTime > 0 && ttsAudio.src) {
-        isVoicePlaying = true; // Возвращаем флаг голоса
-        ttsAudio.play().catch(() => { isVoicePlaying = false; }); // Если ошибка — сбрасываем флаг
+      // Включаем голос, ТОЛЬКО если он не закончился
+      if (ttsAudio.paused && ttsAudio.currentTime > 0 && ttsAudio.src && ttsAudio.currentTime < (ttsAudio.duration || 0) - 0.5) {
+        isVoicePlaying = true; 
+        ttsAudio.play().catch(() => { isVoicePlaying = false; }); 
       }
     }
   } else {
@@ -3909,7 +3912,7 @@ function previewPractice(bookId, practiceId) {
 let currentMood = 0; // Переменная для хранения выбранного настроения
 
 function showCompleteOverlay(practice, context) {
-  stopMusic(); 
+  stopMusic(true); 
   if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
   
   // Генерируем смайлики
@@ -9145,10 +9148,9 @@ async function speakBackgroundGuide(text, context = 'practice') {
       return; 
     }
 
-    // Приглушаем музыку
+    // Приглушаем музыку ТОЛЬКО плавно
     isVoicePlaying = true; 
     if (musicAudio) {
-      musicAudio.volume = 0.15; // Жестко ставим 15% для iOS
       fadeAudio(musicAudio, musicAudio.volume, 0.15, 400);
     }
 
@@ -9174,7 +9176,6 @@ async function speakBackgroundGuide(text, context = 'practice') {
     const restoreMusic = () => {
       isVoicePlaying = false; 
       if (musicAudio && state.soundMode === 'sound') {
-        musicAudio.volume = 0.3; // Жестко возвращаем на 30%
         fadeAudio(musicAudio, musicAudio.volume, 0.3, 800);
       }
     };
@@ -9508,11 +9509,14 @@ document.addEventListener('visibilitychange', function(){
         if (ctx && ctx.state === 'suspended') ctx.resume();
       }
       
-      // ВОЗОБНОВЛЯЕМ МУЗЫКУ ПРИ ВОЗВРАТЕ
+      // ВОЗОБНОВЛЯЕМ МУЗЫКУ И ГОЛОС ПРИ ВОЗВРАТЕ
       if (state.soundMode === 'sound' && musicAudio) {
         musicAudio.play().catch(()=>{});
-        const targetVol = isVoicePlaying ? 0.05 : 0.3;
+        const targetVol = isVoicePlaying ? 0.15 : 0.3;
         fadeAudio(musicAudio, musicAudio.volume, targetVol, 500);
+      }
+      if (ttsAudio && isVoicePlaying) {
+        ttsAudio.play().catch(()=>{});
       }
     }
   }
