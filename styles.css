@@ -863,14 +863,13 @@ html.light, body.light { background: var(--bg); color: var(--text); }
   background: var(--card); 
   border: 1px solid var(--border); 
   border-radius: var(--radius-lg); 
-  padding: 24px 20px; 
+  padding: 20px 16px; /* Было 24px 20px */
   max-width: 360px; 
   width: 100%; 
   text-align: center; 
   animation: modalIn .5s cubic-bezier(.34,1.56,.64,1); 
   
-  /* ДОБАВИТЬ ЭТИ ДВЕ СТРОКИ */
-  max-height: 85vh; 
+  max-height: 92vh; /* Было 85vh */
   overflow-y: auto; 
 }
 .complete-box .co-ico { width: 56px; height: 56px; border-radius: 50%; background: var(--success); display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 12px; color: #fff; }
@@ -1995,7 +1994,7 @@ body, #screensRoot {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: calc(125px + env(safe-area-inset-top, 0px)) 20px calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: calc(115px + env(safe-area-inset-top, 0px)) 20px calc(10px + env(safe-area-inset-bottom, 0px)) !important;
     overflow: hidden;
     width: 100%;
 }
@@ -2276,6 +2275,50 @@ input, textarea, select {
 /* 4. Убираем лишний воздух над карточкой текущей книги */
 #todayScreen .d-focus-card {
   margin-top: 0px !important;
+}
+/* ═══════════════════════════════════════════════ */
+/* ПЕРЕКЛЮЧАТЕЛЬ СЛОЖНОСТИ ПРАКТИКИ */
+/* ═══════════════════════════════════════════════ */
+.difficulty-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 16px 0;
+  width: 100%;
+}
+.diff-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.diff-btn .diff-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--d-text-dim);
+  display: block;
+  margin-bottom: 2px;
+}
+.diff-btn .diff-time {
+  font-size: 9px;
+  color: var(--d-text-mute);
+}
+.diff-btn .diff-xp {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--d-gold);
+  margin-top: 2px;
+}
+.diff-btn.on {
+  background: rgba(124, 92, 255, 0.15);
+  border-color: var(--d-accent);
+  box-shadow: 0 0 10px rgba(124, 92, 255, 0.2);
+}
+.diff-btn.on .diff-title {
+  color: #fff;
 }
 
 

@@ -174,7 +174,10 @@ function getGlobalStats() {
   BOOKS.forEach(bb => {
     const bbs = getBookState(bb.id);
     Object.values(bbs.days).forEach(rec => {
-      if(rec.practices) totalEarnedXP += rec.practices.length * 10;
+      if(rec.practices) {
+        // Если есть earnedXP — берем его, иначе считаем по старинке (для старых юзеров)
+        totalEarnedXP += (rec.earnedXP !== undefined) ? rec.earnedXP : (rec.practices.length * 10);
+      }
       if(rec.closed) totalEarnedXP += 50;
       if(rec.microActionDone) totalEarnedXP += 5;
     });
@@ -202,6 +205,7 @@ const DEV_WHATSAPP = '79124325556';
 const DEV_TELEGRAM = 'Gerasimov_And';
 
 // ─── ГЛОБАЛЬНЫЕ ДАННЫЕ ───
+let currentDifficulty = 'normal'; // 'easy', 'normal', 'deep'
 let calendarWeekOffset = 0; // 0 - текущая неделя, -1 - прошлая, 1 - следующая
 let BOOKS=[], currentBook=null, currentPractice=null, ritualQueue=[], ritualIndex=0;
 let timerInterval=null, timerRemaining=0, timerState='idle';
@@ -3106,8 +3110,17 @@ function renderRitualStep(){
     }
     rBody.innerHTML = bookTag + buildPracticeHtml(p);
     
+    currentDifficulty = 'normal'; 
     timerRemaining = p.time || 300;
     timerState = 'idle';
+    
+    // Обновляем большой таймер на экране
+    const timerDisplay = document.getElementById('timerDisplay');
+    if (timerDisplay) timerDisplay.textContent = formatTime(timerRemaining);
+    
+    // Отрисовываем кнопки сложности для ритуала
+    renderDifficultySelector(p.time || 300, 'ritual');
+    
     if (rBody) rBody.scrollTo({top:0,behavior:'smooth'});
   } catch (error) {
     console.error('Ошибка рендера:', error);
@@ -3265,8 +3278,15 @@ function startTimer(ctx){
 
     if (currentP && currentP.voiceTimeline && timerState === 'running' && remaining > 1 && document.visibilityState === 'visible') {
       const elapsed = totalDuration - remaining;
+      
+      // Коэффициент сложности (чтобы фразы успевали говориться)
+      const baseTime = currentP.time || 300;
+      const actualTime = getDiffData(baseTime, currentDifficulty).time;
+      const ratio = actualTime / baseTime; 
+
       currentP.voiceTimeline.forEach((item, index) => {
-        if (elapsed >= item.time && !currentP._spokenIndices.includes(index)) {
+        const scaledTime = item.time * ratio;
+        if (elapsed >= scaledTime && !currentP._spokenIndices.includes(index)) {
           if (elapsed - item.time < 30) {
             speakBackgroundGuide(item.text, ctx);
           }
@@ -3536,15 +3556,23 @@ function getNextAch(bookId,streak){
   }
   return null;
 }
-function markPracticeDone(pid){markPracticeDoneForBook(currentBook.id,pid)}
-function markPracticeDoneForBook(bookId,pid){
+function markPracticeDoneForBook(bookId, pid){
   const day=currentDay(bookId),date=dateByDay(bookId,day),bs=getBookState(bookId);
-  if(!bs.days[date])bs.days[date]={practices:[]};
+  if(!bs.days[date])bs.days[date]={practices:[], earnedXP: 0};
+  
   if(!bs.days[date].practices.includes(pid)){
     bs.days[date].practices.push(pid);
     
-    // ✨ ВИБРАЦИЯ ПРИ ВЫПОЛНЕНИИ (если телефон поддерживает)
+    // Считаем, сколько XP дать за эту практику
+    const p = BOOKS.find(b => b.id === bookId)?.practices.find(x => x.id === pid);
+    const baseTime = p ? p.time : 300;
+    const xpAmount = getDiffData(baseTime, currentDifficulty).xp;
+    
+    bs.days[date].earnedXP = (bs.days[date].earnedXP || 0) + xpAmount;
+    bs.days[date].lastDifficulty = currentDifficulty; // Сохраняем на память
+
     haptic('success');
+    toast(`+${xpAmount} XP за практику!`, 'success');
   }
   saveState(bookId);
 }
@@ -3884,7 +3912,7 @@ function showCompleteOverlay(practice,context){
   const moodWrap = document.getElementById('moodTrackerContainer');
   if (moodWrap) {
     moodWrap.innerHTML = MOODS.map((svg, i) => `
-      <div onclick="setMood(${i+1}, this)" class="mood-smiley" style="width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(255,255,255,0.05); border:1px solid var(--d-border); cursor:pointer; transition:0.2s; color:var(--d-text-dim);">
+      <div onclick="setMood(${i+1}, this)" class="mood-smiley" style="width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(255,255,255,0.05); border:1px solid var(--d-border); cursor:pointer; transition:0.2s; color:var(--d-text-dim);">
         ${svg}
       </div>
     `).join('');
@@ -3904,10 +3932,22 @@ function showCompleteOverlay(practice,context){
     quoteHtml = `<div style="margin-top: 15px; font-style: italic; color: var(--accent-2); font-size: 13px; border-top: 1px solid var(--border); padding-top: 15px;">«${randomQuote.text}»</div>`;
   }
 
+// 1. В подзаголовок (рядом с галочкой) пишем ТОЛЬКО название и время
+  document.getElementById('completeSub').innerHTML = `${escapeHtml(practice.title || 'Практика')}<br>Время: ${Math.round((practice.time || 0)/60)} минут`;
+  
+  // 2. Вопрос из дневника делаем красивым и полноширинным
   const journalPrompt = practice.journal_prompt
-    ? `<div class="andger-journal-prompt" style="margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:12px;color:var(--text)">${escapeHtml(practice.journal_prompt)}</div>`
+    ? `<div class="andger-journal-prompt" style="margin-top:16px;padding:12px;border:1px solid var(--border);border-radius:12px;color:var(--text);text-align:left;font-size:13px;line-height:1.5;">${escapeHtml(practice.journal_prompt)}</div>`
     : '';
-  document.getElementById('completeSub').innerHTML = `${escapeHtml(practice.title || 'Практика')}<br>Время: ${Math.round((practice.time || 0)/60)} минут ${quoteHtml}${journalPrompt}`;
+    
+  // 3. Цитату тоже делаем по центру и аккуратной
+  const cleanQuoteHtml = quoteHtml.replace('border-top: 1px solid var(--border); padding-top: 15px;', 'padding-top: 0; border-top: none;');
+
+  // 4. Вставляем всё это в новый пустой блок ПОД галочкой
+  const extraEl = document.getElementById('completeExtraContent');
+  if (extraEl) {
+    extraEl.innerHTML = cleanQuoteHtml + journalPrompt;
+  }
   document.getElementById('completeOverlay').classList.remove('hidden');
 }
 async function completePracticeDone(){
@@ -4054,9 +4094,16 @@ function openPractice(id){
   document.body.style.overflow='hidden';
   document.body.classList.add('app-focus-mode');
   window.scrollTo(0,0);
-  timerRemaining=p.time || 300;
-  timerState='idle';
+  
+  currentDifficulty = 'normal'; // Сбрасываем на норму
+  timerRemaining = p.time || 300;
+  timerState = 'idle';
   updateSoundUI();
+  
+  // Отрисовываем кнопки сложности и обновляем таймер
+  renderDifficultySelector(p.time || 300, 'practice');
+  const timerDisplay = document.getElementById('timerDisplay');
+  if (timerDisplay) timerDisplay.textContent = formatTime(timerRemaining);
 }
 
 function closePractice(){
@@ -9985,6 +10032,70 @@ function normalizeVoiceTimeline(practice) {
   return p;
 }
 
+// Функция для получения времени и XP в зависимости от сложности
+function getDiffData(baseTime, level) {
+  // Сначала переводим базовое время в минуты (например, 300 сек = 5 мин)
+  const baseMins = Math.round(baseTime / 60);
+  let targetMins = baseMins;
+  let xp = 10;
+
+  if (level === 'easy') { 
+    targetMins = Math.max(1, Math.round(baseMins * 0.5)); // 50% времени, но не меньше 1 минуты
+    xp = 5; 
+  }
+  if (level === 'deep') { 
+    targetMins = Math.round(baseMins * 1.5); // 150% времени
+    xp = 20; 
+  }
+  
+  // Возвращаем точное время в секундах (минуты * 60) и опыт
+  return { time: targetMins * 60, xp: xp, mins: targetMins };
+}
+
+// Функция рендера кнопок сложности
+function renderDifficultySelector(baseTime, context) {
+  const container = document.getElementById('difficultySelector');
+  if (!container) return;
+
+  const levels = [
+    { id: 'easy', label: 'Легко' },
+    { id: 'normal', label: 'Норма' },
+    { id: 'deep', label: 'Глубоко' }
+  ];
+
+  container.innerHTML = levels.map(lvl => {
+    const data = getDiffData(baseTime, lvl.id);
+    const isActive = currentDifficulty === lvl.id;
+    return `
+      <div class="diff-btn ${isActive ? 'on' : ''}" onclick="setPracticeDifficulty('${lvl.id}', ${baseTime}, '${context}')">
+        <span class="diff-title">${lvl.label}</span>
+        <span class="diff-time">${data.mins} мин</span>
+        <span class="diff-xp">+${data.xp} XP</span>
+      </div>
+    `;
+  }).join('');
+}
+
+// Функция переключения сложности
+function setPracticeDifficulty(level, baseTime, context) {
+  if (timerState === 'running' || timerState === 'paused') {
+    toast('Нельзя менять сложность во время практики', 'warm');
+    return;
+  }
+  currentDifficulty = level;
+  playClick();
+
+  // Обновляем время на экране
+  const newTime = getDiffData(baseTime, level).time;
+  timerRemaining = newTime;
+  
+  const display = document.getElementById('timerDisplay');
+  if (display) display.textContent = formatTime(newTime);
+
+  // Перерисовываем кнопки, чтобы подсветить активную
+  renderDifficultySelector(baseTime, context);
+}
+
 function buildPracticeHtml(p) {
   return `
     <div class="practice-focus-hide">
@@ -10090,6 +10201,9 @@ function buildPracticeHtml(p) {
            
       <!-- Кнопки -->
       <div class="zen-buttons-wrap">
+        <div class="difficulty-selector" id="difficultySelector">
+          <!-- Кнопки заполняются динамически через JS -->
+        </div>
         <button class="d-btn-primary" id="timerBtn" onclick="toggleTimer('practice')">▶ Начать практику</button>
         <button class="d-btn-secondary exit-zen-btn" onclick="toggleZenMode()" style="display: none; width:100%;">Свернуть таймер</button>
       </div>
