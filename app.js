@@ -506,11 +506,15 @@ function nextTrack(){
   
   currentTrackIdx = (currentTrackIdx + 1) % currentPlaylist.length;
   musicAudio.src = currentPlaylist[currentTrackIdx];
-  musicAudio.load();
+  
+  // ✨ Убрали musicAudio.load() — он сбрасывает разрешение на воспроизведение на iOS!
   
   if (state.soundMode === 'sound') {
-    musicAudio.volume = isVoicePlaying ? 0.05 : 0.3;
-    musicAudio.play().catch(()=>{});
+    musicAudio.volume = 0.01; // Снова ставим чуть больше нуля
+    musicAudio.play().then(() => {
+      const targetVol = isVoicePlaying ? 0.05 : 0.3;
+      fadeAudio(musicAudio, 0.01, targetVol, 1000);
+    }).catch(()=>{});
   } else {
     musicAudio.volume = 0;
   }
@@ -3117,6 +3121,12 @@ function toggleTimer(ctx){
     if (!ttsAudio) ttsAudio = new Audio();
     ttsAudio.play().catch(()=>{});
     ttsAudio.pause();
+    // 2.1. Разблокировка элемента музыки
+    if (!musicAudio) musicAudio = new Audio();
+    if (musicAudio.paused) {
+       musicAudio.play().catch(()=>{});
+       musicAudio.pause();
+    }
     
     startTimer(isRitual ? 'ritual' : 'practice'); 
     timerState = 'running';
@@ -10873,12 +10883,10 @@ async function shareStoryNative() {
   }
 }
 function startMusic(practiceId = 'default'){
-  // Сбрасываем флаг голоса, чтобы музыка не застревала в тихом режиме
   isVoicePlaying = false;
 
   if(!musicAudio){
-    musicAudio=new Audio();
-    musicAudio.volume=0;
+    musicAudio = new Audio();
     musicAudio.loop = false; 
     musicAudio.addEventListener('ended', nextTrack); 
   }
@@ -10888,11 +10896,10 @@ function startMusic(practiceId = 'default'){
   const activeP = currentPractice || (ritualQueue && ritualQueue[ritualIndex]);
   const pTitle = activeP && activeP.title ? activeP.title.toLowerCase() : '';
   const pSub = activeP && activeP.sub ? activeP.sub.toLowerCase() : '';
-  const pIco = activeP && activeP.ico ? activeP.ico.toLowerCase() : ''; // Читаем иконку
+  const pIco = activeP && activeP.ico ? activeP.ico.toLowerCase() : '';
   
   const searchStr = pid + ' ' + pTitle + ' ' + pSub + ' ' + pIco;
 
-  // Теперь музыка будет правильно подбираться под "Упражнения" и "Дневник" из нового JSON
   if (searchStr.includes('sport') || searchStr.includes('зарядк') || searchStr.includes('спорт') || searchStr.includes('трениров') || searchStr.includes('action') || searchStr.includes('activity') || searchStr.includes('упражн') || searchStr.includes('движен') || searchStr.includes('актив')) {
     currentPlaylist = MUSIC_TRACKS.sport;
   } else if (searchStr.includes('read') || searchStr.includes('чтени') || searchStr.includes('journal') || searchStr.includes('edit') || searchStr.includes('book') || searchStr.includes('дневник') || searchStr.includes('запис')) {
@@ -10901,7 +10908,7 @@ function startMusic(practiceId = 'default'){
     currentPlaylist = MUSIC_TRACKS.silence; 
   }
 
-// Всегда выбираем новый трек при старте
+  // Всегда выбираем новый трек при старте
   let newIdx;
   do { newIdx = Math.floor(Math.random() * currentPlaylist.length) }
   while (currentPlaylist.length > 1 && newIdx === currentTrackIdx);
@@ -10910,18 +10917,22 @@ function startMusic(practiceId = 'default'){
   musicAudio.src = currentPlaylist[currentTrackIdx];
   musicAudio.currentTime = 0;
   
-  // Убрали load() — он ломал автозапуск на iOS
+  // ✨ ЖЕЛЕЗНЫЙ ФИКС ДЛЯ IOS: Ставим громкость ЧУТЬ-ЧУТЬ выше нуля ПЕРЕД play()
+  // Если volume = 0, iOS Safari блокирует запуск.
+  musicAudio.volume = 0.01;
+  musicAudio.muted = false; 
+
   const playPromise = musicAudio.play();
   
   if (playPromise !== undefined) {
     playPromise.then(() => {
       let targetVol = state.soundMode === 'sound' ? 0.3 : 0;
       if (isVoicePlaying) targetVol = 0.05; 
-      fadeAudio(musicAudio, musicAudio.volume, targetVol, 1500);
+      // Плавно наращиваем громкость с 0.01 до 0.3
+      fadeAudio(musicAudio, 0.01, targetVol, 1500);
     }).catch((e) => {
-      console.log('Музыка заблокирована браузером, ждем клика:', e);
-      // Если заблокировал — принудительно ставим 0, чтобы не было резкого звука
-      musicAudio.volume = 0; 
+      console.log('Музыка заблокирована браузером (autoplay):', e);
+      // НЕ ставим volume = 0, чтобы не сломать следующую попытку
     });
   }
 }
