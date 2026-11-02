@@ -2256,22 +2256,39 @@ if (mpcQuoteAuthor) mpcQuoteAuthor.textContent = q ? `— ${q.author || b.author
   renderWeekCalendar();
   updateNotifBadge();
   updateSoundUI();
-    // Логика микро-действия
-  const microWrap = document.getElementById('microActionWidget');
-  const microText = document.getElementById('microActionText');
+    // ✨ НОВАЯ Логика микро-действия в облачке ANDGER
+  const bubbleName = document.getElementById('andgerBubbleName');
+  const bubbleText = document.getElementById('lumiTip');
   const microBtn = document.getElementById('microActionBtn');
   
-  if (microWrap && microText && microBtn) {
-    // Ищем практику на сегодня, которая еще не сделана и у которой есть микро-действие
+  if (bubbleName && bubbleText && microBtn) {
     const pendingPractice = b.practices.find(p => !(todayRec.practices||[]).includes(p.id) && p.micro_action);
     const isMicroDone = todayRec.microActionDone;
 
     if (pendingPractice && !isMicroDone) {
-      microWrap.style.display = 'flex';
-      microText.textContent = pendingPractice.micro_action;
-      microBtn.onclick = () => completeMicroAction(currentBook.id, pendingPractice.id);
+      // Режим "Действие дня"
+      bubbleName.innerHTML = '🌟 ДЕЙСТВИЕ ДНЯ';
+      bubbleName.style.color = 'var(--d-warm)';
+      bubbleText.textContent = pendingPractice.micro_action;
+      bubbleText.style.paddingRight = '45px'; // Оставляем место для кнопки
+      
+      microBtn.style.display = 'flex';
+      microBtn.onclick = () => {
+        completeMicroAction(currentBook.id, pendingPractice.id);
+        // После выполнения действия возвращаем обычный вид облачка
+        setTimeout(() => renderToday(), 300);
+      };
     } else {
-      microWrap.style.display = 'none';
+      // Обычный режим (советы)
+      bubbleName.innerHTML = 'ANDGER';
+      bubbleName.style.color = 'var(--d-accent-3)';
+      
+      const defaultTips = ['Сегодня — хороший день, чтобы сделать первый шаг.','Маленькое действие лучше большого плана.','Один шаг сегодня — уже движение.'];
+      const tips = (b.lumi_tips && b.lumi_tips.length) ? b.lumi_tips : defaultTips;
+      bubbleText.textContent = tips[day % tips.length] || tips[0];
+      bubbleText.style.paddingRight = '0';
+      
+      microBtn.style.display = 'none';
     }
   }
 }
@@ -4525,13 +4542,28 @@ function updateNotifBadge(){
     }
   }
 }
-function renderNotifications(){
+async function renderNotifications(){
   const el = document.getElementById('notifList');
   if(!el) return;
   
   if(!notifications.length){
     el.innerHTML='<div class="d-empty-state" style="margin-top:20px; background:transparent; border:none;"><div class="d-empty-title" style="font-size:15px;">Тишина</div><div class="d-empty-text">У вас пока нет уведомлений</div></div>';
     return;
+  }
+
+  // Собираем ID отправителей, чтобы загрузить их аватарки
+  const fromIds = notifications.map(n => {
+    let p = n.payload || {};
+    if (typeof p === 'string') { try { p = JSON.parse(p); } catch(e) { p = {}; } }
+    return p.from || p.from_user || p.sender_id;
+  }).filter(Boolean);
+
+  let profileMap = {};
+  if (fromIds.length > 0) {
+    try {
+      const { data } = await sb.from('profiles').select('id, avatar').in('id', [...new Set(fromIds)]);
+      (data || []).forEach(p => profileMap[p.id] = p);
+    } catch(e) {}
   }
   
   el.innerHTML=notifications.map(n=>{
@@ -4541,11 +4573,11 @@ function renderNotifications(){
     }
     
     let ico='🔔', title='', text='';
+    const fromId = p.from || p.from_user || p.sender_id;
     
     if(n.type==='msg'){
       ico='💬';
       title = p.from_name || p.name || 'Новое сообщение';
-      // Если текста нет (старое уведомление) — пишем "Откройте чат"
       text = p.text || 'Откройте чат, чтобы прочитать';
     }
     else if(n.type==='like'){
@@ -4558,13 +4590,24 @@ function renderNotifications(){
     else if(n.type==='admin'){ico='📢';title=p.title||'Объявление';text=p.text||''} 
     else if(n.type==='friend'){ico='🤝';title='Новый друг';text=p.text||'Кто-то добавил вас в друзья'}
     else {title='Уведомление';text=p.text||''}
+
+    // Если есть аватарка — показываем её, иначе красивую иконку
+    let leftIconHtml = '';
+    if (fromId && profileMap[fromId]) {
+      leftIconHtml = `<div class="d-avatar" style="width: 44px; height: 44px; border-radius: 14px; flex-shrink:0; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">${getAvatarHtml(profileMap[fromId].avatar, 24)}</div>`;
+    } else {
+      leftIconHtml = `<div class="ni-ico" style="font-size: 20px; width: 44px; height: 44px; border-radius: 14px; background: rgba(124,92,255,0.1); border: 1px solid rgba(124,92,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">${ico}</div>`;
+    }
     
-    return `<div class="notif-item ${n.read?'':'unread'}" onclick="openNotification('${n.id}', this)">
-      <div class="ni-ico" style="font-size: 20px;">${ico}</div>
-      <div class="ni-body">
-        <div class="ni-title" style="font-size: 14px; color: #fff;">${escapeHtml(title)}</div>
-        <div class="ni-text" style="color: var(--muted); font-size: 12px; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(text)}</div>
-        <div class="ni-time" style="font-size: 10px; color: var(--d-accent-2); margin-top: 4px;">${timeAgo(n.created_at)}</div>
+    return `<div class="notif-item ${n.read?'':'unread'}" onclick="openNotification('${n.id}', this)" style="padding: 14px; display:flex; gap: 12px; align-items:flex-start; background: ${n.read ? 'var(--d-surface)' : 'linear-gradient(135deg, rgba(124,92,255,0.1), var(--d-surface))'}; border: 1px solid ${n.read ? 'var(--d-border)' : 'rgba(124,92,255,0.3)'}; border-radius: 16px; margin-bottom: 8px; cursor: pointer; transition: 0.2s;">
+      ${leftIconHtml}
+      <div class="ni-body" style="flex:1; min-width:0;">
+        <div class="ni-title" style="font-size: 14px; color: #fff; font-weight: 800; display:flex; justify-content:space-between; align-items:center; line-height:1.3;">
+          <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:8px;">${escapeHtml(title)}</span>
+          ${!n.read ? '<span style="min-width:8px; height:8px; background:#ff3b30; border-radius:50%; box-shadow:0 0 8px rgba(255,59,48,0.5);"></span>' : ''}
+        </div>
+        <div class="ni-text" style="color: var(--muted); font-size: 13px; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height:1.4;">${escapeHtml(text)}</div>
+        <div class="ni-time" style="font-size: 11px; color: ${n.read ? 'var(--d-text-dim)' : 'var(--d-accent-2)'}; margin-top: 6px; font-weight: ${n.read ? '500' : '700'};">${timeAgo(n.created_at)}</div>
       </div>
     </div>`;
   }).join('');
@@ -4574,8 +4617,10 @@ async function openNotification(id, el){
     const n = notifications.find(x => x.id === id);
     if (!n) return;
     
+    // Визуальный отклик, что нажалось
     if (el) el.style.opacity = '0.5';
 
+    // Мгновенно помечаем прочитанным
     if (!n.read) {
       sb.from('notifications').update({read:true}).eq('id',id).then(() => {});
       n.read = true;
@@ -4587,39 +4632,43 @@ async function openNotification(id, el){
       try { p = JSON.parse(p); } catch(e) { p = {}; }
     }
 
+    // --- ЛОГИКА ДЛЯ СООБЩЕНИЙ (САМАЯ ВАЖНАЯ) ---
     if (n.type === 'msg') {
-      await showCommunityScreen();
+      const fromId = p.from || p.from_user || p.sender_id || p.user_id;
       
-      setTimeout(async () => {
-        const tabs = document.querySelectorAll('#communityScreen .tab-pill');
-        if (tabs && tabs[1]) switchCommunityTab('chats', tabs[1]);
-        
-        // Безопасный поиск ID отправителя
-        const fromId = p.from || p.from_user || p.sender_id || p.user_id;
-        
-        if (fromId) {
-          let profile = { id: fromId, name: p.from_name || 'Пользователь', avatar: '👤' };
-          try {
-            const { data } = await sb.from('profiles').select('*').eq('id', fromId).maybeSingle();
-            if (data) profile = data;
-          } catch(e) {
-            console.warn('Профиль не найден, открываем с заглушкой');
-          }
-          setTimeout(() => openDialog(fromId, profile), 200);
-        } else {
-          toast('Открыт список сообщений', 'warm');
+      if (fromId) {
+        let profile = { id: fromId, name: p.from_name || 'Пользователь', avatar: '👤' };
+        try {
+          const { data } = await sb.from('profiles').select('*').eq('id', fromId).maybeSingle();
+          if (data) profile = data;
+        } catch(e) {
+          console.warn('Профиль не найден, открываем с заглушкой');
         }
         
-        if (el) el.style.opacity = '1';
-      }, 200);
+        // ✨ МГНОВЕННО ОТКРЫВАЕМ ДИАЛОГ БЕЗ ПЕРЕХОДОВ ПО ЭКРАНАМ
+        openDialog(fromId, profile);
+        
+      } else {
+        // Если ID нет (старое уведомление), открываем список чатов
+        await showCommunityScreen();
+        setTimeout(() => {
+          const tabs = document.querySelectorAll('#communityScreen .tab-pill');
+          if (tabs && tabs[1]) switchCommunityTab('chats', tabs[1]);
+        }, 100);
+        toast('Открыт список сообщений', 'warm');
+      }
+      if (el) el.style.opacity = '1';
     }
     
+    // --- ЛОГИКА ДЛЯ ЛАЙКОВ И КОММЕНТАРИЕВ ---
     else if (n.type === 'like' || n.type === 'comment') {
       await showCommunityScreen();
       const tabs = document.querySelectorAll('#communityScreen .tab-pill');
       if (tabs && tabs[0]) switchCommunityTab('feed', tabs[0]);
       if (el) el.style.opacity = '1';
     }
+    
+    // --- ЛОГИКА ДЛЯ ОСТАЛЬНЫХ ---
     else if (n.type === 'admin') {
       showSimpleModal('📢', p.title || 'Объявление', p.text || '');
       if (el) el.style.opacity = '1';
@@ -4638,6 +4687,7 @@ async function openNotification(id, el){
   } catch (error) {
     console.error('Ошибка при открытии уведомления:', error);
     if (el) el.style.opacity = '1';
+    toast('Не удалось открыть уведомление', 'danger');
   }
 }
     
