@@ -754,7 +754,8 @@
             <div style="color:var(--d-text-dim); font-size:20px;">›</div>
           </div>
           
-          <div onclick="goToRating()" style="display:flex; justify-content:space-between; align-items:center; padding:16px; border-bottom:1px solid var(--d-border); cursor:pointer;">
+          <!-- Кнопка Рейтинг -->
+          <div id="profileRatingRow" onclick="goToRating()" style="display:none; justify-content:space-between; align-items:center; padding:16px; border-bottom:1px solid var(--d-border); cursor:pointer;">
             <div style="display:flex; align-items:center; gap:12px;">
               <div style="width:36px; height:36px; border-radius:12px; background:rgba(255,184,0,0.1); display:flex; align-items:center; justify-content:center; color:var(--d-gold);">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
@@ -767,7 +768,8 @@
             <div style="color:var(--d-text-dim); font-size:20px;">›</div>
           </div>
 
-          <div onclick="showShopScreen()" style="display:flex; justify-content:space-between; align-items:center; padding:16px; border-bottom:1px solid var(--d-border); cursor:pointer;">
+          <!-- Кнопка Магазин -->
+          <div id="profileShopRow" onclick="showShopScreen()" style="display:none; justify-content:space-between; align-items:center; padding:16px; border-bottom:1px solid var(--d-border); cursor:pointer;">
             <div style="display:flex; align-items:center; gap:12px;">
               <div style="width:36px; height:36px; border-radius:12px; background:rgba(62,207,142,0.1); display:flex; align-items:center; justify-content:center; color:var(--d-success);">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
@@ -860,7 +862,7 @@
           <div class="d-header-greet-label">ПРОФИЛЬ</div>
         </div>
       </div>
-      <div class="wrap" style="padding-top: calc(90px + env(safe-area-inset-top, 0px)); padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));">
+            <div class="wrap" style="padding-top: calc(100px + env(safe-area-inset-top, 0px)); padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));">
         <div style="text-align:center; padding: 20px; background: linear-gradient(180deg, rgba(124,92,255,.1), transparent 100%); border-radius: 0 0 24px 24px; margin-bottom: 12px;">
           <div class="d-avatar" id="ppAva" style="width:90px; height:90px; border-radius:28px; margin: 0 auto 10px;"></div>
           <h2 id="ppName" style="font-size:22px; font-weight:900; margin-bottom:4px; color:var(--d-text);">Имя</h2>
@@ -1011,12 +1013,12 @@
           </button>
           <div class="d-header-greet-label">УВЕДОМЛЕНИЯ</div>
         </div>
-        <div class="d-header-actions">
-          <div class="d-icon-btn" onclick="markAllNotificationsRead()" title="Прочитать всё">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <div class="d-header-actions" style="gap: 6px;">
+          <div class="d-icon-btn" onclick="markAllNotificationsRead()" title="Прочитать всё" style="width: 36px; height: 36px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
           </div>
-          <div class="d-icon-btn" onclick="clearAllNotifications()" title="Очистить" style="color: var(--d-warm);">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          <div class="d-icon-btn" onclick="clearAllNotifications()" title="Очистить" style="width: 36px; height: 36px; color: var(--d-warm); border-color: rgba(255,154,86,0.3);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
           </div>
         </div>
       </div>
@@ -1024,106 +1026,79 @@
         <div id="notifList" style="display:flex; flex-direction:column; gap:8px;"></div>
       </div>
     </div>
-        
-        <!-- ЭКРАН: АДМИНКА (НОВЫЙ BENTO DASHBOARD) -->
+    <!-- ЭКРАН: АДМИНКА (PRO DASHBOARD) -->
     <div id="adminScreen" class="hidden">
-      <div class="d-header">
+      <div class="d-header" style="border-bottom: none; background: transparent;">
         <div style="display:flex; align-items:center; gap:12px; flex:1;">
           <button onclick="showProfile()" style="background:transparent; border:none; color:var(--d-text); cursor:pointer;">
              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
           </button>
-          <div class="d-header-greet-label">АДМИН-ПАНЕЛЬ</div>
+          <div class="d-header-greet-label" style="color: var(--d-accent-2);">CONTROL CENTER</div>
         </div>
         <div class="d-header-actions">
-          <div class="d-icon-btn sound-btn" onclick="toggleSound()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+          <div class="d-icon-btn" onclick="showNotificationInfo()" title="Помощь">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
           </div>
           <div class="d-avatar" onclick="showProfile()" id="adminAvatar"></div>
         </div>
       </div>
 
-      <div class="wrap" style="padding-top: calc(90px + env(safe-area-inset-top, 0px)); padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));">
-        
-        <!-- Верхняя статистика -->
-        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:16px;">
-          <div class="d-card-glass" style="padding:12px; text-align:center; border-radius:16px;">
-            <div style="font-size:18px; font-weight:900; color:var(--d-success);" id="adminMRR">0 ₽</div>
-            <div style="font-size:8px; color:var(--d-text-dim); text-transform:uppercase; font-weight:800; margin-top:4px;">Доход (MRR)</div>
-          </div>
-          <div class="d-card-glass" style="padding:12px; text-align:center; border-radius:16px;">
-            <div style="font-size:18px; font-weight:900; color:var(--d-text);" id="adminUsersCount">0</div>
-            <div style="font-size:8px; color:var(--d-text-dim); text-transform:uppercase; font-weight:800; margin-top:4px;">Юзеров</div>
-          </div>
-          <div class="d-card-glass" style="padding:12px; text-align:center; border-radius:16px;">
-            <div style="font-size:18px; font-weight:900; color:var(--d-accent-2);" id="adminTodayCount">0</div>
-            <div style="font-size:8px; color:var(--d-text-dim); text-transform:uppercase; font-weight:800; margin-top:4px;">Активных</div>
-          </div>
+      <!-- ВЕРХНЯЯ НАВИГАЦИЯ (Скролл-табы) -->
+      <div class="admin-pro-tabs">
+        <div class="admin-pro-tab on" onclick="switchAdminTab('dashboard', this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          Обзор
         </div>
-
-        <!-- Сетка кнопок навигации -->
-        <div class="admin-bento-grid">
-          <div class="admin-nav-btn on" onclick="loadAdminSection('dashboard', this)">
-            <div class="anb-icon">📊</div>
-            <div class="anb-text">Обзор</div>
-          </div>
-          <div class="admin-nav-btn" onclick="loadAdminSection('books', this)">
-            <div class="anb-icon">📚</div>
-            <div class="anb-text">Книги</div>
-          </div>
-          <div class="admin-nav-btn" onclick="loadAdminSection('users', this)">
-            <div class="anb-icon">👥</div>
-            <div class="anb-text">Юзеры</div>
-          </div>
-          <div class="admin-nav-btn" onclick="loadAdminSection('feedback', this)">
-            <div class="anb-icon">💬</div>
-            <div class="anb-text">Отзывы</div>
-          </div>
-          <div class="admin-nav-btn" onclick="loadAdminSection('subs', this)">
-            <div class="anb-icon">👑</div>
-            <div class="anb-text">Подписки</div>
-          </div>
-          <div class="admin-nav-btn" onclick="loadAdminSection('reports', this)">
-            <div class="anb-icon">🚨</div>
-            <div class="anb-text">Жалобы</div>
-          </div>
-          <div class="admin-nav-btn" onclick="loadAdminSection('quotes', this)">
-            <div class="anb-icon">✨</div>
-            <div class="anb-text">Цитаты</div>
-          </div>
-          <div class="admin-nav-btn" onclick="loadAdminSection('faq', this)">
-            <div class="anb-icon">❓</div>
-            <div class="anb-text">FAQ</div>
-          </div>
-          <div class="admin-nav-btn" onclick="loadAdminSection('texts', this)">
-            <div class="anb-icon">✍️</div>
-            <div class="anb-text">Тексты</div>
-          </div>
-          <div class="admin-nav-btn" onclick="loadAdminSection('system', this)">
-            <div class="anb-icon">⚙️</div>
-            <div class="anb-text">Система</div>
-          </div>
+        <div class="admin-pro-tab" onclick="switchAdminTab('books', this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          Книги
         </div>
-
-        <!-- Динамическая область контента -->
-        <div id="adminDynamicArea" class="admin-content-area">
-          <!-- Сюда будет подгружаться контент (Книги, Юзеры и т.д.) -->
+        <div class="admin-pro-tab" onclick="switchAdminTab('users', this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Юзеры
         </div>
-
+        <div class="admin-pro-tab" onclick="switchAdminTab('moderation', this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+          Модерация
+        </div>
+        <div class="admin-pro-tab" onclick="switchAdminTab('system', this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          Система
+        </div>
       </div>
-    </div>
+
+      <!-- КОНТЕНТ АДМИНКИ -->
+      <div class="wrap" style="padding-top: calc(160px + env(safe-area-inset-top, 0px)); padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));">
+        <div id="adminDynamicArea" class="admin-content-area">
+          <!-- Сюда рендерится контент -->
+        </div>
+      </div>
+    </div>        
 
          <!-- ЭКРАН: РЕДАКТОР КНИГИ (АДМИНКА) -->
     <div id="bookEditorScreen" class="hidden">
-      <div class="d-header">
-        <div style="display:flex; align-items:center; gap:12px; flex:1;">
-          <button onclick="backFromBookEditor()" style="background:transparent; border:none; color:var(--d-text); cursor:pointer;">
-             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      <div class="d-header" style="z-index: 10000;">
+        <div style="display:flex; align-items:center; gap:8px; flex:1;">
+          <button onclick="backFromBookEditor()" style="background:transparent; border:none; color:var(--d-text); cursor:pointer; padding: 4px;">
+             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
           </button>
-          <div class="d-header-greet-label">РЕДАКТОР КНИГИ</div>
+          <div class="d-header-greet-label" style="font-size: 11px;">РЕДАКТОР</div>
         </div>
-        <div class="d-header-actions">
-          <button class="d-icon-btn" onclick="previewBookDraft()" title="Предпросмотр">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        
+        <div class="d-header-actions" style="gap: 6px;">
+          <!-- Кнопка Предпросмотра -->
+          <button class="d-icon-btn" onclick="previewBookDraft()" title="Предпросмотр" style="width: 34px; height: 34px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </button>
+          
+          <!-- Кнопка Сохранить черновик -->
+          <button class="d-icon-btn" onclick="saveBookDraft()" title="Сохранить черновик" style="width: 34px; height: 34px; color: var(--d-warm); border-color: rgba(255,154,86,0.3);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          </button>
+          
+          <!-- Кнопка Опубликовать -->
+          <button class="d-icon-btn" onclick="publishBook()" title="Опубликовать" style="width: 34px; height: 34px; background: var(--d-gradient); color: #fff; border: none; box-shadow: 0 4px 12px rgba(124,92,255,0.4);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
           </button>
         </div>
       </div>
@@ -1136,7 +1111,6 @@
             <div id="edStatusDot" style="width:10px; height:10px; border-radius:50%; background:var(--d-success);"></div>
             <span id="edStatusText" style="font-size:13px; font-weight:800; color:var(--d-text);">Опубликовано</span>
           </div>
-          <button onclick="toggleBookPublication()" id="edStatusBtn" class="d-btn-secondary" style="margin:0; padding:6px 12px; font-size:11px; height:auto; width:auto;">Скрыть</button>
         </div>
 
         <!-- Вкладки -->
@@ -1223,21 +1197,6 @@
             
             <button class="d-btn-primary" onclick="parseSmartJson()" style="margin-top:0; width:100%; background: linear-gradient(135deg, var(--d-success), #2ea870); box-shadow: 0 4px 15px rgba(62,207,142,0.3);">✨ Распознать JSON</button>
           </div>
-        </div>
-
-        <!-- Плавающие кнопки сохранения -->
-        <div class="editor-bottom-dock">
-          
-          <button class="d-btn-secondary" onclick="saveBookDraft()" style="margin:0; flex:1; min-height:52px; border-radius:16px; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-            Черновик
-          </button>
-          
-          <button class="d-btn-primary" onclick="publishBook()" style="margin:0; flex:1.8; min-height:52px; border-radius:16px; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 6px 20px rgba(124, 92, 255, 0.4);">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-            Опубликовать
-          </button>
-          
         </div>
         
         <!-- Опасная зона и ошибки -->
@@ -2022,7 +1981,49 @@
           <button class="d-btn-secondary" onclick="skipFutureLetter()" style="margin-top:10px;">Пропустить</button>
         </div>
       </div>
-
+      <!-- Модалка: Сообщество заблокировано (нужно 3 дня) -->
+      <div class="modal hidden" id="communityLockedModal" onclick="this.classList.add('hidden')">
+        <div class="modal-box" style="text-align:center; padding: 30px 24px;" onclick="event.stopPropagation()">
+          <div style="font-size: 56px; margin-bottom: 16px; filter: drop-shadow(0 0 15px rgba(124,92,255,0.5));">🤝</div>
+          <h2 style="font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 8px;">Сообщество ждет тебя!</h2>
+          <p style="font-size: 13px; color: var(--d-text-dim); line-height: 1.5; margin-bottom: 24px;">
+            Чтобы открыть Ленту, Чаты и Рейтинг, закрой <b>хотя бы 3 дня практик</b>. Сначала привычка, потом комьюнити. Ты почти у цели!
+          </p>
+          
+          <button class="d-btn-primary" onclick="document.getElementById('communityLockedModal').classList.add('hidden'); smartHome();" style="margin-bottom: 10px;">
+            🚀 Продолжить практику
+          </button>
+          <button class="d-btn-secondary" onclick="document.getElementById('communityLockedModal').classList.add('hidden')">
+            Позже
+          </button>
+        </div>
+      </div>
+      <!-- Модалка: Инфо об уведомлениях -->
+      <div class="modal hidden" id="notificationInfoModal" onclick="this.classList.add('hidden')">
+        <div class="modal-box" style="text-align:left; padding: 24px;" onclick="event.stopPropagation()">
+          <div style="text-align:center; margin-bottom: 20px;">
+            <div style="font-size: 44px; margin-bottom: 8px; filter: drop-shadow(0 0 15px rgba(124,92,255,0.5));">🔔</div>
+            <h2 style="font-size: 20px; margin-bottom: 8px; color: var(--d-text);">Как работают уведомления?</h2>
+          </div>
+          
+          <div style="font-size: 13px; line-height: 1.6; color: var(--d-text-dim); margin-bottom: 24px;">
+            <p style="margin-bottom: 12px;">Мы присылаем уведомления, чтобы ты не пропустил важное:</p>
+            <ul style="list-style: none; padding: 0; margin-bottom: 16px;">
+              <li style="display:flex; gap:10px; margin-bottom:8px;"><span>🔥</span> <span><b>Огонь:</b> Напоминание, если день еще не закрыт.</span></li>
+              <li style="display:flex; gap:10px; margin-bottom:8px;"><span>💬</span> <span><b>Сообщения:</b> Когда друг пишет тебе в чат.</span></li>
+              <li style="display:flex; gap:10px; margin-bottom:8px;"><span>❤️</span> <span><b>Реакции:</b> Лайки и комментарии к твоим постам.</span></li>
+            </ul>
+            <p>Если ты хочешь изменить время напоминаний или отключить их, перейди в <b>Настройки</b>.</p>
+          </div>
+          
+          <button class="d-btn-secondary" onclick="document.getElementById('notificationInfoModal').classList.add('hidden'); showSettings();" style="margin-bottom: 10px; border-color: var(--d-accent-2); color: var(--d-accent-2);">
+            ⚙️ Перейти в настройки
+          </button>
+          <button class="d-btn-primary" onclick="document.getElementById('notificationInfoModal').classList.add('hidden')" style="margin-top:0;">
+            Понятно
+          </button>
+        </div>
+      </div>
     </div> <!-- Закрывающий тег для modalsRoot -->
 
   <!-- ПЛАШКА ОБНОВЛЕНИЯ ПРИЛОЖЕНИЯ -->

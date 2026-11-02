@@ -225,7 +225,7 @@ html.light, body.light { background: var(--bg); color: var(--text); }
 .wrap {
   max-width: 520px;
   margin: 0 auto;
-  padding: calc(85px + var(--safe-top)) 16px calc(140px + var(--safe-bottom)) 16px !important;
+  padding: calc(85px + var(--safe-top)) 16px calc(140px + var(--safe-bottom)) 16px;
   width: 100%;
   position: relative;
   display: flex;
@@ -670,8 +670,33 @@ html.light, body.light { background: var(--bg); color: var(--text); }
 .bento-section-title { font-size: 11px; font-weight: 900; color: var(--muted); text-transform: uppercase; margin: 20px 0 10px; letter-spacing: 0.8px; }
 .admin-filters-scroll { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
 .admin-filters-scroll::-webkit-scrollbar { display: none; }
-.admin-filter-pill { padding: 6px 12px; border-radius: 16px; background: var(--card); border: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0; white-space: nowrap; transition: .2s; }
-.admin-filter-pill.on { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color: transparent; color: #fff; }
+.admin-filter-pill {
+  padding: 6px 14px;
+  border-radius: 100px; /* Делаем овальными */
+  background: rgba(255, 255, 255, 0.05); /* Стеклянный эффект вместо черного */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--d-text-dim);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.admin-filter-pill:active {
+  transform: scale(0.96); /* Легкий клик только для фильтров */
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.admin-filter-pill.on {
+  background: linear-gradient(135deg, var(--d-accent), var(--d-accent-2));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(124, 92, 255, 0.3); /* Мягкое свечение */
+}
 .admin-summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 12px 0; }
 .admin-summary > div { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px 6px; text-align: center; }
 .as-num { font-size: 20px; font-weight: 900; color: var(--text); }
@@ -767,58 +792,12 @@ html.light, body.light { background: var(--bg); color: var(--text); }
 .timer-ring-svg, .voice-subtitle { display: none; }
 
 .focus-mode .ritual-hero, .focus-mode .ps-hero, .focus-mode .ps-block:not(.timer-wrapper), .focus-mode .ritual-body > .btn, .focus-mode .ps-content > .btn { display: none; }
-.focus-mode .timer-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-
-    background: transparent;
-
-    z-index: 90;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-
-    padding-top: 120px;
-}
 .focus-mode .timer-box, .focus-mode .zen-circle-container { background: transparent; border: none; box-shadow: none; }
 .focus-mode .zen-circle-container { width: 260px; height: 260px; margin-bottom: 20px; position: relative; display: flex; align-items: center; justify-content: center; }
 .focus-mode .timer-ring-svg { display: block; position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
 .focus-mode .timer-ring-track { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 10; }
 .focus-mode .timer-ring-progress { fill: none; stroke-width: 10; stroke-linecap: round; stroke-dasharray: 816.81; filter: drop-shadow(0 0 15px rgba(255,42,122,0.6)) drop-shadow(0 0 30px rgba(124,92,255,0.4)); }
 .focus-mode .timer-display { font-size: 56px; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
-.focus-mode .voice-subtitle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: auto;
-    margin: 10px auto 20px;
-    padding: 12px 16px;
-    background: linear-gradient(135deg, rgba(40, 30, 70, 0.85), rgba(25, 18, 45, 0.85));
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(124, 92, 255, 0.5);
-    border-radius: 16px;
-    font-size: 15px; /* Чуть крупнее для чтения */
-    font-weight: 500;
-    line-height: 1.4;
-    color: #ffffff;
-    text-align: center;
-    opacity: 1; /* Всегда видимы */
-    transform: none; /* Убрали смещение */
-    transition: opacity 0.3s ease;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
-    width: 100%;
-    max-width: 340px;
-}
-.focus-mode .voice-subtitle.show {
-    opacity: 1;
-}
-.focus-mode .voice-subtitle.show { opacity: 1; }
 .zen-buttons-wrap { 
     display: flex; 
     flex-direction: column; 
@@ -1095,27 +1074,6 @@ body.keyboard-open .bottom-nav, body.keyboard-open #quickNoteFab { display: none
 }
 .focus-mode .d-timer-text {
   z-index: 3;
-}
-
-.focus-mode .timer-wrapper {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: transparent;
-    z-index: 90;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: calc(115px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
-    overflow: hidden;
-}
-
-.focus-mode .voice-subtitle {
-  margin: 10px auto 20px;
-}
-
-.focus-mode .zen-buttons-wrap {
-  margin-top: 10px;
-  padding-bottom: 40px;
 }
 
 html, body, #screensRoot {
@@ -1985,19 +1943,6 @@ body, #screensRoot {
 .focus-mode .d-timer-ring-wrap.paused-ring {
   animation: none;
 }
-.focus-mode .timer-wrapper {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: transparent;
-    z-index: 90;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: calc(115px + env(safe-area-inset-top, 0px)) 20px calc(10px + env(safe-area-inset-bottom, 0px)) !important;
-    overflow: hidden;
-    width: 100%;
-}
 /* ═══════════════════════════════════════════════ */
 /* ЧЕК-ЛИСТ ШАГОВ В РЕЖИМЕ ТАЙМЕРА */
 /* ═══════════════════════════════════════════════ */
@@ -2085,16 +2030,21 @@ input, textarea, select {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: calc(90px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
+    /* Увеличили отступ сверху (было 90px), чтобы кольцо не пряталось под шапкой */
+    padding: calc(120px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
     overflow: hidden;
     width: 100%;
 }
 
 .focus-mode .d-timer-ring-wrap {
-    width: 240px; 
+    width: 240px;
     height: 240px;
-    margin: 0 auto 20px auto; 
-    flex-shrink: 0; 
+    margin: 10px auto 20px auto; /* <--- Изменили 0 на 10px (добавили воздух сверху) */
+    flex-shrink: 0;
+    
+    /* Если ты хочешь, чтобы вокруг кольца была пульсация (свечение), раскомментируй строку ниже. 
+       Если пульсация не нужна — просто оставь как есть. */
+    /* animation: breatheGlow 4s ease-in-out infinite; */
 }
 
 #practiceScreen.focus-mode .practice-checklist,
@@ -2201,17 +2151,27 @@ body {
 .focus-mode .music-fab-btn {
   display: flex !important;
 }
-/* Закрепляем вкладки редактора при скролле */
+
+/* ═══════════════════════════════════════════════ */
+/* АККУРАТНЫЕ ВКЛАДКИ РЕДАКТОРА */
+/* ═══════════════════════════════════════════════ */
 .ed-tabs {
   position: sticky;
-  top: 60px; /* Высота шапки */
-  z-index: 100;
-  background: var(--color-background-app, #120c24);
+  top: calc(64px + env(safe-area-inset-top, 0px));
+  z-index: 900;
+  display: flex;
+  gap: 6px;
+  background: rgba(18, 12, 36, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   padding: 10px 0;
-  margin-top: -10px;
-  margin-bottom: 10px;
-  box-shadow: 0 10px 15px -10px rgba(0,0,0,0.8);
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(124, 92, 255, 0.15);
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.ed-tabs::-webkit-scrollbar { display: none; }
+
 /* Красивая нижняя панель редактора */
 #bookEditorScreen div[style*="position: fixed; bottom: 0;"] {
   background: rgba(30, 20, 55, 0.85) !important;
@@ -2403,53 +2363,545 @@ input, textarea, select {
   box-shadow: 0 4px 15px rgba(124, 92, 255, 0.4);
   transform: scale(1.02);
 }
+/* ═══════════════════════════════════════════════ */
+/* КРАСИВЫЙ СПИСОК ВЫБОРА ПРАКТИК */
+/* ═══════════════════════════════════════════════ */
+.practice-selector-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
 
-/* 3. ПАРЯЩАЯ НИЖНЯЯ ПАНЕЛЬ (Floating Dock) */
-.editor-bottom-dock {
+.practice-selector-item:active {
+  transform: scale(0.98);
+  background: rgba(124, 92, 255, 0.1);
+  border-color: rgba(124, 92, 255, 0.3);
+}
+
+.practice-selector-item.done {
+  background: rgba(62, 207, 142, 0.08);
+  border-color: rgba(62, 207, 142, 0.2);
+}
+
+.psi-number {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--d-surface-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--d-accent-2);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.practice-selector-item.done .psi-number {
+  background: var(--d-success);
+  color: #fff;
+}
+
+.psi-content {
+  flex: 1;
+  min-width: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.psi-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--d-text);
+}
+
+.practice-selector-item.done .psi-title {
+  color: var(--d-success);
+  text-decoration: line-through;
+}
+
+.psi-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.psi-time {
+  font-size: 11px;
+  color: var(--d-text-dim);
+  font-weight: 600;
+}
+
+.psi-xp {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--d-gold);
+  background: rgba(255, 184, 0, 0.1);
+  padding: 2px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 184, 0, 0.2);
+}
+
+.psi-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.15; /* Делаем иконку очень легкой */
+  filter: grayscale(1) drop-shadow(0 0 10px transparent);
+  transform: translateX(10px);
+  z-index: 0;
+}
+
+/* Прячем скроллбар в этой модалке, чтобы было как в iOS */
+#practiceSelectorList::-webkit-scrollbar {
+  display: none;
+}
+#practiceSelectorList {
+  scrollbar-width: none;
+}
+/* ═══════════════════════════════════════════════ */
+/* ИДЕАЛЬНЫЙ ДИЗАЙН УВЕДОМЛЕНИЙ */
+/* ═══════════════════════════════════════════════ */
+.notif-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  background: var(--d-surface);
+  border: 1px solid var(--d-border);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.notif-item:active {
+  transform: scale(0.98);
+  background: var(--d-surface-2);
+}
+
+/* Непрочитанные уведомления */
+.notif-item.unread {
+  background: linear-gradient(135deg, rgba(124, 92, 255, 0.12), rgba(25, 18, 45, 0.6));
+  border-color: rgba(124, 92, 255, 0.4);
+}
+
+/* Синяя точка для непрочитанных (как в iOS) */
+.notif-item.unread::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  background: var(--d-accent-2);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(124, 92, 255, 0.6);
+}
+
+.ni-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ni-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--d-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ni-text {
+  font-size: 12px;
+  color: var(--d-text-dim);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ni-time {
+  font-size: 10px;
+  color: var(--d-text-mute);
+  font-weight: 600;
+  white-space: nowrap;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+.notif-item.unread .ni-time {
+  color: var(--d-accent-2);
+}
+/* ═══════════════════════════════════════════════ */
+/* PRO АДМИН-ПАНЕЛЬ (Дизайн в стиле SaaS) */
+/* ═══════════════════════════════════════════════ */
+
+.admin-pro-tabs {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  top: calc(90px + env(safe-area-inset-top, 0px));
+  left: 0; right: 0;
   max-width: 520px;
   margin: 0 auto;
-  background: rgba(25, 18, 45, 0.85); /* Темное стекло */
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px)) 16px; /* Учет полоски iPhone */
-  border-top: 1px solid rgba(124, 92, 255, 0.2);
-  border-radius: 24px 24px 0 0;
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
-  z-index: 9999;
   display: flex;
-  gap: 12px;
+  gap: 8px; /* Чуть увеличили отступ между кнопками */
+  padding: 8px 16px 12px 16px;
+  border-bottom: 1px solid rgba(124, 92, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow-x: auto;
+  
+  /* ДОБАВЛЯЕМ ПЛАВНЫЙ СВАЙП */
+  scroll-snap-type: x proximity;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  z-index: 90;
+  
+  /* Легкое затемнение по краям, чтобы было видно, что можно свайпать */
+  -webkit-mask-image: linear-gradient(to right, transparent, black 5px, black calc(100% - 15px), transparent);
+  mask-image: linear-gradient(to right, transparent, black 5px, black calc(100% - 15px), transparent);
+}
+.admin-pro-tabs::-webkit-scrollbar { display: none; }
+
+.admin-pro-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 100px;
+  
+  /* ДОБАВЛЯЕМ ПРИЛИПАНИЕ */
+  scroll-snap-align: start;
+  
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--d-text-dim);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Кнопки внутри панели */
-.editor-bottom-dock .d-btn-secondary {
-  margin: 0;
-  flex: 1;
-  min-height: 52px;
+/* ЖЕСТКИЙ ФИКС: Запрещаем сужаться при нажатии */
+.admin-pro-tab:active { 
+  transform: scale(1) !important; 
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Активная вкладка — заливаем фирменным фиолетовым градиентом */
+.admin-pro-tab.on {
+  background: linear-gradient(135deg, var(--d-accent), var(--d-accent-2));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(124, 92, 255, 0.4);
+}
+
+.admin-pro-tab.on svg { 
+  stroke: #fff; 
+}
+
+.admin-pro-tab.on svg { stroke: var(--d-accent-2); }
+
+/* Карточки дашборда (Bento Grid) */
+.admin-kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.admin-kpi-card {
+  background: linear-gradient(135deg, rgba(40,30,70,0.6), rgba(25,18,45,0.4));
+  border: 1px solid rgba(124,92,255,0.2);
   border-radius: 16px;
-  font-size: 13px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.admin-kpi-title {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--d-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.admin-kpi-value {
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+}
+.admin-kpi-trend {
+  font-size: 10px;
   font-weight: 700;
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+.admin-kpi-trend.up { color: var(--d-success); background: rgba(62,207,142,0.1); }
+.admin-kpi-trend.down { color: var(--d-danger); background: rgba(255,92,92,0.1); }
+
+/* ═══════════════════════════════════════════════ */
+/* PRO-СПИСОК КНИГ В АДМИНКЕ */
+/* ═══════════════════════════════════════════════ */
+.admin-book-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--d-surface);
+  border: 1px solid var(--d-border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.editor-bottom-dock .d-btn-primary {
-  margin: 0;
-  flex: 1.8;
-  min-height: 52px;
-  border-radius: 16px;
+.admin-book-row:active {
+  transform: scale(0.98);
+  background: var(--d-surface-2);
+  border-color: var(--d-accent-2);
+}
+/* ═══════════════════════════════════════════════ */
+/* PRO-СПИСОК ЮЗЕРОВ В АДМИНКЕ */
+/* ═══════════════════════════════════════════════ */
+.admin-user-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--d-surface);
+  border: 1px solid var(--d-border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.admin-user-row:active {
+  transform: scale(0.98);
+  background: var(--d-surface-2);
+  border-color: var(--d-accent-2);
+}
+
+.aur-ava {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--d-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.aur-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.aur-name {
   font-size: 13px;
   font-weight: 800;
-  box-shadow: 0 6px 20px rgba(124, 92, 255, 0.4);
+  color: var(--d-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* 4. ОТСТУП ДЛЯ КОНТЕНТА (Чтобы кнопки не перекрывали текст) */
-#bookEditorScreen .wrap {
-  padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px)) !important;
+.aur-phone {
+  font-size: 11px;
+  color: var(--d-text-dim);
+  margin-top: 2px;
 }
 
+.aur-status {
+  display: flex;
+  align-items: center;
+}
 
+.aur-time {
+  font-size: 9px;
+  color: var(--d-text-mute);
+}
 
+/* Бейджи статусов */
+.admin-badge {
+  font-size: 8px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
 
+.admin-badge-gold { color: #ffb800; background: rgba(255, 184, 0, 0.15); }
+.admin-badge-green { color: var(--d-success); background: rgba(62, 207, 142, 0.15); }
+.admin-badge-red { color: var(--d-danger); background: rgba(255, 92, 92, 0.15); }
+/* ═══════════════════════════════════════════════ */
+/* КАРТОЧКИ МОДЕРАЦИИ */
+/* ═══════════════════════════════════════════════ */
+.admin-mod-card {
+  background: var(--d-surface);
+  border: 1px solid var(--d-border);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 10px;
+  transition: 0.2s;
+}
+.admin-mod-card:active {
+  background: var(--d-surface-2);
+}
+/* ═══════════════════════════════════════════════ */
+/* PRO-СИСТЕМА В АДМИНКЕ */
+/* ═══════════════════════════════════════════════ */
+.admin-pro-card {
+  background: linear-gradient(135deg, rgba(40,30,70,0.6), rgba(25,18,45,0.4));
+  border: 1px solid rgba(124,92,255,0.2);
+  border-radius: 16px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.admin-pro-card-header {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 12px;
+}
+
+.admin-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.admin-pro-card-title {
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.admin-pro-card-sub {
+  font-size: 10px;
+  color: var(--d-text-dim);
+  margin-top: 2px;
+}
+
+.admin-pro-input {
+  width: 100%;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--d-border);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--d-text);
+  font-size: 13px;
+  margin-bottom: 10px;
+  transition: 0.2s;
+}
+.admin-pro-input:focus {
+  outline: none;
+  border-color: var(--d-accent-2);
+  background: rgba(0,0,0,0.3);
+}
+
+.admin-settings-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  cursor: pointer;
+  transition: 0.2s;
+}
+.admin-settings-row:active {
+  background: rgba(255,255,255,0.05);
+}
+.admin-settings-row:last-child {
+  border-bottom: none;
+}
+
+.asr-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--d-text);
+}
+
+/* Таймлайн логов */
+.admin-timeline {
+  position: relative;
+  padding-left: 12px;
+}
+.admin-timeline::before {
+  content: '';
+  position: absolute;
+  left: 26px;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: var(--d-border);
+}
+.admin-timeline-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+}
+.ati-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--d-surface);
+  border: 1px solid var(--d-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.ati-content {
+  flex: 1;
+  background: var(--d-surface);
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--d-border);
+}
 

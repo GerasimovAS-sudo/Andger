@@ -208,12 +208,24 @@ const DEV_TELEGRAM = 'Gerasimov_And';
 let currentDifficulty = 'normal'; // 'easy', 'normal', 'deep'
 let calendarWeekOffset = 0; // 0 - текущая неделя, -1 - прошлая, 1 - следующая
 let BOOKS=[], currentBook=null, currentPractice=null, ritualQueue=[], ritualIndex=0;
+// ─── ОФИЦИАЛЬНЫЕ КАТЕГОРИИ ANDGER ───
+const OFFICIAL_CATEGORIES = [
+  "Привычки и саморазвитие",
+  "Продуктивность и мышление",
+  "Психология и отношения",
+  "Здоровье и энергия",
+  "Финансы и карьера",
+  "Духовность и спокойствие",
+  "Бизнес и лидерство",
+  "Разное"
+];
 let timerInterval=null, timerRemaining=0, timerState='idle';
 let timerTargetTime = 0;
 let user=null, state={}, onbIndex=0, statsBookId=null;
 let musicAudio=null, ttsAudio=null, syncTimeout=null, isAdminFlag=false, profileHeartbeatTimer=null;
 let isVoicePlaying = false;
 let completeCallback=null, adminAllUsers=[], adminAllBooks=[];
+let adminUserFilter = 'all'; // <--- Добавили переменную для фильтров
 let bookDetailId=null, customRitual=[];
 let bookDetailSource='lib';
 let currentScreen='today';
@@ -348,8 +360,15 @@ function updateBottomNav(activePage) {
   const nav = document.getElementById('bottomNav');
   if(nav) { 
     nav.classList.remove('hidden'); 
-    nav.style.display = 'flex'; // <--- ВОЗВРАЩАЕМ МЕНЮ, КОГДА НУЖНО
+    nav.style.display = 'flex';
   }
+  
+  // ✨ Вкладка "Лента" всегда видима. Проверка сработает при клике.
+  const communityBtn = document.querySelector('.nav-btn[data-page="community"]');
+  if (communityBtn) {
+    communityBtn.style.display = 'flex';
+  }
+
   document.querySelectorAll('.nav-btn').forEach(b => {
     if(b.dataset.page === activePage) b.classList.add('on');
     else b.classList.remove('on');
@@ -437,76 +456,6 @@ const MUSIC_TRACKS = {
 };
 let currentTrackIdx = 0;
 let currentPlaylist = [];
-
-function toggleTimer(ctx){
-  const isRitual = !document.getElementById('ritualScreen').classList.contains('hidden');
-  const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
-  const btn = screen.querySelector('#timerBtn'); 
-
-  if(timerState === 'running'){
-    // ПАУЗА
-    clearInterval(timerInterval);
-    timerState = 'paused';
-    if (musicAudio) musicAudio.pause();
-    if (ttsAudio) ttsAudio.pause();
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    if(btn){ btn.innerHTML='▶ Продолжить'; btn.classList.add('paused'); }
-    const ringWrap = screen.querySelector('.d-timer-ring-wrap');
-    if (ringWrap) ringWrap.classList.add('paused-ring'); 
-  } else if(timerState === 'done'){
-    // Ничего не делаем
-} else {
-    // СТАРТ ИЛИ ПРОДОЛЖЕНИЕ
-    let currentP = isRitual ? ritualQueue[ritualIndex] : currentPractice;
-    if (timerState === 'idle' && currentP) currentP._spokenIndices = [];
-
-    // ✨ ЗАПУСК МУЗЫКИ (строго синхронно при клике)
-    if (state.soundMode === 'sound') {
-       if (timerState === 'idle' || !musicAudio || musicAudio.paused) {
-          startMusic(currentP ? currentP.id : 'default');
-       } else {
-          if (musicAudio) {
-             musicAudio.play().catch(()=>{});
-             const targetVol = isVoicePlaying ? 0.15 : 0.3;
-             fadeAudio(musicAudio, musicAudio.volume, targetVol, 500); 
-          }
-       }
-    }
-
-    // Разблокировка системного голоса
-    if ('speechSynthesis' in window) {
-      const emptyUtterance = new SpeechSynthesisUtterance('');
-      emptyUtterance.volume = 0;
-      window.speechSynthesis.speak(emptyUtterance);
-    }
-    
-    if (!ttsAudio) ttsAudio = new Audio();
-    ttsAudio.play().catch(()=>{});
-    ttsAudio.pause();
-    
-    startTimer(isRitual ? 'ritual' : 'practice'); 
-    timerState = 'running';
-    
-    if(btn){ btn.innerHTML='⏸ Пауза'; btn.classList.remove('paused'); }
-    const focusControls = screen.querySelector('.focus-controls');
-    if (focusControls) focusControls.style.display = 'flex';
-     const ringWrap2 = screen.querySelector('.d-timer-ring-wrap');
-    if (ringWrap2) ringWrap2.classList.remove('paused-ring'); 
-    
-    const zenBtn = screen ? screen.querySelector('.exit-zen-btn') : null;
-    if (zenBtn) {
-      zenBtn.style.display = 'block';
-      zenBtn.textContent = 'Свернуть таймер';
-    }
-    
-    if(screen) {
-      screen.classList.add('focus-mode');
-      document.body.style.overflow = 'hidden'; 
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-    }
-  }
-}
 
 function nextTrack(){
   if(!musicAudio) return;
@@ -1328,14 +1277,40 @@ async function syncProgress(changedBookId = null){
   }).eq('id',user.id);
 }
 function saveState(changedBookId = null){
-  // 1. Сразу сохраняем в память телефона
+  // 1. Оптимизированное сохранение в память телефона
   try {
-    localStorage.setItem('andger_current_state', JSON.stringify(state));
-  } catch(e) { console.log('LocalStorage error', e); }
+    const localState = JSON.parse(JSON.stringify(state));
+    
+    if (localState.books) {
+      const optimizedBooks = {};
+      // Оставляем только текущую книгу и те, где есть реальная активность
+      Object.keys(localState.books).forEach(bookId => {
+        const bookState = localState.books[bookId];
+        if (bookId === state.lastBook || (bookState.start && Object.keys(bookState.days || {}).length > 0)) {
+           optimizedBooks[bookId] = bookState;
+        }
+      });
+      localState.books = optimizedBooks;
+    }
+    
+    localStorage.setItem('andger_current_state', JSON.stringify(localState));
+  } catch (e) {
+    console.warn('⚠️ LocalStorage переполнен. Экстренная очистка.', e);
+    // Экстренный сброс: если места совсем нет, сохраняем ТОЛЬКО текущую книгу
+    try {
+      const minimalState = { ...state, books: {} };
+      if (state.lastBook && state.books[state.lastBook]) {
+        minimalState.books[state.lastBook] = state.books[state.lastBook];
+      }
+      localStorage.setItem('andger_current_state', JSON.stringify(minimalState));
+    } catch (e2) {
+      console.error('Критическая ошибка: не удалось сохранить даже минимальный стейт', e2);
+    }
+  }
 
   // 2. Отправляем на сервер с задержкой
-  if(syncTimeout)clearTimeout(syncTimeout);
-  syncTimeout=setTimeout(()=>syncProgress(changedBookId),1500);
+  if(syncTimeout) clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(() => syncProgress(changedBookId), 1500);
 }
 
 // ─── ОФФЛАЙН ОЧЕРЕДЬ ───
@@ -1519,6 +1494,50 @@ function showTodayScreen(){
       }
     }
   }, 15000);
+
+  // ✨ Запускаем проверку на сгоревший огонь
+  setTimeout(checkStreakLoss, 1500);
+}
+
+// ✨ МЯГКИЙ РЕЖИМ ПРИ СГОРАНИИ СЕРИИ
+function checkStreakLoss() {
+  if (!currentBook) return;
+  const bs = getBookState(currentBook.id);
+  if (!bs.start) return;
+
+  const today = todayStr();
+  // Ключ, чтобы не спамить пользователя этим окном каждый раз
+  const msgKey = 'andger_streak_msg_' + currentBook.id + '_' + today;
+  
+  if (localStorage.getItem(msgKey)) return;
+
+  const streak = calcStreak(currentBook.id);
+  
+  // Если огонь сгорел (0), но книга была начата не сегодня
+  if (streak === 0 && bs.start < today) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yStr = localDate(yesterday);
+    const yRec = bs.days[yStr];
+    
+    // Проверяем, что вчера не было закрыто и не было заморозки
+    if (!yRec || (!yRec.closed && !yRec.shielded)) {
+      
+      appDialog({
+        title: 'Твой огонь погас 🍃',
+        message: 'Но это абсолютно нормально. Привычки — это марафон, а не спринт. Главное — вернуться в игру. Начнем заново сегодня?',
+        confirmText: 'Зажечь снова 🔥',
+        cancelText: 'Позже'
+      }).then((confirmed) => {
+        if (confirmed) {
+          playSuccess();
+          startRitual(); // Сразу запускаем практику
+        }
+      });
+      
+      localStorage.setItem(msgKey, '1');
+    }
+  }
 }
 
 // Функция проверки: не пора ли показать отчет
@@ -1716,10 +1735,23 @@ function backFromCommunity(){ smartHome(); }
 
 function navTo(page,el){
   if (typeof haptic === 'function') haptic('nav');
+  
+  // Проверяем доступ к Сообществу
+  if(page === 'community') {
+    const stats = getGlobalStats();
+    if (stats.totalClosed >= 3 || isAdmin()) { // <--- Добавили isAdmin()
+      showCommunityScreen();
+    } else {
+      // Показываем красивое окно-заглушку
+      document.getElementById('communityLockedModal').classList.remove('hidden');
+      playClick();
+    }
+    return;
+  }
+
   if(page==='lib')showLibrary();
   else if(page==='today')smartHome();
   else if(page==='stats')showStatsScreen();
-  else if(page==='community')showCommunityScreen();  
   else if(page==='journal')showJournalScreen();
 }
 
@@ -1771,7 +1803,7 @@ function hasBookAccess(id){
   if (book && book.is_free === true) return true;
 
   // 6. Старый хардкод (оставляем на случай, если база еще не обновилась)
-  const freeBooks = ['magic-morning', 'atomic-habits'];
+  const freeBooks = ['magic-morning', 'magic_morning', 'atomic-habits'];
   if (freeBooks.includes(id)) return true;
 
   // Всё остальное закрыто
@@ -2173,7 +2205,10 @@ function renderToday() {
   const stats = getGlobalStats();
   const cardFire = document.getElementById('cardFire');
   const cardXP = document.getElementById('cardXP');
-  if (cardFire) cardFire.textContent = calcStreak(currentBook.id);
+    if (cardFire) {
+    const streak = calcStreak(currentBook.id);
+    cardFire.textContent = isNaN(streak) ? 0 : streak;
+  }
   if (cardXP) cardXP.textContent = stats.totalXP;
   const todayNameEl = document.getElementById('todayName');
   if (todayNameEl) todayNameEl.textContent = fullName;
@@ -3096,7 +3131,20 @@ function renderRitualStep(){
     ritualQueue[ritualIndex] = p; 
     
     const rpStep = document.getElementById('rpStep');
-    if(rpStep) rpStep.textContent = 'Практика ' + (ritualIndex + 1) + ' из ' + ritualQueue.length;
+    if(rpStep) {
+        // Убираем принудительный CAPS LOCK из стилей, чтобы название выглядело красиво
+        rpStep.style.textTransform = 'none';
+        rpStep.style.letterSpacing = '0';
+        rpStep.style.display = 'flex';
+        rpStep.style.flexDirection = 'column';
+        rpStep.style.gap = '2px';
+        
+        // Выводим название практики жирным шрифтом, а прогресс — мелким снизу
+        rpStep.innerHTML = `
+            <div style="font-size:14px; font-weight:800; color:var(--d-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.2;">${escapeHtml(p.title)}</div>
+            <div style="font-size:10px; color:var(--d-text-dim); font-weight:600;">Практика ${ritualIndex + 1} из ${ritualQueue.length}</div>
+        `;
+    }
     
     const fill = document.getElementById('rpFill');
     if (fill) fill.style.width = (ritualIndex / ritualQueue.length * 100) + '%';
@@ -3160,14 +3208,16 @@ function toggleTimer(ctx){
     let currentP = isRitual ? ritualQueue[ritualIndex] : currentPractice;
     if (timerState === 'idle' && currentP) currentP._spokenIndices = [];
 
-    // ✨ ЖЕЛЕЗНЫЙ ФИКС: Запускаем музыку ПЕРВОЙ, чтобы браузер не заблокировал звук
+    // ✨ ФИКС ПАУЗЫ: Запускаем музыку ТОЛЬКО при первом старте (idle)
     if (state.soundMode === 'sound') {
-       if (timerState === 'idle' || !musicAudio || musicAudio.paused) {
+       if (timerState === 'idle') {
           startMusic(currentP ? currentP.id : 'default');
        } else {
-          if (musicAudio) {
+          // Если это было ПАУЗА -> ПРОДОЛЖИТЬ, просто возобновляем текущий трек
+          if (musicAudio && musicAudio.src) {
              musicAudio.play().catch(()=>{});
-             fadeAudio(musicAudio, musicAudio.volume, isVoicePlaying ? 0.15 : 0.3, 500); 
+             const targetVol = isVoicePlaying ? 0.15 : 0.3;
+             fadeAudio(musicAudio, musicAudio.volume, targetVol, 500); 
           }
        }
     }
@@ -3245,9 +3295,9 @@ function startTimer(ctx){
   timerTargetTime = Date.now() + (timerRemaining * 1000);
   const targetTime = timerTargetTime;
   
-  // ✨ ФИКС: Сначала объявляем переменную, а потом используем
+  // ✨ ФИКС: Берем время, которое реально идет на таймере (с учетом сложности)
   let currentP = isRitual ? ritualQueue[ritualIndex] : currentPractice;
-  const totalDuration = currentP ? currentP.time : timerRemaining; 
+  const startRemaining = timerRemaining; // Запоминаем текущее время (3, 5 или 8 минут)
   
   if(timerInterval) clearInterval(timerInterval);
   
@@ -3273,14 +3323,13 @@ function startTimer(ctx){
     }
 
     if (circle) {
-       const totalTime = currentP ? currentP.time : 300;
        const circumference = 534; 
-       const percent = timerRemaining / totalTime; 
+       const percent = timerRemaining / startRemaining; // <--- Делим на реальное стартовое время
        circle.style.strokeDashoffset = circumference - (percent * circumference);
     }
 
     if (currentP && currentP.voiceTimeline && timerState === 'running' && remaining > 1 && document.visibilityState === 'visible') {
-      const elapsed = totalDuration - remaining;
+      const elapsed = startRemaining - remaining; // Считаем прошедшее время от старта
       
       // Коэффициент сложности (чтобы фразы успевали говориться)
       const baseTime = currentP.time || 300;
@@ -4739,15 +4788,15 @@ async function renderNotifications(){
       leftIconHtml = `<div class="ni-ico" style="font-size: 20px; width: 44px; height: 44px; border-radius: 14px; background: rgba(124,92,255,0.1); border: 1px solid rgba(124,92,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">${ico}</div>`;
     }
     
-    return `<div class="notif-item ${n.read?'':'unread'}" onclick="openNotification('${n.id}', this)" style="padding: 14px; display:flex; gap: 12px; align-items:flex-start; background: ${n.read ? 'var(--d-surface)' : 'linear-gradient(135deg, rgba(124,92,255,0.1), var(--d-surface))'}; border: 1px solid ${n.read ? 'var(--d-border)' : 'rgba(124,92,255,0.3)'}; border-radius: 16px; margin-bottom: 8px; cursor: pointer; transition: 0.2s;">
+    return `<div class="notif-item ${n.read?'read':'unread'}" onclick="openNotification('${n.id}', this)">
       ${leftIconHtml}
-      <div class="ni-body" style="flex:1; min-width:0;">
-        <div class="ni-title" style="font-size: 14px; color: #fff; font-weight: 800; display:flex; justify-content:space-between; align-items:center; line-height:1.3;">
-          <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:8px;">${escapeHtml(title)}</span>
+      <div class="ni-body">
+        <div class="ni-title">
+          <span>${escapeHtml(title)}</span>
         </div>
-        <div class="ni-text" style="color: var(--muted); font-size: 13px; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height:1.4;">${escapeHtml(text)}</div>
-        <div class="ni-time" style="font-size: 11px; color: ${n.read ? 'var(--d-text-dim)' : 'var(--d-accent-2)'}; margin-top: 6px; font-weight: ${n.read ? '500' : '700'};">${timeAgo(n.created_at)}</div>
+        <div class="ni-text">${escapeHtml(text)}</div>
       </div>
+      <div class="ni-time">${timeAgo(n.created_at)}</div>
     </div>`;
   }).join('');
 }
@@ -5774,49 +5823,28 @@ async function loadPeople(){
   el.innerHTML='<div style="color:var(--d-text-dim);text-align:center;padding:20px">Загрузка рейтинга...</div>';
   
   try {
-    const{data:profiles}=await sb.from('profiles').select('id,name,last_name,avatar');
-    const{data:prog}=await sb.from('progress').select('*');
+    // ✨ ЗАПРАШИВАЕМ ГОТОВЫЙ ТОП-100 С СЕРВЕРА (Быстро и без нагрузки)
+    const { data: serverList, error } = await sb.rpc('get_leaderboard', { limit_count: 100 });
+    if (error) throw error;
 
     const userStats = {};
-    (profiles || []).forEach(p => {
-      userStats[p.id] = { ...p, xp: 0, fire: 0, booksDone: 0, practices: 0, minutes: 0, lvl: 1 };
-    });
-
-    (prog || []).forEach(row => {
-      const uid = row.user_id;
-      if (!userStats[uid]) return;
-      const d = row.data || {};
-      const days = d.days || {};
-      const book = BOOKS.find(b => b.id === row.book_id);
+    (serverList || []).forEach(p => {
+      userStats[p.id] = { 
+        ...p, 
+        xp: p.total_xp || 0, 
+        fire: p.max_streak || 0, 
+        practices: p.total_practices || 0,
+        minutes: 0, // Сервер пока не считает минуты, ставим 0
+        booksDone: 0,
+        lvl: 1 
+      };
       
-      let closedDays = 0, practices = 0, minutes = 0;
-      
-      Object.keys(days).forEach(date => {
-        if (days[date].closed) closedDays++;
-        if (days[date].practices && book) {
-          practices += days[date].practices.length;
-          days[date].practices.forEach(pid => {
-            const p = book.practices.find(x => x.id === pid);
-            if(p && p.time) minutes += Math.round(p.time / 60);
-          });
-        }
-      });
-
-      userStats[uid].practices += practices;
-      userStats[uid].minutes += minutes;
-      userStats[uid].xp += (practices * 10) + (closedDays * 50);
-      
-      const maxStreak = calculateStreakFromProgress(row.book_id, d);
-      if (maxStreak > userStats[uid].fire) userStats[uid].fire = maxStreak;
-      if (book && closedDays >= book.days) userStats[uid].booksDone++;
-    });
-
-    Object.values(userStats).forEach(u => {
-      if(u.xp >= 2000) u.lvl = 6;
-      else if(u.xp >= 1000) u.lvl = 5;
-      else if(u.xp >= 600) u.lvl = 4;
-      else if(u.xp >= 300) u.lvl = 3;
-      else if(u.xp >= 100) u.lvl = 2;
+      // Расчет уровня по XP
+      if(userStats[p.id].xp >= 2000) userStats[p.id].lvl = 6;
+      else if(userStats[p.id].xp >= 1000) userStats[p.id].lvl = 5;
+      else if(userStats[p.id].xp >= 600) userStats[p.id].lvl = 4;
+      else if(userStats[p.id].xp >= 300) userStats[p.id].lvl = 3;
+      else if(userStats[p.id].xp >= 100) userStats[p.id].lvl = 2;
     });
 
         // 1. Собираем всех и сортируем
@@ -6001,156 +6029,180 @@ function subscribeNotifications(){
 // АДМИНКА
 // ═══════════════════════════════════════════════
 
-async function showAdmin(initialSection = 'books'){
-  if(!isAdmin())return;
-  hideAll();
-  
-  const adminAva = document.getElementById('adminAvatar');
-  if (adminAva) adminAva.innerHTML = getAvatarHtml(state.avatar, 26);
-  
-  document.getElementById('adminScreen')?.classList.remove('hidden');
-  
-  // Загружаем статистику для верхних плашек
-  await loadAdminUsers(); // Это загрузит юзеров и обновит счетчики
-  
-  // Считаем MRR (доход)
-  let activeSubs = 0;
-  adminAllUsers.forEach(p => {
-    if (p.sub_until && new Date(p.sub_until) > new Date()) activeSubs++;
-  });
-  const mrrEl = document.getElementById('adminMRR');
-  if(mrrEl) mrrEl.textContent = (activeSubs * 99).toLocaleString('ru-RU') + ' ₽';
-
-  // Определяем, какую кнопку нажать и какой раздел загрузить
-  let targetBtn = null;
-  const allBtns = document.querySelectorAll('.admin-nav-btn');
-  
-  if (initialSection === 'feedback') {
-    targetBtn = Array.from(allBtns).find(b => b.textContent.includes('Отзывы'));
-  } else if (initialSection === 'dashboard') {
-    targetBtn = Array.from(allBtns).find(b => b.textContent.includes('Обзор'));
-  }
-  
-  // Если не нашли специфичную кнопку, берем первую (Обзор)
-  if (!targetBtn) {
-    targetBtn = allBtns[0];
-    initialSection = 'dashboard'; // <--- ТЕПЕРЬ ПО УМОЛЧАНИЮ ОТКРЫВАЕТСЯ ОБЗОР
-  }
-
-  if (targetBtn) {
-    loadAdminSection(initialSection, targetBtn);
-  }
-}
-
-function loadAdminSection(section, btnEl) {
-  document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('on'));
-  if (btnEl) btnEl.classList.add('on');
-  
+function loadAdminSection(section) {
   const area = document.getElementById('adminDynamicArea');
   if (!area) return;
 
-  area.innerHTML = '<div style="text-align:center; padding:40px; color:var(--d-text-dim);">Загрузка...</div>';
+  area.style.animation = 'none';
+  area.offsetHeight; // trigger reflow
+  area.style.animation = 'fadeIn 0.3s ease';
 
+  // Перенаправляем старые названия в новые вкладки
+  if (section === 'feedback' || section === 'reports') {
+    section = 'moderation';
+  }
+
+  if (section === 'dashboard') {
+    area.innerHTML = '<div id="adminDashboardContent"></div>';
+    loadAdminDashboard(); // Вызовем переписанный дашборд
+    return;
+  }
+
+  // Для остальных вкладок оставляем твой старый код загрузки
+  area.innerHTML = '<div style="text-align:center; padding:40px; color:var(--d-text-dim);"><div class="spinner" style="margin:0 auto 10px;"></div>Загрузка данных...</div>';
+  
   setTimeout(() => {
-    if (section === 'dashboard') {
-      area.innerHTML = '<div id="adminDashboardContent"></div>';
-      loadAdminDashboard();
-      return;
-    }
     if (section === 'books') {
       area.innerHTML = `
-        <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
           <div class="d-lib-search" style="flex:1; margin-bottom:0;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="adminBookSearch" placeholder="Поиск книги или автора" oninput="filterAdminBooks()" autocomplete="off">
+            <input type="text" id="adminBookSearch" placeholder="Поиск по названию или автору..." oninput="filterAdminBooks()" autocomplete="off">
           </div>
-          <button class="d-btn-primary" onclick="showJsonImportModal()" style="width:auto; margin:0; padding:0 16px; height:48px; white-space:nowrap;">+ Добавить</button>
+          <button class="d-btn-primary" onclick="showJsonImportModal()" style="width:auto; margin:0; padding:0 16px; height:48px; border-radius:14px; font-size:18px;" title="Добавить книгу">+</button>
         </div>
+        
+        <!-- Фильтры (как в Яндекс.Метрике) -->
+        <div style="display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; scrollbar-width:none;">
+          <div class="admin-filter-pill on" onclick="setAdminBookFilter('all', this)">Все книги</div>
+          <div class="admin-filter-pill" onclick="setAdminBookFilter('published', this)">Опубликованные</div>
+          <div class="admin-filter-pill" onclick="setAdminBookFilter('drafts', this)">Черновики</div>
+        </div>
+
         <div id="adminBookList"></div>
       `;
       loadAdminBooks();
     } 
     else if (section === 'users') {
       area.innerHTML = `
-        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
           <div class="d-lib-search" style="flex: 1; margin-bottom: 0;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="adminSearch" placeholder="Поиск по имени или телефону" oninput="filterAdmin()">
+            <input type="text" id="adminSearch" placeholder="Поиск по имени или номеру..." oninput="filterAdmin()">
           </div>
-          <button class="d-btn-secondary" onclick="exportUsers()" style="width:auto; margin:0; height:48px; padding:0 16px; white-space:nowrap;" title="Выгрузить в Excel">⬇️ CSV</button>
-        </div>
-        <div id="adminUserListFull" class="admin-user-list-bento"></div>
-        <div id="adminDetailWrap"></div>
-      `;
-      renderAdminList(adminAllUsers);
-    }
-    else if (section === 'feedback') {
-      area.innerHTML = '<div id="adminFeedbackList"></div>';
-      loadAdminFeedbacks();
-    }
-    else if (section === 'subs') {
-      area.innerHTML = `
-        <div class="d-card-glass" style="text-align: center; margin-bottom: 16px;">
-          <div style="font-size: 36px; color: var(--d-success); font-weight: 900;" id="adminSubsCount">0</div>
-          <div style="font-size: 12px; color: var(--d-text-dim); font-weight: 800; text-transform: uppercase;">Активных подписок</div>
-        </div>
-        <div id="adminSubsList"></div>
-      `;
-      loadAdminSubs();
-    }
-    else if (section === 'reports') {
-      area.innerHTML = '<div class="d-card-glass"><div id="adminReportsList"></div></div>';
-      loadAdminReports();
-    }
-    else if (section === 'quotes') {
-      area.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <h3 style="font-size:14px; font-weight:900; color:var(--d-text);">✨ Цитаты</h3>
-          <button class="d-btn-primary" onclick="openQuoteEditor()" style="margin:0; width:auto; min-height:36px; padding:0 16px;">+ Добавить</button>
-        </div>
-        <div id="adminQuotesList"></div>
-      `;
-      loadAdminQuotes();
-    }
-    else if (section === 'faq') {
-      area.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <h3 style="font-size:14px; font-weight:900; color:var(--d-text);">❓ Вопросы и ответы</h3>
-          <button class="d-btn-primary" onclick="openFaqEditor()" style="margin:0; width:auto; min-height:36px; padding:0 16px;">+ Добавить</button>
-        </div>
-        <div id="adminFaqList"></div>
-      `;
-      loadAdminFaq();
-    }
-    else if (section === 'texts') {
-      area.innerHTML = `<div id="adminTextsList"></div>`;
-      loadAdminTexts();
-    }
-   else if (section === 'system') {
-      area.innerHTML = `
-        <div class="d-card-glass" style="margin-bottom:16px; border-color:rgba(124,92,255,0.3);">
-          <h3 style="font-size:14px; margin-bottom:12px; font-weight:900; color:var(--d-text);">📢 Рассылка уведомлений</h3>
-          <input type="text" id="broadcastTitle" placeholder="Заголовок" style="margin-bottom:8px; width:100%; background:var(--d-surface-2); border:1px solid var(--d-border); padding:12px; border-radius:10px; color:var(--d-text); font-size:14px;">
-          <textarea id="broadcastText" rows="3" placeholder="Текст уведомления..." style="margin-bottom:12px; width:100%; background:var(--d-surface-2); border:1px solid var(--d-border); padding:12px; border-radius:10px; color:var(--d-text); font-size:14px;"></textarea>
-          <button class="d-btn-primary" style="margin-top:0; width:100%;" onclick="sendBroadcast()">Отправить всем</button>
+          <button class="d-btn-secondary" onclick="exportUsers()" style="width:auto; margin:0; height:48px; padding:0 16px;" title="Экспорт в Excel">📥 CSV</button>
         </div>
         
-        <div id="systemContent" style="margin-bottom:16px;"></div>
+        <!-- Фильтры -->
+        <div style="display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; scrollbar-width:none;">
+          <div class="admin-filter-pill on" onclick="setAdminUserFilter('all', this)">Все</div>
+          <div class="admin-filter-pill" onclick="setAdminUserFilter('active', this)">Онлайн (30д)</div>
+          <div class="admin-filter-pill" onclick="setAdminUserFilter('sub', this)">Premium</div>
+          <div class="admin-filter-pill" onclick="setAdminUserFilter('blocked', this)">Заблокированные</div>
+          <div class="admin-filter-pill" onclick="setAdminUserFilter('admin', this)">Админы</div>
+        </div>
+
+        <div id="adminUserListFull" style="display:flex; flex-direction:column; gap:6px;"></div>
+        <div id="adminDetailWrap" style="margin-top:16px;"></div>
+      `;
+      loadAdminUsers();
+    }
+    else if (section === 'moderation') {
+      area.innerHTML = `
+        <!-- Фильтры Модерации -->
+        <div style="display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; scrollbar-width:none;">
+          <div class="admin-filter-pill on" id="modTabReports" onclick="switchModTab('reports', this)">🚨 Жалобы</div>
+          <div class="admin-filter-pill" id="modTabFeedback" onclick="switchModTab('feedback', this)">💬 Отзывы</div>
+        </div>
+        <div id="adminModContent"></div>
+      `;
+      switchModTab('reports', document.getElementById('modTabReports'));
+    }
+    else if (section === 'system') {
+      area.innerHTML = `
+        <!-- Блок 1: Рассылка -->
+        <div class="admin-pro-card">
+          <div class="admin-pro-card-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div class="admin-icon-box" style="background:rgba(124,92,255,0.15); color:var(--d-accent-2);">📢</div>
+              <div>
+                <div class="admin-pro-card-title">Push-рассылка</div>
+                <div class="admin-pro-card-sub">Отправить уведомление всем юзерам</div>
+              </div>
+            </div>
+          </div>
+          
+          <div style="padding: 0 16px 16px;">
+            <input type="text" id="broadcastTitle" placeholder="Заголовок" class="admin-pro-input" maxlength="100">
+            <textarea id="broadcastText" rows="3" placeholder="Текст уведомления..." class="admin-pro-input" maxlength="500"></textarea>
+            <button class="d-btn-primary" style="margin-top:8px; height:44px; border-radius:12px; font-size:12px;" onclick="sendBroadcast()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              Отправить всем
+            </button>
+          </div>
+        </div>
         
-        <h3 style="font-size:11px; font-weight:900; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; margin-left:4px;">Данные и логи</h3>
-        <div class="d-card-glass" style="margin-bottom:16px; padding:16px;">
-          <button class="d-btn-secondary" style="margin:0; width:100%; margin-bottom:12px; border-color:rgba(124,92,255,0.3); color:var(--accent-2);" onclick="exportAllBooks()">
-            📦 Скачать все книги (JSON)
-          </button>
-          <button class="d-btn-secondary" style="margin:0; width:100%;" onclick="loadAdminLogs()">
-            📜 Посмотреть историю действий
-          </button>
-          <div id="adminLogsContainer" style="margin-top:16px;"></div>
+        <!-- Блок 2: Глобальные настройки -->
+        <div class="admin-pro-card" id="systemContent"></div>
+        
+        <!-- Блок 3: Данные и логи -->
+        <div class="admin-pro-card" style="padding-bottom: 8px;">
+          <div class="admin-pro-card-header" style="margin-bottom:0; padding-bottom:0;">
+             <div style="display:flex; align-items:center; gap:8px;">
+              <div class="admin-icon-box" style="background:rgba(255,154,86,0.15); color:var(--d-warm);">💾</div>
+              <div>
+                <div class="admin-pro-card-title">Данные системы</div>
+                <div class="admin-pro-card-sub">Экспорт и логи</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="admin-settings-list">
+            <div class="admin-settings-row" onclick="exportAllBooks()">
+              <div class="asr-left">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Скачать все книги (JSON)
+              </div>
+              <div style="color:var(--d-text-dim); font-size:16px;">›</div>
+            </div>
+            <div class="admin-settings-row" onclick="loadAdminLogs()">
+              <div class="asr-left">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                История действий
+              </div>
+              <div style="color:var(--d-text-dim); font-size:16px;">›</div>
+            </div>
+          </div>
+          <div id="adminLogsContainer" style="padding: 0 16px 16px;"></div>
         </div>
       `;
       renderSystem(); 
     }
-  }, 50);
+  }, 100);
+}
+
+function switchModTab(tab, el) {
+  document.querySelectorAll('.admin-filter-pill').forEach(p => p.classList.remove('on'));
+  if (el) el.classList.add('on');
+  playClick();
+  
+  const content = document.getElementById('adminModContent');
+  if (tab === 'reports') {
+    content.innerHTML = '<div id="adminReportsList"></div>';
+    loadAdminReports();
+  } else {
+    content.innerHTML = '<div id="adminFeedbackList"></div>';
+    loadAdminFeedbacks();
+  }
+}
+
+async function replyToFeedback(userId) {
+  playClick();
+  try {
+    // Ищем профиль пользователя в уже загруженном списке
+    const p = adminAllUsers.find(x => x.id === userId);
+    if (p) {
+      openDialog(userId, p);
+    } else {
+      // Если вдруг не нашли, подгружаем из базы
+      const { data } = await sb.from('profiles').select('id,name,avatar').eq('id', userId).single();
+      if (data) openDialog(userId, data);
+      else toast('Пользователь не найден', 'danger');
+    }
+  } catch (e) {
+    console.error(e);
+    toast('Ошибка открытия чата', 'danger');
+  }
 }
 
 async function loadAdminUsers(){
@@ -6174,39 +6226,66 @@ async function loadAdminUsers(){
   if(c2) c2.textContent = active;
   if(c3) c3.textContent = today;
 
-    renderAdminList(adminAllUsers);
-  const elFull = document.getElementById('adminUserListFull');
-  if (elFull) elFull.innerHTML = document.getElementById('adminUserList')?.innerHTML || '';
+  renderAdminList(adminAllUsers);
 }
 
 function renderAdminList(list){
   const el = document.getElementById('adminUserList') || document.getElementById('adminUserListFull');
   if (!el) return;
   
+  // Применяем фильтр по клику
+  if (typeof adminUserFilter !== 'undefined' && adminUserFilter !== 'all') {
+    if (adminUserFilter === 'active') {
+      const now = Date.now();
+      list = list.filter(p => p.last_seen && (now - new Date(p.last_seen).getTime()) < 30 * 86400000);
+    } else if (adminUserFilter === 'sub') {
+      list = list.filter(p => p.sub_until && new Date(p.sub_until) > new Date());
+    } else if (adminUserFilter === 'blocked') {
+      list = list.filter(p => p.blocked === true);
+    } else if (adminUserFilter === 'admin') {
+      list = list.filter(p => p.is_admin === true);
+    }
+  }
+
   if(!list.length){
-    el.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px">Никого не найдено</div>';
+    el.innerHTML = `
+      <div class="d-empty-state" style="margin-top:0; padding:32px 20px;">
+        <div class="d-empty-ico-wrap" style="width:56px; height:56px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
+        <div class="d-empty-title" style="font-size:15px;">Никого не найдено</div>
+        <div class="d-empty-text" style="font-size:12px;">Попробуй изменить фильтр или поисковый запрос.</div>
+      </div>`;
     return;
   }
   
-  el.innerHTML=list.map(p=>{
-    const isMe=p.id===user.id;
-    const phone=isMe?user.phone:(p.phone||'');
-    const phoneShown=phone?'+7 ('+phone.slice(1,4)+') '+phone.slice(4,7)+'-'+phone.slice(7,9)+'-'+phone.slice(9):'—';
-    let subBadge = '';
-    if (p.sub_until && new Date(p.sub_until) > new Date()) subBadge = `💎`;
+  el.innerHTML = list.map(p => {
+    const isMe = p.id === user.id;
+    const phone = isMe ? user.phone : (p.phone || '');
+    const phoneShown = phone ? '+7 (' + phone.slice(1,4) + ') ' + phone.slice(4,7) + '-' + phone.slice(7,9) + '-' + phone.slice(9) : 'Нет номера';
+    
+    // Бейджи статусов
+    let badges = '';
+    if (p.is_admin) badges += `<span class="admin-badge admin-badge-gold">ADMIN</span>`;
+    if (p.sub_until && new Date(p.sub_until) > new Date()) badges += `<span class="admin-badge admin-badge-green">PREMIUM</span>`;
+    if (p.blocked) badges += `<span class="admin-badge admin-badge-red">BAN</span>`;
 
-    return `<div class="user-card-bento" style="width:100%; display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:10px; box-sizing:border-box; padding:12px;" onclick="openAdminUser('${p.id}')">
-      <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-        <div class="uc-ava" style="flex-shrink:0;">${getAvatarHtml(p.avatar, 24)}</div>
-        <div class="uc-info" style="flex:1; min-width:0;">
-          <div class="uc-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name||'Без имени')} ${p.is_admin?'👑':''} ${subBadge}</div>
-          <div class="uc-email">${phoneShown}</div>
-          <div class="uc-lvl">${p.last_seen ? 'Был(а) ' + timeAgo(p.last_seen) : 'Не заходил(а)'}</div>
+    return `<div class="admin-user-row" onclick="openAdminUser('${p.id}')">
+      <div class="aur-ava">${getAvatarHtml(p.avatar, 20)}</div>
+      
+      <div class="aur-info">
+        <div class="aur-name">
+          ${escapeHtml(p.name || 'Без имени')} 
+          ${isMe ? '<span style="font-size:9px; color:var(--d-accent-2); margin-left:4px;">(ты)</span>' : ''}
         </div>
+        <div class="aur-phone">${phoneShown}</div>
       </div>
-      <button class="d-btn-secondary" style="margin:0; height:36px; font-size:11px; width:auto; padding:0 12px; flex-shrink:0;" onclick="event.stopPropagation(); adminSendMessage('${p.id}')">
-        Написать
-      </button>
+      
+      <div class="aur-status">
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+          <div style="display:flex; gap:4px;">${badges}</div>
+          <div class="aur-time">${p.last_seen ? timeAgo(p.last_seen) : 'давно'}</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--d-text-dim)" stroke-width="2" style="margin-left:8px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </div>
     </div>`;
   }).join('');
 }
@@ -6214,17 +6293,6 @@ function renderAdminList(list){
 function filterAdmin(){
   const q=document.getElementById('adminSearch').value.toLowerCase().trim();
   let list=[...adminAllUsers];
-  if(adminFilter==='active'){
-    const now=Date.now();
-    list=list.filter(p=>p.last_seen&&(now-new Date(p.last_seen).getTime())<30*86400000);
-  }else if(adminFilter==='blocked'){
-    list=list.filter(p=>p.blocked===true);
-  }else if(adminFilter==='admin'){
-    list=list.filter(p=>p.is_admin===true);
-  }else if(adminFilter==='sub'){
-    const now = new Date();
-    list=list.filter(p=>p.sub_until && new Date(p.sub_until) > now);
-  }
   
   if(q){
     list=list.filter(p=>{
@@ -6235,6 +6303,14 @@ function filterAdmin(){
     });
   }
   renderAdminList(list);
+}
+
+function setAdminUserFilter(filter, el) {
+  adminUserFilter = filter;
+  document.querySelectorAll('.admin-filter-pill').forEach(p => p.classList.remove('on'));
+  if (el) el.classList.add('on');
+  playClick();
+  renderAdminList(adminAllUsers); // Перерисовываем список
 }
 
 async function openAdminUser(id){
@@ -6526,14 +6602,25 @@ async function sendBroadcast() {
 
 // ─── СИСТЕМА ───
 async function renderSystem(){
-  document.getElementById('systemContent').innerHTML=`
-    <div class="d-card-glass" style="padding:16px;">
-      <h3 style="font-size:14px; margin-bottom:16px; font-weight:900; color:var(--d-text);">⚙️ Глобальные настройки</h3>
-      
-      <div style="display:flex; justify-content:space-between; align-items:center;">
+  const el = document.getElementById('systemContent');
+  if(!el) return;
+  
+  el.innerHTML = `
+    <div class="admin-pro-card-header" style="margin-bottom:8px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="admin-icon-box" style="background:rgba(62,207,142,0.15); color:var(--d-success);">⚙️</div>
         <div>
-          <span style="display:block; font-weight:800; color:var(--text); font-size:13px; margin-bottom:4px;">Режим доступа к книгам</span>
-          <span style="font-size:11px; color:var(--muted); line-height:1.3; display:block;">Всем открыто (для тестов) или по подписке</span>
+          <div class="admin-pro-card-title">Настройки доступа</div>
+          <div class="admin-pro-card-sub">Глобальные правила для всех книг</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="admin-settings-list" style="margin-top:0; border-top: 1px solid var(--d-border);">
+      <div class="admin-settings-row">
+        <div>
+          <div style="font-size:13px; font-weight:800; color:var(--d-text); margin-bottom:2px;">Открытый доступ</div>
+          <div style="font-size:11px; color:var(--d-text-dim); line-height:1.3;">Если включено — все книги бесплатны (для тестов)</div>
         </div>
         <div class="d-toggle ${bookAccessMode === 'everyone' ? 'on' : ''}" onclick="toggleBookAccessMode()" style="flex-shrink:0;"></div>
       </div>
@@ -6569,11 +6656,15 @@ function exportUsers(){
   });
   const csv=rows.map(r=>r.map(c=>`"${(c||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
   
-  // Исправление ошибки Blob на HTTP (используем Data URI)
+  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+  link.href = url;
   link.download = 'andger_users_' + todayStr() + '.csv';
+  document.body.appendChild(link);
   link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
   
   toast('CSV скачан');
 }
@@ -6632,8 +6723,8 @@ function showBookEditor(id){
 
   const catList = document.getElementById('edCategoryList');
   if(catList) {
-    const uniqueCats = [...new Set(BOOKS.map(book => book.category).filter(Boolean))];
-    catList.innerHTML = uniqueCats.map(c => `<option value="${c}"></option>`).join('');
+    // Всегда используем только официальный список для чистоты данных
+    catList.innerHTML = OFFICIAL_CATEGORIES.map(c => `<option value="${c}"></option>`).join('');
   }
   
   const setVal = (elId, val) => { const el = document.getElementById(elId); if(el) el.value = val; };
@@ -6914,103 +7005,108 @@ async function loadAdminBooks(){
   }
 }
 
+let adminBookFilter = 'all'; // Глобальная переменная для фильтра
+
+function setAdminBookFilter(filter, el) {
+  adminBookFilter = filter;
+  document.querySelectorAll('.admin-filter-pill').forEach(p => p.classList.remove('on'));
+  if (el) el.classList.add('on');
+  playClick();
+  loadAdminBooks(); // Перезагружаем список
+}
+
 function renderAdminBookList(list) {
-  const el=document.getElementById('adminBookList');
-  if(!el)return;
+  const el = document.getElementById('adminBookList');
+  if(!el) return;
   
+  // Применяем фильтр
+  if (adminBookFilter === 'published') {
+    list = list.filter(b => b.published === true || b.published === 'true');
+  } else if (adminBookFilter === 'drafts') {
+    list = list.filter(b => b.published !== true && b.published !== 'true');
+  }
+
   if(!list.length){
-    el.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Книг не найдено.</div>';
+    el.innerHTML = `
+      <div class="d-empty-state">
+        <div class="d-empty-ico-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></div>
+        <div class="d-empty-title">Ничего не найдено</div>
+        <div class="d-empty-text">Попробуй изменить фильтр или добавь новую книгу.</div>
+      </div>`;
     return;
   }
 
-  // 1. Разделяем на Черновики и Опубликованные
-  const drafts = [];
+  // Группируем по категориям
   const grouped = {};
-  
   list.forEach(b => {
-    const isPublished = b.published === true || b.published === 'true';
-    if (!isPublished) {
-      drafts.push(b); // Все неопубликованные идут в черновики
-    } else {
-      const cat = b.category || 'Разное';
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(b);
-    }
+    const cat = b.category || 'Разное';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(b);
   });
-
-  // Если есть черновики, добавляем их в начало списка как отдельную папку
-  if (drafts.length > 0) {
-    grouped['__DRAFTS__'] = drafts; 
-  }
 
   let html = '';
   
-  // 2. Сортируем папки: "В разработке" всегда первая
+  // Сортируем категории по официальному списку
   const sortedCategories = Object.keys(grouped).sort((a, b) => {
-    if (a === '__DRAFTS__') return -1; // Если A - черновики, ставим в начало
-    if (b === '__DRAFTS__') return 1;  // Если B - черновики, ставим в начало
-    return 0; // Остальные оставляем в текущем порядке
+    const idxA = typeof OFFICIAL_CATEGORIES !== 'undefined' ? OFFICIAL_CATEGORIES.indexOf(a) : 0;
+    const idxB = typeof OFFICIAL_CATEGORIES !== 'undefined' ? OFFICIAL_CATEGORIES.indexOf(b) : 0;
+    if (idxA === -1) return 1;
+    if (idxB === -1) return -1;
+    return idxA - idxB;
   });
 
-  // 3. Рисуем папки (используем отсортированный массив)
   sortedCategories.forEach((catName) => {
-    const isDraftFolder = catName === '__DRAFTS__';
-    const displayCatName = isDraftFolder ? 'В разработке' : catName;
-
+    const catId = 'admin-cat-' + catName.replace(/[^a-zA-Z0-9а-яА-Я]/g, '-');
     html += `
-      <div style="margin-bottom: 8px;">
-        <div class="d-lib-folder" onclick="toggleAccordion(this)">
-          <div class="d-lib-folder-left">
-            <div class="d-lib-folder-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-            </div>
-            <div>
-              <div class="d-lib-folder-title">${displayCatName}</div>
-              <div class="d-lib-folder-count">${grouped[catName].length} книг</div>
-            </div>
+      <div style="margin-bottom: 12px;">
+        <!-- Заголовок категории (кликабельный для сворачивания) -->
+        <div onclick="toggleAdminCategory('${catId}', this)" style="display:flex; align-items:center; justify-content:space-between; padding: 12px 14px; margin-bottom: 4px; background: rgba(255,255,255,0.02); border: 1px solid var(--d-border); border-radius: 14px; cursor: pointer; transition: 0.2s;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div style="font-size:11px; font-weight:900; color:var(--d-accent-2); text-transform:uppercase; letter-spacing:1px;">${catName}</div>
+            <div style="font-size:10px; color:var(--d-text-dim); background:var(--d-surface-2); padding:2px 8px; border-radius:6px;">${grouped[catName].length}</div>
           </div>
-          <div class="lc-arrow" style="color:var(--d-text-dim); font-size:20px; transition:0.3s;">›</div>
+          <svg class="admin-cat-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--d-text-dim)" stroke-width="2" style="transition: transform 0.3s; pointer-events: none;"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </div>
-        <div class="lib-category-list-bento" style="display:none; flex-direction:column; gap:8px; padding:4px 0 0 0;">
+        
+        <div id="${catId}" style="display:none; flex-direction:column; gap:6px; padding-top: 8px;">
     `;
 
-    // 3. Рисуем книги внутри папки
     grouped[catName].forEach(b => {
-      // Проверяем статус: опубликовано или нет
-      let statusIcon = '';
-      if (b.published === true || b.published === 'true') {
-        // Зеленая галочка (Опубликовано)
-        statusIcon = `<div title="Опубликовано" style="display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:rgba(62,207,142,0.15); color:var(--d-success); flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>`;
-      } else {
-        // Оранжевый карандаш (Черновик / В разработке)
-        statusIcon = `<div title="В разработке" style="display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:rgba(255,154,86,0.15); color:var(--d-warm); flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>`;
-      }
+      const isPub = b.published === true || b.published === 'true';
+      
+      // Иконка статуса (зеленая точка или оранжевая)
+      const statusDot = isPub 
+        ? `<div style="width:8px; height:8px; border-radius:50%; background:var(--d-success); box-shadow:0 0 8px rgba(62,207,142,0.5);" title="Опубликовано"></div>`
+        : `<div style="width:8px; height:8px; border-radius:50%; background:var(--d-warm); box-shadow:0 0 8px rgba(255,154,86,0.5);" title="Черновик"></div>`;
 
       html += `
-        <div class="bento-card" style="display:flex; align-items:center; gap:14px; padding:14px; margin-bottom:0; cursor:pointer;" onclick="showBookEditor('${b.id}')">
-          <div style="width:44px; height:44px; border-radius:12px; background:var(--card2); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;">
-            ${b.cover_url ? `<img src="${b.cover_url}" style="width:100%; height:100%; object-fit:cover;">` : getEmojiOrSvg(b.emoji, 24, b.title)}
-          </div>
-          <div style="flex:1; min-width:0;">
-            <div style="font-size:15px; font-weight:800; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-              ${escapeHtml(b.title)} ${b._isLocal ? '<span style="font-size:9px; color:var(--warm); font-weight:normal; background:rgba(255,154,86,0.1); padding:2px 6px; border-radius:6px; margin-left:6px;">из кода</span>' : ''}
-            </div>
-            <div style="font-size:12px; color:var(--muted); margin-top:2px;">${escapeHtml(b.author||'Автор не указан')} · ${b.days} дней</div>
+        <div class="admin-book-row" onclick="showBookEditor('${b.id}')">
+          <div style="width:36px; height:36px; border-radius:10px; background:var(--d-surface-2); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;">
+            ${b.cover_url ? `<img src="${b.cover_url}" style="width:100%; height:100%; object-fit:cover;">` : getEmojiOrSvg(b.emoji, 20, b.title)}
           </div>
           
-          <div style="display:flex; align-items:center; gap:8px;">
-            ${statusIcon}
-            <div style="color:var(--muted); font-size:18px;">›</div>
+          <div style="flex:1; min-width:0; padding-right:10px;">
+            <div style="font-size:13px; font-weight:800; color:var(--d-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${escapeHtml(b.title)} 
+              ${b._isLocal ? '<span style="font-size:8px; color:var(--d-warm); border:1px solid rgba(255,154,86,0.3); padding:1px 4px; border-radius:4px; margin-left:4px;">LOCAL</span>' : ''}
+            </div>
+            <div style="font-size:11px; color:var(--d-text-dim); margin-top:2px;">${escapeHtml(b.author||'—')} · ${b.days} дней</div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
+             ${b.is_free ? '<span style="font-size:9px; font-weight:800; color:var(--d-success); background:rgba(62,207,142,0.1); padding:2px 6px; border-radius:4px;">FREE</span>' : '<span style="font-size:9px; font-weight:800; color:var(--d-gold); background:rgba(255,184,0,0.1); padding:2px 6px; border-radius:4px;">PRO</span>'}
+             ${statusDot}
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--d-text-dim)" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </div>
         </div>
       `;
     });
-
     html += `</div></div>`;
   });
 
   el.innerHTML = html;
 }
+
 function filterAdminBooks() {
   const q = document.getElementById('adminBookSearch').value.toLowerCase().trim();
   if (!q) {
@@ -7022,6 +7118,21 @@ function filterAdminBooks() {
     (b.author || '').toLowerCase().includes(q)
   );
   renderAdminBookList(filtered);
+}
+
+function toggleAdminCategory(id, headerEl) {
+  const list = document.getElementById(id);
+  if (!list) return;
+  
+  const isHidden = list.style.display === 'none';
+  list.style.display = isHidden ? 'flex' : 'none';
+  
+  // Крутим стрелочку
+  const arrow = headerEl.querySelector('.admin-cat-arrow');
+  if (arrow) {
+    arrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+  }
+  playClick();
 }
 
 async function saveBook(published){
@@ -8037,18 +8148,17 @@ function resetAllProgress() {
 }
 async function loadAdminReports() {
   const el = document.getElementById('adminReportsList');
-  el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Загрузка жалоб...</div>';
+  if(!el) return;
+  el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);"><div class="spinner" style="margin:0 auto 10px;"></div>Загрузка...</div>';
   
   try {
     const { data: reports, error } = await sb.from('reports').select('*').order('created_at', {ascending: false});
     if (error) throw error;
     
     if (!reports || !reports.length) {
-            el.innerHTML = `
-        <div class="d-empty-state">
-          <div class="d-empty-ico-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
-          </div>
+      el.innerHTML = `
+        <div class="d-empty-state" style="margin-top:0;">
+          <div class="d-empty-ico-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg></div>
           <div class="d-empty-title">Жалоб нет</div>
           <div class="d-empty-text">Все пользователи ведут себя отлично.</div>
         </div>
@@ -8056,35 +8166,48 @@ async function loadAdminReports() {
       return;
     }
 
+    // Оптимизация: собираем ID и делаем 2 запроса вместо 50
+    const reporterIds = [...new Set(reports.map(r => r.reporter_id))];
+    const postIds = [...new Set(reports.map(r => r.post_id))];
+
+    const [profilesRes, postsRes] = await Promise.all([
+      sb.from('profiles').select('id, name').in('id', reporterIds),
+      sb.from('messages').select('id, text, user_name').in('id', postIds)
+    ]);
+
+    const profMap = {}; (profilesRes.data || []).forEach(p => profMap[p.id] = p.name);
+    const postMap = {}; (postsRes.data || []).forEach(m => postMap[m.id] = m);
+
     let html = '';
-    for (let r of reports) {
-      // Подтягиваем автора жалобы
-      const { data: prof } = await sb.from('profiles').select('name').eq('id', r.reporter_id).single();
-      // Подтягиваем текст поста
-      const { data: post } = await sb.from('messages').select('text, user_name').eq('id', r.post_id).single();
-      
+    reports.forEach(r => {
+      const reporterName = profMap[r.reporter_id] || 'Неизвестный';
+      const post = postMap[r.post_id];
       const time = new Date(r.created_at).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
       
       html += `
-        <div class="admin-detail" style="border-left: 4px solid var(--danger); margin-bottom: 10px;">
-          <div class="admin-row"><span>Автор жалобы</span><span>${prof ? prof.name : 'Неизвестный'}</span></div>
-          <div class="admin-row"><span>Причина</span><span style="color:var(--danger)">${escapeHtml(r.reason)}</span></div>
-          <div class="admin-row"><span>Текст поста</span><span style="font-size:12px; font-style:italic; color:var(--muted); text-align:right; max-width:60%;">"${post ? escapeHtml(post.text) : 'Пост удален'}"</span></div>
-          <div class="admin-row"><span>Автор поста</span><span>${post ? post.user_name : '—'}</span></div>
-          <div class="admin-row"><span>Время</span><span>${time}</span></div>
-          <div style="display:flex; gap:8px; margin-top:12px;">
-            <button class="btn-small-inline" style="background:var(--card2); color:var(--text); border:1px solid var(--border);" onclick="loadAdminReports()">Обновить</button>
-            <button class="btn-small-inline" style="background:var(--danger); display:flex; align-items:center; gap:6px;" onclick="deleteReportedPost('${r.id}', '${r.post_id}')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-              Удалить пост
-            </button>
+        <div class="admin-mod-card" style="border-left: 3px solid var(--d-danger);">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+             <div>
+               <div style="font-size:12px; font-weight:800; color:var(--d-danger); margin-bottom:2px;">🚨 ${escapeHtml(r.reason)}</div>
+               <div style="font-size:10px; color:var(--d-text-dim);">От: ${escapeHtml(reporterName)} · ${time}</div>
+             </div>
+          </div>
+          
+          <div style="background:var(--d-surface-2); padding:10px; border-radius:10px; margin-bottom:12px;">
+             <div style="font-size:9px; color:var(--d-text-mute); text-transform:uppercase; margin-bottom:4px;">Текст поста (Автор: ${post ? escapeHtml(post.user_name) : '—'})</div>
+             <div style="font-size:12px; color:var(--d-text); font-style:italic;">"${post ? escapeHtml(post.text) : 'Пост уже удален'}"</div>
+          </div>
+
+          <div style="display:flex; gap:8px;">
+            <button class="d-btn-secondary" style="margin:0; flex:1; height:36px; font-size:11px; border-radius:10px;" onclick="loadAdminReports()">Игнорировать</button>
+            <button class="d-btn-primary" style="margin:0; flex:1; height:36px; font-size:11px; border-radius:10px; background:var(--d-danger); box-shadow:none;" onclick="deleteReportedPost('${r.id}', '${r.post_id}')">Удалить пост</button>
           </div>
         </div>
       `;
-    }
+    });
     el.innerHTML = html;
   } catch(e) {
-    el.innerHTML = '<div style="color:var(--danger); text-align:center;">Ошибка загрузки жалоб</div>';
+    el.innerHTML = '<div style="color:var(--danger); text-align:center;">Ошибка загрузки</div>';
   }
 }
 async function saveBookDraft(){
@@ -8941,7 +9064,7 @@ function applyShields(bookId) {
       saveState();
       playSuccess();
       toast(`🛡️ Заморозка спасла ваш огонь за ${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}`, 'success');
-      break; // Тратим один щит и останавливаемся
+      // Убрали break, теперь цикл пойдет дальше по истории и покроет все пропуски
     }
     d.setDate(d.getDate() - 1);
   }
@@ -9052,19 +9175,31 @@ function showAvatarModal() {
   const avatarKeys = Object.keys(AVATAR_ICONS);
   if (!state.purchasedItems) state.purchasedItems = [];
 
-  avatarKeys.forEach((key) => {
+  // Разделяем на доступные и закрытые
+  const freeAvatars = [];
+  const paidAvatars = [];
+
+  avatarKeys.forEach(key => {
+    const shopItem = SHOP_ITEMS.find(i => i.type === 'avatar' && i.key === key);
+    const isLocked = shopItem && !state.purchasedItems.includes(shopItem.id);
+    if (isLocked) paidAvatars.push(key);
+    else freeAvatars.push(key);
+  });
+
+  const sortedKeys = [...freeAvatars, ...paidAvatars];
+
+  sortedKeys.forEach((key) => {
     const isActive = state.avatar === key;
     const emoji = AVATAR_ICONS[key];
-    // Проверяем, платная ли это аватарка (ищем в магазине)
     const shopItem = SHOP_ITEMS.find(i => i.type === 'avatar' && i.key === key);
     const isLocked = shopItem && !state.purchasedItems.includes(shopItem.id);
 
     html += `
-    <div class="premium-avatar-item ${isActive ? 'active' : ''}" onclick="${isLocked ? `toast('Купи эту аватарку в Магазине!', 'warm')` : `setAvatarFromModal('${key}')`}" style="background: ${isActive ? 'rgba(124, 92, 255, 0.15)' : 'rgba(255,255,255,0.03)'}; border-color: ${isActive ? 'var(--accent)' : 'rgba(255,255,255,0.08)'}; aspect-ratio: 1; border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; border: 1px solid transparent; position: relative;">
-        <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; filter: ${isActive ? 'drop-shadow(0 0 10px rgba(255,255,255,0.6))' : 'drop-shadow(0 0 5px rgba(0,0,0,0.3))'}; transform: ${isActive ? 'scale(1.1)' : 'scale(1)'}; opacity: ${isLocked ? '0.3' : '1'}; transition: 0.3s;">
+    <div class="premium-avatar-item ${isActive ? 'active' : ''} ${isLocked ? 'locked' : ''}" onclick="${isLocked ? `toast('Купи эту аватарку в Магазине!', 'warm')` : `setAvatarFromModal('${key}')`}">
+        <div class="avatar-icon-wrap">
           ${emoji}
         </div>
-        ${isLocked ? `<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.4); border-radius:16px; color:var(--d-gold);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>` : ''}
+        ${isLocked ? `<div class="avatar-lock-overlay"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>` : ''}
       </div>
     `;
   });
@@ -9234,57 +9369,55 @@ async function loadAdminLogs() {
   const el = document.getElementById('adminLogsContainer');
   if(!el) return;
   
-  el.innerHTML = '<div style="text-align:center; color:var(--muted); padding:20px;">Загрузка...</div>';
+  el.innerHTML = '<div style="text-align:center; color:var(--muted); padding:20px;"><div class="spinner" style="margin:0 auto 10px;"></div>Загрузка...</div>';
 
   try {
-    const { data: logs, error } = await sb.from('admin_logs').select('*').order('created_at', {ascending: false}).limit(30);
+    const { data: logs, error } = await sb.from('admin_logs').select('*').order('created_at', {ascending: false}).limit(20);
     if (error) throw error;
     
     if (!logs || logs.length === 0) {
-      el.innerHTML = '<div style="text-align:center; color:var(--muted); padding:20px;">История пуста.</div>';
+      el.innerHTML = '<div style="text-align:center; color:var(--d-text-dim); padding:20px; font-size:12px;">История пуста.</div>';
       return;
     }
 
-    // Подтягиваем имена админов
     const adminIds = [...new Set(logs.map(l => l.admin_id))];
     const { data: profiles } = await sb.from('profiles').select('id, name').in('id', adminIds);
-    const adminsMap = {};
-    (profiles || []).forEach(p => adminsMap[p.id] = p.name);
+    const adminsMap = {}; (profiles || []).forEach(p => adminsMap[p.id] = p.name);
 
-    let html = '<div class="admin-list">';
+    let html = '<div class="admin-timeline">';
     logs.forEach(log => {
       const date = new Date(log.created_at).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
       const adminName = adminsMap[log.admin_id] || 'Админ';
       
       let actionText = 'Действие';
-      let color = 'var(--text)';
+      let color = 'var(--d-text)';
+      let icon = '⚙️';
       
-      if (log.action === 'block') { actionText = 'Заблокировал(а) юзера'; color = 'var(--danger)'; }
-      else if (log.action === 'admin') { actionText = 'Изменил(а) права'; color = 'var(--gold)'; }
-      else if (log.action === 'grant_book') { actionText = 'Изменил(а) доступ к книге'; color = 'var(--accent-2)'; }
-      else if (log.action === 'delete') { actionText = 'Удалил(а) юзера'; color = 'var(--danger)'; }
+      if (log.action === 'block') { actionText = 'Блокировка'; color = 'var(--d-danger)'; icon='🚫'; }
+      else if (log.action === 'admin') { actionText = 'Выдача прав'; color = 'var(--d-gold)'; icon='👑'; }
+      else if (log.action === 'grant_book') { actionText = 'Доступ к книге'; color = 'var(--d-accent-2)'; icon='📚'; }
+      else if (log.action === 'delete') { actionText = 'Удаление'; color = 'var(--d-danger)'; icon='🗑'; }
 
       html += `
-        <div class="admin-item" style="flex-direction:column; align-items:flex-start; gap:6px;">
-          <div style="display:flex; justify-content:space-between; width:100%;">
-            <span style="font-size:12px; font-weight:800; color:${color};">${actionText}</span>
-            <span style="font-size:10px; color:var(--muted);">${date}</span>
-          </div>
-          <div style="font-size:11px; color:var(--muted);">
-            Админ: <b>${escapeHtml(adminName)}</b>
+        <div class="admin-timeline-item">
+          <div class="ati-icon">${icon}</div>
+          <div class="ati-content">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <span style="font-size:12px; font-weight:800; color:${color};">${actionText}</span>
+              <span style="font-size:9px; color:var(--d-text-mute);">${date}</span>
+            </div>
+            <div style="font-size:11px; color:var(--d-text-dim); margin-top:2px;">
+              Админ: <b style="color:var(--d-text);">${escapeHtml(adminName)}</b>
+            </div>
           </div>
         </div>
       `;
     });
-    html += `
-      <div style="margin-top:16px;">
-        <button class="d-btn-secondary" style="margin:0; width:100%; border-color:var(--danger); color:var(--danger);" onclick="clearAdminLogs()">🗑 Очистить историю</button>
-      </div>
-    `;
+    html += `</div>`;
     el.innerHTML = html;
   } catch(e) {
     console.error('Logs error:', e);
-    el.innerHTML = '<div style="text-align:center; color:var(--danger); padding:20px;">История действий недоступна (таблица admin_logs не найдена или нет прав).</div>';
+    el.innerHTML = '<div style="text-align:center; color:var(--d-danger); padding:20px; font-size:12px;">История недоступна</div>';
   }
 }
 
@@ -9343,7 +9476,31 @@ async function addBookFromJSON() {
 
   try {
     // Парсим JSON
-    const bookData = JSON.parse(jsonStr);
+    let bookData = JSON.parse(jsonStr);
+    
+    // ✨ ВАЛИДАТОР ИИ: Чиним галлюцинации таймингов
+    let fixedTimelines = 0;
+    if (bookData.practices && Array.isArray(bookData.practices)) {
+      bookData.practices.forEach(p => {
+        if (p.voiceTimeline && Array.isArray(p.voiceTimeline) && p.time) {
+           // Находим самую последнюю фразу в таймлайне
+           const maxTime = Math.max(...p.voiceTimeline.map(v => v.time));
+           
+           // Если последняя фраза звучит позже, чем заканчивается практика
+           if (maxTime >= p.time) {
+              const ratio = (p.time - 10) / maxTime; // Оставляем 10 секунд запаса
+              p.voiceTimeline.forEach(v => {
+                 v.time = Math.floor(v.time * ratio);
+              });
+              fixedTimelines++;
+           }
+        }
+      });
+    }
+    
+    if (fixedTimelines > 0) {
+      toast(`⚠️ Найдено ${fixedTimelines} ошибок тайминга. Мы их автоматически сжали.`, 'warm');
+    }
     
     // Читаем состояние тумблера (если выключен - черновик)
     const toggle = document.getElementById('jsonPublishToggle');
@@ -9357,9 +9514,23 @@ async function addBookFromJSON() {
     bookData.is_free = isFree;
     
     // Отправляем в Supabase
-        // Переводим названия полей в формат базы данных
+        // Переводим названия полей в формат базы данных    
+    // ✨ УМНАЯ ПРОВЕРКА КАТЕГОРИИ ОТ ИИ
+    let finalCategory = "Разное";
+    const aiCat = (bookData.category || '').toLowerCase();
+    
+    if (aiCat.includes('привычк') || aiCat.includes('саморазвит')) finalCategory = "Привычки и саморазвитие";
+    else if (aiCat.includes('продуктив') || aiCat.includes('мышлен') || aiCat.includes('фокус')) finalCategory = "Продуктивность и мышление";
+    else if (aiCat.includes('психолог') || aiCat.includes('отношен') || aiCat.includes('общен')) finalCategory = "Психология и отношения";
+    else if (aiCat.includes('здоров') || aiCat.includes('энерг') || aiCat.includes('спорт')) finalCategory = "Здоровье и энергия";
+    else if (aiCat.includes('финанс') || aiCat.includes('деньг') || aiCat.includes('карьер')) finalCategory = "Финансы и карьера";
+    else if (aiCat.includes('духов') || aiCat.includes('спокой') || aiCat.includes('медитац')) finalCategory = "Духовность и спокойствие";
+    else if (aiCat.includes('бизнес') || aiCat.includes('лидер')) finalCategory = "Бизнес и лидерство";
+    else if (OFFICIAL_CATEGORIES.includes(bookData.category)) finalCategory = bookData.category; // Если уже правильное
+
     const mappedData = {
       ...bookData,
+      category: finalCategory, // <--- ПРИНУДИТЕЛЬНО СТАВИМ ПРАВИЛЬНУЮ КАТЕГОРИЮ
       author_bio: bookData.authorBio || bookData.author_bio || '',
       for_whom: bookData.forWhom || bookData.for_whom || '',
       cover_url: bookData.coverUrl || bookData.cover_url || null,
@@ -9592,34 +9763,36 @@ function openPracticeSelector() {
   const listEl = document.getElementById('practiceSelectorList');
   if (!listEl) return;
 
+  // ✨ УМНАЯ ЛОГИКА: Если это пошаговый курс (практик столько же, сколько дней)
+  let practicesToShow = b.practices;
+  if (b.practices.length === b.days && b.days > 7) {
+      // Показываем только практику на сегодня (день 1 -> индекс 0)
+      practicesToShow = [b.practices[Math.min(day - 1, b.practices.length - 1)]];
+  }
+
   let html = '';
-  b.practices.forEach((p, i) => {
+  // Меняем forEach на новый массив practicesToShow
+  practicesToShow.forEach((p, i) => {
     const isDone = donePractices.includes(p.id);
     
     html += `
-  <div style="position:relative; display:flex; align-items:center; gap:12px; background:${isDone ? 'rgba(62,207,142,0.1)' : 'var(--d-surface-2)'}; border:1px solid ${isDone ? 'var(--d-success)' : 'var(--d-border)'}; border-radius:16px; padding:16px; cursor:${isDone ? 'default' : 'pointer'}; overflow:hidden;" onclick="${isDone ? '' : `startSinglePracticeFromModal('${p.id}')`}">
+  <div class="practice-selector-item ${isDone ? 'done' : ''}" onclick="${isDone ? '' : `startSinglePracticeFromModal('${p.id}')`}">
     
-    <!-- ФОНОВАЯ ИКОНКА (Водяной знак) -->
-    <div style="position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:80px; opacity:0.05; pointer-events:none; z-index:0;">
-      ${getEmojiOrSvg(p.ico || 'book', 80)}
+    <!-- Номер / Галочка -->
+    <div class="psi-number">${isDone ? '✓' : i+1}</div>
+    
+    <!-- Текст и бейджи -->
+    <div class="psi-content">
+      <div class="psi-title">${p.title}</div>
+      <div class="psi-meta">
+        <span class="psi-time">⏱ ${getDiffData(p.time, 'easy').mins}-${getDiffData(p.time, 'deep').mins} мин</span>
+        <span class="psi-xp">✨ +${getDiffData(p.time, 'easy').xp}-${getDiffData(p.time, 'deep').xp} XP</span>
+      </div>
     </div>
 
-    <!-- Номер / Галочка -->
-    <div style="width:40px; height:40px; border-radius:12px; background:${isDone ? 'var(--d-success)' : 'var(--d-surface)'}; display:flex; align-items:center; justify-content:center; color:${isDone ? '#fff' : 'var(--d-accent-2)'}; font-size:16px; font-weight:900; z-index:1; border: 1px solid ${isDone ? 'transparent' : 'var(--d-border)'};">
-      ${isDone ? '✓' : i+1}
-    </div>
-    
-    <!-- Текст -->
-    <div style="flex:1; z-index:1;">
-      <div style="font-size:14px; font-weight:800; color:${isDone ? 'var(--d-success)' : 'var(--d-text)'}; text-decoration:${isDone ? 'line-through' : 'none'};">${p.title}</div>
-      <div style="font-size:11px; color:var(--d-text-dim); margin-top:2px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-        <span style="display:flex; align-items:center; gap:2px;">
-          ⏱ ${getDiffData(p.time, 'easy').mins}-${getDiffData(p.time, 'deep').mins} мин
-        </span>
-        <span style="color:var(--d-gold); font-weight:800; background:rgba(255,184,0,0.1); padding:2px 6px; border-radius:4px;">
-          ✨ +${getDiffData(p.time, 'easy').xp}-${getDiffData(p.time, 'deep').xp} XP
-        </span>
-      </div>
+    <!-- Иконка (аккуратный водяной знак справа) -->
+    <div class="psi-icon">
+      ${getEmojiOrSvg(p.ico || 'book', 48)}
     </div>
   </div>
 `;
@@ -9823,7 +9996,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(injectQuickNoteButton, 500); 
 });
 // ═══════════════════════════════════════════════
-// ИДЕАЛЬНЫЙ ФИКС КЛАВИАТУРЫ ДЛЯ iOS / ANDROID
+// ИДЕАЛЬНЫЙ ФИКС КЛАВИАТУРЫ ДЛЯ iOS / ANDROID (v2)
 // ═══════════════════════════════════════════════
 if (window.visualViewport) {
   const handleKeyboard = () => {
@@ -9831,30 +10004,31 @@ if (window.visualViewport) {
     if (!wrap || wrap.style.display === 'none') return;
 
     const vv = window.visualViewport;
-    // Вычисляем, насколько клавиатура перекрывает экран
-    const keyboardOffset = window.innerHeight - vv.height - vv.offsetTop;
-    const isKeyboardOpen = keyboardOffset > 50;
+    // Считаем реальную высоту клавиатуры (без учета offsetTop, который ломает iOS)
+    const keyboardHeight = window.innerHeight - vv.height;
 
-    if (isKeyboardOpen) {
-      // При открытой клавиатуре прижимаем поле ввода ровно над ней
-      wrap.style.bottom = `${keyboardOffset}px`;
-      wrap.style.borderRadius = '0'; 
-      wrap.style.paddingBottom = '10px';
-      
-      // Сдвигаем само окно чата, чтобы сообщения не улетали под клавиатуру
+    // Если клавиатура реально открыта (высота больше 100px)
+    if (keyboardHeight > 100) {
+      // Прижимаем ровно к верхнему краю клавиатуры
+      wrap.style.bottom = `${keyboardHeight}px`;
+      wrap.style.borderRadius = '16px 16px 0 0'; // Скругляем только верх
+      wrap.style.paddingBottom = '6px';
+      wrap.style.transition = 'none'; // Убираем задержку, чтобы не отставало
+
+      // Компенсируем отступ для самого окна с сообщениями
       const screenWrap = wrap.closest('.wrap');
-      if (screenWrap) screenWrap.style.paddingBottom = `${keyboardOffset + 80}px`;
+      if (screenWrap) screenWrap.style.paddingBottom = `${keyboardHeight + 70}px`;
       
       setTimeout(() => {
         const dialogMessages = document.getElementById('dialogMessages');
         if (dialogMessages) dialogMessages.scrollTop = dialogMessages.scrollHeight;
-        window.scrollTo(0, document.body.scrollHeight);
-      }, 100);
+      }, 50);
     } else {
-      // Возвращаем на место, когда клавиатура закрыта
+      // Возвращаем всё на свои места
       wrap.style.bottom = 'calc(85px + env(safe-area-inset-bottom, 0px))';
       wrap.style.borderRadius = '16px';
       wrap.style.paddingBottom = '6px';
+      wrap.style.transition = 'bottom 0.2s ease-out';
       
       const screenWrap = wrap.closest('.wrap');
       if (screenWrap) screenWrap.style.paddingBottom = '';
@@ -9998,35 +10172,52 @@ async function submitFeedback() {
 }
 async function loadAdminFeedbacks() {
   const el = document.getElementById('adminFeedbackList');
-  el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Загрузка...</div>';
+  if(!el) return;
+  el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);"><div class="spinner" style="margin:0 auto 10px;"></div>Загрузка...</div>';
   
   try {
     const { data } = await sb.from('feedbacks').select('*').order('created_at', {ascending: false});
     if (!data || data.length === 0) {
-      el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Пока нет отзывов.</div>';
+      el.innerHTML = `
+        <div class="d-empty-state" style="margin-top:0;">
+          <div class="d-empty-ico-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
+          <div class="d-empty-title">Нет отзывов</div>
+          <div class="d-empty-text">Пользователи пока ничего не написали.</div>
+        </div>
+      `;
       return;
     }
 
-    // Подтягиваем имена пользователей
     const userIds = [...new Set(data.map(f => f.user_id))];
     const { data: profiles } = await sb.from('profiles').select('id, name, avatar').in('id', userIds);
-    const profileMap = {};
-    (profiles || []).forEach(p => profileMap[p.id] = p);
+    const profileMap = {}; (profiles || []).forEach(p => profileMap[p.id] = p);
 
     el.innerHTML = data.map(f => {
       const p = profileMap[f.user_id] || { name: 'Пользователь', avatar: '👤' };
       const date = new Date(f.created_at).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
       
       return `
-        <div class="d-card-glass" style="margin-bottom:10px; padding:12px;">
-          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-            <div style="display:flex; gap:8px; align-items:center;">
-              <div class="d-avatar" style="width:24px; height:24px;">${getAvatarHtml(p.avatar, 14)}</div>
-              <span style="font-size:13px; font-weight:800;">${escapeHtml(p.name || 'Аноним')}</span>
+        <div class="admin-mod-card" style="border-left: 3px solid var(--d-accent-2); display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; gap:10px; align-items:center;">
+              <div class="d-avatar" style="width:36px; height:36px; border-radius:10px;">${getAvatarHtml(p.avatar, 20)}</div>
+              <div>
+                <div style="font-size:14px; font-weight:800; color:var(--d-text);">${escapeHtml(p.name || 'Аноним')}</div>
+                <div style="font-size:10px; color:var(--d-accent-2); text-transform:uppercase; font-weight:800; letter-spacing:0.5px;">📩 Отзыв к приложению</div>
+              </div>
             </div>
-            <span style="font-size:10px; color:var(--muted);">${date}</span>
+            <span style="font-size:10px; color:var(--d-text-dim); background:var(--d-surface); padding:4px 8px; border-radius:8px; border:1px solid var(--d-border);">${date}</span>
           </div>
-          <div style="font-size:13px; line-height:1.5; color:var(--text);">${escapeHtml(f.text)}</div>
+          
+          <div style="font-size:13px; line-height:1.6; color:var(--d-text); background:rgba(255,255,255,0.03); padding:14px; border-radius:12px; border:1px solid var(--d-border); font-style:italic;">
+            «${escapeHtml(f.text)}»
+          </div>
+
+          <div style="display:flex; justify-content:flex-end;">
+             <button class="d-btn-secondary" onclick="replyToFeedback('${f.user_id}')" style="margin:0; height:36px; width:auto; padding:0 16px; font-size:11px; border-radius:10px;">
+               💬 Ответить в чат
+             </button>
+          </div>
         </div>
       `;
     }).join('');
@@ -10305,74 +10496,61 @@ async function loadAdminDashboard() {
   try {
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
-    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
-    const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString();
-
-    // Параллельные запросы для скорости
-    const [usersRes, progressRes, activeSubsRes] = await Promise.all([
+    
+    // Параллельные запросы
+    const [usersRes, activeSubsRes] = await Promise.all([
       sb.from('profiles').select('id, created_at, last_seen'),
-      sb.from('progress').select('book_id'),
       sb.from('profiles').select('id').gt('sub_until', now.toISOString())
     ]);
 
     const users = usersRes.data || [];
-    const progress = progressRes.data || [];
     const activeSubs = activeSubsRes.data || [];
 
-    // Считаем метрики
     const totalUsers = users.length;
-    const newToday = users.filter(u => u.created_at && u.created_at.startsWith(todayStr)).length;
     const dau = users.filter(u => u.last_seen && u.last_seen.startsWith(todayStr)).length;
-    const wau = users.filter(u => u.last_seen && u.last_seen > weekAgo).length;
-    const mau = users.filter(u => u.last_seen && u.last_seen > monthAgo).length;
+    const newToday = users.filter(u => u.created_at && u.created_at.startsWith(todayStr)).length;
     const mrr = activeSubs.length * 99;
 
-    // Считаем популярность книг
-    const bookCounts = {};
-    progress.forEach(p => {
-      bookCounts[p.book_id] = (bookCounts[p.book_id] || 0) + 1;
-    });
-    const topBooks = Object.entries(bookCounts).sort((a,b) => b[1] - a[1]).slice(0, 3);
-
+    // Красивые KPI карточки
     wrap.innerHTML = `
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
-        <div class="d-card-glass" style="padding:16px; text-align:center;">
-          <div style="font-size:28px; font-weight:900; color:var(--d-accent-2);">${totalUsers}</div>
-          <div style="font-size:10px; color:var(--muted); font-weight:800; text-transform:uppercase;">Всего юзеров</div>
+      <div style="font-size: 11px; font-weight: 900; color: var(--d-text-dim); text-transform: uppercase; margin-bottom: 10px;">Главные метрики</div>
+      <div class="admin-kpi-grid">
+        <div class="admin-kpi-card">
+          <div class="admin-kpi-title">Всего пользователей</div>
+          <div class="admin-kpi-value">${totalUsers}</div>
+          <div class="admin-kpi-trend up">↑ +${newToday} сегодня</div>
         </div>
-        <div class="d-card-glass" style="padding:16px; text-align:center; border-color:var(--d-success);">
-          <div style="font-size:28px; font-weight:900; color:var(--d-success);">${mrr} ₽</div>
-          <div style="font-size:10px; color:var(--muted); font-weight:800; text-transform:uppercase;">MRR (Доход)</div>
+        <div class="admin-kpi-card" style="border-color: rgba(62,207,142,0.3);">
+          <div class="admin-kpi-title" style="color: var(--d-success);">Доход (MRR)</div>
+          <div class="admin-kpi-value" style="color: var(--d-success);">${mrr} ₽</div>
+          <div class="admin-kpi-trend up">${activeSubs.length} подписок</div>
         </div>
-      </div>
-
-      <h3 style="font-size:12px; font-weight:900; color:var(--muted); text-transform:uppercase; margin-bottom:10px;">Активность (Retention)</h3>
-      <div class="d-card-glass" style="padding:16px; margin-bottom:20px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:13px;">
-          <span style="color:var(--muted);">Сегодня (DAU):</span> <b>${dau}</b>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:13px;">
-          <span style="color:var(--muted);">За неделю (WAU):</span> <b>${wau}</b>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:13px;">
-          <span style="color:var(--muted);">За месяц (MAU):</span> <b>${mau}</b>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:13px; padding-top:12px; border-top:1px solid var(--border);">
-          <span style="color:var(--muted);">Новых сегодня:</span> <b style="color:var(--d-gold);">+${newToday}</b>
-        </div>
-      </div>
-
-      <h3 style="font-size:12px; font-weight:900; color:var(--muted); text-transform:uppercase; margin-bottom:10px;">Топ-3 книги по стартам</h3>
-      <div class="d-card-glass" style="padding:16px;">
-        ${topBooks.map((b, i) => `
-          <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
-            <span>${i+1}. ${b[0]}</span> <b>${b[1]} юзеров</b>
+        <div class="admin-kpi-card" style="grid-column: 1 / -1;">
+          <div class="admin-kpi-title">Активность сегодня</div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+             <div class="admin-kpi-value">${dau} <span style="font-size:12px; color:var(--d-text-dim); font-weight:600;">юзеров в сети</span></div>
+             <div style="color: var(--d-accent-2); font-weight: 900;">${Math.round((dau / (totalUsers||1)) * 100)}% DAU</div>
           </div>
-        `).join('') || 'Нет данных'}
+          <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:10px; margin-top:12px; overflow:hidden;">
+             <div style="height:100%; width:${Math.min(100, (dau / (totalUsers||1)) * 100)}%; background:var(--d-gradient); border-radius:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size: 11px; font-weight: 900; color: var(--d-text-dim); text-transform: uppercase; margin: 20px 0 10px;">Быстрые действия</div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div class="d-card-glass" style="padding:14px; display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="switchAdminTab('books', document.querySelectorAll('.admin-pro-tab')[1])">
+          <div style="width:32px; height:32px; border-radius:10px; background:rgba(124,92,255,0.1); display:flex; align-items:center; justify-content:center; color:var(--d-accent-2);">📚</div>
+          <div style="font-size:13px; font-weight:800; color:#fff;">Каталог книг</div>
+        </div>
+        <div class="d-card-glass" style="padding:14px; display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="switchAdminTab('users', document.querySelectorAll('.admin-pro-tab')[2])">
+          <div style="width:32px; height:32px; border-radius:10px; background:rgba(255,184,0,0.1); display:flex; align-items:center; justify-content:center; color:var(--d-gold);">👥</div>
+          <div style="font-size:13px; font-weight:800; color:#fff;">База юзеров</div>
+        </div>
       </div>
     `;
   } catch(e) {
-    wrap.innerHTML = '<div style="color:var(--d-danger);">Ошибка загрузки статистики</div>';
+    wrap.innerHTML = '<div style="color:var(--d-danger); text-align:center;">Ошибка загрузки метрик</div>';
   }
 }
 async function adminTestPush(userId) {
@@ -10409,17 +10587,13 @@ function updateEditorStatusBanner(b) {
     banner.style.borderColor = 'rgba(62,207,142,0.3)';
     dot.style.background = 'var(--d-success)';
     text.textContent = '✅ Опубликована (видна всем)';
-    btn.textContent = 'Скрыть';
-    btn.style.color = 'var(--d-warm)';
-    btn.style.borderColor = 'rgba(255,154,86,0.4)';
+    if (btn) btn.style.display = 'none'; // Скрываем кнопку навсегда
   } else {
     banner.style.background = 'rgba(255,184,0,0.1)';
     banner.style.borderColor = 'rgba(255,184,0,0.3)';
     dot.style.background = 'var(--d-gold)';
     text.textContent = '📝 Черновик (скрыта от всех)';
-    btn.textContent = 'Опубликовать сейчас';
-    btn.style.color = 'var(--d-success)';
-    btn.style.borderColor = 'rgba(62,207,142,0.4)';
+    if (btn) btn.style.display = 'none'; // Скрываем кнопку навсегда
   }
 }
 
@@ -10476,10 +10650,15 @@ async function exportAllBooks() {
     }));
 
     const jsonStr = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(jsonStr);
+    link.href = url;
     link.download = 'andger_books_backup_' + todayStr() + '.json';
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     
     playSuccess();
     toast('Бэкап скачан!');
@@ -10594,6 +10773,17 @@ function showWeeklyReview() {
 
   // Получаем текущий уровень для шапки
   const stats = getGlobalStats();
+    // ✨ Управление видимостью соцфич (Рейтинг и Магазин)
+    const ratingRow = document.getElementById('profileRatingRow');
+    const shopRow = document.getElementById('profileShopRow');
+    
+    if (stats.totalClosed >= 3 || isAdmin()) { // <--- Добавили isAdmin()
+      if (ratingRow) ratingRow.style.display = 'flex';
+      if (shopRow) shopRow.style.display = 'flex';
+    } else {
+      if (ratingRow) ratingRow.style.display = 'none';
+      if (shopRow) shopRow.style.display = 'none';
+    }
 
   // Формируем красивый HTML
   let html = `
@@ -11099,4 +11289,47 @@ function startMusic(practiceId = 'default'){
       console.log('Музыка заблокирована браузером:', e);
     });
   }
+}
+async function showAdmin(initialSection = 'dashboard') {
+  if (!isAdmin()) return;
+  hideAll();
+  
+  const adminAva = document.getElementById('adminAvatar');
+  if (adminAva) adminAva.innerHTML = getAvatarHtml(state.avatar, 26);
+  
+  document.getElementById('adminScreen')?.classList.remove('hidden');
+  
+  // Сбрасываем активные табы
+  document.querySelectorAll('.admin-pro-tab').forEach(t => t.classList.remove('on'));
+  
+  // Ищем нужную кнопку навигации
+  const allBtns = document.querySelectorAll('.admin-pro-tab');
+  let targetBtn = allBtns[0]; // По умолчанию Обзор
+  
+  if (initialSection === 'books') targetBtn = allBtns[1];
+  else if (initialSection === 'users') targetBtn = allBtns[2];
+  else if (initialSection === 'moderation' || initialSection === 'feedback' || initialSection === 'reports') {
+    initialSection = 'moderation';
+    targetBtn = allBtns[3];
+  }
+  else if (initialSection === 'system') targetBtn = allBtns[4];
+  
+  if (targetBtn) targetBtn.classList.add('on');
+  
+  // Загружаем контент
+  loadAdminSection(initialSection);
+}
+
+function switchAdminTab(section, btnEl) {
+  document.querySelectorAll('.admin-pro-tab').forEach(b => b.classList.remove('on'));
+  if (btnEl) btnEl.classList.add('on');
+  loadAdminSection(section);
+  playClick();
+}
+
+// Функция для открытия окна помощи
+function showNotificationInfo() {
+  playClick();
+  const modal = document.getElementById('notificationInfoModal');
+  if (modal) modal.classList.remove('hidden');
 }
