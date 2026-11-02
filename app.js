@@ -9561,7 +9561,14 @@ function openPracticeSelector() {
     <!-- Текст -->
     <div style="flex:1; z-index:1;">
       <div style="font-size:14px; font-weight:800; color:${isDone ? 'var(--d-success)' : 'var(--d-text)'}; text-decoration:${isDone ? 'line-through' : 'none'};">${p.title}</div>
-      <div style="font-size:11px; color:var(--d-text-dim); margin-top:2px;">⏱ ${Math.round(p.time/60)} минут · <span style="color:var(--d-gold); font-weight:800;">+10 XP</span></div>
+      <div style="font-size:11px; color:var(--d-text-dim); margin-top:2px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+        <span style="display:flex; align-items:center; gap:2px;">
+          ⏱ ${getDiffData(p.time, 'easy').mins}-${getDiffData(p.time, 'deep').mins} мин
+        </span>
+        <span style="color:var(--d-gold); font-weight:800; background:rgba(255,184,0,0.1); padding:2px 6px; border-radius:4px;">
+          ✨ +${getDiffData(p.time, 'easy').xp}-${getDiffData(p.time, 'deep').xp} XP
+        </span>
+      </div>
     </div>
   </div>
 `;
@@ -10130,7 +10137,7 @@ function buildPracticeHtml(p) {
               ⭐ ${allPracticeRatings[p.id] ? allPracticeRatings[p.id].toFixed(1) : '0.0'}
             </span>
             <span style="background: rgba(255,184,0,0.12); border: 1px solid rgba(255,184,0,0.3); padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; color: var(--d-gold);">
-              ✨ +10 XP
+              ✨ +${getDiffData(p.time, 'normal').xp} XP
             </span>
           </div>
         </div>
