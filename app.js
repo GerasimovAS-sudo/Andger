@@ -306,7 +306,8 @@ function localDate(d){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function escapeHtml(s){
-  return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function plural(n,one,few,many){
   const m10=n%10,m100=n%100;
@@ -3015,6 +3016,7 @@ function startRitual(){
   } else {
     console.error('❌ Элемент #ritualScreen не найден в HTML!');
     toast('Ошибка интерфейса. Обновите страницу.', 'danger');
+    smartHome(); // <-- ВОЗВРАЩАЕМ НА ГЛАВНУЮ
     return;
   }
   
@@ -3029,7 +3031,6 @@ function renderRitualStep(){
     let p = ritualQueue[ritualIndex];
     if (!p) { closeRitual(); return; }
     
-    // ✨ ИСПРАВЛЕНИЕ: Генерируем фразы и ОБЯЗАТЕЛЬНО сохраняем их обратно в очередь!
     p = normalizeVoiceTimeline(p); 
     ritualQueue[ritualIndex] = p; 
     
@@ -3043,9 +3044,12 @@ function renderRitualStep(){
       ? `<div style="text-align:center;font-size:11px;color:var(--d-text-dim);margin-bottom:8px">${getSvgIcon('book',14)} ${escapeHtml(p._bookTitle)}</div>` : '';
     
     const rBody = document.getElementById('ritualBody');
-    if(!rBody) return;
-
-    // ВОТ ТУТ МЫ ИСПОЛЬЗУЕМ НАШ НОВЫЙ ДВИЖОК
+    if(!rBody) {
+        console.error('❌ Элемент #ritualBody не найден в HTML!');
+        toast('Ошибка интерфейса: не найден контейнер практики.', 'danger');
+        closeRitual(); // <-- ЗАКРЫВАЕМ И ВОЗВРАЩАЕМ НА ГЛАВНУЮ
+        return;
+    }
     rBody.innerHTML = bookTag + buildPracticeHtml(p);
     
     timerRemaining = p.time || 300;
@@ -3053,12 +3057,22 @@ function renderRitualStep(){
     if (rBody) rBody.scrollTo({top:0,behavior:'smooth'});
   } catch (error) {
     console.error('Ошибка рендера:', error);
+    toast('Ошибка при загрузке практики.', 'danger');
+    closeRitual(); // <-- ВОЗВРАЩАЕМ НА ГЛАВНУЮ ПРИ ОШИБКЕ
   }
 }
 
 function toggleTimer(ctx){
   const isRitual = !document.getElementById('ritualScreen').classList.contains('hidden');
   const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
+  
+  // ЗАЩИТА: Если экрана нет, возвращаем на главную
+  if (!screen) {
+    toast('Ошибка: экран практики не найден', 'danger');
+    smartHome();
+    return;
+  }
+  
   const btn = screen.querySelector('#timerBtn'); // <--- ИЩЕМ ВНУТРИ ЭКРАНА
 
   if(timerState === 'running'){
@@ -3146,7 +3160,13 @@ function releaseWakeLock() {
 function startTimer(ctx){
   const isRitual = (ctx === 'ritual');
   const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
-  if (!screen) return; 
+  
+  // ЗАЩИТА: Если экрана нет, возвращаем на главную
+  if (!screen) {
+    toast('Ошибка: экран таймера не найден', 'danger');
+    smartHome();
+    return;
+  }
 
   const circle = screen.querySelector('.timer-circle'); 
   if (circle) circle.style.transition = 'stroke-dashoffset 1s linear';
@@ -3936,14 +3956,13 @@ function openPractice(id){
   const day = currentDay(currentBook.id);
   const date = dateByDay(currentBook.id, day);
   
-    
   if (bs.days[date] && bs.days[date].practices && bs.days[date].practices.includes(id)) {
     toast('Вы уже выполнили эту практику сегодня. Ждем завтра!', 'warm');
     return;
   }
 
   const p=currentBook.practices.find(x=>x.id===id);if(!p)return;
-  currentPractice=normalizeVoiceTimeline(p); // <--- ПРИМЕНЯЕМ МАСШТАБИРОВАНИЕ
+  currentPractice=normalizeVoiceTimeline(p); 
   
   const psTitleEl = document.getElementById('psTitle');
   if(psTitleEl) psTitleEl.textContent = p.title;
@@ -3954,16 +3973,23 @@ function openPractice(id){
   const psContentEl = document.getElementById('psContent');
   if(!psContentEl) {
     console.error('❌ Элемент #psContent не найден в HTML!');
+    toast('Ошибка интерфейса: не найден контейнер практики.', 'danger');
+    smartHome(); // <-- ВОЗВРАЩАЕМ НА ГЛАВНУЮ
     return;
   }
   
-  // ВОТ ТУТ МЫ ИСПОЛЬЗУЕМ НАШ НОВЫЙ ДВИЖОК
   psContentEl.innerHTML = buildPracticeHtml(p);
   
-  hideAll(); // <--- ДОБАВИЛИ: прячем Главную и другие экраны на заднем фоне
-  
+  hideAll(); 
   const psScreen = document.getElementById('practiceScreen');
-  if(psScreen) psScreen.classList.remove('hidden');
+  if(psScreen) {
+    psScreen.classList.remove('hidden');
+  } else {
+    console.error('❌ Элемент #practiceScreen не найден в HTML!');
+    toast('Ошибка интерфейса: не найден экран практики.', 'danger');
+    smartHome(); // <-- ВОЗВРАЩАЕМ НА ГЛАВНУЮ
+    return;
+  }
   
   document.getElementById('bottomNav').classList.add('hidden');
   document.body.style.overflow='hidden';
@@ -3973,6 +3999,7 @@ function openPractice(id){
   timerState='idle';
   updateSoundUI();
 }
+
 function closePractice(){
   // Если таймер идет или на паузе — спрашиваем подтверждение
   if (timerState === 'running' || timerState === 'paused') {
@@ -8907,7 +8934,7 @@ async function speakBackgroundGuide(text, context = 'practice') {
   if (state.soundMode !== 'sound') return;
   if (document.visibilityState === 'hidden') return; // ЖЕСТКИЙ ЗАПРЕТ НА ОЗВУЧКУ В ФОНЕ
   
-  isVoicePlaying = true; // Устанавливаем флаг, что голос говорит
+  isVoicePlaying = true; 
 
   // Показываем субтитры МГНОВЕННО
   const isRitual = (context === 'ritual');
@@ -8922,31 +8949,28 @@ async function speakBackgroundGuide(text, context = 'practice') {
     // --- УМНАЯ ЛОГИКА ВЫБОРА ГОЛОСА ---
     let vSettings = {};
     let voiceToUse = 'alena';
-    let speedToUse = 0.9; // ✨ По умолчанию ставим мягкую скорость 0.9
-    let emotionToUse = 'good'; // ✨ По умолчанию ставим добрую эмоцию
+    let speedToUse = 0.9; 
+    let emotionToUse = 'good'; 
 
     if (state.voice && state.voice !== 'auto') {
       voiceToUse = state.voice;
-      // ✨ ФИКС: Если пользователь выбрал голос в настройках, не ломаем скорость из JSON
       let activeP = context === 'ritual' ? ritualQueue[ritualIndex] : currentPractice;
       if (activeP && activeP.voice_settings && activeP.voice_settings.speed) {
           speedToUse = activeP.voice_settings.speed;
       }
     } else {
       let activePractice = context === 'ritual' ? ritualQueue[ritualIndex] : currentPractice;
-      
       if (activePractice && activePractice.voice_settings) {
         vSettings = activePractice.voice_settings;
       } else if (currentBook && currentBook.voice_settings) {
         vSettings = currentBook.voice_settings;
       }
       
-      // 🧠 Умный выбор голоса, если ИИ не задал его в JSON
       let defaultVoice = 'alena';
       if (activePractice) {
         const textSearch = (activePractice.title + ' ' + activePractice.sub + ' ' + (activePractice.ico||'')).toLowerCase();
         if (textSearch.includes('спорт') || textSearch.includes('актив') || textSearch.includes('зарядк') || textSearch.includes('activity') || textSearch.includes('трениров')) {
-          defaultVoice = 'ermil'; // Мужской голос для энергичных практик
+          defaultVoice = 'ermil';
         }
       }
       
@@ -8963,6 +8987,14 @@ async function speakBackgroundGuide(text, context = 'practice') {
     if (error) throw error;
     if (data && data.error) throw new Error(data.error);
 
+    // ✨ ФИКС: Проверяем, не закрыл ли пользователь практику, пока мы ждали ответ от сервера
+    const isPracticeHidden = document.getElementById('practiceScreen').classList.contains('hidden');
+    const isRitualHidden = document.getElementById('ritualScreen').classList.contains('hidden');
+    if (isPracticeHidden && isRitualHidden) {
+      isVoicePlaying = false;
+      return; // Если экран закрыт — прерываем воспроизведение
+    }
+
     // РАСШИФРОВКА Base64 в MP3
     const binaryString = window.atob(data.audio);
     const bytes = new Uint8Array(binaryString.length);
@@ -8970,7 +9002,7 @@ async function speakBackgroundGuide(text, context = 'practice') {
         bytes[i] = binaryString.charCodeAt(i);
     }
 
-      if (!ttsAudio) ttsAudio = new Audio();
+    if (!ttsAudio) ttsAudio = new Audio();
     ttsAudio.pause();
     ttsAudio.currentTime = 0;
     
@@ -8982,9 +9014,7 @@ async function speakBackgroundGuide(text, context = 'practice') {
     const blob = new Blob([bytes], { type: 'audio/mpeg' });
     ttsAudio.src = URL.createObjectURL(blob);
     
-    // Настраиваем возврат музыки, если голос закончился или произошла ошибка
     const restoreMusic = () => {
-      // СУБТИТРЫ БОЛЬШЕ НЕ СКРЫВАЕМ! Они остаются на экране до следующей фразы.
       isVoicePlaying = false; 
       if (musicAudio && state.soundMode === 'sound') {
         fadeAudio(musicAudio, musicAudio.volume, 0.3, 400);
@@ -8994,28 +9024,24 @@ async function speakBackgroundGuide(text, context = 'practice') {
     ttsAudio.onended = restoreMusic;
     ttsAudio.onerror = restoreMusic;
 
-      if (state.soundMode !== 'sound') {
+    if (state.soundMode !== 'sound') {
        if (subEl) subEl.classList.remove('show');
        if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.2, 1000);
-       isVoicePlaying = false; // <--- СБРАСЫВАЕМ ФЛАГ
+       isVoicePlaying = false; 
        return;
     }
 
     ttsAudio.volume = 1;
     
-    // Защита от ошибки AbortError
     try {
-      // Включаем голос
       await ttsAudio.play();
       
-      // ✨ КРАСИВЫЙ ФИКС: Музыка притухает ТОЛЬКО когда голос уже пошел
       if (musicAudio) {
-        fadeAudio(musicAudio, musicAudio.volume, 0.05, 300); // Убавляем до 5%
+        fadeAudio(musicAudio, musicAudio.volume, 0.05, 300);
       }
       
     } catch (playError) {
-      restoreMusic(); // Возвращаем музыку, если произошла ошибка
-      
+      restoreMusic(); 
       if (playError.name === 'AbortError') {
         console.log('Голос был прерван (таймер остановлен).');
       } else {
@@ -9026,19 +9052,25 @@ async function speakBackgroundGuide(text, context = 'practice') {
   } catch (error) {
     console.error('Ошибка озвучки (Яндекс), включаем системный голос:', error);
     
+    // ✨ ФИКС: Если произошла ошибка, и экран уже закрыт — не включаем системный голос
+    const isPracticeHidden = document.getElementById('practiceScreen').classList.contains('hidden');
+    const isRitualHidden = document.getElementById('ritualScreen').classList.contains('hidden');
+    if (isPracticeHidden && isRitualHidden) {
+      isVoicePlaying = false;
+      return;
+    }
+
     let errorMsg = error.message;
     if (error.context && typeof error.context.json === 'function') {
       try { const errData = await error.context.json(); errorMsg = errData.error || errorMsg; } catch(e) {}
     }
     console.warn('Причина ошибки:', errorMsg);
 
-    // 🚨 FALLBACK: Если Яндекс не сработал или браузер заблокировал звук
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); // Очищаем очередь
+      window.speechSynthesis.cancel(); 
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ru-RU';
       
-      // Возвращаем музыку и убираем субтитры, когда робот закончит
       utterance.onend = () => {
         isVoicePlaying = false;
         if (subEl) {
@@ -9052,7 +9084,6 @@ async function speakBackgroundGuide(text, context = 'practice') {
       
       window.speechSynthesis.speak(utterance);
     } else {
-      // Если даже системного голоса нет — возвращаем музыку
       isVoicePlaying = false;
       if (musicAudio && state.soundMode === 'sound' && timerState === 'running') {
         fadeAudio(musicAudio, musicAudio.volume, 0.3, 800);
@@ -9992,12 +10023,12 @@ function buildPracticeHtml(p) {
       <h3 style="font-size:12px; font-weight:900; color:var(--d-accent-2); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">💡 Зачем это нужно</h3>
       <p style="font-size:14px; color:var(--d-text); line-height:1.6; margin-bottom:16px;">${escapeHtml(p.why || '')}</p>
       
-<h3 style="font-size:12px; font-weight:900; color:var(--d-accent-2); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">🎬 Как делать</h3>
+      <h3 style="font-size:12px; font-weight:900; color:var(--d-accent-2); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">🎬 Как делать</h3>
       <div style="display:flex; flex-direction:column; gap:10px;">
         ${(p.how || []).map((s, i) => `
           <div style="display:flex; gap:12px; align-items:flex-start;">
             <div style="width:24px; height:24px; border-radius:50%; background:var(--d-surface-2); border:1px solid var(--d-border); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; color:var(--d-text); flex-shrink:0;">${i+1}</div>
-            <div style="font-size:14px; color:var(--d-text); line-height:1.5; padding-top:2px;">${escapeHtml(s)}</div>
+            <div style="font-size:14px; color:var(--d-text); line-height:1.5; padding-top:2px;">${escapeHtml(String(s))}</div>
           </div>
         `).join('')}
       </div>
@@ -10009,7 +10040,7 @@ function buildPracticeHtml(p) {
       <ul style="list-style:none; padding:0; margin:0 0 16px 0;">
         ${(p.mistakes || []).map(m => `
           <li style="padding:8px 0 8px 24px; position:relative; font-size:13px; color:var(--d-text); line-height:1.5;">
-            <span style="position:absolute; left:0; top:8px; color:var(--d-danger); font-weight:900;">✕</span>${escapeHtml(m)}
+            <span style="position:absolute; left:0; top:8px; color:var(--d-danger); font-weight:900;">✕</span>${escapeHtml(String(m))}
           </li>
         `).join('')}
       </ul>
