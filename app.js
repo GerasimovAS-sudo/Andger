@@ -374,8 +374,15 @@ function fxKindFor(el){
   return 'tap';
 }
 document.addEventListener('click',(e)=>{
-  if(!e.isTrusted)return; // игнорируем программные клики (в т.ч. iOS-тик)
+  if(!e.isTrusted)return; 
   if(e.target.closest('[data-no-fx]'))return;
+  
+  // ✨ ЖЕЛЕЗНЫЙ ФИКС ДЛЯ iOS: Принудительно будим AudioContext при каждом клике
+  const ctx = getCtx();
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume();
+  }
+
   // Ищем ближайший кликабельный элемент
   const btn = e.target.closest('button, a, label, select, summary, [onclick], [role="button"], input[type="checkbox"], input[type="radio"], input[type="range"], .book-row, .nav-btn, .hero-play, .action-btn-compact, .ach-card, .admin-item, .tab-pill, .mood-emoji, .lib-filter, .settings-row, .toggle-row, .fp-action, .d-icon-btn, .d-avatar, .d-toggle, .d-card-glass[onclick], .theme-option, .voice-option');
   if(!btn)return;
@@ -566,7 +573,8 @@ function _makeImpulse(ctx){
   return buf;
 }
 function getCtx(){
-  if(!audioCtx){
+  // Добавили проверку на state === 'closed'
+  if(!audioCtx || audioCtx.state === 'closed'){
     try{
       const AC=window.AudioContext||window.webkitAudioContext;
       try{audioCtx=new AC({latencyHint:'interactive'})}catch(e){audioCtx=new AC()}

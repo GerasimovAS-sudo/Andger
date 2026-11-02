@@ -25,12 +25,19 @@ html, body {
   width: 100%;
   max-width: 100%;
   min-height: 100vh;
+  min-height: -webkit-fill-available; /* ФИКС ДЛЯ iOS (чтобы не прыгал) */
   overscroll-behavior-x: none;
-  touch-action: pan-y; /* Запрещает скролл влево-вправо на iOS */
+  touch-action: pan-y;
   position: relative;
 
-  background: radial-gradient(circle at 50% 40%, var(--color-background-glow) 0%, var(--color-background-deep) 100%) no-repeat scroll;
-  background-color: var(--color-background-deep);
+  /* ЖЕСТКИЙ ФОН, КОТОРЫЙ НЕ ДАЕТ ПОЛОС ВНИЗУ */
+  background-color: #120c24 !important;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(124, 92, 255, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(255, 122, 42, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(30, 92, 255, 0.08) 0%, transparent 50%) !important;
+  background-attachment: fixed !important; /* Фон прибит намертво */
+  
   color: var(--text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;

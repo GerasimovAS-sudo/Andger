@@ -918,13 +918,8 @@ div[onclick="showPremium()"] div {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   width: 100vw;
-  height: 100vh; /* Для старых iOS */
-  height: 100dvh; /* Для новых */
-  
-  /* ЖЕСТКИЙ ФИКС НИЖНЕЙ ПОЛОСЫ */
-  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
-  box-sizing: border-box;
-  
+  height: 100vh; 
+  height: 100dvh; 
   background-color: #120c24;
   background-image: 
     radial-gradient(circle at 10% 10%, rgba(124, 92, 255, 0.25) 0%, transparent 50%),
@@ -936,6 +931,10 @@ div[onclick="showPremium()"] div {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  /* ЖЕСТКИЙ ФИКС НИЖНЕЙ ПОЛОСЫ */
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  box-sizing: border-box;
 }
 /* Компактный календарь на Главной */
 .d-calendar-strip {
