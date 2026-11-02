@@ -1,14 +1,14 @@
 {
   "name": "ANDGER — практикум по книгам",
-  "short_name": "ANDGER",
+  "short_name": "Практикум",
   "description": "Между знанием и жизнью — один шаг. Практикум по книгам.",
   "start_url": "./",
   "scope": "./",
   "id": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0d0a18",
-  "theme_color": "#0d0a18",
+  "background_color": "#120c24",
+  "theme_color": "#120c24",
   "lang": "ru",
   "categories": [
     "lifestyle",
@@ -29,7 +29,7 @@
       "purpose": "any"
     },
     {
-      "src": "assets/icons/icon-512x512.png",
+      "src": "assets/icons/icon-maskable-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
