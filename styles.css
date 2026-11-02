@@ -25,18 +25,19 @@ html, body {
   width: 100%;
   max-width: 100%;
   min-height: 100vh;
-  min-height: -webkit-fill-available; /* ФИКС ДЛЯ iOS (чтобы не прыгал) */
+  min-height: -webkit-fill-available;
   overscroll-behavior-x: none;
   touch-action: pan-y;
   position: relative;
 
-  /* ЖЕСТКИЙ ФОН, КОТОРЫЙ НЕ ДАЕТ ПОЛОС ВНИЗУ */
-  background-color: #120c24 !important;
+  /* ЕДИНЫЙ КРАСИВЫЙ ФОН (точь-в-точь как на экране загрузки) */
+  background-color: #120c24;
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(124, 92, 255, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(255, 122, 42, 0.1) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(30, 92, 255, 0.08) 0%, transparent 50%) !important;
-  background-attachment: fixed !important; /* Фон прибит намертво */
+    radial-gradient(circle at 10% 10%, rgba(124, 92, 255, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(255, 122, 42, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(30, 92, 255, 0.1) 0%, transparent 60%);
+  background-attachment: fixed; 
+  background-size: cover;
   
   color: var(--text);
   line-height: 1.5;
@@ -1674,17 +1675,6 @@ input:-webkit-autofill:focus {
   --andger-loader-blue: rgba(61, 91, 255, .10);
   --andger-bottom-nav-height: 66px;
 }
-html, body, #screensRoot {
-  background-color: var(--andger-loader-base, #0d0a18);
-  background-image:
-    radial-gradient(circle at 12% 18%, var(--andger-loader-violet), transparent 42%),
-    radial-gradient(circle at 88% 82%, var(--andger-loader-rose), transparent 40%),
-    radial-gradient(circle at 50% 40%, var(--andger-loader-glow) 0%, var(--andger-loader-base) 100%);
-  background-attachment: scroll; /* <--- МЕНЯЕМ НА SCROLL */
-  background-repeat: no-repeat;
-  background-size: cover;
-  min-height: 100dvh;
-}
 body::before { content: none; }
 .wrap { background: transparent; }
 /* Screen shells are transparent: the same body background is visible on every tab. */
@@ -2005,7 +1995,7 @@ body, #screensRoot {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: calc(90px + env(safe-area-inset-top, 0px)) 20px calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: calc(125px + env(safe-area-inset-top, 0px)) 20px calc(10px + env(safe-area-inset-bottom, 0px)) !important;
     overflow: hidden;
     width: 100%;
 }
@@ -2165,13 +2155,11 @@ input, textarea, select {
    ЖЕЛЕЗНЫЙ ФИКС ЧЕРНОЙ ПОЛОСЫ СНИЗУ ДЛЯ iOS PWA
    ═══════════════════════════════════════════════ */
 html {
-  background-color: #0d0a18 !important; 
-  height: 100% !important;
-  min-height: 100dvh !important;
+  height: 100%;
+  min-height: 100dvh;
 }
 body {
-  background-color: #0d0a18 !important;
-  min-height: 100dvh !important;
+  min-height: 100dvh;
 }
 
 /* ═══════════════════════════════════════════════ */
@@ -2247,6 +2235,49 @@ body {
 input, textarea, select {
   font-size: 16px !important;
 }
+/* ═══════════════════════════════════════════════ */
+/* ФИКС ПРОКРУТКИ ЧАТА (Прижимаем сообщения к низу) */
+/* ═══════════════════════════════════════════════ */
+#dialogScreen .wrap {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: calc(100dvh - 100px) !important; /* Контейнер занимает всю высоту экрана */
+  justify-content: flex-end !important; /* Прижимаем всё содержимое вниз */
+}
+
+#dialogMessages {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  padding: 10px 0 !important;
+  margin-top: auto !important; /* Это магия, которая прижимает сообщения к низу */
+  padding-bottom: 20px !important;
+}
+/* ═══════════════════════════════════════════════ */
+/* УМЕНЬШАЕМ ОТСТУПЫ НА ГЛАВНОЙ СТРАНИЦЕ */
+/* ═══════════════════════════════════════════════ */
+
+/* 1. Прижимаем календарь ближе к верхней шапке */
+#todayScreen .wrap {
+  padding-top: calc(76px + env(safe-area-inset-top, 0px)) !important; 
+}
+
+/* 2. Убираем лишний отступ под календарем (перед карточкой книги) */
+#todayScreen .wrap > div:nth-child(2) {
+  margin-bottom: -6px !important; /* Подтягиваем книгу вверх */
+}
+
+/* 3. Уменьшаем отступ у самих точек прокрутки календаря */
+#todayScreen #calendarDots {
+  margin-top: 2px !important;
+  margin-bottom: 4px !important;
+}
+
+/* 4. Убираем лишний воздух над карточкой текущей книги */
+#todayScreen .d-focus-card {
+  margin-top: 0px !important;
+}
+
 
 
 

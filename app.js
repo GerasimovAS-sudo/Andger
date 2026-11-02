@@ -537,19 +537,25 @@ function stopMusic(){
 }
 function fadeAudio(audio, from, to, duration, onEnd) {
   if (!audio) return;
-  if (audio._fadeRAF) cancelAnimationFrame(audio._fadeRAF);
+  
+  // Очищаем старые таймеры, если они есть
+  if (audio._fadeInterval) clearInterval(audio._fadeInterval);
+  
   const start = performance.now();
-  function tick(now) {
+  
+  // Используем setInterval вместо requestAnimationFrame (надежнее для iOS)
+  audio._fadeInterval = setInterval(() => {
+    const now = performance.now();
     const t = Math.min((now - start) / duration, 1);
+    
     audio.volume = Math.max(0, Math.min(1, from + (to - from) * t));
-    if (t < 1) {
-      audio._fadeRAF = requestAnimationFrame(tick);
-    } else {
-      audio._fadeRAF = null;
+    
+    if (t >= 1) {
+      clearInterval(audio._fadeInterval);
+      audio._fadeInterval = null;
       if (onEnd) onEnd();
     }
-  }
-  audio._fadeRAF = requestAnimationFrame(tick);
+  }, 50); // Обновляем каждые 50мс
 }
 
 // ─── ЗВУКИ И ВИБРАЦИЯ (v4 · premium) ───
@@ -9045,9 +9051,10 @@ async function speakBackgroundGuide(text, context = 'practice') {
       return; 
     }
 
-    // Приглушаем музыку ТОЛЬКО когда аудио уже скачалось и готово к игре
+    // Приглушаем музыку
     isVoicePlaying = true; 
     if (musicAudio) {
+      musicAudio.volume = 0.15; // Жестко ставим 15% для iOS
       fadeAudio(musicAudio, musicAudio.volume, 0.15, 400);
     }
 
@@ -9073,7 +9080,8 @@ async function speakBackgroundGuide(text, context = 'practice') {
     const restoreMusic = () => {
       isVoicePlaying = false; 
       if (musicAudio && state.soundMode === 'sound') {
-        fadeAudio(musicAudio, musicAudio.volume, 0.3, 800); // Плавно возвращаем на 30%
+        musicAudio.volume = 0.3; // Жестко возвращаем на 30%
+        fadeAudio(musicAudio, musicAudio.volume, 0.3, 800);
       }
     };
 
@@ -9710,23 +9718,28 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(injectQuickNoteButton, 500); 
 });
 // ═══════════════════════════════════════════════
-// УМНЫЙ ФИКС КЛАВИАТУРЫ ДЛЯ iOS / ANDROID
+// ИДЕАЛЬНЫЙ ФИКС КЛАВИАТУРЫ ДЛЯ iOS / ANDROID
 // ═══════════════════════════════════════════════
 if (window.visualViewport) {
   const handleKeyboard = () => {
     const wrap = document.getElementById('dialogInputWrap') || document.getElementById('feedInputWrap');
     if (!wrap || wrap.style.display === 'none') return;
 
-    const isKeyboardOpen = window.visualViewport.height < window.innerHeight - 50;
-    
+    const vv = window.visualViewport;
+    // Вычисляем, насколько клавиатура перекрывает экран
+    const keyboardOffset = window.innerHeight - vv.height - vv.offsetTop;
+    const isKeyboardOpen = keyboardOffset > 50;
+
     if (isKeyboardOpen) {
-      const keyboardHeight = window.innerHeight - window.visualViewport.height;
-      // Поднимаем поле ввода ровно на высоту клавиатуры
-      wrap.style.bottom = `${keyboardHeight}px`;
+      // При открытой клавиатуре прижимаем поле ввода ровно над ней
+      wrap.style.bottom = `${keyboardOffset}px`;
       wrap.style.borderRadius = '0'; 
       wrap.style.paddingBottom = '10px';
       
-      // Автоматически прокручиваем чат вниз, чтобы видеть последние сообщения
+      // Сдвигаем само окно чата, чтобы сообщения не улетали под клавиатуру
+      const screenWrap = wrap.closest('.wrap');
+      if (screenWrap) screenWrap.style.paddingBottom = `${keyboardOffset + 80}px`;
+      
       setTimeout(() => {
         const dialogMessages = document.getElementById('dialogMessages');
         if (dialogMessages) dialogMessages.scrollTop = dialogMessages.scrollHeight;
@@ -9737,6 +9750,9 @@ if (window.visualViewport) {
       wrap.style.bottom = 'calc(85px + env(safe-area-inset-bottom, 0px))';
       wrap.style.borderRadius = '16px';
       wrap.style.paddingBottom = '6px';
+      
+      const screenWrap = wrap.closest('.wrap');
+      if (screenWrap) screenWrap.style.paddingBottom = '';
     }
   };
 
