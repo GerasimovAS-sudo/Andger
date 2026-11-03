@@ -1739,6 +1739,20 @@ function navTo(page,el){
   // Проверяем доступ к Сообществу
   if(page === 'community') {
     const stats = getGlobalStats();
+    // ✨ Управление видимостью соцфич (Рейтинг и Магазин) для профиля
+    let currentTotalClosed = 0;
+    BOOKS.forEach(b => currentTotalClosed += countClosedDays(b.id));
+
+    const ratingRow = document.getElementById('profileRatingRow');
+    const shopRow = document.getElementById('profileShopRow');
+    
+    if (currentTotalClosed >= 3 || isAdmin()) {
+      if (ratingRow) ratingRow.style.display = 'flex';
+      if (shopRow) shopRow.style.display = 'flex';
+    } else {
+      if (ratingRow) ratingRow.style.display = 'none';
+      if (shopRow) shopRow.style.display = 'none';
+    }
     if (stats.totalClosed >= 3 || isAdmin()) { // <--- Добавили isAdmin()
       showCommunityScreen();
     } else {
@@ -4463,6 +4477,22 @@ function closeAndgerConfirm(accepted = false) {
 
     // 2. Считаем уровень и прогресс
     const stats = getGlobalStats();
+
+    // ✨ УПРАВЛЕНИЕ КНОПКАМИ РЕЙТИНГА И МАГАЗИНА
+    let currentTotalClosed = 0;
+    BOOKS.forEach(b => currentTotalClosed += countClosedDays(b.id));
+
+    const ratingRow = document.getElementById('profileRatingRow');
+    const shopRow = document.getElementById('profileShopRow');
+    
+    // Показываем, если это админ ИЛИ если закрыто 3+ дней
+    if (currentTotalClosed >= 3 || isAdmin()) { 
+      if (ratingRow) { ratingRow.style.display = 'flex'; ratingRow.classList.remove('hidden'); }
+      if (shopRow) { shopRow.style.display = 'flex'; shopRow.classList.remove('hidden'); }
+    } else {
+      if (ratingRow) ratingRow.style.display = 'none';
+      if (shopRow) shopRow.style.display = 'none';
+    }
 
     // 3. Заполняем верхнюю карточку
     const avaEl = document.getElementById('profileAva');
@@ -10823,17 +10853,6 @@ function showWeeklyReview() {
 
   // Получаем текущий уровень для шапки
   const stats = getGlobalStats();
-    // ✨ Управление видимостью соцфич (Рейтинг и Магазин)
-    const ratingRow = document.getElementById('profileRatingRow');
-    const shopRow = document.getElementById('profileShopRow');
-    
-    if (stats.totalClosed >= 3 || isAdmin()) { // <--- Добавили isAdmin()
-      if (ratingRow) ratingRow.style.display = 'flex';
-      if (shopRow) shopRow.style.display = 'flex';
-    } else {
-      if (ratingRow) ratingRow.style.display = 'none';
-      if (shopRow) shopRow.style.display = 'none';
-    }
 
   // Формируем красивый HTML
   let html = `
