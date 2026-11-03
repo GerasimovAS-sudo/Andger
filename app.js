@@ -2232,15 +2232,15 @@ function renderToday() {
   if (mpcBookAuthor) mpcBookAuthor.textContent = b.author || 'Неизвестный автор';
   
   if (mpcBookIcon) {
-  mpcBookIcon.style.overflow = 'hidden'; 
+    mpcBookIcon.style.overflow = 'hidden'; 
     if (b.cover_url) {
       mpcBookIcon.style.padding = '0';
       mpcBookIcon.style.position = 'relative';
-      // Заполняем весь квадрат, как в остальном приложении
-      mpcBookIcon.innerHTML = `<img src="${b.cover_url}" alt="${b.title}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
+      mpcBookIcon.innerHTML = `<img src="${b.cover_url}" alt="${b.title}" style="width:100%; height:100%; object-fit:cover;">`;
     } else {
       mpcBookIcon.style.padding = '8px';
-      mpcBookIcon.innerHTML = getEmojiOrSvg(b.emoji, 70, b.title);
+      mpcBookIcon.style.background = getSmartColor(b.title).bg;
+      mpcBookIcon.innerHTML = getEmojiOrSvg(b.emoji, 50, b.title);
     }
   }
 
@@ -2272,6 +2272,36 @@ function renderToday() {
   const isStarted = !!bs.start;
   const closedDays = countClosedDays(b.id);
   const isCourseDone = isStarted && closedDays >= b.days;
+  
+  // ✨ УМНАЯ КНОПКА: Проверяем, закрыт ли текущий день
+  const mainBtn = document.getElementById('mainStartBtn');
+  if (mainBtn) {
+    if (isDayClosed) {
+      mainBtn.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> ДЕНЬ ЗАВЕРШЕН`;
+      mainBtn.style.background = 'linear-gradient(135deg, #3ecf8e 0%, #2ea870 100%)'; // Зеленый градиент
+      mainBtn.style.boxShadow = '0 8px 25px rgba(62, 207, 142, 0.4)';
+      mainBtn.setAttribute('onclick', `showDayStats('${date}')`); // Ведем на статистику дня
+    } else {
+      mainBtn.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> ПРИСТУПИТЬ К ПРАКТИКЕ`;
+      mainBtn.style.background = 'linear-gradient(135deg, #7c5cff 0%, #6366f1 100%)';
+      mainBtn.style.boxShadow = '0 8px 25px rgba(124, 92, 255, 0.4)';
+      mainBtn.setAttribute('onclick', `showPracticeModeInfo('full')`);
+    }
+  }
+
+  // ✨ УМНЫЙ ТЕКСТ ПОД ПРОГРЕСС-БАРОМ
+  const progTextEl = document.getElementById('mpcProgressText');
+  if (progTextEl) {
+    if (isDayClosed) {
+      progTextEl.innerHTML = `Все практики выполнены! 🎉`;
+      progTextEl.style.color = 'var(--d-success)';
+    } else {
+      const totalMinDone = Math.round(timeDone / 60);
+      const totalMin = Math.round(timeTotal / 60);
+      progTextEl.innerHTML = `${todayCount} из ${total} практик · ${totalMinDone}/${totalMin} мин`;
+      progTextEl.style.color = '#a0a0b8';
+    }
+  }
   
   // Если книга пройдена, принудительно ставим 100%
   const pctCourse = isCourseDone ? 100 : (isStarted ? Math.round(day / b.days * 100) : 0);
@@ -3317,9 +3347,9 @@ function startTimer(ctx){
     }
 
     // ПЛАВНОЕ ЗАТУХАНИЕ МУЗЫКИ (Последние 15 секунд)
-    if (timerRemaining <= 15 && timerRemaining > 0 && musicAudio && state.soundMode === 'sound') {
-      const maxVol = isVoicePlaying ? 0.15 : 0.3;
-      musicAudio.volume = (timerRemaining / 15) * maxVol;
+    // ✨ Если говорит диктор, не трогаем громкость, пусть fadeAudio сам разбирается
+    if (timerRemaining <= 15 && timerRemaining > 0 && musicAudio && state.soundMode === 'sound' && !isVoicePlaying) {
+      musicAudio.volume = (timerRemaining / 15) * 0.3;
     }
 
     if (circle) {
@@ -7871,114 +7901,124 @@ function toggleDayBookPractices(listId, button) {
 }
 
 function showDayStats(dateStr) {
-  const modal = document.getElementById('dayStatsModal');
-  const content = document.getElementById('dayStatsContent');
-  const title = document.getElementById('dayStatsTitle');
+  console.log('🖱️ Клик по календарю! Дата:', dateStr);
   
-  const d = new Date(dateStr);
-  const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-  title.textContent = `${d.getDate()} ${months[d.getMonth()]}`;
-
-  let totalPracticesDone = 0;
-  let totalTimeSpent = 0; // Считаем время
-  let totalXP = 0;        // Считаем опыт
-  let booksHtml = '';
-
-  BOOKS.forEach(b => {
-    const bs = getBookState(b.id);
-    const rec = bs.days[dateStr];
+  try {
+    const modal = document.getElementById('dayStatsModal');
+    const content = document.getElementById('dayStatsContent');
+    const title = document.getElementById('dayStatsTitle');
     
-    if (rec && rec.practices && rec.practices.length > 0) {
-      totalPracticesDone += rec.practices.length;
-      totalXP += rec.practices.length * 10; // +10 XP за каждую
-      if (rec.closed) totalXP += 50;        // +50 XP за закрытый день
-      
-      let pListHtml = '';
-      rec.practices.forEach(pid => {
-        const p = b.practices.find(x => x.id === pid);
-        if (p) {
-          totalTimeSpent += (p.time || 0); // Прибавляем время практики
-          pListHtml += `
-            <div style="display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px dashed rgba(255,255,255,0.05);">
-              <div style="width:24px; height:24px; border-radius:8px; background:rgba(62,207,142,0.15); display:flex; align-items:center; justify-content:center; color:var(--d-success); font-size:12px; font-weight:900;">✓</div>
-              <div style="flex:1;">
-                <div style="font-size:13px; font-weight:700; color:var(--d-text);">${escapeHtml(p.title)}</div>
-                <div style="font-size:10px; color:var(--d-text-dim);">⏱ ${Math.round((p.time || 300)/60)} мин</div>
-              </div>
-            </div>
-          `;
-        }
-      });
+    // 1. Защита: если модалки нет в HTML
+    if (!modal || !content) {
+      console.error('❌ Ошибка: Модалка #dayStatsModal не найдена в HTML!');
+      toast('Ошибка: окно статистики не найдено.', 'danger');
+      return;
+    }
 
-      const dayBookListId = `day-book-practices-${String(b.id).replace(/[^a-zA-Z0-9_-]/g, '-')}`;
-      booksHtml += `
-        <div class="d-card-glass day-book-card" style="margin-bottom:12px; padding:14px;">
-          <button type="button" class="day-book-toggle" aria-expanded="true" aria-controls="${dayBookListId}" onclick="toggleDayBookPractices('${dayBookListId}', this)" style="width:100%; display:flex; align-items:center; gap:12px; margin-bottom:12px; padding:0 0 12px; border:0; border-bottom:1px solid var(--d-border); background:transparent; color:inherit; text-align:left; cursor:pointer; border-radius:0;">
-            <div style="width:44px; height:44px; border-radius:12px; background:var(--d-surface-2); display:flex; align-items:center; justify-content:center;">
-              ${getEmojiOrSvg(b.emoji, 24, b.title)}
-            </div>
-            <div style="flex:1;">
-              <div style="font-size:14px; font-weight:900; color:var(--d-text);">${escapeHtml(b.title)}</div>
-              <div style="font-size:11px; color:var(--d-text-dim);">${escapeHtml(b.author || '')}</div>
-            </div>
-            ${rec.closed ? `<div style="background:var(--d-success); color:#fff; padding:4px 8px; border-radius:8px; font-size:10px; font-weight:900; box-shadow:0 0 10px rgba(62,207,142,0.4);">День закрыт</div>` : ''}
-            <span class="day-book-chevron" aria-hidden="true" style="margin-left:auto; color:var(--d-accent-2); transition:transform .2s; display:flex; align-items:center;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </span>
-          </button>
-          <div id="${dayBookListId}" class="day-book-practices">${pListHtml}</div>
+    // 2. Принудительно сбрасываем возможные скрытые стили
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+
+    const d = new Date(dateStr);
+    const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+    if(title) title.textContent = `${d.getDate()} ${months[d.getMonth()]}`;
+
+    let totalPracticesDone = 0;
+    let totalTimeSpent = 0;
+    let totalXP = 0;
+    let booksHtml = '';
+
+    BOOKS.forEach(b => {
+      if (!b) return;
+      const bs = getBookState(b.id);
+      const rec = bs.days[dateStr];
+      
+      if (rec && rec.practices && rec.practices.length > 0) {
+        totalPracticesDone += rec.practices.length;
+        totalXP += rec.practices.length * 10;
+        if (rec.closed) totalXP += 50;
+        
+        let pListHtml = '';
+        rec.practices.forEach(pid => {
+          const p = b.practices ? b.practices.find(x => x.id === pid) : null;
+          if (p) {
+            totalTimeSpent += (p.time || 0);
+            pListHtml += `
+              <div style="display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px dashed rgba(255,255,255,0.05);">
+                <div style="width:24px; height:24px; border-radius:8px; background:rgba(62,207,142,0.15); display:flex; align-items:center; justify-content:center; color:var(--d-success); font-size:12px; font-weight:900;">✓</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px; font-weight:700; color:var(--d-text);">${escapeHtml(p.title)}</div>
+                  <div style="font-size:10px; color:var(--d-text-dim);">⏱ ${Math.round((p.time || 300)/60)} мин</div>
+                </div>
+              </div>
+            `;
+          }
+        });
+
+        const dayBookListId = `day-book-practices-${String(b.id).replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+        booksHtml += `
+          <div class="d-card-glass day-book-card" style="margin-bottom:12px; padding:14px;">
+            <button type="button" class="day-book-toggle" aria-expanded="true" aria-controls="${dayBookListId}" onclick="toggleDayBookPractices('${dayBookListId}', this)" style="width:100%; display:flex; align-items:center; gap:12px; margin-bottom:12px; padding:0 0 12px; border:0; border-bottom:1px solid var(--d-border); background:transparent; color:inherit; text-align:left; cursor:pointer; border-radius:0;">
+              <div style="width:44px; height:44px; border-radius:12px; background:var(--d-surface-2); display:flex; align-items:center; justify-content:center;">
+                ${getEmojiOrSvg(b.emoji, 24, b.title)}
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:14px; font-weight:900; color:var(--d-text);">${escapeHtml(b.title)}</div>
+                <div style="font-size:11px; color:var(--d-text-dim);">${escapeHtml(b.author || '')}</div>
+              </div>
+              ${rec.closed ? `<div style="background:var(--d-success); color:#fff; padding:4px 8px; border-radius:8px; font-size:10px; font-weight:900; box-shadow:0 0 10px rgba(62,207,142,0.4);">День закрыт</div>` : ''}
+              <span class="day-book-chevron" aria-hidden="true" style="margin-left:auto; color:var(--d-accent-2); transition:transform .2s; display:flex; align-items:center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </span>
+            </button>
+            <div id="${dayBookListId}" class="day-book-practices">${pListHtml}</div>
+          </div>
+        `;
+      }
+    });
+
+    let finalHtml = '';
+    if (totalPracticesDone === 0) {
+      finalHtml = `
+        <div class="d-empty-state" style="padding:20px; background:transparent; border:none;">
+          <div class="d-empty-ico-wrap" style="width:56px; height:56px; margin-bottom:12px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px; height:24px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          </div>
+          <div class="d-empty-title" style="font-size:15px;">Тишина</div>
+          <div class="d-empty-text" style="font-size:12px;">В этот день не было практик 🌱</div>
+        </div>
+      `;
+    } else {
+      const minSpent = Math.round(totalTimeSpent / 60);
+      finalHtml = `
+        <div class="d-card-glass" style="padding:16px; margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, rgba(124,92,255,0.15), rgba(25,18,45,0.8)); border-color: rgba(124,92,255,0.4);">
+          <div style="text-align:center; flex:1;">
+            <div style="font-size:24px; font-weight:900; color:#fff; line-height:1;">${totalPracticesDone}</div>
+            <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px; letter-spacing:0.5px;">Практик</div>
+          </div>
+          <div style="width:1px; height:32px; background:rgba(255,255,255,0.1);"></div>
+          <div style="text-align:center; flex:1;">
+            <div style="font-size:24px; font-weight:900; color:var(--d-gold); line-height:1; text-shadow:0 0 10px rgba(255,184,0,0.3);">+${totalXP}</div>
+            <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px; letter-spacing:0.5px;">Опыт</div>
+          </div>
+          <div style="width:1px; height:32px; background:rgba(255,255,255,0.1);"></div>
+          <div style="text-align:center; flex:1;">
+            <div style="font-size:24px; font-weight:900; color:var(--d-accent-2); line-height:1;">${minSpent}<span style="font-size:14px; font-weight:700;">м</span></div>
+            <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px; letter-spacing:0.5px;">Время</div>
+          </div>
+        </div>
+        <div style="max-height: 40vh; overflow-y: auto; padding-right: 4px;">
+          ${booksHtml}
         </div>
       `;
     }
-  });
 
-  let finalHtml = '';
-  if (totalPracticesDone === 0) {
-    finalHtml = `
-      <div class="d-empty-state" style="padding:20px; background:transparent; border:none;">
-        <div class="d-empty-ico-wrap" style="width:56px; height:56px; margin-bottom:12px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px; height:24px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-        </div>
-        <div class="d-empty-title" style="font-size:15px;">Тишина</div>
-        <div class="d-empty-text" style="font-size:12px;">В этот день не было практик 🌱</div>
-      </div>
-    `;
-  } else {
-    const minSpent = Math.round(totalTimeSpent / 60);
-    finalHtml = `
-      <!-- НОВАЯ BENTO-ПЛАШКА С 3 КОЛОНКАМИ -->
-      <div class="d-card-glass" style="padding:16px; margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, rgba(124,92,255,0.15), rgba(25,18,45,0.8)); border-color: rgba(124,92,255,0.4);">
-        
-        <div style="text-align:center; flex:1;">
-          <div style="font-size:24px; font-weight:900; color:#fff; line-height:1;">${totalPracticesDone}</div>
-          <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px; letter-spacing:0.5px;">Практик</div>
-        </div>
-        
-        <div style="width:1px; height:32px; background:rgba(255,255,255,0.1);"></div>
-        
-        <div style="text-align:center; flex:1;">
-          <div style="font-size:24px; font-weight:900; color:var(--d-gold); line-height:1; text-shadow:0 0 10px rgba(255,184,0,0.3);">+${totalXP}</div>
-          <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px; letter-spacing:0.5px;">Опыт</div>
-        </div>
-        
-        <div style="width:1px; height:32px; background:rgba(255,255,255,0.1);"></div>
-        
-        <div style="text-align:center; flex:1;">
-          <div style="font-size:24px; font-weight:900; color:var(--d-accent-2); line-height:1;">${minSpent}<span style="font-size:14px; font-weight:700;">м</span></div>
-          <div style="font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:800; margin-top:4px; letter-spacing:0.5px;">Время</div>
-        </div>
-        
-      </div>
-      
-      <!-- Список книг -->
-      <div style="max-height: 40vh; overflow-y: auto; padding-right: 4px;">
-        ${booksHtml}
-      </div>
-    `;
+    content.innerHTML = finalHtml;
+    playClick();
+  } catch(e) {
+    console.error('❌ Ошибка при открытии статистики дня:', e);
+    toast('Ошибка при загрузке статистики дня.', 'danger');
   }
-
-  content.innerHTML = finalHtml;
-  modal.classList.remove('hidden');
 }
 // ─── УМНАЯ ПРАКТИКА ───
 
@@ -9311,6 +9351,7 @@ async function speakBackgroundGuide(text, context = 'practice') {
     const restoreMusic = () => {
       isVoicePlaying = false; 
       if (musicAudio && state.soundMode === 'sound') {
+        if (musicAudio.paused) musicAudio.play().catch(()=>{}); // ✨ Принудительно снимаем с паузы (фикс iOS)
         fadeAudio(musicAudio, musicAudio.volume, 0.3, 800);
       }
     };
@@ -9339,8 +9380,17 @@ async function speakBackgroundGuide(text, context = 'practice') {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ru-RU';
       
+      // ✨ ПРИГЛУШАЕМ МУЗЫКУ ДЛЯ СИСТЕМНОГО ГОЛОСА
+      if (musicAudio && state.soundMode === 'sound') {
+        fadeAudio(musicAudio, musicAudio.volume, 0.15, 400);
+      }
+      
       utterance.onend = () => {
         if (subEl) { subEl.classList.remove('show'); setTimeout(() => { subEl.textContent = ''; }, 500); }
+        // ✨ ВОЗВРАЩАЕМ МУЗЫКУ ОБРАТНО
+        if (musicAudio && state.soundMode === 'sound') {
+          fadeAudio(musicAudio, musicAudio.volume, 0.3, 800);
+        }
       };
       
       window.speechSynthesis.speak(utterance);
@@ -9783,7 +9833,7 @@ function openPracticeSelector() {
     
     <!-- Текст и бейджи -->
     <div class="psi-content">
-      <div class="psi-title">${p.title}</div>
+      <div class="psi-title" style="font-size:13px; line-height:1.3;">${p.title}</div>
       <div class="psi-meta">
         <span class="psi-time">⏱ ${getDiffData(p.time, 'easy').mins}-${getDiffData(p.time, 'deep').mins} мин</span>
         <span class="psi-xp">✨ +${getDiffData(p.time, 'easy').xp}-${getDiffData(p.time, 'deep').xp} XP</span>
@@ -10069,8 +10119,8 @@ function showPracticeModeInfo(mode) {
       const safeCat = cat.replace(/'/g, "\\'");
       
       buttonsHtml += `
-        <button class="d-btn-secondary" onclick="document.getElementById('customModeModal').classList.add('hidden'); startSmartRitual('${safeCat}')" style="margin:0; height:60px; flex-direction:column; gap:4px; padding: 8px; justify-content: center;">
-          <span style="font-size:11px; text-align:center; line-height:1.2;">${label}</span>
+        <button class="d-btn-secondary" onclick="document.getElementById('customModeModal').classList.add('hidden'); startSmartRitual('${safeCat}')" style="margin:0; min-height:60px; height:auto; flex-direction:column; gap:6px; padding: 12px 8px; justify-content: center; white-space: normal;">
+          <span style="font-size:11px; text-align:center; line-height:1.3; word-break: break-word;">${label}</span>
         </button>
       `;
     });
@@ -11325,6 +11375,15 @@ function switchAdminTab(section, btnEl) {
   if (btnEl) btnEl.classList.add('on');
   loadAdminSection(section);
   playClick();
+}
+
+function closeDayStatsModal() {
+  const modal = document.getElementById('dayStatsModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none'; // Принудительно скрываем
+    console.log('✅ Окно статистики закрыто');
+  }
 }
 
 // Функция для открытия окна помощи

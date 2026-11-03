@@ -261,84 +261,62 @@
 </div>
            
         <!-- 2. Текущая книга / Фокус дня -->
-        <div class="d-focus-card" style="margin-bottom: 0; padding: 12px; width: 100%; box-sizing: border-box;">
+        <div class="d-focus-card" style="margin-bottom: 0; padding: 12px 14px; width: 100%; box-sizing: border-box; position: relative; overflow: hidden;">
           
-          <!-- Верхняя часть: Иконка и Название -->
-          <div style="display:flex; gap:16px; align-items:center; margin-bottom: 12px;">
+          <div style="display:flex; gap:14px; align-items:center; position: relative; z-index: 2;">
             
-            <!-- Увеличили контейнер иконки до 80px -->
-            <div class="d-focus-cover" id="mpcBookIcon" style="width: 80px; height: 80px; flex-shrink: 0; border-radius: 20px;"></div>
+            <!-- Уменьшенная обложка -->
+            <div class="d-focus-cover" id="mpcBookIcon" style="width: 64px; height: 90px; flex-shrink: 0; border-radius: 10px; box-shadow: 0 6px 15px rgba(0,0,0,0.4); overflow: hidden;"></div>
             
-            <div style="flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center;">
+            <div style="flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap: 2px;">
               
-              <!-- Заголовок и стрелочка -->
-              <div style="display:flex; align-items:center; gap:6px; margin-bottom: 4px;">
+              <!-- Заголовок "Текущая книга" -->
+              <div style="display:flex; align-items:center; gap:6px;">
                 <span style="font-size:9px; font-weight:900; color:var(--d-accent-2); text-transform:uppercase; letter-spacing:1px;">ТЕКУЩАЯ КНИГА</span>
                 <div onclick="openBookDetail(currentBook ? currentBook.id : '')" style="cursor:pointer; display:flex; align-items:center; justify-content:center; width:16px; height:16px; background:var(--d-surface-2); border-radius:50%;">
-                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--d-text)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                   <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="var(--d-text)" stroke-width="3"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </div>
               </div>
               
-              <!-- Название (в 2 строки) и Автор -->
-              <div id="mpcBookTitle">Загрузка...</div>
-              <div id="mpcBookAuthor">Автор</div>
+              <!-- Название и автор -->
+              <div id="mpcBookTitle" style="font-size:16px; font-weight:900; line-height:1.2; color:#fff; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;"></div>
+              <div id="mpcBookAuthor" style="font-size:11px; color:var(--d-text-dim); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
               
-            </div>
-          </div>
-
-          <!-- Нижняя часть: Прогресс, Огонь и XP вместе -->
-          <div style="margin-top: 2px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 10px 12px;">
-            
-                      <!-- Строка со статистикой и словом "Прогресс курса" -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-              <div style="font-size:11px; font-weight:800; color:var(--d-text);">Прогресс курса</div>
-              
-              <div style="display:flex; gap:12px; align-items:center;">
-                <!-- Иконка огня (SVG) -->
-                <span style="display:flex; align-items:center; gap:4px; font-size:13px; font-weight:900; color:var(--d-warm);">
-                  <span style="width:16px; height:16px; display:inline-flex; filter: drop-shadow(0 0 6px rgba(255,154,86,0.5));">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="url(#gradFlame)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
-                  </span>
-                  <span id="cardFire">0</span>
-                </span>
-                
-                <!-- Иконка звезды (SVG) -->
-                <span style="display:flex; align-items:center; gap:4px; font-size:13px; font-weight:900; color:var(--d-accent-2);">
-                  <span style="width:16px; height:16px; display:inline-flex; filter: drop-shadow(0 0 6px rgba(124,92,255,0.5));">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="url(#gradDefault)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
-                  </span>
-                  <span id="cardXP">0</span>
-                </span>
+              <!-- Компактный бейдж со статистикой -->
+              <div style="display:inline-flex; align-items:center; gap:10px; margin-top: 8px; background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 10px; width: fit-content; border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);">
+                 <span style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:900; color:var(--d-warm);">
+                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="url(#gradFlame)" stroke-width="2.5"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+                   <span id="cardFire">0</span>
+                 </span>
+                 <span style="width:1px; height:12px; background:rgba(255,255,255,0.15);"></span>
+                 <span style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:900; color:var(--d-accent-2);">
+                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="url(#gradDefault)" stroke-width="2.5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
+                   <span id="cardXP">0</span>
+                 </span>
+                 <span style="width:1px; height:12px; background:rgba(255,255,255,0.15);"></span>
+                 <span style="font-size:12px; font-weight:900; color:#fff; letter-spacing:0.3px;" id="mpcCourseText">День 1 из 21</span>
               </div>
             </div>
+          </div>
 
-            <!-- День из ... -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
-              <div style="font-size:11px; font-weight:900; color:var(--d-accent-2);" id="mpcCourseText">День 1 из 21</div>
-            </div>
-
+          <!-- Нижняя часть: Прогресс и практики -->
+          <div style="margin-top: 12px; position: relative; z-index: 2;">
             <!-- Полоска прогресса -->
-            <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-bottom: 6px;">
-              <div id="mpcCourseBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #4f46e5, #ff9d00); border-radius: 3px; transition: width 1s;"></div>
+            <div style="height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);">
+              <div id="mpcCourseBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #4f5cff, #ff9d00); border-radius: 4px; transition: width 1s; box-shadow: 0 0 10px rgba(255,157,0,0.5);"></div>
             </div>
-
-            <!-- Нижний текст (практики и осталось дней) -->
-            <div style="display:flex; justify-content:space-between; font-size: 10px; color: var(--d-text-dim); font-weight: 600;">
+            <div style="display:flex; justify-content:space-between; font-size: 10px; color: var(--d-text-dim); font-weight: 600; margin-top: 6px;">
               <div id="mpcProgressText">0 из 6 практик · 0/40 мин</div>
-              <div>Дней до конца: <span id="mpcDaysLeft" style="color:var(--d-warm);">20</span></div>
+              <div>Осталось: <span id="mpcDaysLeft" style="color:var(--d-warm); font-weight:800;">20</span> дн.</div>
             </div>
-
           </div>
         </div>
 
-        <!-- 3. Выбор режима практики (КОМПАКТНО) -->
-        <div class="d-card-glass" style="margin-bottom: 0; padding: 8px; width: 100%; box-sizing: border-box;">
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-            <button class="d-btn-primary" onclick="showPracticeModeInfo('fast')" style="margin-top: 0; min-height: 44px; font-size: 11px; border-radius: var(--d-radius-sm); padding: 4px; text-transform: none; letter-spacing: 0; line-height: 1.2; display: flex; align-items: center; justify-content: center; text-align: center;">Умная практика</button>
-            <button class="d-btn-primary" onclick="showPracticeModeInfo('full')" style="margin-top: 0; min-height: 44px; font-size: 11px; border-radius: var(--d-radius-sm); padding: 4px; text-transform: none; letter-spacing: 0; line-height: 1.2; display: flex; align-items: center; justify-content: center; text-align: center;">По мотивам книги</button>
-            <button class="d-btn-primary" onclick="showPracticeModeInfo('custom')" style="margin-top: 0; min-height: 44px; font-size: 11px; border-radius: var(--d-radius-sm); padding: 4px; text-transform: none; letter-spacing: 0; line-height: 1.2; display: flex; align-items: center; justify-content: center; text-align: center;">Собственная практика</button>
-          </div>
-        </div>
+        <!-- 3. ГЛАВНАЯ КНОПКА "ПРИСТУПИТЬ К ПРАКТИКЕ" -->
+        <button id="mainStartBtn" class="d-btn-primary" onclick="showPracticeModeInfo('full')" style="margin-top: 4px; margin-bottom: 4px; height: 56px; border-radius: 16px; font-size: 15px; font-weight: 900; letter-spacing: 0.5px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 8px 25px rgba(124, 92, 255, 0.4); text-transform: uppercase;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          ПРИСТУПИТЬ К ПРАКТИКЕ
+        </button>
 
         <!-- 4. Цитата -->
         <div class="quote-compact" style="margin-bottom: 0; background: var(--d-surface); backdrop-filter: blur(12px); border: 1px solid var(--d-border);">
@@ -447,6 +425,33 @@
             <div style="font-size:10px; color:var(--d-text-dim); margin-top:2px;">Открой все книги за 99 ₽/мес</div>
           </div>
           <div style="color:var(--d-gold); font-size:18px;">→</div>
+        </div>
+
+        <!-- НОВЫЙ БЛОК: Особые режимы практики -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px;">
+          
+          <!-- Умная практика -->
+          <button onclick="showPracticeModeInfo('fast')" style="background: linear-gradient(135deg, rgba(255,184,0,0.15), rgba(255,122,42,0.05)); border: 1px solid rgba(255,184,0,0.3); border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: row; align-items: center; gap: 10px; cursor: pointer; text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(255,184,0,0.15); display: flex; align-items: center; justify-content: center; color: var(--d-gold); flex-shrink: 0;">
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+              <div style="font-size: 13px; font-weight: 900; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Умная практика</div>
+              <div style="font-size: 10px; color: var(--d-text-dim); line-height: 1.2;">Лучшие упражнения</div>
+            </div>
+          </button>
+
+          <!-- Своя практика -->
+          <button onclick="showPracticeModeInfo('custom')" style="background: linear-gradient(135deg, rgba(255,184,0,0.15), rgba(255,122,42,0.05)); border: 1px solid rgba(255,184,0,0.3); border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: row; align-items: center; gap: 10px; cursor: pointer; text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(255,184,0,0.15); display: flex; align-items: center; justify-content: center; color: var(--d-gold); flex-shrink: 0;">
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+              <div style="font-size: 13px; font-weight: 900; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Своя практика</div>
+              <div style="font-size: 10px; color: var(--d-text-dim); line-height: 1.2;">Собери свою практику</div>
+            </div>
+          </button>
+
         </div>
 
         <!-- Поиск -->
@@ -1516,10 +1521,11 @@
             
             <button class="d-btn-primary" onclick="completePracticeDone()" style="height: 48px; min-height: 48px; font-size: 14px;">Сохранить</button>
             
-            <button class="d-btn-secondary" onclick="openFeedbackModal()" style="margin-top: 10px; height: 44px; min-height: 44px; font-size: 13px;">
+                        <button class="d-btn-secondary" onclick="openFeedbackModal()" style="margin-top: 10px; height: 44px; min-height: 44px; font-size: 13px;">
               💬 Обратная связь
             </button>
           </div>    
+      </div> <!-- <--- ДОБАВЬ ВОТ ЭТУ СТРОКУ СЮДА -->
 
       <!-- Модалка быстрой заметки -->
       <div class="modal hidden" id="quickNoteModal">
@@ -1538,7 +1544,7 @@
           <div class="emoji">📅</div>
           <h2 id="dayStatsTitle">Итоги дня</h2>
           <div id="dayStatsContent" style="text-align:left; margin-top:15px; font-size:14px; line-height:1.6"></div>
-          <button class="d-btn-primary" onclick="document.getElementById('dayStatsModal').classList.add('hidden')" style="margin-top:20px">Закрыть</button>
+          <button class="d-btn-primary" onclick="closeDayStatsModal()" style="margin-top:20px; position: relative; z-index: 10;">Закрыть</button>
         </div>
       </div>
 </div>
@@ -2050,3 +2056,4 @@
   <script src="app.js"></script>
 </body>
 </html>
+
