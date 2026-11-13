@@ -2471,7 +2471,9 @@ async function renderLibrary(){
   const q = (document.getElementById('libSearch')?.value || '').toLowerCase().trim();
   let list = BOOKS.filter(b => {
     if(!q) return true;
-    return b.title.toLowerCase().includes(q) || (b.author || '').toLowerCase().includes(q);
+    const titleText = (b.title || '').toLowerCase();
+    const authorText = (b.author || '').toLowerCase();
+    return titleText.includes(q) || authorText.includes(q);
   });
 
   if(libFilter==='active') {
@@ -2613,9 +2615,10 @@ function openBookDetail(id){
     disclaimerEl.textContent = `Данная программа разработана на основе ключевых идей книги «${b.title}». Это практический тренинг по внедрению привычек, а не полный пересказ. Для получения глубокого понимания рекомендуем прочитать оригинал.`;
   }
 
-  const totalTime=Math.round(b.practices.reduce((s,p)=>s+p.time,0)/60);
+  const safePractices = Array.isArray(b.practices) ? b.practices : [];
+  const totalTime=Math.round(safePractices.reduce((s,p)=>s+p.time,0)/60);
   document.getElementById('bdTags').innerHTML=
-    `<span class="bd-tag">📋 ${b.practices.length} практик</span><span class="bd-tag">⏱ ~${totalTime} мин/день</span>`;
+    `<span class="bd-tag">📋 ${safePractices.length} практик</span><span class="bd-tag">⏱ ~${totalTime} мин/день</span>`;
 
   renderBookStars(id);
   renderBookReviews(id);
@@ -4201,7 +4204,8 @@ function openPractice(id){
     return;
   }
 
-  const p=currentBook.practices.find(x=>x.id===id);if(!p)return;
+  const safePracs = Array.isArray(currentBook.practices) ? currentBook.practices : [];
+  const p=safePracs.find(x=>x.id===id);if(!p)return;
   currentPractice=normalizeVoiceTimeline(p); 
   
   const psTitleEl = document.getElementById('psTitle');
