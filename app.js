@@ -90,7 +90,14 @@ function getAvatarHtml(avatar, size = 24) {
 
 // Функция, которая превращает текст в SVG
 function getSvgIcon(name, size = 24, color = 'currentColor') {
-  const svgCode = SVG_ICONS[name] || SVG_ICONS['book']; 
+  let svgCode = SVG_ICONS[name] || SVG_ICONS['book']; 
+  // Если передан градиент (url...), применяем его напрямую к обводке и заливке
+  if (color.startsWith('url(')) {
+    svgCode = svgCode.replace(/stroke="currentColor"/g, `stroke="${color}"`);
+    svgCode = svgCode.replace(/fill="currentColor"/g, `fill="${color}"`);
+    return svgCode.replace('viewBox="0 0 24 24"', `viewBox="0 0 24 24" width="${size}" height="${size}"`);
+  }
+  // Для обычных цветов оставляем старый способ
   return svgCode.replace('viewBox="0 0 24 24"', `viewBox="0 0 24 24" width="${size}" height="${size}" style="color: ${color};"`);
 }
 // Функция для генерации красивого цвета на основе названия
@@ -184,17 +191,18 @@ function getGlobalStats() {
     });
   });
 
-  // Вычитаем потраченный опыт ДО расчета уровня
+  // Доступный баланс для магазина (вычитаем потраченное)
   const availableXP = Math.max(0, totalEarnedXP - (state.spentXP || 0));
 
+  // А уровень считаем по ВСЕМУ заработанному опыту (totalEarnedXP)
   let lvl = 1, lvlName = 'Новичок', lvlIco = '🌱', nextLvlXP = 100, prevLvlXP = 0;
-  if (availableXP >= 2000) { lvl = 6; lvlName = 'Легенда'; lvlIco = '👑'; nextLvlXP = 2000; prevLvlXP = 2000; }
-  else if (availableXP >= 1000) { lvl = 5; lvlName = 'Мастер'; lvlIco = '🏆'; nextLvlXP = 2000; prevLvlXP = 1000; }
-  else if (availableXP >= 600) { lvl = 4; lvlName = 'Опытный'; lvlIco = '💎'; nextLvlXP = 1000; prevLvlXP = 600; }
-  else if (availableXP >= 300) { lvl = 3; lvlName = 'Практик'; lvlIco = '🔥'; nextLvlXP = 600; prevLvlXP = 300; }
-  else if (availableXP >= 100) { lvl = 2; lvlName = 'Ученик'; lvlIco = '🌿'; nextLvlXP = 300; prevLvlXP = 100; }
+  if (totalEarnedXP >= 2000) { lvl = 6; lvlName = 'Легенда'; lvlIco = '👑'; nextLvlXP = 2000; prevLvlXP = 2000; }
+  else if (totalEarnedXP >= 1000) { lvl = 5; lvlName = 'Мастер'; lvlIco = '🏆'; nextLvlXP = 2000; prevLvlXP = 1000; }
+  else if (totalEarnedXP >= 600) { lvl = 4; lvlName = 'Опытный'; lvlIco = '💎'; nextLvlXP = 1000; prevLvlXP = 600; }
+  else if (totalEarnedXP >= 300) { lvl = 3; lvlName = 'Практик'; lvlIco = '🔥'; nextLvlXP = 600; prevLvlXP = 300; }
+  else if (totalEarnedXP >= 100) { lvl = 2; lvlName = 'Ученик'; lvlIco = '🌿'; nextLvlXP = 300; prevLvlXP = 100; }
 
-  const xpInCurrentLvl = availableXP - prevLvlXP;
+  const xpInCurrentLvl = totalEarnedXP - prevLvlXP;
   const xpNeededForNext = nextLvlXP - prevLvlXP;
   let xpPct = lvl === 6 ? 100 : Math.min(100, Math.round((xpInCurrentLvl / xpNeededForNext) * 100)) || 0;
   if (xpPct < 0) xpPct = 0;
@@ -204,6 +212,7 @@ function getGlobalStats() {
 
 const DEV_WHATSAPP = '79124325556';
 const DEV_TELEGRAM = 'Gerasimov_And';
+const BOOK_PRICE = '99 ₽';
 
 // ─── ГЛОБАЛЬНЫЕ ДАННЫЕ ───
 let currentDifficulty = 'normal'; // 'easy', 'normal', 'deep'
@@ -226,6 +235,7 @@ let user=null, state={}, onbIndex=0, statsBookId=null;
 let musicAudio=null, ttsAudio=null, syncTimeout=null, isAdminFlag=false, profileHeartbeatTimer=null;
 let isVoicePlaying = false;
 let completeCallback=null, adminAllUsers=[], adminAllBooks=[];
+let isSelectingFirstBook = false;
 let adminUserFilter = 'all'; // <--- Добавили переменную для фильтров
 let bookDetailId=null, customRitual=[];
 let bookDetailSource='lib';
@@ -887,7 +897,9 @@ function toast(msg,type='success'){
     setTimeout(() => d.remove(), 300);
   };
 
-  d.onclick = dismissToast;
+  d.onclick = (e) => {
+    if (e.target === d) dismissToast();
+  };
 
   // --- ЛОГИКА СВАЙПА ВВЕРХ ---
   let startY = 0;
@@ -1109,7 +1121,6 @@ async function handleSession(session) {
     state.theme=profile.theme||'dark';
     state.shields = profile.shields || 0;
     state.spentXP = profile.spent_xp || 0;
-    state.spentXP = profile.spent_xp || 0;
     state.purchasedItems = profile.purchased_items || [];
   }else{
   state.soundOn = true;
@@ -1152,9 +1163,10 @@ async function handleSession(session) {
   if(!state.onboarded) {
     showOnboarding();
   } else {
-    // Принудительно сбрасываем экраны на Главную при входе
     currentScreen = 'today'; 
-    if (BOOKS.length > 0) {
+    if (!state.bookAccess || state.bookAccess.length === 0) {
+      showFirstBookSelection();
+    } else if (BOOKS.length > 0) {
       currentBook = BOOKS.find(b => b.id === state.lastBook) || BOOKS[0];
       showTodayScreen();
     } else {
@@ -1428,6 +1440,7 @@ function hideAll(){
   // При смене экрана очищаем ресурсы предыдущего экрана. Прогресс таймера остаётся в timerRemaining.
   try { if (typeof timerInterval !== 'undefined' && timerInterval) { clearInterval(timerInterval); timerInterval = null; } } catch(e) { console.warn('[ANDGER] Очистка таймера:', e); }
   try { if (typeof breathTimer !== 'undefined' && breathTimer) { clearInterval(breathTimer); breathTimer = null; } } catch(e) { console.warn('[ANDGER] Очистка дыхательного таймера:', e); }
+  try { if (typeof mascotInterval !== 'undefined' && mascotInterval) { clearInterval(mascotInterval); mascotInterval = null; } } catch(e) { console.warn('[ANDGER] Очистка таймера маскота:', e); } // <--- ДОБАВИЛИ ЭТУ СТРОКУ
   try { if (typeof stopMusic === 'function') stopMusic(); } catch(e) { console.warn('[ANDGER] Остановка музыки:', e); }
 
   ['landingScreen','authScreen','onbScreen','welcomeScreen','libScreen','todayScreen',
@@ -1435,7 +1448,7 @@ function hideAll(){
    'publicProfileScreen','adminScreen','bookDetailScreen','ritualBuilderScreen',
    'ritualScreen','practiceScreen','completeOverlay','settingsScreen',
    'helpScreen','notificationsScreen','dialogScreen','bookEditorScreen',
-   'premiumScreen', 'shopScreen' // <--- ДОБАВИЛИ ЭТУ СТРОКУ
+   'premiumScreen', 'shopScreen', 'firstBookScreen'
   ].forEach(id=>{
     const el=document.getElementById(id);
     if(el){
@@ -1481,6 +1494,77 @@ function showWelcome(){
   document.getElementById('welcomeBookAuthor').textContent=b.author+' · '+b.days+' дней';
   document.getElementById('welcomeScreen').classList.remove('hidden');
 }
+
+function showFirstBookSelection(isReward = false) {
+  isSelectingFirstBook = true;
+  hideAll();
+  const grid = document.getElementById('firstBookGrid');
+  if (!grid) return;
+  
+  const availableBooks = BOOKS.filter(b => b.published !== false && (!state.bookAccess || !state.bookAccess.includes(b.id)));
+  
+  if (availableBooks.length === 0) {
+    isSelectingFirstBook = false;
+    toast('Вы уже открыли все доступные книги!', 'success');
+    smartHome();
+    return;
+  }
+
+  const titleEl = document.querySelector('#firstBookScreen h1');
+  const subEl = document.querySelector('#firstBookScreen p');
+  
+  if (isReward) {
+    titleEl.textContent = '🎁 Подарок за прохождение!';
+    subEl.textContent = 'Ты успешно завершил книгу! Выбери следующую для бесплатного прохождения.';
+  } else {
+    titleEl.textContent = 'Выбери свою первую книгу';
+    subEl.textContent = 'Пройди её до конца бесплатно. Следующая книга откроется после завершения этой или её можно будет приобрести.';
+  }
+  
+  grid.innerHTML = availableBooks.map(b => `
+    <div onclick="openBookDetail('${b.id}')" style="cursor: pointer; background: var(--d-surface); border-radius: 16px; border: 1px solid var(--d-border); overflow: hidden; display: flex; flex-direction: column;">
+      <div style="width: 100%; aspect-ratio: 3/4; background: ${getSmartColor(b.title).bg}; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+        ${b.cover_url ? `<img src="${b.cover_url}" style="width:100%; height:100%; object-fit: cover; object-position: center;">` : getEmojiOrSvg(b.emoji, 64, b.title)}
+      </div>
+      <div style="padding: 10px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 8px;">
+        <div>
+           <div style="font-size: 13px; font-weight: 800; color: var(--d-text); line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(b.title)}</div>
+           <div style="font-size: 10px; color: var(--d-text-dim); margin-top: 2px;">${escapeHtml(b.author || '')}</div>
+        </div>
+        <div class="d-btn-primary" style="height: 32px; min-height: 32px; font-size: 11px; border-radius: 8px;">Выбрать</div>
+      </div>
+    </div>
+  `).join('');
+  
+  document.getElementById('firstBookScreen').classList.remove('hidden');
+  document.getElementById('bottomNav').classList.add('hidden');
+}
+
+async function claimFirstBook(bookId) {
+  isSelectingFirstBook = false;
+  if (!state.bookAccess) state.bookAccess = [];
+  if (!state.bookAccess.includes(bookId)) {
+    state.bookAccess.push(bookId);
+    saveState();
+    
+    try {
+      await sb.from('profiles').update({ book_access: state.bookAccess }).eq('id', user.id);
+    } catch(e) { console.error('Ошибка сохранения доступа', e); }
+  }
+  
+  state.lastBook = bookId;
+  const b = BOOKS.find(x => x.id === bookId);
+  if (b) {
+    currentBook = b;
+    const bs = getBookState(bookId);
+    if (!bs.start) bs.start = todayStr();
+    saveState();
+    playSuccess();
+    toast('🎉 Твоя первая книга открыта!', 'success');
+    smartHome();
+  }
+}
+
 function startFirstBook(){const b=BOOKS[0];if(!b)return;openBookDetail(b.id)}
 function skipWelcome(){showLibrary()}
 
@@ -1795,7 +1879,7 @@ function navTo(page,el){
   // Проверяем доступ к Сообществу
   if(page === 'community') {
     const stats = getGlobalStats();
-    if (stats.totalClosed >= 3 || isAdmin()) { // <--- Добавили isAdmin()
+    if (stats.totalClosed >= 3 || isAdminMode()) {
       showCommunityScreen();
     } else {
       // Показываем красивое окно-заглушку
@@ -1844,13 +1928,10 @@ function hasBookAccess(id){
   // 1. Если в настройках включен режим "Всем открыто" (для тестов)
   if (typeof bookAccessMode !== 'undefined' && bookAccessMode === 'everyone') return true;
 
-  // 2. Админу доступно всё
-  if(isAdmin()) return true;
-
-  // 3. Если есть активная подписка — доступно всё
-  if(user && user.sub_until && new Date(user.sub_until) > new Date()) return true;
+  // 2. Админу (в режиме администратора) доступно всё
+  if (isAdminMode()) return true;
   
-  // 4. Индивидуальный доступ (если ты выдал книгу вручную в Админке)
+  // 3. Индивидуальный доступ (если ты выдал книгу вручную в Админке)
   const access = state.bookAccess || [];
   if (access.includes(id)) return true;
 
@@ -1867,6 +1948,7 @@ function hasBookAccess(id){
 }
 
 function toggleSound(){
+  if (!user) return; // <--- ЗАЩИТА
   const newState = state.soundMode !== 'sound';
   state.soundMode = newState ? 'sound' : 'off';
   state.soundOn = newState;
@@ -1950,7 +2032,15 @@ function renderOnb(){
 }
 function onbNext(){
   if(onbIndex<ONB.length-1){onbIndex++;renderOnb()}
-  else{state.onboarded=true;saveState();showWelcome()}
+  else{
+    state.onboarded=true;
+    saveState();
+    if (!state.bookAccess || state.bookAccess.length === 0) {
+      showFirstBookSelection(false);
+    } else {
+      showWelcome();
+    }
+  }
 }
 function onbPrev(){if(onbIndex>0){onbIndex--;renderOnb()}}
 
@@ -2172,6 +2262,51 @@ async function logout(){
   await sb.auth.signOut();
 }
 function isAdmin(){return isAdminFlag}
+
+// Режим "как пользователь": админ видит всё как обычный человек.
+// Режим "как админ": все ограничения обходятся.
+function isAdminMode() {
+  if (!isAdmin()) return false;
+  try {
+    return localStorage.getItem('andger_admin_mode') !== 'off'; // по умолчанию ON
+  } catch(e) { return true; }
+}
+
+function toggleAdminMode() {
+  if (!isAdmin()) return;
+  const current = isAdminMode();
+  const next = !current;
+  try { localStorage.setItem('andger_admin_mode', next ? 'on' : 'off'); } catch(e) {}
+  
+  const toggle = document.getElementById('adminModeToggle');
+  const hint = document.getElementById('adminModeHint');
+  const title = document.getElementById('adminModeTitle');
+  
+  if (toggle) toggle.classList.toggle('on', next);
+  if (title) title.textContent = next ? '👑 Режим администратора' : '👤 Режим пользователя';
+  if (hint) hint.textContent = next ? 'Обход всех ограничений для тестирования' : 'Приложение выглядит как для обычного пользователя';
+  
+  playClick();
+  haptic('nav');
+  toast(next ? '👑 Режим администратора' : '👤 Режим пользователя', 'success');
+  
+  // Если сейчас открыт экран, требующий админ-прав, а мы переключились в юзер-режим — выходим на профиль
+  if (!next) {
+    const adminScreen = document.getElementById('adminScreen');
+    if (adminScreen && !adminScreen.classList.contains('hidden')) {
+      showProfile();
+      return;
+    }
+  }
+  
+  // Перерисовать текущий экран
+  try {
+    if (currentScreen === 'today' && currentBook) renderToday();
+    else if (currentScreen === 'lib') renderLibrary();
+    else if (currentScreen === 'stats') renderStatsScreen();
+    else if (currentScreen === 'profile') renderProfile();
+  } catch(e) { console.debug('[ANDGER] toggleAdminMode refresh', e); }
+}
 function checkAdminAccess(){
   const b=document.getElementById('adminBtnProfile');
   if(b)b.classList.toggle('hidden',!isAdmin());  
@@ -2535,7 +2670,7 @@ async function renderLibrary(){
       
           html += `
       <div class="d-lib-book-card ${!hasAccess?'locked':''}" onclick="openBookDetail('${b.id}')" style="position: relative;">
-        ${!hasAccess?'<div class="d-lib-book-lock"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>':''}
+        ${!hasAccess?'<div class="d-lib-book-lock"><div style="display:flex; flex-direction:column; align-items:center; gap:6px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg><span style="font-size:10px; font-weight:900; color:#fff; background:var(--d-surface-3); padding:2px 8px; border-radius:10px;">99 ₽</span></div></div>':''}
         
         <div style="position: absolute; top: 8px; right: 10px; display: flex; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; color: var(--d-gold); z-index: 2;">
           ${allBookRatings[b.id] ? allBookRatings[b.id].toFixed(1) + ' <span style="font-size: 10px;">★</span>' : ''}
@@ -2595,8 +2730,10 @@ function openBookDetail(id){
   bookDetailSource = b._isPreview ? 'preview' : (currentScreen || 'lib');
   
   if(!hasBookAccess(id) && !b._isPreview){
-    document.getElementById('premiumUpsellModal').classList.remove('hidden');
-    return;
+    if (!isSelectingFirstBook) {
+      document.getElementById('premiumUpsellModal').classList.remove('hidden');
+      return;
+    }
   }
   
   bookDetailId=id;
@@ -2658,9 +2795,17 @@ function openBookDetail(id){
   const closed=countClosedDays(b.id);
   const btn=document.getElementById('bdStartBtn');
   
-  if (b._isPreview) {
+  if (isSelectingFirstBook) {
+    btn.textContent = '✅ Выбрать эту книгу';
+    btn.setAttribute('onclick', `claimFirstBook('${b.id}')`);
+  } else if (b._isPreview) {
     btn.textContent = '▶ Тест практики';
     btn.setAttribute('onclick', 'startTestPractice()');
+  } else if (Path.isPath(b)) {
+    if(bs.start&&closed<b.days)btn.textContent='▶ Открыть путь';
+    else if(closed>=b.days)btn.textContent='🔄 Пройти заново';
+    else btn.textContent='🚀 Начать путь';
+    btn.setAttribute('onclick', 'startBookFromDetail()');
   } else {
     if(bs.start&&closed<b.days)btn.textContent='▶ Продолжить практику';
     else if(closed>=b.days)btn.textContent='🔄 Пройти заново';
@@ -2673,7 +2818,11 @@ function openBookDetail(id){
   updateSoundUI();
 }
 function backFromBookDetail(){
-  // Preview mode cleanup: возвращаемся в редактор и убираем временную книгу
+  if (isSelectingFirstBook) {
+    showFirstBookSelection();
+    return;
+  }
+
   if (bookDetailSource === 'preview') {
     BOOKS = BOOKS.filter(b => !b._isPreview);
     const returnScreen = window._previewReturnScreen || 'adminScreen';
@@ -2760,6 +2909,15 @@ async function startBookFromDetail(){
   const b=BOOKS.find(x=>x.id===bookDetailId);if(!b)return;
   currentBook=b;
   const bs=getBookState(b.id);
+
+  if (Path.isPath(b)) {
+    if (!bs.start) bs.start = todayStr();
+    state.lastBook = b.id;
+    saveState();
+    showTodayScreen();
+    Path.open();
+    return;
+  }
   
   if(!bs.start){
     // Вместо мгновенного старта, показываем письмо
@@ -3141,7 +3299,14 @@ function startRitual(){
   window._isCustomRitualFlow = false;
   if(!currentBook){toast('Сначала выбери книгу','warm');return}
   
-  const bs = getBookState(currentBook.id);
+  const b = currentBook;
+  // ЗАЩИТА: Проверяем, есть ли вообще практики в книге
+  if (!b.practices || !Array.isArray(b.practices) || b.practices.length === 0) {
+    toast('В этой книге пока нет практик для выполнения.', 'warm');
+    return;
+  }
+
+  const bs = getBookState(b.id);
   
   if (!bs.start) {
     bs.start = todayStr();
@@ -3149,10 +3314,9 @@ function startRitual(){
     renderToday(); 
   }
 
-  const day = currentDay(currentBook.id);
-  const date = dateByDay(currentBook.id, day);
+  const day = currentDay(b.id);
+  const date = dateByDay(b.id, day);
 
-  const b=currentBook;
   const donePractices = (bs.days[date] && bs.days[date].practices) ? bs.days[date].practices : [];
   const practicesToDo = b.practices.filter(p => !donePractices.includes(p.id));
 
@@ -3221,7 +3385,7 @@ function renderRitualStep(){
         closeRitual(); // <-- ЗАКРЫВАЕМ И ВОЗВРАЩАЕМ НА ГЛАВНУЮ
         return;
     }
-    rBody.innerHTML = bookTag + buildPracticeHtml(p);
+    rBody.innerHTML = bookTag + buildPracticeHtml(p, 'ritual');
     
     currentDifficulty = 'normal'; 
     timerRemaining = p.time || 300;
@@ -3248,6 +3412,13 @@ function renderRitualStep(){
 
 function toggleTimer(ctx){
   const isRitual = !document.getElementById('ritualScreen').classList.contains('hidden');
+  const activeP = isRitual ? ritualQueue[ritualIndex] : currentPractice;
+
+  if (activeP && activeP.type === 'audio' && timerState === 'idle') {
+    Path.openCinematic(activeP);
+    return;
+  }
+
   const screen = isRitual ? document.getElementById('ritualScreen') : document.getElementById('practiceScreen');
   
   // ЗАЩИТА: Если экрана нет, возвращаем на главную
@@ -4131,11 +4302,16 @@ async function completePracticeDone(){
     closePractice();
     finishRitual(true);
   }
-  // Сохраняем настроение в БД
-  if (currentMood > 0 && practice) {
-    // Ищем правильный ID книги (если это ритуал, берем из практики)
-    const targetBookId = practice._bookId || (currentBook ? currentBook.id : 'general');
+  // Вызываем новую единую функцию сохранения
+  savePracticeFeedback(practice);
+}
 
+// НОВАЯ ФУНКЦИЯ (добавь её сразу после закрывающей скобки completePracticeDone)
+function savePracticeFeedback(practice) {
+  if (!practice) return;
+  const targetBookId = practice._bookId || (currentBook ? currentBook.id : 'general');
+
+  if (currentMood > 0) {
     sb.from('moods').insert({
       user_id: user.id,
       practice_id: practice.id,
@@ -4145,32 +4321,39 @@ async function completePracticeDone(){
     }).then(() => dlog('Mood saved'));
   }
 
-  // Сохраняем оценку в БД и обновляем её в памяти
-  if (currentPracticeRating > 0 && practice) {
-    const targetBookId = practice._bookId || (currentBook ? currentBook.id : 'general');
-
+  if (currentPracticeRating > 0) {
     sb.from('practice_ratings').upsert({
       user_id: user.id,
       practice_id: practice.id,
       book_id: targetBookId,
       rating: currentPracticeRating
     }, { onConflict: 'user_id,practice_id' }).then(async () => {
-      // Мгновенно обновляем рейтинг в памяти
       await loadBooksFromSupabase(); 
     });
   }
 }
 function completePracticeSkip(){
-  stopMusic(); // <--- ДОБАВИЛИ ОСТАНОВКУ МУЗЫКИ
+  stopMusic();
   document.getElementById('completeOverlay').classList.add('hidden');
   if(!completeCallback)return;
-  const{context}=completeCallback;completeCallback=null;
+  const{practice, context}=completeCallback;completeCallback=null;
+  
   if(context==='ritual'){
     stopTimer();timerState='idle';
+    const p = ritualQueue[ritualIndex];
+    if(p) markPracticeDoneForBook(p._bookId,p.id);
+    playCheck();
     ritualIndex++;
     ritualHowIndex = 0;
     setTimeout(()=>renderRitualStep(),300);
-  }else closePractice();
+  }else{
+    savePracticeFeedback(practice); 
+    markPracticeDone(practice.id);
+    playCheck();
+    fireConfetti();
+    closePractice();
+    finishRitual(true);
+  }
 }
 function addFiveMinutes(){
   document.getElementById('completeOverlay').classList.add('hidden');
@@ -4222,7 +4405,7 @@ function openPractice(id){
     return;
   }
   
-  psContentEl.innerHTML = buildPracticeHtml(p);
+  psContentEl.innerHTML = buildPracticeHtml(p, 'practice');
   
   hideAll(); 
   const psScreen = document.getElementById('practiceScreen');
@@ -4291,6 +4474,12 @@ function executeClosePractice() {
         if (!data) showReviewModal(b.id);
       });
     }
+  }
+  
+  if (typeof Path !== 'undefined' && Path.active && !Path.fresh) {
+    Path.active = null;
+    Path.open();
+    return;
   }
   
   smartHome();
@@ -4399,7 +4588,7 @@ function ensureGodModeStyles() {
   document.head.appendChild(style);
 }
 function godModeActions(type, id, label) {
-  if (!(typeof isAdmin === 'function' && isAdmin())) return '';
+  if (!isAdminMode()) return '';
   const safeId = String(id).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
   const safeLabel = String(label || 'элемент').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');
   
@@ -4412,7 +4601,7 @@ function godModeActions(type, id, label) {
   return '';
 }
 function confirmGodDeletePost(id, title) {
-  if (!(typeof isAdmin === 'function' && isAdmin())) return toast('Недостаточно прав', 'danger');
+  if (!isAdminMode()) return toast('Недостаточно прав', 'danger');
   openAndgerConfirm('Удалить публикацию?', `Публикация «${title}» будет удалена из ленты.`, async () => {
     try {
       const { error } = await sb.from('messages').delete().eq('id', id).eq('room', 'feed');
@@ -4423,7 +4612,7 @@ function confirmGodDeletePost(id, title) {
   });
 }
 function confirmGodDeletePrivateMessage(id) {
-  if (!(typeof isAdmin === 'function' && isAdmin())) return toast('Недостаточно прав', 'danger');
+  if (!isAdminMode()) return toast('Недостаточно прав', 'danger');
   openAndgerConfirm('Удалить сообщение?', 'Сообщение будет удалено из переписки, если политика базы разрешает это действие.', async () => {
     try {
       const { error } = await sb.from('private_messages').delete().eq('id', id);
@@ -4434,7 +4623,7 @@ function confirmGodDeletePrivateMessage(id) {
   });
 }
 function confirmGodDeleteBook(id, title) {
-  if (!(typeof isAdmin === 'function' && isAdmin())) return toast('Недостаточно прав','danger');
+  if (!isAdminMode()) return toast('Недостаточно прав', 'danger');
   openAndgerConfirm('Удалить книгу?', `Книга «${title}» будет удалена из базы. Это действие нельзя отменить.`, async () => {
     try {
       const { error } = await sb.from('books').delete().eq('id', id);
@@ -4449,7 +4638,7 @@ function confirmGodDeleteBook(id, title) {
   });
 }
 function confirmGodDeleteUser(id, name) {
-  if (!(typeof isAdmin === 'function' && isAdmin())) return toast('Недостаточно прав','danger');
+  if (!isAdminMode()) return toast('Недостаточно прав', 'danger');
   openAndgerConfirm('Удалить пользователя?', `Пользователь «${name}» и связанные данные будут удалены без возможности восстановления.`, async () => { await adminDelete(id, true); });
 }
 
@@ -4627,6 +4816,7 @@ function closeAndgerConfirm(accepted = false) {
 }
 
 async function saveName(){
+  if (!user) return;
   const fullVal = document.getElementById('profileFullName').value.trim();
   if(!fullVal) return;
   const nameParts = fullVal.split(' ');
@@ -4649,6 +4839,22 @@ function setAvatar(e){
 function renderSettings(){
   updateSoundUI();
   updateHapticUI();
+
+  // Тумблер "Режим администратора" — только для админов
+  const adminModeRow = document.getElementById('adminModeToggleRow');
+  const adminModeToggle = document.getElementById('adminModeToggle');
+  const adminModeHint = document.getElementById('adminModeHint');
+  const adminModeTitle = document.getElementById('adminModeTitle');
+  if (adminModeRow) {
+    if (isAdmin()) {
+      adminModeRow.classList.remove('hidden');
+      if (adminModeToggle) adminModeToggle.classList.toggle('on', isAdminMode());
+      if (adminModeTitle) adminModeTitle.textContent = isAdminMode() ? '👑 Режим администратора' : '👤 Режим пользователя';
+      if (adminModeHint) adminModeHint.textContent = isAdminMode() ? 'Обход всех ограничений для тестирования' : 'Приложение выглядит как для обычного пользователя';
+    } else {
+      adminModeRow.classList.add('hidden');
+    }
+  }
   const pushTog = document.getElementById('pushToggle');
   if(pushTog) pushTog.classList.toggle('on', state.pushEnabled === true);
   
@@ -4677,6 +4883,7 @@ function renderSettings(){
 }
 
 async function setTheme(theme){
+  if (!user) return; // <--- ЗАЩИТА
   state.theme=theme;
   applyTheme();
   renderSettings();
@@ -4712,6 +4919,7 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 async function togglePush(){
+  if (!user) return; // <--- ЗАЩИТА
   if(state.pushEnabled){
     state.pushEnabled=false;
     sb.from('profiles').update({push_enabled:false}).eq('id',user.id).then(()=>{});
@@ -5424,7 +5632,7 @@ async function loadFeed(){
           <div style="flex:1; min-width:0;">
             <div style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:800; color:var(--d-text);">
               <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(m.user_name||'Аноним')}${own?' · ты':''}</span>
-              ${own || isAdmin() ? `<div class="action-btn-glass danger" style="width:20px; height:20px; padding:0; margin-left:auto;" onclick="event.stopPropagation(); ${own ? `deleteFeedPost(${m.id})` : `confirmGodDeletePost(${m.id}, 'пост')`}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px; height:12px;"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>` : ''}
+              ${own || isAdminMode() ? `<div class="action-btn-glass danger" style="width:20px; height:20px; padding:0; margin-left:auto;" onclick="event.stopPropagation(); ${own ? `deleteFeedPost(${m.id})` : `confirmGodDeletePost(${m.id}, 'пост')`}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px; height:12px;"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>` : ''}
             </div>
             <div style="font-size:10px; color:var(--d-text-dim);">${t}</div>
           </div>
@@ -5819,7 +6027,7 @@ async function loadDialog(){
         ${escapeHtml(m.text)}
         <span class="msg-time" style="display:flex; align-items:center; justify-content:flex-end; gap:4px;">
           ${t} ${tick} 
-          ${own || isAdmin() ? `
+          ${own || isAdminMode() ? `
             <div class="msg-delete-btn" onclick="event.stopPropagation(); ${own ? `deletePrivateMessage('${m.id}')` : `confirmGodDeletePrivateMessage('${m.id}')`}" title="Удалить">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </div>` : ''}
@@ -7705,7 +7913,7 @@ function showDayStats(dateStr) {
     modal.style.display = 'flex';
     modal.classList.remove('hidden');
 
-    const d = new Date(dateStr);
+    const d = new Date(dateStr + 'T00:00:00');
     const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
     if(title) title.textContent = `${d.getDate()} ${months[d.getMonth()]}`;
 
@@ -7942,6 +8150,7 @@ function resetAllProgress() {
       currentBook = null;
       state.shields = 0;
       state.spentXP = 0;
+      state.bookAccess = [];
       
       try {
         // Очищаем ВСЕ таблицы с данными пользователя
@@ -8078,12 +8287,17 @@ function resetSpecificBook(bookId) {
   legacyConfirmAdapter('Сбросить книгу?', 'Прогресс и заметки по этой книге будут удалены.', async () => {
     const bs = getBookState(bookId);
     bs.start = null; bs.days = {}; bs.journal = {};
+    
+    if (state.bookAccess) {
+      state.bookAccess = state.bookAccess.filter(id => id !== bookId);
+    }
+    
     if(currentBook && currentBook.id === bookId) { currentBook = null; state.lastBook = null; }
     
-    // Удаляем заметки и прогресс из БД
     try {
       await sb.from('notes').delete().eq('user_id', user.id).eq('book_id', bookId);
-      await sb.from('progress').delete().eq('user_id', user.id).eq('book_id', bookId); // <--- ДОБАВИЛИ ЭТУ СТРОКУ
+      await sb.from('progress').delete().eq('user_id', user.id).eq('book_id', bookId);
+      await sb.from('profiles').update({ book_access: state.bookAccess }).eq('id', user.id);
     } catch(e) { console.error('Ошибка удаления данных', e); }
 
     saveState(); playSuccess();
@@ -9319,6 +9533,7 @@ function showPremium() {
   window.scrollTo(0,0);
 }
 function setVoice(v) {
+  if (!user) return; // <--- ЗАЩИТА
   state.voice = v;
   saveState();
   sb.from('profiles').update({voice: v}).eq('id',user.id).then(()=>{});
@@ -9538,6 +9753,13 @@ function openPracticeSelector() {
     return;
   }
   
+  const b = currentBook;
+  // ЗАЩИТА: Проверяем, есть ли практики
+  if (!b.practices || !Array.isArray(b.practices) || b.practices.length === 0) {
+    toast('В этой книге пока нет практик.', 'warm');
+    return;
+  }
+
   const modal = document.getElementById('practiceSelectorModal');
   if (!modal) {
     console.error('❌ Модалка #practiceSelectorModal не найдена в HTML!');
@@ -9545,7 +9767,7 @@ function openPracticeSelector() {
     return;
   }
 
-  const b = currentBook, bs = getBookState(b.id);
+  const bs = getBookState(b.id);
   const day = currentDay(b.id), date = dateByDay(b.id, day);
   const todayRec = bs.days[date] || {practices:[]};
   const donePractices = todayRec.practices || [];
@@ -10073,7 +10295,8 @@ function setPracticeDifficulty(level, baseTime, context) {
   renderDifficultySelector(baseTime, context);
 }
 
-function buildPracticeHtml(p) {
+function buildPracticeHtml(p, ctx = 'practice') {
+  const isAudio = p.type === 'audio';
   return `
     <div class="practice-focus-hide">
     <!-- Блок Триггера (Якоря) -->
@@ -10161,7 +10384,7 @@ function buildPracticeHtml(p) {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
       </div>
       
-      <div class="d-timer-ring-wrap" style="position: relative; margin-bottom: 24px; filter: drop-shadow(0 0 25px rgba(124,92,255,0.3));">
+      <div class="d-timer-ring-wrap" style="position: relative; margin-bottom: 24px; filter: drop-shadow(0 0 25px rgba(124,92,255,0.3)); ${isAudio ? 'display:none;' : ''}">
         <svg class="d-timer-ring-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="dTimerGradGlobal" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -10178,10 +10401,10 @@ function buildPracticeHtml(p) {
            
       <!-- Кнопки -->
       <div class="zen-buttons-wrap">
-        <div class="difficulty-selector" id="difficultySelector">
+        <div class="difficulty-selector" id="difficultySelector" style="${isAudio ? 'display:none;' : ''}">
           <!-- Кнопки заполняются динамически через JS -->
         </div>
-        <button class="d-btn-primary" id="timerBtn" onclick="toggleTimer('practice')">▶ Начать практику</button>
+        <button class="d-btn-primary" id="timerBtn" onclick="${isAudio ? `Path.openCinematicByContext('${p.id}', '${ctx}')` : `toggleTimer('${ctx}')`}">${isAudio ? '▶ Начать погружение' : '▶ Начать практику'}</button>
         <button class="d-btn-secondary exit-zen-btn" onclick="toggleZenMode()" style="display: none; width:100%;">Свернуть таймер</button>
       </div>
     </div>
@@ -10368,10 +10591,10 @@ function showBookCompleteSuccess(bookId) {
 
   showSimpleModal('👑', 'Книга пройдена!', `Ты завершил курс «${b.title}». Это огромный шаг!`);
   
-  // Добавляем кнопки в модалку
   document.getElementById('modalAchList').innerHTML = `
     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
-      <button class="d-btn-primary" style="background:var(--d-gold-grad); box-shadow:0 6px 20px rgba(255,184,0,0.4);" onclick="document.getElementById('modal').classList.add('hidden'); openShareStory('${bookId}');">📸 Поделиться успехом</button>
+      <button class="d-btn-primary" style="background:var(--d-gold-grad); box-shadow:0 6px 20px rgba(255,184,0,0.4);" onclick="document.getElementById('modal').classList.add('hidden'); showFirstBookSelection(true);">🎁 Выбрать следующую книгу</button>
+      <button class="d-btn-primary" style="background:var(--d-accent); box-shadow:0 6px 20px rgba(124,92,255,0.4);" onclick="document.getElementById('modal').classList.add('hidden'); openShareStory('${bookId}');">📸 Поделиться успехом</button>
       <button class="d-btn-secondary" onclick="document.getElementById('modal').classList.add('hidden'); showReviewModal('${bookId}');">✍️ Оставить отзыв</button>
     </div>
   `;
@@ -10804,7 +11027,7 @@ function renderShop() {
     if (item.rarity === 'common') { rarityColor = 'var(--d-success)'; }
 
     return `
-      <div class="d-card-glass" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px 12px; text-align:center; position:relative; background: linear-gradient(180deg, ${glowColor} 0%, var(--d-surface) 100%); border-color: ${item.rarity === 'epic' ? 'rgba(167,139,250,0.4)' : (item.rarity === 'rare' ? 'rgba(79,172,254,0.3)' : 'var(--d-border)')};">
+      <div class="d-card-glass" id="shop-item-${item.id}" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px 12px; text-align:center; position:relative; background: linear-gradient(180deg, ${glowColor} 0%, var(--d-surface) 100%); border-color: ${item.rarity === 'epic' ? 'rgba(167,139,250,0.4)' : (item.rarity === 'rare' ? 'rgba(79,172,254,0.3)' : 'var(--d-border)')};">
         
         ${isOwned ? `<div style="position:absolute; top:10px; right:10px; color:var(--d-success); background:rgba(62,207,142,0.1); border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(62,207,142,0.3);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></div>` : ''}
 
@@ -10859,7 +11082,13 @@ async function buyShopItem(itemId, type, key, price) {
   saveState();
   playSuccess();
   fireConfetti();
-  renderShop(); // Обновляем витрину
+  
+  const card = document.getElementById('shop-item-' + itemId);
+  if (card) card.classList.add('shop-item-bought');
+  
+  setTimeout(() => {
+    renderShop();
+  }, 600);
 }
 function showShopInfo() {
   document.getElementById('shopInfoModal').classList.remove('hidden');
@@ -11619,6 +11848,308 @@ window.Path = {
   active: null, fresh: null, el: null, fl: null,
   esc(s) { return escapeHtml(String(s ?? '')); },
   isPath(b) { return !!(b && Number(b.format) === 2 && b.path && Array.isArray(b.path.weeks) && b.path.weeks.length); },
+    openCinematicByContext(id, ctx) {
+    let p;
+    if (ctx === 'ritual') p = ritualQueue[ritualIndex];
+    else p = currentPractice;
+    if (p) this.openCinematic(p);
+  },
+
+  openCinematic(p) {
+    this.closeCinematic(); 
+    playClick();
+    
+    const text = p.immersion_text || '';
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'cinematicOverlay';
+    overlay.className = 'cinematic-overlay';
+    
+    overlay.currentSentence = 0;
+    overlay.isPlaying = true;
+    overlay.playTimer = null;
+    overlay.audioPaused = false;
+
+    overlay.innerHTML = `
+      <div class="cinematic-bg-blur"></div>
+      <div class="cinematic-particles" id="cineParticles"></div>
+      
+      <div class="ritual-progress" style="position:absolute; top:0; left:0; right:0; z-index:10; background:transparent; border-bottom:1px solid rgba(124,92,255,0.15); padding-top:calc(12px + env(safe-area-inset-top)); padding-bottom: 12px; max-width:520px; margin:0 auto; display:flex; gap:6px; align-items:center;">
+        <div class="rp-left" style="flex:1; padding-left:16px;">
+          <div class="rp-text" style="font-size:14px; font-weight:800; color:var(--d-text); text-transform:none; letter-spacing:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.title)}</div>
+          <div class="rp-text" style="font-size:10px; color:var(--d-text-dim); text-transform:none; letter-spacing:0;">${escapeHtml(p.sub || 'Погружение')}</div>
+        </div>
+        <button class="rp-close sound-btn" onclick="Path.toggleCinematicAudio()" style="margin-right: 8px;"></button>
+        <button class="rp-close" onclick="Path.closeCinematic()" style="margin-right:16px;">✕</button>
+        
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.05);">
+          <div id="cineProgressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #7c5cff, #ff7a2a); transition: width 0.3s ease;"></div>
+        </div>
+      </div>
+
+      <div class="cinematic-content" style="padding-top: 60px; justify-content: center;">
+        <div class="d-card-glass" style="width: 100%; max-width: 340px; padding: 24px 20px; text-align: center; background: rgba(20, 14, 35, 0.7); border: 1px solid rgba(124,92,255,0.3); backdrop-filter: blur(10px); border-radius: 24px; margin: 0 auto 30px auto;">
+          <div class="cinematic-subtitle-box" id="cineSubtitles" style="margin-bottom: 0; min-height: 100px; display: flex; align-items: center; justify-content: center; font-size: 20px;">Приготовься...</div>
+        </div>
+        
+        <div class="cinematic-controls" style="display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; max-width:260px;">
+          <button class="d-btn-primary" id="cinePlayBtn" style="width: 100%; height: 52px; font-size: 14px; border-radius: 16px; text-transform: none; letter-spacing: 0;">⏸ Пауза</button>
+          <button class="d-btn-secondary exit-zen-btn" onclick="Path.minimizeCinematic()" style="width:100%; height: 46px; font-size: 13px;">Свернуть таймер</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    document.body.classList.add('app-focus-mode');
+    
+    if (state.soundMode === 'sound') {
+      startMusic('meditation'); // Включаем фоновую музыку
+    }
+    
+    const subEl = document.getElementById('cineSubtitles');
+    const playBtn = document.getElementById('cinePlayBtn');
+
+    const playNext = async () => {
+      if (!overlay.isPlaying) return;
+      
+      if (overlay.currentSentence >= sentences.length) {
+        this.closeCinematic();
+        this.completeAudioPractice(p.id);
+        return;
+      }
+
+      const sentence = sentences[overlay.currentSentence].trim();
+      if (!sentence) { overlay.currentSentence++; playNext(); return; }
+
+      subEl.classList.remove('show');
+      setTimeout(() => {
+        subEl.textContent = sentence;
+        subEl.classList.add('show');
+        
+        // Обновляем полосу прогресса
+        const progressBar = document.getElementById('cineProgressBar');
+        if (progressBar) {
+          const pct = ((overlay.currentSentence + 1) / sentences.length) * 100;
+          progressBar.style.width = pct + '%';
+        }
+      }, 400);
+
+      if (overlay.playTimer) clearTimeout(overlay.playTimer);
+
+      if (state.soundMode === 'sound' && !overlay.audioPaused) {
+        await speakBackgroundGuide(sentence, 'practice');
+        
+        if (ttsAudio) {
+          ttsAudio.onended = () => {
+            if (overlay.isPlaying && !overlay.audioPaused) {
+              overlay.currentSentence++;
+              overlay.playTimer = setTimeout(playNext, 1200); 
+            }
+          };
+        } else {
+          overlay.playTimer = setTimeout(() => {
+            if (overlay.isPlaying) { overlay.currentSentence++; playNext(); }
+          }, Math.max(3500, sentence.length * 100));
+        }
+      } else {
+        overlay.playTimer = setTimeout(() => {
+          if (overlay.isPlaying) { overlay.currentSentence++; playNext(); }
+        }, Math.max(3500, sentence.length * 100));
+      }
+    };
+
+    overlay.playNext = playNext; 
+
+    playBtn.onclick = () => {
+      overlay.isPlaying = !overlay.isPlaying;
+      if (overlay.isPlaying) {
+        playBtn.innerHTML = '⏸ Пауза';
+        if (overlay.currentSentence === 0 || overlay.audioPaused) {
+          overlay.audioPaused = false;
+          playNext();
+        } else if (ttsAudio) {
+          ttsAudio.play();
+        }
+      } else {
+        playBtn.innerHTML = '▶ Продолжить';
+        if (ttsAudio) ttsAudio.pause();
+        if ('speechSynthesis' in window) window.speechSynthesis.pause();
+        if (overlay.playTimer) clearTimeout(overlay.playTimer);
+      }
+    };
+
+    updateSoundUI();
+    
+    const particleContainer = document.getElementById('cineParticles');
+    if (particleContainer) {
+      const particles = [];
+      const colors = ['#ffffff', '#a78bfa', '#ff7a2a', '#3ecf8e', '#4facfe'];
+      
+      for (let i = 0; i < 80; i++) {
+        const pEl = document.createElement('div');
+        pEl.className = 'cinematic-particle';
+        particleContainer.appendChild(pEl);
+        
+        let size;
+        const isLarge = Math.random() < 0.15; // 15% шанс, что частица будет крупной
+        
+        if (isLarge) {
+          size = 15 + Math.random() * 20; // Размер от 15 до 35px
+        } else {
+          size = 1.5 + Math.random() * 4.5; // Размер от 1.5 до 6px
+        }
+        
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        
+        pEl.style.width = size + 'px';
+        pEl.style.height = size + 'px';
+        pEl.style.background = color;
+        pEl.style.boxShadow = `0 0 ${size * 1.5}px ${color}`;
+        
+        if (isLarge) {
+          // Уменьшили размытие, чтобы сферы были более очерченными
+          pEl.style.filter = 'blur(1.5px)';
+          pEl.style.opacity = 0.3 + Math.random() * 0.3;
+        } else {
+          // Мелкие остаются четкими и яркими
+          pEl.style.opacity = 0.5 + Math.random() * 0.5;
+        }
+        
+        particles.push({
+          el: pEl,
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          vx: (Math.random() - 0.5) * 2.5, 
+          vy: (Math.random() - 0.5) * 2.5
+        });
+      }
+      
+      function animateParticles() {
+        if (!document.getElementById('cinematicOverlay')) return;
+        
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          
+          let bounced = false;
+          
+          if (p.x <= 0) {
+            p.x = 0;
+            p.vx *= -1;
+            bounced = true;
+          } else if (p.x >= w) {
+            p.x = w;
+            p.vx *= -1;
+            bounced = true;
+          }
+          
+          if (p.y <= 0) {
+            p.y = 0;
+            p.vy *= -1;
+            bounced = true;
+          } else if (p.y >= h) {
+            p.y = h;
+            p.vy *= -1;
+            bounced = true;
+          }
+          
+          if (bounced) {
+            const newColor = colors[Math.floor(Math.random() * colors.length)];
+            p.el.style.background = newColor;
+            p.el.style.boxShadow = `0 0 ${parseInt(p.el.style.width) * 2}px ${newColor}`;
+          }
+          
+          p.el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%)`;
+        });
+        
+        overlay._animId = requestAnimationFrame(animateParticles);
+      }
+      
+      animateParticles();
+    }
+
+    playNext();
+  },  
+
+  toggleCinematicAudio() {
+    const overlay = document.getElementById('cinematicOverlay');
+    if (!overlay) return;
+    
+    toggleSound(); 
+
+    if (state.soundMode === 'sound') {
+      overlay.audioPaused = false;
+      if (ttsAudio && ttsAudio.paused && ttsAudio.src) {
+        ttsAudio.play();
+      } else {
+        overlay.playNext(); 
+      }
+    } else {
+      overlay.audioPaused = true;
+      if (ttsAudio) ttsAudio.pause();
+      if (overlay.playTimer) clearTimeout(overlay.playTimer);
+      overlay.playNext(); 
+    }
+  },
+
+  minimizeCinematic() {
+    const el = document.getElementById('cinematicOverlay');
+    if (el) el.style.display = 'none';
+    
+    let returnBtn = document.getElementById('returnAudioBtn');
+    if (!returnBtn) {
+      returnBtn = document.createElement('button');
+      returnBtn.id = 'returnAudioBtn';
+      // Используем те же классы, что и у кнопки "Развернуть таймер"
+      returnBtn.className = 'd-btn-secondary exit-zen-btn';
+      // Жестко задаем позицию и размеры, чтобы было 1 в 1
+      returnBtn.style.cssText = 'position: fixed; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 260px; height: 46px; font-size: 13px; display: flex; align-items: center; justify-content: center; z-index: 10001; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; color: #fff; font-weight: 700; cursor: pointer; backdrop-filter: blur(10px);';
+      
+      // Текст без иконки, чтобы был как "Развернуть таймер"
+      returnBtn.innerHTML = 'Развернуть погружение'; 
+      
+      returnBtn.onclick = () => {
+        el.style.display = 'flex';
+        returnBtn.remove();
+      };
+      document.body.appendChild(returnBtn);
+    }
+  },
+
+  closeCinematic() {
+    stopMusic(true);
+    const el = document.getElementById('cinematicOverlay');
+    if (el) {
+      if (el._animId) cancelAnimationFrame(el._animId);
+      el.style.opacity = 0;
+      setTimeout(() => el.remove(), 300);
+    }
+    document.body.classList.remove('app-focus-mode');
+    if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  },
+
+  completeAudioPractice(practiceId) {
+    stopMusic(true);
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
+    
+    const b = this.cur() || currentBook;
+    if (!b) return;
+    
+    // Начисляем XP и закрываем узел
+    markPracticeDoneForBook(b.id, practiceId);
+    playFanfare();
+    fireConfetti();
+    
+    // Показываем окно завершения
+    const p = b.practices.find(x => x.id === practiceId);
+    if (p) showCompleteOverlay(p, 'practice');
+  },
   cur() { return this.isPath(currentBook) ? currentBook : null; },
   prac(b, id) { return (b.practices || []).find(p => p.id === id); },
   st(b) { const bs = getBookState(b.id), p = bs.path = bs.path || {}; p.intro = p.intro || {}; p.nodes = p.nodes || {}; p.checkpoints = p.checkpoints || {}; return p; },
@@ -11639,7 +12170,12 @@ window.Path = {
     items.forEach(it => {
       it.done = it.kind === 'intro' ? (!!ps.intro[it.id] || (it.id === 'i6' && !this.digestItems(b).length)) : it.kind === 'node' ? !!ps.nodes[it.id] : !!(ps.finale && ps.finale.done);
       if (it.done) { it.s = 'done'; return; }
-      if (!found) { found = true; it.s = 'cur'; return; }
+      if (!found) { 
+        found = true; 
+        it.s = 'cur'; 
+        if (doneToday && it.kind === 'node') it.wait = true;
+        return; 
+      }
       it.s = 'lock';
     });
     return { items, doneToday, total: items.length, done: items.filter(x => x.done).length, nodes: items.filter(x => x.kind === 'node') };
@@ -11746,12 +12282,12 @@ window.Path = {
     const E = s => this.esc(s), cur = S.items.find(x => x.s === 'cur'); let top = 'Сегодня', k = '', t = '', f = '', cta = '', gem = 'cur', gl = '';
     if (!cur) { top = 'Путь пройден'; t = 'Можно начать новую книгу'; gem = 'done'; cta = '<button class="ph-cta" onclick="Path.open()">Открыть карту</button>'; }
     else if (cur.kind === 'intro') { 
-      top = 'Знакомство'; 
-      k = `Часть ${cur.pos} из ${PT_INTRO.length}`; 
-      t = cur.t; 
-      f = 'Несколько минут, чтобы понять, зачем всё это'; 
-      gl = String(cur.pos); 
-      cta = `<button class="ph-cta" onclick="Path.tap('${cur.id}')">Продолжить знакомство</button>`; 
+    top = 'Знакомство'; 
+    k = `Часть ${cur.pos} из ${PT_INTRO.length}`; 
+    t = cur.t; 
+    f = 'Несколько минут, чтобы понять, зачем всё это'; 
+    gl = String(cur.pos); 
+    cta = `<button class="ph-cta" onclick="Path.tap('${cur.id}')">Продолжить путь</button>`; 
     }
     else if (cur.kind === 'finale') { top = 'Финал'; t = 'Подведи итоги пути'; f = 'Прочитай своё письмо и выбери следующий шаг'; cta = `<button class="ph-cta gold" onclick="Path.tap('fin')">Открыть финал</button>`; }
     else {
@@ -11762,7 +12298,7 @@ window.Path = {
       }
       else if (prem) cta = '<button class="ph-cta gold" onclick="showPremium()">Продолжить в Premium</button>';
       else if (cur.light) cta = `<button class="ph-cta" onclick="${opt && opt.today ? 'Path.open({sheet:true})' : `Path.tap('${cur.id}')`}">Сделать минимум</button>`;
-      else cta = `<button class="ph-cta" onclick="${opt && opt.today ? 'Path.open({sheet:true})' : `Path.startNode('${cur.id}')`}">Начать практику · ${mins} мин</button>`;
+      else cta = `<button class="ph-cta" onclick="Path.open({sheet:true})">Открыть список практик</button>`;
     }
     const wi = cur && cur.kind === 'node' ? cur.w : -1, ws = wi >= 0 ? S.items.filter(x => x.kind === 'node' && x.w === wi) : [];
     const trail = ws.length ? `<div class="ph-trail">${ws.map(x => `<i class="${x.done ? 'on' : (cur && x.id === cur.id) ? 'cur' : ''}${x.light ? ' lt' : ''}"></i>`).join('<u></u>')}</div>` : '';
@@ -11772,9 +12308,10 @@ window.Path = {
 
   tap(id) {
     const b = this.cur(); if (!b) return; const S = this.state(b), it = S.items.find(x => x.id === id); if (!it) return;
+    const bypass = isAdminMode();
     try { playClick(); } catch (e) {}
-    if (it.kind === 'intro') return it.s === 'lock' ? this.shake(id, 'Сначала пройди предыдущие шаги') : this.introFlow(it.id);
-    if (it.kind === 'finale') return it.s === 'lock' ? this.shake(id, 'Финал откроется после всех узлов') : this.finaleFlow();
+    if (it.kind === 'intro') return (it.s === 'lock' && !bypass) ? this.shake(id, 'Сначала пройди предыдущие шаги') : this.introFlow(it.id);
+    if (it.kind === 'finale') return (it.s === 'lock' && !bypass) ? this.shake(id, 'Финал откроется после всех узлов') : this.finaleFlow();
     return this.nodeSheet(it, S);
   },
 
@@ -11785,15 +12322,77 @@ window.Path = {
   },
   closeSheet() { const d = document.getElementById('ptSheet'); if (d) { d.onclose = null; d.close(); d.remove(); } },
   nodeSheet(it, S) {
+    const bypass = isAdminMode();
     const b = this.cur(), E = s => this.esc(s), node = it.node, ps = this.prac(b, node.practices[0]); if (!ps) return toast('Практика не найдена', 'danger');
     const mins = this.mins(b, node.practices), prem = it.s !== 'done' && !this.canPlay(b, it);
     const rec = (node.recap || []).filter(id => !node.practices.includes(id)).map(id => this.prac(b, id)).filter(Boolean);
     let msg = '', btn = '';
-    if (it.s === 'done') msg = '<div class="pt-ok">Пройдено ✓</div>';
-    else if (it.s === 'lock') msg = '<div class="pt-note">Этот узел откроется после предыдущих.</div>';
-    else if (prem) { msg = `<div class="pt-note">Первые ${b.path.free_nodes || 7} узлов бесплатны. Дальше путь продолжается в Premium.</div>`; btn = `<button class="d-btn-primary" onclick="Path.closeSheet();showPremium()" style="background:var(--d-gold-grad)">Открыть Premium</button>`; }
-    else if (it.wait) msg = '<div class="pt-note">На сегодня шаг сделан. Следующий узел откроется завтра: привычка растёт, пока ты отдыхаешь.</div>';
-    else btn = it.light ? `<button class="d-btn-primary" onclick="Path.doLight('${it.id}')">Минимум сделан</button>` : `<button class="d-btn-primary" onclick="Path.startNode('${it.id}')">Начать практику · ${mins} мин</button>`;
+    
+    if (it.s === 'done') {
+      msg = '<div class="pt-ok">Пройдено ✓</div>';
+    } else if (it.s === 'lock' && !bypass) {
+      msg = '<div class="pt-note">Этот узел откроется после предыдущих.</div>';
+    } else if (prem && !bypass) {
+      msg = `<div class="pt-note">Первые ${b.path.free_nodes || 7} узлов бесплатны. Дальше путь продолжается в Premium.</div>`;
+      btn = `<button class="d-btn-primary" onclick="Path.closeSheet();showPremium()" style="background:var(--d-gold-grad)">Открыть Premium</button>`;
+    } else if (it.wait && !bypass) {
+      msg = '<div class="pt-note">На сегодня шаг сделан. Следующий узел откроется завтра: привычка растёт, пока ты отдыхаешь.</div>';
+    } else {
+      if (it.light) {
+        btn = `<button class="d-btn-primary" onclick="Path.doLight('${it.id}')">Сделать минимум</button>`;
+      } else {
+        let buttonsHtml = '';
+        const rec = getBookState(b.id).days[todayStr()] || { practices: [] };
+        const mainDone = it.node.practices.every(pid => (rec.practices || []).includes(pid));
+        
+        buttonsHtml += `<div style="font-size: 10px; font-weight: 800; color: var(--d-text-dim); text-transform: uppercase; margin: 0 0 8px; text-align: left;">📌 Основные практики</div>`;
+        
+        it.node.practices.forEach(pid => {
+          const p = this.prac(b, pid);
+          if (!p) return;
+          const isDone = (rec.practices || []).includes(pid);
+          const pMins = Math.max(1, Math.round((p.time || 60) / 60));
+          const btnText = isDone ? 'Выполнено' : (p.type === 'audio' ? '▶ Погружение' : '▶ Практика');
+          const btnStyle = isDone ? 'background: rgba(62,207,142,0.15); color: var(--d-success); border-color: rgba(62,207,142,0.3); box-shadow: none;' : 'margin-bottom: 8px;';
+          const btnAction = isDone ? '' : `onclick="Path.startNode('${it.id}', '${pid}')"`;
+          
+          buttonsHtml += `
+            <button class="d-btn-primary" ${btnAction} style="width: 100%; ${btnStyle} min-height: 62px; height: auto; border-radius: 14px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 10px 16px; gap: 4px; text-align: left;">
+              <span style="font-size: 14px; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere;">${E(p.title)}</span>
+              <span style="font-size: 11px; font-weight: 600; opacity: 0.85;">${isDone ? '✅ Выполнено' : btnText + ' · ' + pMins + ' мин'}</span>
+            </button>
+          `;
+        });
+
+        if (it.node.bonus_practices && it.node.bonus_practices.length > 0) {
+          buttonsHtml += `<div style="font-size: 10px; font-weight: 800; color: var(--d-text-dim); text-transform: uppercase; margin: 16px 0 4px; text-align: left;">✨ Бонусные практики</div>`;
+          
+          if (!mainDone) {
+            buttonsHtml += `<div style="font-size: 11px; color: var(--d-text-dim); margin-bottom: 8px; text-align: left; line-height: 1.4;">🔒 Откроются после прохождения основных практик</div>`;
+          }
+          
+          it.node.bonus_practices.forEach(pid => {
+            const p = this.prac(b, pid);
+            if (!p) return;
+            const isDone = (rec.practices || []).includes(pid);
+            const pMins = Math.max(1, Math.round((p.time || 60) / 60));
+            const isLocked = !mainDone && !isDone;
+            
+            const onClick = isDone ? '' : (isLocked ? `onclick="toast('Сначала пройди основные практики дня', 'warm')"` : `onclick="Path.startNode('${it.id}', '${pid}')"`);
+            const lockedStyle = isLocked ? 'opacity: 0.45;' : '';
+            
+            buttonsHtml += `
+              <button class="d-btn-secondary" ${onClick} style="width: 100%; margin-bottom: 6px; height: 44px; font-size: 13px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; ${isDone ? 'opacity: 0.5;' : ''}${lockedStyle}">
+                <span style="text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70%;">${isLocked ? '🔒 ' : (isDone ? '✅ ' : '')}${E(p.title)}</span>
+                <span style="font-size: 10px; color: var(--d-text-dim);">${pMins} мин</span>
+              </button>
+            `;
+          });
+        }
+        
+        btn = `<div style="display: flex; flex-direction: column; width: 100%;">${buttonsHtml}</div>`;
+      }
+    }
     const st = it.s === 'done' ? 'done' : it.s === 'cur' && !prem ? 'cur' : 'lock';
     this.sheet(`<div class="pt-sh"><div class="pt-sh-head"><div class="pt-sh-gem">${this.ring(st, 78, String(it.n), (it.n - 1) / Math.max(1, S.nodes.length))}</div><div><div class="pt-sh-k">День ${it.n} · Неделя ${it.w + 1}${it.light ? ' · лёгкий день' : ''}</div><div class="pt-sh-t">${E(ps.title)}</div><div class="pt-meta"><span>≈ ${mins} мин</span>${node.practices.length > 1 ? `<span>${node.practices.length} практики</span>` : ''}</div></div></div>
       ${node.focus ? `<div class="pt-sh-f">${E(node.focus)}</div>` : ''}
@@ -11802,13 +12401,32 @@ window.Path = {
       ${rec.length ? `<div class="pt-card"><b>Освежи перед практикой</b>${rec.map(r => `<p>${E(r.title)}: ${E(r.micro_action || '')}</p>`).join('')}</div>` : ''}
       ${msg}${btn}<button class="pt-link" onclick="Path.closeSheet()">Закрыть</button></div>`);
   },
-  startNode(id) {
-    const b = this.cur(); if (!b) return; const it = this.state(b).items.find(x => x.id === id); if (!it || it.s !== 'cur' || it.wait) return;
+  startNode(id, specificPid = null) {
+    const b = this.cur(); if (!b) return; const it = this.state(b).items.find(x => x.id === id); const bypass = isAdminMode();
+    if (!it || (it.s !== 'cur' && !bypass) || (it.wait && !bypass)) return;
     if (!this.canPlay(b, it)) { this.closeSheet(); return showPremium(); }
-    const bs = getBookState(b.id), rec = bs.days[todayStr()] || { practices: [] }, left = it.node.practices.filter(x => !(rec.practices || []).includes(x));
+    
+    const bs = getBookState(b.id), rec = bs.days[todayStr()] || { practices: [] };
+    let pidToStart = specificPid;
+
+    if (!pidToStart) {
+      // Если ID не передан, ищем первую невыполненную
+      pidToStart = it.node.practices.find(x => !(rec.practices || []).includes(x));
+    }
+
     this.closeSheet();
-    if (!left.length) { this.completeNode(b, it, false); this.afterPractice(); return; }
-    this.active = { bookId: b.id, nodeId: id }; this.hide(); this._starting = true; try { openPractice(left[0]); } finally { this._starting = false; }
+    
+    if (!pidToStart) { 
+      // Все практики выполнены, закрываем узел
+      this.completeNode(b, it, false); 
+      this.afterPractice(); 
+      return; 
+    }
+    
+    this.active = { bookId: b.id, nodeId: id }; 
+    this.hide(); 
+    this._starting = true; 
+    try { openPractice(pidToStart); } finally { this._starting = false; }
   },
   doLight(id) {
     const b = this.cur(); if (!b) return; const it = this.state(b).items.find(x => x.id === id); if (!it || it.s !== 'cur' || it.wait) return;
@@ -11925,13 +12543,17 @@ window.Path = {
     ];
     this.flow(steps, () => {
       try { fireConfetti(); } catch (e) {} haptic('success');
-      if (this._next) { const id = this._next; this._next = null; this.hide(); setTimeout(() => this.startBook(id), 300); }
+      if (this._next) { this._next = null; this.hide(); setTimeout(() => showFirstBookSelection(true), 300); }
       else { this.hide(); try { showBookCompleteSuccess(b.id); } catch (e) { showTodayScreen(); } }
     });
   },
 
   // ── Старт книги и карточка на «Сегодня» ──
   pickStart() {
+    if (state.lastBook) {
+      const last = BOOKS.find(x => x.id === state.lastBook);
+      if (last && this.isPath(last)) return last;
+    }
     const g = (typeof Coach !== 'undefined') ? Coach.goal() : '', goal = COACH_GOALS.find(x => x.id === g), ps = BOOKS.filter(b => this.isPath(b) && b.published !== false);
     return ps.find(b => goal && goal.cats.includes(b.category)) || ps.find(b => b.is_free) || ps[0] || null;
   },
@@ -11961,11 +12583,11 @@ window.Path = {
         const cur = S.items.find(x => x.s === 'cur');
         if (cur) {
           if (cur.kind === 'intro') {
-            actionBtn = `<button class="d-btn-primary" style="height: 52px; font-size: 15px; letter-spacing: 0; text-transform: none; border-radius: 16px; font-weight: 800;" onclick="Path.tap('${cur.id}')">Продолжить знакомство <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:8px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></button>`;
+            actionBtn = `<button class="d-btn-primary" style="height: 52px; font-size: 15px; letter-spacing: 0; text-transform: none; border-radius: 16px; font-weight: 800;" onclick="Path.open()">Продолжить путь <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:8px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></button>`;
             actionLabel = 'Знакомство';
             actionTime = '~5 мин';
           } else if (cur.kind === 'finale') {
-            actionBtn = `<button class="d-btn-primary" style="height: 52px; font-size: 15px; letter-spacing: 0; text-transform: none; border-radius: 16px; font-weight: 800;" onclick="Path.tap('fin')">Открыть финал 👑</button>`;
+            actionBtn = `<button class="d-btn-primary" style="height: 52px; font-size: 15px; letter-spacing: 0; text-transform: none; border-radius: 16px; font-weight: 800;" onclick="Path.open()">Открыть финал 👑</button>`;
             actionLabel = 'Финал';
             actionTime = '~5 мин';
             } else {
@@ -11981,7 +12603,7 @@ window.Path = {
               } else if (cur.light) {
                 actionBtn = `<button class="d-btn-primary" style="height: 52px; font-size: 15px; letter-spacing: 0; text-transform: none; border-radius: 16px; font-weight: 800;" onclick="Path.doLight('${cur.id}')">Сделать минимум 🍃</button>`;
               } else {
-                actionBtn = `<button class="d-btn-primary" style="height: 52px; font-size: 15px; letter-spacing: 0; text-transform: none; border-radius: 16px; font-weight: 800;" onclick="Path.open({sheet:true})">Продолжить путь <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:8px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></button>`;
+            actionBtn = `<button class="d-btn-primary" style="height: 52px; font-size: 15px; letter-spacing: 0; text-transform: none; border-radius: 16px; font-weight: 800;" onclick="Path.open()">Продолжить путь <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:8px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></button>`;
               }
             }
         } else {
@@ -12077,7 +12699,8 @@ window.Path = {
       
       const stats = getGlobalStats();
       const streak = this.globalStreak();
-      
+      const actionTime = '0 мин';
+
       return `
       <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
         <!-- Карточка 1: Книга -->
@@ -12137,7 +12760,15 @@ window.Path = {
         </div>
       </div>`;
     }
-    return '';
+
+    return `
+      <div class="d-card-glass" style="padding: 24px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(145deg, rgba(35,25,60,0.7) 0%, rgba(20,14,35,0.9) 100%); border: 1px solid rgba(124,92,255,0.25); border-radius: 24px;">
+        <div style="font-size: 48px; margin-bottom: 12px; filter: drop-shadow(0 0 15px rgba(124,92,255,0.5));">📚</div>
+        <div style="font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 8px;">Твоя полка пуста</div>
+        <div style="font-size: 13px; color: var(--d-text-dim); line-height: 1.5; margin-bottom: 20px;">Выбери книгу в библиотеке, чтобы начать свой путь к лучшей версии себя.</div>
+        <button class="d-btn-primary" onclick="showLibrary()" style="height: 48px; font-size: 14px; border-radius: 16px; width: 100%;">Перейти в библиотеку</button>
+      </div>
+    `;
   },
 // [КОНЕЦ НОВОГО КОДА]  
 
