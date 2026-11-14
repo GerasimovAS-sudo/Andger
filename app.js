@@ -1463,6 +1463,10 @@ function hideAll(){
     el.style.removeProperty('display');
     if (el.classList.contains('app-dialog-overlay')) el.remove(); // Полностью удаляем кастомные окна
   });
+  // Скрываем карту пути, чтобы она не перекрывала другие экраны
+  try { if (window.Path && Path.el) Path.el.classList.add('hidden'); } catch(e) {}
+  document.body.classList.remove('pt-open');
+
   const bn=document.getElementById('bottomNav');
   if(bn) { bn.classList.add('hidden'); bn.style.display = 'none'; }
   const fi=document.getElementById('feedInputWrap');if(fi)fi.style.display='none';
@@ -11900,6 +11904,9 @@ window.Path = {
       </div>
     `;
     
+    // Убеждаемся, что карта пути скрыта под погружением
+    try { if (this.el) this.el.classList.add('hidden'); } catch(e) {}
+
     document.body.appendChild(overlay);
     document.body.classList.add('app-focus-mode');
     
