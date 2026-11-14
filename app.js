@@ -979,9 +979,15 @@ function setSplashProgress(pct){
 function hideLoader(){
   const l = document.getElementById('appLoader');
   if(l){
-    l.style.display = 'none'; // Жестко скрываем, чтобы не перекрывал лендинг
-    l.classList.add('hide');
-    setTimeout(() => l.remove(), 100);
+    // Включаем плавное затухание через CSS
+    l.style.transition = 'opacity 0.4s ease';
+    l.style.opacity = '0';
+    l.style.pointerEvents = 'none';
+    
+    // Удаляем из DOM только после завершения анимации
+    setTimeout(() => {
+      l.remove();
+    }, 400); 
   }
   document.body.classList.remove('app-loading');
 }
@@ -1373,12 +1379,21 @@ function saveState(changedBookId = null){
       localStorage.setItem('andger_current_state', JSON.stringify(minimalState));
     } catch (e2) {
       console.error('Критическая ошибка: не удалось сохранить даже минимальный стейт', e2);
+      if (typeof toast === 'function') {
+        toast('⚠️ Браузер ограничил локальное сохранение. Прогресс сохраняется на сервере.', 'warm');
+      }
     }
   }
 
   // 2. Отправляем на сервер с задержкой
   if(syncTimeout) clearTimeout(syncTimeout);
   syncTimeout = setTimeout(() => syncProgress(changedBookId), 1500);
+}
+
+// Принудительная синхронизация (для важных действий)
+function forceSyncProgress(bookId = null) {
+  if(syncTimeout) clearTimeout(syncTimeout);
+  syncProgress(bookId);
 }
 
 // ─── ОФФЛАЙН ОЧЕРЕДЬ ───
@@ -1655,7 +1670,7 @@ function checkStreakLoss() {
   
   if (localStorage.getItem(msgKey)) return;
 
-  const streak = calcStreak(currentBook.id);
+  const streak = Path.globalStreak();
   
   // Если огонь сгорел (0), но книга была начата не сегодня
   if (streak === 0 && bs.start < today) {
@@ -2398,12 +2413,11 @@ function renderToday() {
   if(todayAvaEl) todayAvaEl.innerHTML = getAvatarHtml(state.avatar, 26);
   
   const fullName = user.name || 'Друг';
-  // Обновляем XP и Огонь в шапке
   const stats = getGlobalStats();
   const cardFire = document.getElementById('cardFire');
   const cardXP = document.getElementById('cardXP');
-    if (cardFire) {
-    const streak = calcStreak(currentBook.id);
+  if (cardFire) {
+    const streak = Path.globalStreak(); // Используем глобальный огонь для шапки
     cardFire.textContent = isNaN(streak) ? 0 : streak;
   }
   if (cardXP) cardXP.textContent = stats.totalXP;
@@ -2414,123 +2428,9 @@ function renderToday() {
   const b = currentBook, bs = getBookState(b.id);
   const day = currentDay(b.id), date = dateByDay(b.id, day);
   const todayRec = bs.days[date] || {practices:[]};
-  const todayCount = (todayRec.practices||[]).length;
-  const total = b.practices.length;
-  const isDayClosed = Boolean(todayRec.closed) || (total > 0 && todayCount >= total);
-
-  // 1. Карточка книги и кольца
-  const mpcBookTitle = document.getElementById('mpcBookTitle');
-  const mpcBookAuthor = document.getElementById('mpcBookAuthor');
-  const mpcBookIcon = document.getElementById('mpcBookIcon');
+  
   const lumiTip = document.getElementById('lumiTip');
   const mpcIdentity = document.getElementById('mpcIdentity');
-
-  if (mpcBookTitle) mpcBookTitle.textContent = b.title;
-  if (mpcBookAuthor) mpcBookAuthor.textContent = b.author || 'Неизвестный автор';
-  
-  if (mpcBookIcon) {
-  mpcBookIcon.style.overflow = 'hidden'; 
-    if (b.cover_url) {
-      mpcBookIcon.style.padding = '0';
-      mpcBookIcon.style.position = 'relative';
-      // Заполняем весь квадрат, как в остальном приложении
-      mpcBookIcon.innerHTML = `<img src="${b.cover_url}" alt="${b.title}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
-    } else {
-      mpcBookIcon.style.padding = '8px';
-      mpcBookIcon.innerHTML = getEmojiOrSvg(b.emoji, 70, b.title);
-    }
-  }
-
-  const circ = 264; // 2 * pi * 42
-
-  // Считаем время (минуты)
-  let timeDone = 0;
-  let timeTotal = 0;
-  b.practices.forEach(p => {
-    const pTime = p.time || 0;
-    timeTotal += pTime;
-    if ((todayRec.practices || []).includes(p.id)) {
-      timeDone += pTime;
-    }
-  });
-  const minDone = Math.round(timeDone / 60);
-  const minTotal = Math.round(timeTotal / 60);
-
-  // Выводим текст под книгой
-  const mpcProgressText = document.getElementById('mpcProgressText');
-  if (mpcProgressText) {
-    mpcProgressText.innerHTML = `
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-      <span>${todayCount} из ${total} практик · ${minDone}/${minTotal} мин</span>
-    `;
-  }
-
-    // Обновляем новый блок прогресса
-  const isStarted = !!bs.start;
-  const closedDays = countClosedDays(b.id);
-  const isCourseDone = isStarted && closedDays >= b.days;
-  
-  // Если книга пройдена, принудительно ставим 100%
-  const pctCourse = isCourseDone ? 100 : (isStarted ? Math.round(day / b.days * 100) : 0);
-
-  const mpcCourseText = document.getElementById('mpcCourseText');
-  if (mpcCourseText) {
-    if (isCourseDone) {
-      mpcCourseText.textContent = `Курс завершен 👑`;
-      mpcCourseText.style.color = 'var(--d-gold)';
-      mpcCourseText.style.textShadow = '0 0 10px rgba(255,184,0,0.5)';
-    } else {
-      mpcCourseText.textContent = isStarted ? `День ${day} из ${b.days}` : 'Не начат';
-      mpcCourseText.style.color = '';
-      mpcCourseText.style.textShadow = '';
-    }
-  }
-  
-  const mpcCourseBar = document.getElementById('mpcCourseBar');
-  if (mpcCourseBar) {
-    mpcCourseBar.style.width = pctCourse + '%';
-    if (isCourseDone) {
-      // Включаем золотое свечение и анимацию
-      mpcCourseBar.style.background = 'linear-gradient(90deg, #ffb800, #ff7a2a, #ffb800)';
-      mpcCourseBar.style.backgroundSize = '200% 100%';
-      mpcCourseBar.style.animation = 'shimmerProgress 2s linear infinite';
-      mpcCourseBar.style.boxShadow = '0 0 12px rgba(255,184,0,0.8)';
-    } else {
-      // Обычный вид
-      mpcCourseBar.style.background = 'linear-gradient(90deg, #4f46e5, #ff9d00)';
-      mpcCourseBar.style.backgroundSize = 'auto';
-      mpcCourseBar.style.animation = 'none';
-      mpcCourseBar.style.boxShadow = 'none';
-    }
-  }
-
-  // Обновляем текст "Дней до конца"
-  const mpcDaysLeftWrap = document.getElementById('mpcDaysLeft') ? document.getElementById('mpcDaysLeft').parentElement : null;
-  if (mpcDaysLeftWrap) {
-    if (isCourseDone) {
-      mpcDaysLeftWrap.innerHTML = 'Курс пройден! 🎉';
-      mpcDaysLeftWrap.style.color = 'var(--d-gold)';
-      mpcDaysLeftWrap.style.fontWeight = '900';
-    } else {
-      mpcDaysLeftWrap.innerHTML = `Дней до конца: <span id="mpcDaysLeft" style="color:var(--d-warm);">${isStarted ? Math.max(0, b.days - day) : b.days}</span>`;
-      mpcDaysLeftWrap.style.color = '';
-      mpcDaysLeftWrap.style.fontWeight = '';
-    }
-  }
-
-  // Цитата дня (ТОЛЬКО ИЗ ТЕКУЩЕЙ КНИГИ)
-  const mpcQuoteText = document.getElementById('mpcQuoteText');
-const mpcQuoteAuthor = document.getElementById('mpcQuoteAuthor');
-let q = null;
-
-if (b.quotes && b.quotes.length > 0) {
-  // Берем цитату строго из книги, которую проходит пользователь
-  q = b.quotes[day % b.quotes.length];
-}
-
-// Если в книге нет цитат, показываем заглушку (или можно скрыть блок)
-if (mpcQuoteText) mpcQuoteText.textContent = q ? q.text : 'Продолжай свой путь к лучшей версии себя.';
-if (mpcQuoteAuthor) mpcQuoteAuthor.textContent = q ? `— ${q.author || b.author}` : `— ${b.author}`;
 
   // Луми
   if (lumiTip) {
@@ -3893,7 +3793,10 @@ function markPracticeDoneForBook(bookId, pid){
     haptic('success');
     toast(`+${xpAmount} XP за практику!`, 'success');
   }
+  
+  // Сохраняем локально и МГНОВЕННО отправляем на сервер
   saveState(bookId);
+  forceSyncProgress(bookId); 
 }
 
 // ─── СВОЙ РИТУАЛ ───
@@ -4303,7 +4206,7 @@ async function completePracticeDone(){
     markPracticeDone(practice.id);
     playCheck();
     fireConfetti();
-    closePractice();
+    executeClosePractice();
     finishRitual(true);
   }
   // Вызываем новую единую функцию сохранения
@@ -4355,7 +4258,7 @@ function completePracticeSkip(){
     markPracticeDone(practice.id);
     playCheck();
     fireConfetti();
-    closePractice();
+    executeClosePractice();
     finishRitual(true);
   }
 }
@@ -12812,7 +12715,6 @@ if (typeof window.markPracticeDone !== 'function') window.markPracticeDone = fun
   wrap('openPractice', (o, t, a) => { if (!Path._starting) Path.active = null; return o.apply(t, a); });
   wrap('startRitual', (o, t, a) => { if (Path.cur()) { Path.open(); return; } Path.active = null; return o.apply(t, a); });
   wrap('startBookFromDetail', (o, t, a) => { const b = BOOKS.find(x => x.id === bookDetailId); if (b && Path.isPath(b)) { Path.startBook(b.id); return; } return o.apply(t, a); });
-  wrap('calcStreak', (o, t, a) => { try { return Path.globalStreak(); } catch (e) { return o.apply(t, a); } });
   wrap('renderToday', (o, t, a) => { const r = o.apply(t, a); try { Path.decorate(); } catch (e) { console.debug('[ANDGER] path decorate', e); } return r; });
 })();
 

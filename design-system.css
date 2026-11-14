@@ -927,27 +927,26 @@ div[onclick="showPremium()"] div {
   align-items: center;
   justify-content: center;
 }
-/* ═══════ ПЛОТНЫЙ ФОН ЗАГРУЗКИ В СТИЛЕ ПРИЛОЖЕНИЯ ═══════ */
 #appLoader {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  inset: 0; /* Это заменяет top, left, right, bottom */
   width: 100vw;
-  height: 100vh; 
-  height: 100dvh; 
+  height: 100vh; /* Фолбэк для старых iOS */
+  min-height: 100dvh; /* Безопасная высота */
   background-color: #120c24;
   background-image: 
     radial-gradient(circle at 10% 10%, rgba(124, 92, 255, 0.25) 0%, transparent 50%),
     radial-gradient(circle at 90% 80%, rgba(255, 122, 42, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, rgba(30, 92, 255, 0.1) 0%, transparent 60%);
-  background-attachment: fixed;
+  background-attachment: scroll; /* ВАЖНО: Убрали fixed */
+  background-size: cover;
   z-index: var(--z-loader);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  /* ЖЕСТКИЙ ФИКС НИЖНЕЙ ПОЛОСЫ */
-  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  /* Учитываем нижнюю безопасную зону iPhone */
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important; 
   box-sizing: border-box;
 }
 /* Компактный календарь на Главной */
