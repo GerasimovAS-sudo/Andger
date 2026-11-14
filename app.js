@@ -1406,7 +1406,8 @@ function addToOfflineQueue(actionType, payload) {
 }
 
 async function processOfflineQueue() {
-  const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+  let queue = [];
+  try { queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'); } catch(e) {}
   if (!queue.length || !user || !navigator.onLine) return;
   
   dlog(`[ANDGER] Найдено ${queue.length} оффлайн-действий. Синхронизация...`);
@@ -4365,6 +4366,9 @@ function executeClosePractice() {
   document.getElementById('practiceScreen').classList.add('hidden');
   restoreAppScrolling();
   stopTimer(); timerState='idle'; stopMusic();
+  
+  // На всякий случай очищаем погружение и его кнопку
+  if (typeof Path !== 'undefined' && Path.closeCinematic) Path.closeCinematic();
   
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
@@ -10656,8 +10660,9 @@ function renderChallenge() {
   
   if(!banner || !streakEl || !bar || !titleEl || !btn) return;
 
-  // Проверяем, участвует ли человек в марафоне (сохраняем в localStorage)
-  const isJoined = localStorage.getItem('andger_challenge_joined') === 'true';
+  // Проверяем, участвует ли человек в марафоне
+  let isJoined = false;
+  try { isJoined = localStorage.getItem('andger_challenge_joined') === 'true'; } catch(e) {}
 
   // Ищем максимальный огонь по всем книгам
   let maxStreak = 0;
@@ -12038,6 +12043,11 @@ window.Path = {
       el.style.opacity = 0;
       setTimeout(() => el.remove(), 300);
     }
+    
+    // УДАЛЯЕМ ЗАВИСШУЮ КНОПКУ "РАЗВЕРНУТЬ ПОГРУЖЕНИЕ"
+    const returnBtn = document.getElementById('returnAudioBtn');
+    if (returnBtn) returnBtn.remove();
+    
     document.body.classList.remove('app-focus-mode');
     if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
