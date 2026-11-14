@@ -269,11 +269,12 @@ body::before {
   display: flex;
   gap: 6px;
   padding: 10px 8px;
-  background: var(--d-surface);
+  
+  /* Вместо прозрачности и размытия — плотный фон, который сливается с дизайном */
+  background: rgba(40, 30, 70, 0.85); 
   border: 1px solid var(--d-border);
   border-radius: var(--d-radius-xl);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  
   overflow-x: auto;
   scrollbar-width: none;
 }

@@ -11432,7 +11432,7 @@ window.AP = {
   // ── Книги ──
   async books() {
     if (!this.area()) return;
-    this.bar(`<div class="ap-title">Книги <i class="ap-cnt" id="apCnt"></i></div><button class="ap-btn" onclick="showJsonImportModal()">⇪ Импорт</button><button class="ap-btn p" onclick="AP.edit(null)">＋ Новая</button>
+    this.bar(`<div class="ap-title">Книги <i class="ap-cnt" id="apCnt"></i></div><button class="ap-btn p" onclick="showJsonImportModal()">⇪ Импорт JSON</button>
       <div class="ap-search"><input class="ap-in" id="apQ" type="search" placeholder="Поиск: название, автор" autocomplete="off"></div><div class="ap-chips" id="apChips"></div>`);
     const { data, error } = await sb.from('books').select('*');
     if (error) return this.area() && (this.area().innerHTML = '<div class="ap-empty">Ошибка загрузки книг</div>');
@@ -11457,7 +11457,7 @@ window.AP = {
       return `<div class="ap-card ap-book"><div class="ap-item"><div class="ap-cover">${this.esc(b.emoji || '📖')}</div><div class="ap-main"><div class="ap-name">${this.esc(b.title)}</div><div class="ap-sub">${this.esc(b.author)}</div>
         <div class="ap-tags"><span class="ap-tag">${this.esc(b.category || 'Без категории')}</span><span class="ap-tag">${b.days || '—'} дн</span><span class="ap-tag">${pr.length} практик · ≈${mins} мин</span>${b._isLocal ? '<span class="ap-tag">локальная</span>' : ''}${!b.published ? '<span class="ap-tag er">черновик</span>' : ''}</div></div></div>
         <div class="ap-bfoot">${b._isLocal ? '' : `<label class="ap-tg"><button class="ap-sw ${b.published ? 'on' : ''}" onclick="AP.tog('${i}','published')" aria-label="Опубликована"></button>Опубл.</label><label class="ap-tg"><button class="ap-sw ${b.is_free ? 'on' : ''}" onclick="AP.tog('${i}','is_free')" aria-label="Бесплатная"></button>Беспл.</label>`}
-        <span style="flex:1"></span><button class="ap-btn s p" onclick="showBookEditor('${i}')">Править</button><button class="ap-btn s" onclick="AP.editId('${i}')">JSON</button><button class="ap-more s" onclick="AP.bookMenu('${i}')" aria-label="Ещё">⋯</button></div></div>`;
+        <span style="flex:1"></span><button class="ap-btn s p" onclick="showBookEditor('${i}')">Править</button><button class="ap-more s" onclick="AP.bookMenu('${i}')" aria-label="Ещё">⋯</button></div></div>`;
     }).join('') + (l.length > this.lim ? `<button class="ap-btn wide" onclick="AP.more()">Показать ещё (${l.length - this.lim})</button>` : '') || '<div class="ap-empty">Книг не найдено</div>';
   },
   byId(id) { return (adminAllBooks || []).find(b => String(b.id) === String(id)); },
@@ -11498,22 +11498,43 @@ window.AP = {
     if (Array.isArray(o.practices)) {
       if (!o.practices.length) w('Нет практик');
       if (o.practices.length === days && days > 7) w('Режим «пошаговый курс»: по одной практике на день');
-      o.practices.forEach((p, i) => {
-        const n = `Практика ${i+1}`, e0 = E.length, w0 = W.length; if (!p || typeof p !== 'object') return e(n + ': не объект');
-        if (!p.id || ids.has(p.id)) e(`${n}: id пустой или повторяется`); ids.add(p.id);
-        if (!p.title) e(n + ': нет title');
-        if (!AP_ICO.includes(p.ico)) e(`${n}: ico «${p.ico}» нет в списке иконок`);
-        if (!Number.isFinite(p.time) || p.time < 30 || p.time > 3600) e(`${n}: time в СЕКУНДАХ (30–3600), сейчас ${p.time}`); else sec += p.time;
-        ['how','mistakes'].forEach(k => { if (!Array.isArray(p[k]) || !p[k].length) e(`${n}: «${k}» должен быть непустым массивом`); });
-        if (String(p.trigger || '').trim().toLowerCase().startsWith('якорь')) w(`${n}: trigger начинается со слова «Якорь» — заголовок уже есть в интерфейсе`);
-        const t = p.voiceTimeline;
-        if (!Array.isArray(t) || !t.length) w(`${n}: нет voiceTimeline (озвучки)`);
-        else { let prev = -1; t.forEach((x, j) => { if (!Number.isFinite(x.time) || !x.text) e(`${n}: фраза ${j+1} без time/text`); else { if (x.time <= prev) e(`${n}: тайминги не по возрастанию (фраза ${j+1})`); prev = x.time; } });
-          if (prev >= p.time - 15) w(`${n}: последняя фраза на ${prev}с при длительности ${p.time}с — приложение сожмёт тайминги`); }
-        const vs = p.voice_settings;
-        if (vs) { if (vs.voice && !AP_VOICES.includes(vs.voice)) e(`${n}: неизвестный голос «${vs.voice}»`); if (vs.emotion !== undefined && !AP_EMO.includes(vs.emotion)) e(`${n}: emotion только "", good, evil`); if (vs.speed && (vs.speed < .5 || vs.speed > 2)) e(`${n}: speed 0.5–2.0`); }
-        rows.push({ t: p.title || '—', s: p.time, v: (t || []).length, st: E.length > e0 ? 'e' : W.length > w0 ? 'w' : 'g' });
-      });
+        o.practices.forEach((p, i) => {
+          const n = `Практика ${i+1}`, e0 = E.length, w0 = W.length; if (!p || typeof p !== 'object') return e(n + ': не объект');
+          if (!p.id || ids.has(p.id)) e(`${n}: id пустой или повторяется`); ids.add(p.id);
+          if (!p.title) e(n + ': нет title');
+          if (!AP_ICO.includes(p.ico)) e(`${n}: ico «${p.ico}» нет в списке иконок`);
+          if (!Number.isFinite(p.time) || p.time < 30 || p.time > 3600) e(`${n}: time в СЕКУНДАХ (30–3600), сейчас ${p.time}`); else sec += p.time;
+          ['how','mistakes'].forEach(k => { if (!Array.isArray(p[k]) || !p[k].length) e(`${n}: «${k}» должен быть непустым массивом`); });
+          if (String(p.trigger || '').trim().toLowerCase().startsWith('якорь')) w(`${n}: trigger начинается со слова «Якорь» — заголовок уже есть в интерфейсе`);
+          
+          if (p.type !== 'audio') {
+            const t = p.voiceTimeline;
+            if (!Array.isArray(t) || !t.length) w(`${n}: нет voiceTimeline (озвучки)`);
+            else {
+              let prev = -1;
+              t.forEach((x, j) => {
+                if (!Number.isFinite(x.time) || !x.text) e(`${n}: фраза ${j+1} без time/text`);
+                else {
+                  if (x.time <= prev) e(`${n}: тайминги не по возрастанию (фраза ${j+1})`);
+                  prev = x.time;
+                }
+              });
+              if (prev >= p.time - 15) w(`${n}: последняя фраза на ${prev}с при длительности ${p.time}с — приложение сожмёт тайминги`);
+            }
+          } else {
+            if (!p.immersion_text) w(`${n}: нет immersion_text (текста погружения)`);
+          }
+          
+          const vs = p.voice_settings;
+          if (vs) { 
+            if (vs.voice && !AP_VOICES.includes(vs.voice)) e(`${n}: неизвестный голос «${vs.voice}»`); 
+            if (vs.emotion !== undefined && !AP_EMO.includes(vs.emotion)) e(`${n}: emotion только "", good, evil`); 
+            if (vs.speed && (vs.speed < .5 || vs.speed > 2)) e(`${n}: speed 0.5–2.0`); 
+          }
+          
+          // ВАЖНО: используем (p.voiceTimeline || []) вместо t
+          rows.push({ t: p.title || '—', s: p.time, v: (p.voiceTimeline || []).length, st: E.length > e0 ? 'e' : W.length > w0 ? 'w' : 'g' });
+        });
     }
     if (o.format === 2) this.checkPath(o, E, W);
     return { E, W, rows, info: `Практик: ${(o.practices||[]).length} · ≈ ${Math.round(sec/60)} мин · подсказок: ${(o.lumi_tips||[]).length}` };
@@ -11525,7 +11546,7 @@ window.AP = {
     p.weeks.forEach((w, wi) => { if (!w.title) W.push(`Неделя ${wi + 1}: нет title`); (w.nodes || []).forEach(nd => {
       n++; if (!nd.id || nid.has(nd.id)) E.push(`Узел ${n}: id пустой или повторяется`); nid.add(nd.id);
       const pr = nd.practices; if (!Array.isArray(pr) || pr.length < 1 || pr.length > 2) E.push(`Узел ${nd.id}: practices — 1–2 id`);
-      [...(pr || []), ...(nd.recap || [])].forEach(id => { if (!ids.has(id)) E.push(`Узел ${nd.id}: нет практики «${id}»`); else used.add(id); });
+[...(pr || []), ...(nd.recap || []), ...(nd.bonus_practices || [])].forEach(id => { if (!ids.has(id)) E.push(`Узел ${nd.id}: нет практики «${id}»`); else used.add(id); });
       if (nd.focus && nd.focus.length > 90) W.push(`Узел ${nd.id}: focus длиннее 90 символов`);
       const dup = (nd.recap || []).filter(id => (pr || []).includes(id)); if (dup.length) W.push(`Узел ${nd.id}: recap повторяет практику узла (${dup.join(', ')}) — уберите`);
       const mins = (pr || []).reduce((s, id) => s + (((o.practices || []).find(x => x.id === id) || {}).time || 0), 0) / 60, lim = wi === 0 ? 6 : wi === 1 ? 10 : 13;

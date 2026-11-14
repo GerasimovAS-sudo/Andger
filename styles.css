@@ -1926,7 +1926,10 @@ body, #screensRoot {
 }
 /* Убираем лишний отступ для экранов без нижнего меню */
 #settingsScreen .wrap, 
-#adminScreen .wrap,
+#adminScreen .wrap {
+  padding-top: calc(175px + env(safe-area-inset-top, 0px)) !important; 
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
+}
 #bookDetailScreen .wrap,
 #helpScreen .wrap,
 #notificationsScreen .wrap {
@@ -2569,25 +2572,23 @@ input, textarea, select {
 
 .admin-pro-tabs {
   position: fixed;
-  top: calc(90px + env(safe-area-inset-top, 0px));
+  top: calc(64px + env(safe-area-inset-top, 0px)); /* Прилипает ровно под шапку */
   left: 0; right: 0;
   max-width: 520px;
   margin: 0 auto;
   display: flex;
-  gap: 8px; /* Чуть увеличили отступ между кнопками */
+  gap: 8px;
   padding: 8px 16px 12px 16px;
-  border-bottom: 1px solid rgba(124, 92, 255, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  overflow-x: auto;
   
-  /* ДОБАВЛЯЕМ ПЛАВНЫЙ СВАЙП */
+  /* ВОТ ГЛАВНЫЙ ФИКС: Плотный фон вместо прозрачного */
+  background: #120c24; 
+  border-bottom: 1px solid rgba(124, 92, 255, 0.15);
+  
+  overflow-x: auto;
   scroll-snap-type: x proximity;
   scroll-behavior: smooth;
   scrollbar-width: none;
-  z-index: 90;
-  
-  /* Легкое затемнение по краям, чтобы было видно, что можно свайпать */
+  z-index: 900;
   -webkit-mask-image: linear-gradient(to right, transparent, black 5px, black calc(100% - 15px), transparent);
   mask-image: linear-gradient(to right, transparent, black 5px, black calc(100% - 15px), transparent);
 }
@@ -2920,7 +2921,21 @@ input, textarea, select {
 .ap{color:var(--d-text,#ece9f7);padding-bottom:90px}
 .ap *{box-sizing:border-box}
 .ap-dim{color:var(--d-text-dim,#8f89ab)}.ap-s{font-size:11px}
-.ap-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.ap-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  
+  /* ДЕЛАЕМ ПРИЛИПАЮЩИМ */
+  position: sticky;
+  top: calc(115px + env(safe-area-inset-top, 0px)); /* Прилипает под вкладками */
+  background: #120c24; /* Плотный фон */
+  z-index: 80;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
 .ap-title{font-size:21px;font-weight:800;margin-right:auto;display:flex;align-items:center;gap:8px}
 .ap-cnt{font-style:normal;font-size:12px;font-weight:700;background:var(--ap-bg2);border-radius:10px;padding:1px 9px;color:var(--d-text-dim,#8f89ab)}
 .ap-search{display:flex;gap:8px;width:100%}.ap-search .ap-in:first-child{flex:1}.ap-search select{width:auto;flex:0 0 128px}
