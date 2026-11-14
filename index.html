@@ -579,7 +579,21 @@
           </div>
         </div>
 
-                <!-- ГРАФИК НАСТРОЕНИЯ -->
+        <!-- ✨ КНОПКА РЕЙТИНГА (ТЕПЕРЬ ЗДЕСЬ, НАД НАСТРОЕНИЕМ) ✨ -->
+        <div class="d-card-glass" onclick="showRatingScreen()" style="margin-top: 4px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-color: rgba(255, 184, 0, 0.3); background: linear-gradient(135deg, rgba(255, 184, 0, 0.1), rgba(255, 122, 42, 0.05));">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255, 184, 0, 0.15); display: flex; align-items: center; justify-content: center; color: var(--d-gold);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+                </div>
+                <div>
+                    <div style="font-size: 14px; font-weight: 800; color: var(--d-text);">Рейтинг участников</div>
+                    <div style="font-size: 11px; color: var(--d-text-dim);">Соревнуйся с друзьями</div>
+                </div>
+            </div>
+            <div style="color: var(--d-gold); font-size: 20px; font-weight: 300;">›</div>
+        </div>
+
+        <!-- ГРАФИК НАСТРОЕНИЯ -->
         <div class="d-card-glass" style="padding:16px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <div style="font-size:11px; font-weight:900; color:var(--d-muted); text-transform:uppercase; letter-spacing:1px;">😊 Настроение за 7 дней</div>
@@ -663,7 +677,6 @@
         <div style="display:flex; gap:8px; padding:4px; background:var(--d-surface); border:1px solid var(--d-border); border-radius:16px;">
           <div class="tab-pill on" onclick="switchCommunityTab('feed', this)">📱 Лента</div>
           <div class="tab-pill" onclick="switchCommunityTab('chats', this)">💬 Сообщения</div>
-          <div class="tab-pill" onclick="switchCommunityTab('people', this)">🏆 Рейтинг</div>
         </div>
 
                 <!-- Контент -->
@@ -692,12 +705,6 @@
         <div id="communityChats" class="hidden">
           <div id="chatsList" style="display:flex; flex-direction:column; gap:8px;"></div>
         </div>
-        <div id="communityPeople" class="hidden">
-          <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
-            <div class="d-lib-chip" id="rankFilterBtn" onclick="toggleRankFilter()" style="cursor:pointer;">👥 Только друзья</div>
-          </div>
-          <div id="leadersList"></div>
-        </div>
       </div>
 
       <!-- Поле ввода поста (скрыто по умолчанию, появляется во вкладке Лента) -->
@@ -709,6 +716,31 @@
       </div>
     </div>
     
+    <!-- НОВЫЙ ЭКРАН: РЕЙТИНГ -->
+    <div id="ratingScreen" class="hidden">
+      <div class="d-header">
+        <div style="display:flex; align-items:center; gap:12px; flex:1;">
+          <button onclick="showStatsScreen()" style="background:transparent; border:none; color:var(--d-text); cursor:pointer;" aria-label="Назад">
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          </button>
+          <div class="d-header-greet">
+            <div class="d-header-greet-label">РЕЙТИНГ</div>
+            <div class="d-header-greet-name" style="font-size: 16px;">Топ участников</div>
+          </div>
+        </div>
+        <div class="d-header-actions">
+          <div class="d-avatar" id="ratingAvatar" onclick="showProfile()"></div>
+        </div>
+      </div>
+
+      <div class="wrap" style="padding-top: calc(85px + var(--safe-top)); padding-bottom: calc(40px + var(--safe-bottom));">
+        <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+          <div class="d-lib-chip" id="rankFilterBtn" onclick="toggleRankFilter()" style="cursor:pointer;">👥 Только друзья</div>
+        </div>
+        <div id="leadersList"></div>
+      </div>
+    </div>
+
         <!-- ЭКРАН: ПРОФИЛЬ -->
     <div id="profileScreen" class="hidden">
       <div class="d-header">
@@ -791,20 +823,6 @@
               <div>
                 <div style="font-size:14px; font-weight:900; color:var(--d-text);">Моя статистика</div>
                 <div style="font-size:11px; color:var(--d-text-dim);">Уровни, награды, книги и графики</div>
-              </div>
-            </div>
-            <div style="color:var(--d-text-dim); font-size:20px;">›</div>
-          </div>
-          
-          <!-- Кнопка Рейтинг -->
-          <div id="profileRatingRow" onclick="goToRating()" style="display:flex; justify-content:space-between; align-items:center; padding:16px; border-bottom:1px solid var(--d-border); cursor:pointer;">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <div style="width:36px; height:36px; border-radius:12px; background:rgba(255,184,0,0.1); display:flex; align-items:center; justify-content:center; color:var(--d-gold);">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
-              </div>
-              <div>
-                <div style="font-size:14px; font-weight:900; color:var(--d-text);">Рейтинг</div>
-                <div style="font-size:11px; color:var(--d-text-dim);">Соревнуйся с друзьями</div>
               </div>
             </div>
             <div style="color:var(--d-text-dim); font-size:20px;">›</div>

@@ -40,22 +40,57 @@ const SVG_ICONS = {
 };
 
 const AVATAR_ICONS = {
-  'default': '<svg viewBox="0 0 24 24" fill="url(#gradStarFill)" stroke="url(#gradDefault)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
-  'planet': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradPlanet)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><ellipse cx="12" cy="12" rx="12" ry="4" transform="rotate(-30 12 12)"></ellipse><circle cx="12" cy="12" r="2"></circle></svg>',
-  'crystal': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradCrystal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9l4-6z"></path><path d="M11 3 8 9l4 13 4-13-3-6"></path><path d="M2 9h20"></path></svg>',
-  'flame': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradFlame)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>',
-  'lotus': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradLotus)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c-4.97 0-9-4.03-9-9 0-1.66 1.34-3 3-3 1.66 0 3 1.34 3 3 0-4.97 4.03-9 9-9 4.97 0 9 4.03 9 9 0 1.66-1.34 3-3 3-1.66 0-3-1.34-3-3 0 4.97-4.03 9-9 9z"></path><path d="M12 13c-2.5 0-4.5 2-4.5 4.5 0 0 4.5 2.5 9 0 0-2.5-2-4.5-4.5-4.5z"></path></svg>',
-  'moon': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradMoon)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path><path d="M12 3v2M12 19v2"></path></svg>',
-  'sun': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradSun)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>',
-  'infinity': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradInf)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4Z"></path></svg>',
-  'compass': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradCompass)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>',
-  'shield': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradShield)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>',
-  'leaf': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradLeaf)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>',
-  'eye': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradEye)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
-  'crown': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradCrown)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>',
-  'bolt': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradBolt)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>',
-  'target': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradTarget)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>',
-  'atom': '<svg viewBox="0 0 24 24" fill="none" stroke="url(#gradAtom)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"></path><path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"></path></svg>'
+  // ─── БАЗОВЫЕ (Бесплатные) ───
+  'default': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4C7 4 3 8.5 1 12C3 15.5 7 20 12 20C17 20 21 15.5 23 12C21 8.5 17 4 12 4Z" fill="url(#gradDefault)" fill-opacity="0.2" stroke="url(#gradDefault)" stroke-width="1.5"/><circle cx="12" cy="12" r="4" fill="url(#gradDefault)"/><circle cx="12" cy="12" r="1.5" fill="#ffffff"/><path d="M12 2V4M12 20V22M2 12H4M20 12H22M5.6 5.6L7 7M17 17L18.4 18.4M18.4 5.6L17 7M7 17L5.6 18.4" stroke="url(#gradDefault)" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  'crystal': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L20 9L12 22L4 9L12 2Z" fill="url(#gradCrystal)" fill-opacity="0.6" stroke="url(#gradCrystal)" stroke-width="1.5"/><path d="M12 2L12 22M4 9L20 9M7 9L12 2M17 9L12 2" stroke="#ffffff" stroke-opacity="0.4" stroke-width="1" stroke-linejoin="round"/><path d="M12 22L8.5 9L12 2L15.5 9L12 22Z" fill="#ffffff" fill-opacity="0.2"/></svg>`,
+  'tree': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22V10M12 10C12 10 16 8 18 4C15 4 12 6 12 6C12 6 9 4 6 4C8 8 12 10 12 10ZM12 14C14 14 17 12 18 9C15 9 12 11 12 11C12 11 9 9 6 9C7 12 10 14 12 14Z" fill="url(#gradLeaf)" fill-opacity="0.8" stroke="url(#gradLeaf)" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="4" r="1.5" fill="#ffffff"/></svg>`,
+  'moon': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" fill="url(#gradMoon)" fill-opacity="0.6" stroke="url(#gradMoon)" stroke-width="1.5"/><path d="M17 4L17.5 5.5L19 6L17.5 6.5L17 8L16.5 6.5L15 6L16.5 5.5L17 4Z" fill="#ffffff"/><circle cx="8" cy="14" r="1" fill="#ffffff" fill-opacity="0.6"/><circle cx="13" cy="16" r="1.5" fill="#ffffff" fill-opacity="0.6"/><circle cx="9" cy="9" r="0.8" fill="#ffffff" fill-opacity="0.6"/></svg>`,
+  'owl': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22C17.5 22 20 17 20 12C20 7 17 2 12 2C7 2 4 7 4 12C4 17 6.5 22 12 22Z" fill="url(#gradDefault)" fill-opacity="0.5" stroke="url(#gradDefault)" stroke-width="1.5"/><circle cx="9" cy="10" r="3" fill="#ffffff" fill-opacity="0.9"/><circle cx="15" cy="10" r="3" fill="#ffffff" fill-opacity="0.9"/><circle cx="9" cy="10" r="1.5" fill="#1a1428"/><circle cx="15" cy="10" r="1.5" fill="#1a1428"/><path d="M12 13L10 16H14L12 13Z" fill="#ffffff" fill-opacity="0.8"/><path d="M4 6L7 9M20 6L17 9" stroke="url(#gradDefault)" stroke-width="2" stroke-linecap="round"/></svg>`,
+  'key': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7" r="4" fill="url(#gradDefault)" fill-opacity="0.4" stroke="url(#gradDefault)" stroke-width="1.5"/><circle cx="7" cy="7" r="1.5" fill="#ffffff" fill-opacity="0.6"/><path d="M10 10L20 20M16 16L18 14M18 18L20 16" stroke="url(#gradDefault)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  'compass': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="url(#gradCompass)" fill-opacity="0.2" stroke="url(#gradCompass)" stroke-width="1.5"/><path d="M16 8L13.5 13.5L8 16L10.5 10.5L16 8Z" fill="url(#gradCompass)" stroke="url(#gradCompass)" stroke-width="1"/><circle cx="12" cy="12" r="1.5" fill="#ffffff"/><path d="M12 2V4M12 20V22M2 12H4M20 12H22" stroke="url(#gradCompass)" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  'sword': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 3.5L20.5 9.5L10.5 19.5L8.5 17.5L14.5 3.5Z" fill="url(#gradCrown)" fill-opacity="0.6" stroke="url(#gradCrown)" stroke-width="1.5"/><path d="M5 19L9 23M3 21L7 17M8.5 17.5L6.5 15.5" stroke="url(#gradCrown)" stroke-width="2" stroke-linecap="round"/><path d="M15 5L19 9" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1"/></svg>`,
+
+  // ─── ПРЕМИУМ (Магазин) ───
+  
+  // 1. Лотос (100 XP) - Многослойный, с золотыми акцентами
+  'lotus': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 21C12 21 19 17 19 11C19 7 15 2 12 2C9 2 5 7 5 11C5 17 12 21 12 21Z" fill="url(#gradLotus)" fill-opacity="0.8"/>
+    <path d="M12 21C12 21 3 18 3 12C3 8 7 4 7 4C7 4 9 8 12 11" fill="url(#gradLotus)" fill-opacity="0.6"/>
+    <path d="M12 21C12 21 21 18 21 12C21 8 17 4 17 4C17 4 15 8 12 11" fill="url(#gradLotus)" fill-opacity="0.6"/>
+    <path d="M12 21V11" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1.5"/>
+    <circle cx="12" cy="8" r="1.5" fill="#ffb800"/>
+  </svg>`,
+
+  // 2. Атом (100 XP) - Светящееся ядро и 3D-орбиты
+  'atom': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="2.5" fill="url(#gradAtom)"/>
+    <circle cx="12" cy="12" r="4" fill="url(#gradAtom)" fill-opacity="0.3" filter="blur(2px)"/>
+    <ellipse cx="12" cy="12" rx="10" ry="3" stroke="url(#gradAtom)" stroke-width="1.5" transform="rotate(30 12 12)"/>
+    <ellipse cx="12" cy="12" rx="10" ry="3" stroke="url(#gradAtom)" stroke-width="1.5" transform="rotate(90 12 12)"/>
+    <ellipse cx="12" cy="12" rx="10" ry="3" stroke="url(#gradAtom)" stroke-width="1.5" transform="rotate(150 12 12)"/>
+    <circle cx="18" cy="8" r="1.5" fill="#ffffff"/>
+    <circle cx="6" cy="16" r="1.5" fill="#ffffff"/>
+    <circle cx="12" cy="18" r="1.5" fill="#ffffff"/>
+  </svg>`,
+
+  // 3. Мишень (150 XP) - Эффект радара
+  'target': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" fill="url(#gradTarget)" fill-opacity="0.1" stroke="url(#gradTarget)" stroke-width="1.5"/>
+    <circle cx="12" cy="12" r="6" fill="url(#gradTarget)" fill-opacity="0.2" stroke="url(#gradTarget)" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <circle cx="12" cy="12" r="2" fill="url(#gradTarget)"/>
+    <circle cx="12" cy="12" r="0.8" fill="#ffffff"/>
+    <path d="M12 2V6M12 18V22M2 12H6M18 12H22" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`,
+
+  // 4. Корона (250 XP) - Массивная, с драгоценными камнями
+  'crown': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M3 8L7 14L12 5L17 14L21 8V19H3V8Z" fill="url(#gradCrown)" stroke="url(#gradCrown)" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M3 19H21" stroke="#ffffff" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="7" cy="14" r="1.5" fill="#ff5c5c"/>
+    <circle cx="12" cy="5" r="1.5" fill="#4facfe"/>
+    <circle cx="17" cy="14" r="1.5" fill="#3ecf8e"/>
+    <circle cx="12" cy="16.5" r="1.5" fill="#ffffff" fill-opacity="0.8"/>
+  </svg>`
 };
 
 // Функция для отрисовки аватарки (теперь поддерживает SVG)
@@ -179,11 +214,14 @@ function getEmojiOrSvg(emoji, size = 24, seedString = '') {
 // Глобальная функция для подсчета опыта и уровня
 function getGlobalStats() {
   let totalEarnedXP = 0;
-  BOOKS.forEach(bb => {
-    const bbs = getBookState(bb.id);
-    Object.values(bbs.days).forEach(rec => {
+  
+  // Собираем ID всех книг: и тех, что сейчас в библиотеке, и тех, что остались в прогрессе (даже если книгу удалили)
+  const allBookIds = new Set([...BOOKS.map(b => b.id), ...Object.keys(state.books || {})]);
+
+  allBookIds.forEach(bookId => {
+    const bbs = getBookState(bookId);
+    Object.values(bbs.days || {}).forEach(rec => {
       if(rec.practices) {
-        // Если есть earnedXP — берем его, иначе считаем по старинке (для старых юзеров)
         totalEarnedXP += (rec.earnedXP !== undefined) ? rec.earnedXP : (rec.practices.length * 10);
       }
       if(rec.closed) totalEarnedXP += 50;
@@ -992,18 +1030,49 @@ function hideLoader(){
   document.body.classList.remove('app-loading');
 }
 function randomSplashQuote(){
-  // Пул: ваши цитаты (из админки и «авторская» заставки) вперемешку с цитатами из книг приложения
+  // Пул: твои цитаты (из админки и «авторская» заставки) вперемешку с цитатами из книг приложения
   const pool = [{ text: 'Мы — то, что мы делаем постоянно. Совершенство — не действие, а привычка.', author: 'Андрей Герасимов' }];
-  if (typeof appTexts !== 'undefined' && appTexts['splash_quote']) pool.push({ text: appTexts['splash_quote'], author: appTexts['splash_author'] || '' });
+  
+  if (typeof appTexts !== 'undefined' && appTexts['splash_quote']) {
+    pool.push({ text: appTexts['splash_quote'], author: appTexts['splash_author'] || '' });
+  }
+  
+  // Берем глобальные цитаты (добавленные через Админку)
   let g = (typeof globalQuotes !== 'undefined' && globalQuotes && globalQuotes.length) ? globalQuotes : [];
   if (!g.length) { try { g = JSON.parse(localStorage.getItem('andger_gq') || '[]'); } catch (e) { g = []; } }
-  g.forEach(q => { if (q && q.text) pool.push({ text: q.text, author: q.author || '' }); });
-  (typeof BOOKS !== 'undefined' ? BOOKS : []).forEach(b => (b.quotes || []).forEach(q => { if (q && q.text) pool.push({ text: q.text, author: q.author || b.author || '' }); }));
+  g.forEach(q => { 
+    if (q && q.text) {
+      // Если автор не указан, ставим пустую строку, а не чужое имя
+      pool.push({ text: q.text, author: q.author || '' }); 
+    }
+  });
+
+  // Берем цитаты из всех книг (JSON)
+  (typeof BOOKS !== 'undefined' ? BOOKS : []).forEach(b => {
+    (b.quotes || []).forEach(q => { 
+      if (q && q.text) {
+        // Если у цитаты нет автора, берем автора книги
+        pool.push({ text: q.text, author: q.author || b.author || '' }); 
+      }
+    });
+  });
+  
   if (!pool.length) return;
+  
   let i = Math.floor(Math.random() * pool.length);
-  try { const last = Number(localStorage.getItem('andger_sq')); if (pool.length > 1 && i === last) i = (i + 1) % pool.length; localStorage.setItem('andger_sq', String(i)); } catch (e) {}
-  const q = pool[i], qEl = document.getElementById('ldQuote'), aEl = document.getElementById('ldQuoteAuthor');
-  if (qEl && qEl.childNodes[0]) qEl.childNodes[0].nodeValue = q.text;
+  try { 
+    const last = Number(localStorage.getItem('andger_sq')); 
+    if (pool.length > 1 && i === last) i = (i + 1) % pool.length; 
+    localStorage.setItem('andger_sq', String(i)); 
+  } catch (e) {}
+
+  const q = pool[i];
+  const qEl = document.getElementById('ldQuote');
+  const aEl = document.getElementById('ldQuoteAuthor');
+  
+  // Используем textContent для безопасной вставки (чтобы длинный текст переносился)
+  if (qEl) qEl.textContent = q.text;
+  // Если автор пустой, скрываем подпись, чтобы не было просто тире
   if (aEl) aEl.textContent = q.author ? '— ' + String(q.author).toUpperCase() : '';
 }
 
@@ -1147,11 +1216,15 @@ async function handleSession(session) {
   await loadBooksFromSupabase();
   
   // А уведомления, цитаты и тексты загружаем в фоне, чтобы не тормозить вход
-  Promise.allSettled([
+  await Promise.allSettled([
     loadNotifications(),
     loadQuotes(),
     loadAppTexts()
   ]);
+
+  // ✨ МАГИЯ: Теперь, когда книги и цитаты загружены, перемешиваем цитату еще раз!
+  try { randomSplashQuote(); } catch (e) { console.debug('[ANDGER] Splash quote error:', e); }
+
   setSplashProgress(90);
 
   applyTheme();
@@ -1464,7 +1537,7 @@ function hideAll(){
    'publicProfileScreen','adminScreen','bookDetailScreen','ritualBuilderScreen',
    'ritualScreen','practiceScreen','completeOverlay','settingsScreen',
    'helpScreen','notificationsScreen','dialogScreen','bookEditorScreen',
-   'premiumScreen', 'shopScreen', 'firstBookScreen'
+   'premiumScreen', 'shopScreen', 'firstBookScreen', 'ratingScreen'
   ].forEach(id=>{
     const el=document.getElementById(id);
     if(el){
@@ -1813,11 +1886,16 @@ function backFromProfile(){
   else if(profilePrev==='admin')showAdmin();
   else smartHome();
 }
-function goToRating() {
-  showCommunityScreen();
-  setTimeout(() => {
-    switchCommunityTab('people', document.querySelectorAll('.tab-pill')[2]);
-  }, 100);
+function showRatingScreen() {
+  hideAll();
+  document.getElementById('ratingScreen').classList.remove('hidden');
+  
+  // Ставим аватарку в шапку
+  const ava = document.getElementById('ratingAvatar');
+  if(ava) ava.innerHTML = getAvatarHtml(state.avatar, 24);
+  
+  loadPeople(); // Запускаем загрузку списка лидеров
+  
 }
 
 function backFromStats(){ showProfile(); }
@@ -1893,26 +1971,31 @@ function backFromDialog(){
 }
 function backFromCommunity(){ smartHome(); }
 
-function navTo(page,el){
+function navTo(page, el) {
   if (typeof haptic === 'function') haptic('nav');
   
+  // ✨ ФИКС ПРЫЖКОВ: Если мы уже на этой вкладке, просто скроллим наверх и выходим
+  if (currentScreen === page) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
   // Проверяем доступ к Сообществу
-  if(page === 'community') {
+  if (page === 'community') {
     const stats = getGlobalStats();
     if (stats.totalClosed >= 3 || isAdminMode()) {
       showCommunityScreen();
     } else {
-      // Показываем красивое окно-заглушку
       document.getElementById('communityLockedModal').classList.remove('hidden');
       playClick();
     }
     return;
   }
 
-  if(page==='lib')showLibrary();
-  else if(page==='today')smartHome();
-  else if(page==='stats')showStatsScreen();
-  else if(page==='journal')showJournalScreen();
+  if (page === 'lib') showLibrary();
+  else if (page === 'today') smartHome();
+  else if (page === 'stats') showStatsScreen();
+  else if (page === 'journal') showJournalScreen();
 }
 
 function smartHome(){
@@ -4367,9 +4450,7 @@ function executeClosePractice() {
   restoreAppScrolling();
   stopTimer(); timerState='idle'; stopMusic();
   
-  // На всякий случай очищаем погружение и его кнопку
-  if (typeof Path !== 'undefined' && Path.closeCinematic) Path.closeCinematic();
-  
+  // Убрали вызов Path.closeCinematic(), чтобы он не перебивал возврат в Путь
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
   const subP = document.getElementById('practiceSubtitle');
@@ -4387,12 +4468,13 @@ function executeClosePractice() {
     }
   }
   
+  // Если мы запускали практику из Пути, возвращаем туда
   if (typeof Path !== 'undefined' && Path.active && !Path.fresh) {
-    Path.active = null;
-    Path.open();
+    Path.open(); // НЕ сбрасываем Path.active = null;
     return;
   }
   
+  // Иначе — на Главную
   smartHome();
 }
 
@@ -4715,10 +4797,8 @@ function closeAndgerConfirm(accepted = false) {
           else adminBtn.classList.add('hidden');
         }
 
-        // Всегда показываем Рейтинг и Магазин
-        const ratingRow = document.getElementById('profileRatingRow');
+        // Всегда показываем Магазин
         const shopRow = document.getElementById('profileShopRow');
-        if (ratingRow) ratingRow.style.display = 'flex';
         if (shopRow) shopRow.style.display = 'flex';
 
   } catch(e) {
@@ -5450,7 +5530,6 @@ function switchCommunityTab(tab,el){
   // Показываем/скрываем контент
   document.getElementById('communityFeed').classList.toggle('hidden',tab!=='feed');
   document.getElementById('communityChats').classList.toggle('hidden',tab!=='chats');
-  document.getElementById('communityPeople').classList.toggle('hidden',tab!=='people');
   
   // Окно ввода показываем ТОЛЬКО в Ленте
   const inputWrap = document.getElementById('feedInputWrap');
@@ -5460,7 +5539,6 @@ function switchCommunityTab(tab,el){
 
   if(tab==='feed')loadFeed();
   else if(tab==='chats')loadChats();
-  else loadPeople();
 }
 let rankFilter = 'all';
 let feedFilter = 'all'; // 'all' или 'friends'
@@ -11257,9 +11335,14 @@ window.AP = {
     const { data, error } = await sb.from('profiles').select('*').order('created_at', { ascending: false }).limit(10000);
     if (error) return this.area() && (this.area().innerHTML = '<div class="ap-empty">Ошибка загрузки пользователей</div>');
     adminAllUsers = data || [];
-    document.getElementById('apQ').oninput = e => { this.q = e.target.value; this.lim = AP_PAGE; this.usersRows(); };
-    document.getElementById('apSort').onchange = e => { this.sort = e.target.value; this.usersRows(); };
-    this.usersRows();
+    
+    // ЗАЩИТА ОТ БЫСТРОГО ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК
+    const apQ = document.getElementById('apQ');
+    if (apQ) apQ.oninput = e => { this.q = e.target.value; this.lim = AP_PAGE; this.usersRows(); };
+    const apSort = document.getElementById('apSort');
+    if (apSort) apSort.onchange = e => { this.sort = e.target.value; this.usersRows(); };
+    
+    if (this.area()) this.usersRows();
   },
   usersRows() {
     const v = this.area(); if (!v || this.sec !== 'users') return;
@@ -11342,8 +11425,12 @@ window.AP = {
     if (error) return this.area() && (this.area().innerHTML = '<div class="ap-empty">Ошибка загрузки книг</div>');
     const db = data || [], local = (typeof BOOKS !== 'undefined' ? BOOKS : []).filter(b => !db.some(d => d.id === b.id)).map(b => ({ ...b, _isLocal: true, published: true }));
     adminAllBooks = [...db, ...local].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-    document.getElementById('apQ').oninput = e => { this.q = e.target.value; this.lim = AP_PAGE; this.booksRows(); };
-    this.booksRows();
+    
+    // ЗАЩИТА ОТ БЫСТРОГО ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК
+    const apQ = document.getElementById('apQ');
+    if (apQ) apQ.oninput = e => { this.q = e.target.value; this.lim = AP_PAGE; this.booksRows(); };
+    
+    if (this.area()) this.booksRows();
   },
   booksRows() {
     const v = this.area(); if (!v || this.sec !== 'books') return;
@@ -12051,6 +12138,23 @@ window.Path = {
     document.body.classList.remove('app-focus-mode');
     if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+    // ✨ УМНЫЙ ВОЗВРАТ: Смотрим, откуда пришли
+    setTimeout(() => {
+      const ps = document.getElementById('practiceScreen');
+      const rs = document.getElementById('ritualScreen');
+      const isPracticeHidden = (ps && ps.classList.contains('hidden')) && (rs && rs.classList.contains('hidden'));
+
+      if (isPracticeHidden) {
+        if (this.active) {
+          // Если мы были в процессе прохождения узла Пути — открываем Путь обратно
+          this.open();
+        } else {
+          // Если это была обычная практика с Главной — идем на Главную
+          if (typeof smartHome === 'function') smartHome();
+        }
+      }
+    }, 100);
   },
 
   completeAudioPractice(practiceId) {
@@ -12118,7 +12222,15 @@ window.Path = {
     return true;
   },
   hide() { if (this.el) this.el.classList.add('hidden'); document.body.classList.remove('pt-open'); },
-  close() { this.hide(); try { renderToday(); } catch (e) {} },
+  close() { 
+    this.hide(); 
+    try { 
+      if (typeof smartHome === 'function') smartHome();
+      else showTodayScreen();
+    } catch (e) { 
+      console.warn('Path close error:', e); 
+    } 
+  },
 
   hue(s) { let h = 0; String(s).split('').forEach(c => h = (h * 31 + c.charCodeAt(0)) % 360); return h; },
   cover(b, w, h, r) {
@@ -12147,7 +12259,7 @@ window.Path = {
     const fireIc = (typeof ICONS !== 'undefined' && ICONS.flame) || '';
     const wk = cur && cur.kind === 'node' ? b.path.weeks[cur.w] : null;
     const cap = !cur ? '<b>Путь пройден</b><span>Все дни светятся. Ты молодец</span>' : cur.kind === 'node' ? `<b>Неделя ${cur.w + 1} · ${E(wk.title)}</b><span>${E(wk.goal || '')}</span>` : `<b>${cur.kind === 'finale' ? 'Финал пути' : 'Знакомство с книгой'}</b><span>${E(cur.kind === 'finale' ? 'Подведи итоги и прочитай своё письмо' : `Шаг ${cur.pos} из ${PT_INTRO.length}: ${cur.t}`)}</span>`;
-    el.innerHTML = `<div class="pt-h"><button class="pt-x" onclick="Path.close()" aria-label="Закрыть">✕</button><div class="pt-ht"><div class="pt-kk">Путь · ${b.days} ${plural(b.days, 'день', 'дня', 'дней')}</div><div class="pt-bt">${E(b.title)}</div></div><button class="pt-hb" onclick="Path.digestFlow()" aria-label="Выжимка книги">${PT_SVG.book}</button><div class="pt-fire"><span class="pt-fi">${fireIc}</span>${this.globalStreak()}</div></div>
+    el.innerHTML = `<div class="pt-h"><div class="pt-ht"><div class="pt-kk">Путь · ${b.days} ${plural(b.days, 'день', 'дня', 'дней')}</div><div class="pt-bt">${E(b.title)}</div></div><div class="pt-fire"><span class="pt-fi">${fireIc}</span>${this.globalStreak()}</div><button class="pt-hb" onclick="Path.digestFlow()" aria-label="Выжимка книги">${PT_SVG.book}</button><button class="pt-x" onclick="Path.close()" aria-label="Закрыть">✕</button></div>
       <div class="pt-body" id="ptBody"><div class="pt-cr">${this.crystal(b, S)}</div><div class="pt-crc">${cap}<em>${nd} из ${S.nodes.length} ${plural(S.nodes.length, 'дня', 'дней', 'дней')} пройдено</em></div>${this.action(b, S)}${this.list(b, S)}</div>`;
   },
   // Кольцо (как в логотипе): внешнее — дни практики по неделям, внутреннее — знакомство, сверху — грань финала, в центре — текущий день

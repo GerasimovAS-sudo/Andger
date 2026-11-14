@@ -705,27 +705,7 @@ html.light .d-lib-folder-title {
 /* ═══════════════════════════════════════════════
    ЭКРАН ЗАГРУЗКИ (SPLASH)
    ═══════════════════════════════════════════════ */
-#appLoader {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  width: 100vw;
-  height: 100vh; /* Фолбэк для старых iOS */
-  height: 100dvh; /* Точная высота экрана */
-  background-color: #120c24;
-  background-image: 
-    radial-gradient(circle at 10% 10%, rgba(124, 92, 255, 0.25) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(255, 122, 42, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(30, 92, 255, 0.1) 0%, transparent 60%);
-  z-index: var(--z-loader);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: env(safe-area-inset-bottom, 0px); /* Учитываем полосу жестов iPhone */
-  /* ФИКС: Растягиваем фон на всю высоту включая нижнюю безопасную зону */
-  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
-  box-sizing: border-box;
-}
+
 #appLoader.hide { opacity: 0; pointer-events: none; }
 
 .splash-main { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 100%; }
@@ -929,23 +909,25 @@ div[onclick="showPremium()"] div {
 }
 #appLoader {
   position: fixed;
-  inset: 0; /* Это заменяет top, left, right, bottom */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0; /* Заставляет блок прилипнуть к физическому низу экрана */
   width: 100vw;
-  height: 100vh; /* Фолбэк для старых iOS */
-  min-height: 100dvh; /* Безопасная высота */
+  height: 100%; /* Убрали 100vh и 100dvh, чтобы не было скачков */
   background-color: #120c24;
   background-image: 
     radial-gradient(circle at 10% 10%, rgba(124, 92, 255, 0.25) 0%, transparent 50%),
     radial-gradient(circle at 90% 80%, rgba(255, 122, 42, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, rgba(30, 92, 255, 0.1) 0%, transparent 60%);
-  background-attachment: scroll; /* ВАЖНО: Убрали fixed */
+  background-attachment: scroll;
   background-size: cover;
   z-index: var(--z-loader);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  /* Учитываем нижнюю безопасную зону iPhone */
+  /* Учитываем безопасную зону (полоску жестов) iPhone */
   padding-bottom: env(safe-area-inset-bottom, 0px) !important; 
   box-sizing: border-box;
 }
