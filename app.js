@@ -9997,34 +9997,47 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(injectQuickNoteButton, 500); 
 });
 // ═══════════════════════════════════════════════
-// ИДЕАЛЬНЫЙ ФИКС КЛАВИАТУРЫ ДЛЯ iOS / ANDROID (v2)
+// ИДЕАЛЬНЫЙ ФИКС КЛАВИАТУРЫ ДЛЯ iOS (Как в Telegram)
 // ═══════════════════════════════════════════════
 if (window.visualViewport) {
   const handleKeyboard = () => {
     const wrap = document.getElementById('dialogInputWrap') || document.getElementById('feedInputWrap');
+    const nav = document.getElementById('bottomNav');
+    
     if (!wrap || wrap.style.display === 'none') return;
 
     const vv = window.visualViewport;
-    // На iOS innerHeight может меняться, используем clientHeight для точности
     const viewportHeight = document.documentElement.clientHeight;
+    
+    // Если визуальная высота меньше 75% от реальной высоты экрана — клавиатура открыта
     const isKeyboardOpen = vv.height < viewportHeight * 0.8;
     const keyboardHeight = Math.max(0, viewportHeight - vv.height - vv.offsetTop);
 
     if (isKeyboardOpen && keyboardHeight > 100) {
-      // Прижимаем строго к клавиатуре
+      document.body.classList.add('keyboard-open');
+      
+      // Привязываем поле ввода ровно к верхнему краю клавиатуры
       wrap.style.bottom = `${keyboardHeight}px`;
-      wrap.style.borderRadius = '16px 16px 0 0';
-      wrap.style.transition = 'none';
+      wrap.style.borderRadius = '16px 16px 0 0'; // Скругляем только верх
+      wrap.style.transition = 'none'; // Убираем задержку для моментального отклика
+      
+      if (nav) nav.style.display = 'none'; // Прячем нижнее меню
 
-      const dialogMessages = document.getElementById('dialogMessages');
-      if (dialogMessages) {
-        setTimeout(() => { dialogMessages.scrollTop = dialogMessages.scrollHeight; }, 50);
-      }
+      // Автоматически прокручиваем чат вниз при открытии клавиатуры
+      setTimeout(() => {
+        const dialogMessages = document.getElementById('dialogMessages');
+        if (dialogMessages) dialogMessages.scrollTop = dialogMessages.scrollHeight;
+        window.scrollTo(0, document.body.scrollHeight);
+      }, 50);
+
     } else {
-      // Возвращаем на место при закрытии
+      // Клавиатура закрыта — возвращаем всё как было
+      document.body.classList.remove('keyboard-open');
       wrap.style.bottom = 'calc(85px + env(safe-area-inset-bottom, 0px))';
       wrap.style.borderRadius = '16px';
       wrap.style.transition = 'bottom 0.2s ease-out';
+      
+      if (nav) nav.style.display = ''; // Возвращаем меню
     }
   };
 
