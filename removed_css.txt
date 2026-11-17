@@ -1,0 +1,421 @@
+.d-bottom-nav
+.d-nav-btn
+.d-nav-btn svg
+.d-nav-btn:active
+.d-nav-btn.on
+.d-nav-btn.on svg
+.d-focus-top
+.d-focus-meta
+.d-focus-label
+.d-focus-title
+.d-focus-action
+.d-focus-identity
+.d-focus-identity svg
+.d-ring-bg
+.d-ring-fill
+.d-ring-text
+.d-ring-num
+.d-ring-lbl
+.d-lumi
+.d-lumi-orb
+.d-lumi-orb::after
+.d-lumi-text
+.d-lumi-text::before
+.d-admin-tabs
+.d-admin-tabs::-webkit-scrollbar
+.d-admin-tab
+.d-admin-tab.on
+.d-admin-user-card
+.d-admin-user-card:active
+.d-admin-user-ava
+.d-admin-user-ava svg
+.d-admin-user-info
+.d-admin-user-name
+.d-admin-user-sub
+.d-premium-hero
+.d-premium-title
+.d-premium-sub
+.d-premium-price
+.d-premium-price-sub
+.d-premium-features
+.d-premium-feature
+.d-splash-orb
+.d-splash-orb::after
+.d-hidden
+.d-center
+.d-flex-col
+.d-text-sm
+.d-text-xs
+.d-fw-800
+.d-fw-900
+.d-uppercase
+.d-lumi-orb
+.admin-text-item
+.focus-mode .timer-box
+#feedInputWrap .feed-post-btn, #dialogInputWrap .feed-post-btn
+.quick-action-btn
+.quick-action-btn svg
+.quick-action-btn span
+.quick-action-btn:active
+.mascot-cloak
+.d-ring-num
+.d-focus-identity
+#todayScreen .d-focus-identity
+#todayScreen .d-focus-identity
+#todayScreen .quick-actions-row
+#todayScreen .quick-action-btn
+#todayScreen .quick-action-btn span
+#todayScreen .d-focus-identity
+#todayScreen .d-focus-identity
+.avatar-lock-overlay
+.profile-ava-bento
+.quick-actions-row
+.quick-action-btn
+.quick-action-btn span
+.admin-bento-grid
+.admin-nav-btn
+.admin-nav-btn:active
+.admin-nav-btn.on
+.admin-nav-btn .anb-icon
+.admin-nav-btn .anb-text
+.dark-sphere
+.light-sphere
+.light-sphere::after
+.auto-sphere
+.btn-ghost
+.btn-ghost:active
+.landing-screen
+.landing-content
+.landing-logo
+.landing-title
+.landing-title span
+.landing-subtitle
+.landing-features
+.landing-feature
+.landing-feature .lf-ico
+.landing-feature .lf-text b
+.landing-feature .lf-text span
+.landing-btn
+.landing-login-link
+.auth-logo
+.auth-logo .logo
+.auth-logo p
+.auth-tabs
+.main-head
+.main-head .top-row
+.main-head .page-label
+.main-head .hi
+.main-head .hi .name
+.head-actions
+.back-top
+.quote-compact
+.quote-compact .mq-mark
+.quote-gradient-mark
+.quote-gradient-mark.left
+.quote-gradient-mark.right
+.quote-gradient-mark.left
+.quote-gradient-mark.right
+#mpcQuoteText
+.mq-author
+.main-practice-card
+.mpc-top
+.mpc-label
+.mpc-book-info
+.mpc-book-icon
+.mpc-info
+.mpc-title
+.mpc-sub
+.mpc-ring-wrap
+.mpc-ring-svg
+.mpc-ring-bg
+.mpc-ring-fill
+.mpc-ring-text
+.mpc-ring-num
+.mpc-ring-lbl
+.mpc-meta
+.mpc-meta span
+.mpc-btn
+.mpc-btn:active
+.mpc-btn-icon
+.mpc-btn span
+.mpc-btn-arrow
+.quick-actions-row
+.quick-action-btn
+.quick-action-btn:active
+.quick-action-btn .qa-ico
+.quick-action-btn .qa-ico svg
+.quick-action-btn span
+.practices-carousel
+.practices-carousel::-webkit-scrollbar
+.psc-icon
+.psc-content
+.psc-title
+.psc-category
+.psc-meta
+.psc-time
+.psc-xp
+.psc-btn
+.practice-swipe-card.done .psc-btn
+.practices-dots
+.p-dot
+.p-dot.on
+.lib-search-wrap
+.lib-search-input
+.lib-search-input:focus
+.lib-search-wrap .ls-icon
+.lib-filters-scroll
+.lib-filters-scroll::-webkit-scrollbar
+.lib-filter-pill
+.lib-filter-pill.on
+.lib-category-bento
+.lib-category-header-bento
+.bc-cover
+.bc-info
+.bc-title
+.bc-author
+.bc-progress-row
+.bc-bar
+.bc-fill
+.bc-pct
+.bc-start-badge
+.bc-lock
+.active-book-card .abc-head
+.active-book-card .abc-emoji
+.active-book-card .abc-info
+.active-book-card .abc-title
+.active-book-card .abc-author
+.active-book-card .abc-day
+.active-book-card .abc-bar
+.active-book-card .abc-fill
+.active-book-card .abc-meta
+.level-card-bento
+.lc-hexagon
+.lc-info-bento
+.lc-title
+.lc-xp-text
+.lc-bar-bg
+.lc-bar-fill
+.lc-icon-bento
+.stats-grid-bento
+.stat-tile-bento
+.st-num
+.st-lbl
+.stats-fire-bento
+.sf-tile
+.sf-ico
+.sf-info
+.sf-lbl
+.sf-num
+.sf-num span
+.section-title-bento
+.stats-books-list-bento
+.ach-header-bento
+.ah-top
+.ah-bar-bg
+.ah-bar-fill
+.mood-tracker
+.mt-title
+.mood-row
+.mr-label
+.mr-emojis
+.mood-chart-wrap
+.mc-bar-wrap
+.mc-bar
+.mc-bar.empty
+.mc-label
+.mc-val
+.jh-entry
+.jh-a
+.tabs-row
+.tabs-row::-webkit-scrollbar
+.fp-ava
+.fp-info
+.fp-name
+.fp-time
+.fp-text
+.fp-actions
+.fc-ava
+.fc-name
+.fc-text
+.feed-comment-form
+.feed-comment-form input
+.feed-comment-form input:focus
+#feedInputWrap .feed-post-btn, #dialogInputWrap .feed-post-btn
+.chats-list
+.chat-row
+.chat-row:active
+.cr-ava
+.cr-info
+.cr-name
+.cr-time
+.cr-preview
+.cr-unread
+.profile-hero-bento
+.profile-top-row
+.profile-ava-bento
+.profile-avatar-lg
+.profile-info-bento
+.profile-id-text
+.profile-level-pill
+.profile-xp-info
+.profile-xp-bar
+.profile-xp-fill
+.profile-hero-actions
+.btn-hero-action
+.btn-hero-action:active
+.profile-stats-grid-bento
+.profile-stat-item-bento
+.psi-val
+.psi-lbl
+.profile-social-row
+.psr-item
+.psr-item:active
+.psr-num
+.psr-divider
+.settings-list-bento
+.settings-row-bento
+.settings-row-bento:last-child
+.settings-row-bento:active
+.settings-row-bento .sr-left
+.settings-row-bento .sr-ico
+.settings-row-bento .sr-arrow
+.settings-row-bento.danger .sr-left
+.admin-tabs-text-wrap
+.admin-tabs-text-wrap::-webkit-scrollbar
+.admin-tabs-text
+.admin-tab-text
+.admin-tab-text.on
+.bento-grid-2
+.bento-grid-3
+.bento-grid-4
+.bento-action
+.bento-action:active
+.ba-ico
+.mrr-card
+.mrr-title
+.mrr-value
+.currency
+.badge-green
+.badge-red
+.mrr-subtitle
+.mrr-chart
+.stat-title
+.stat-value
+.stat-ico
+.admin-user-list-bento
+.user-card-bento
+.uc-info
+.uc-name
+.uc-email
+.uc-lvl
+.uc-badge
+.bento-search-row
+.bento-search
+.bento-search input
+.bento-search input:focus
+.bs-ico
+.bento-filter-btn
+.bento-section-title
+.admin-filters-scroll
+.admin-filters-scroll::-webkit-scrollbar
+.admin-summary
+.admin-summary > div
+.as-num
+.as-lbl
+.admin-row
+.admin-row:last-child
+.ritual-hero
+.ritual-hero .ico
+.ritual-hero h2
+.ritual-hero .sub
+.ps-head
+.ps-back
+.ps-head-text
+.ps-head-text h2
+.ps-head-text p
+.ps-hero
+.ps-hero .ico
+.ps-hero .time
+.affirm-list
+.affirm-list li
+.timer-box
+.focus-mode .timer-box, .focus-mode .zen-circle-container
+.focus-mode .zen-circle-container
+.focus-mode .timer-ring-track
+.focus-mode .timer-ring-progress
+.co-secondary
+.co-secondary .btn-ghost
+.skeleton
+.skeleton-book
+.skeleton-emoji
+.skeleton-text-1
+.skeleton-text-2
+.skeleton-post
+.skeleton-post-head
+.skeleton-avatar
+.skeleton-post-text
+#bookDetailScreen .main-head
+.ritual-builder-book
+.ritual-builder-book h4
+.ritual-builder-item .rbi-title
+.ritual-builder-item .rbi-time
+.public-profile
+.public-profile .pp-ava
+.public-profile h2
+.public-profile .pp-status
+.public-profile .pp-stats
+.public-profile .pp-stat .num
+.public-profile .pp-stat .lbl
+.emoji-row
+.emoji-pick
+.emoji-pick.on
+.breath-circle
+.breath-circle .bc-inner
+.breath-circle.inhale
+.breath-circle.exhale
+.breath-circle.hold
+.main-head
+.main-head .hi
+.quick-actions-row
+.quick-action-btn
+.quick-action-btn span
+.quick-actions-row
+.splash-ring-loading
+.check-text
+.checklist-item.done .check-text
+.admin-kpi-grid
+.admin-kpi-card
+.admin-kpi-title
+.admin-kpi-value
+.admin-kpi-trend
+.admin-kpi-trend.up
+.admin-kpi-trend.down
+.admin-user-row
+.admin-user-row:active
+.aur-ava
+.aur-info
+.aur-name
+.aur-phone
+.aur-status
+.aur-time
+.admin-badge
+.admin-badge-gold
+.admin-badge-green
+.admin-badge-red
+.admin-mod-card
+.admin-mod-card:active
+.ph-wait
+.cc-path
+.cinematic-header
+.cinematic-h-btn
+.cinematic-h-btn:active
+.cinematic-play-big
+.cinematic-play-big:active
+.cinematic-play-big svg
+.cinematic-header
+.cinematic-h-btn
+.cinematic-h-btn:active
+.cinematic-minimize-btn
+.cinematic-minimize-btn:active
+.skeleton,.is-loading
+.avatar-lock-overlay

@@ -207,47 +207,6 @@ body::before {
 .d-header-greet-name { font-size: 20px; font-weight: 800; color: var(--d-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
 .d-header-actions { display: flex; gap: 8px; align-items: center; }
 
-.d-bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  max-width: 520px;
-  margin: 0 auto;
-  padding: 8px 4px calc(8px + var(--d-safe-bottom));
-  background: var(--d-bg-nav);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(124, 92, 255, 0.25); /* Фиолетовая рамка */
-  display: flex;
-  justify-content: space-around;
-  gap: 2px;
-}
-.d-nav-btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 6px 2px;
-  background: transparent;
-  border: none;
-  color: var(--d-text-dim);
-  font-size: 9px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  cursor: pointer;
-  transition: color 0.2s, transform 0.15s;
-  border-radius: var(--d-radius-sm);
-  white-space: nowrap;
-}
-.d-nav-btn svg { width: 20px; height: 20px; }
-.d-nav-btn:active { transform: scale(0.92); }
-.d-nav-btn.on { color: var(--d-accent-3); }
-.d-nav-btn.on svg { filter: drop-shadow(0 0 6px rgba(167, 139, 250, 0.5)); }
-
 .d-avatar {
   width: 46px; /* Было 40px */
   height: 46px;
@@ -324,7 +283,7 @@ body::before {
   background: radial-gradient(circle, rgba(255, 154, 86, 0.14), transparent 70%);
   pointer-events: none;
 }
-.d-focus-top { display: flex; gap: 12px; align-items: flex-start; position: relative; }
+
 .d-focus-cover {
   width: 68px;
   height: 68px;
@@ -337,61 +296,14 @@ body::before {
   flex-shrink: 0;
   overflow: hidden;
 }
-.d-focus-meta { flex: 1; min-width: 0; padding-right: 56px; }
-.d-focus-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--d-accent-2); margin-bottom: 4px; }
-.d-focus-title { font-size: 15px; font-weight: 800; color: var(--d-text); line-height: 1.25; margin-bottom: 4px; }
-.d-focus-action { font-size: 12px; color: var(--d-text-dim); font-weight: 600; line-height: 1.35; }
-.d-focus-identity {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  background: rgba(124, 92, 255, 0.08);
-  border: 1px solid rgba(124, 92, 255, 0.20);
-  border-radius: var(--d-radius-md);
-  font-size: 12px;
-  font-style: italic;
-  color: var(--d-accent-3);
-  line-height: 1.4;
-}
-.d-focus-identity svg { flex-shrink: 0; color: var(--d-accent-2); }
 
 .d-ring { position: absolute; top: 16px; right: 16px; width: 56px; height: 56px; }
 .d-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.d-ring-bg { fill: none; stroke: rgba(255, 255, 255, 0.06); stroke-width: 8; }
-.d-ring-fill { fill: none; stroke: url(#dRingGrad); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 264; stroke-dashoffset: 264; transition: stroke-dashoffset 1s ease; }
-.d-ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.d-ring-num { font-size: 14px; font-weight: 900; color: var(--d-text); line-height: 1; }
-.d-ring-lbl { font-size: 7px; color: var(--d-text-dim); text-transform: uppercase; font-weight: 800; margin-top: 1px; }
 
-.d-lumi {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  background: var(--d-surface);
-  border: 1px solid var(--d-border);
-  border-radius: var(--d-radius-lg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-.d-lumi-orb {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ff9d00 0%, #7c5cff 55%, #1e5cff 100%);
-  box-shadow: 0 0 20px rgba(124, 92, 255, 0.5), 0 0 8px rgba(255, 154, 86, 0.4);
-  flex-shrink: 0;
-  position: relative;
-  animation: d-lumi-pulse 3.2s ease-in-out infinite;
-}
-.d-lumi-orb::after { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5), transparent 60%); }
 @keyframes d-lumi-pulse {
   0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(124, 92, 255, 0.5), 0 0 8px rgba(255, 154, 86, 0.4); }
   50% { transform: scale(1.06); box-shadow: 0 0 30px rgba(124, 92, 255, 0.75), 0 0 14px rgba(255, 154, 86, 0.55); }
 }
-.d-lumi-text { flex: 1; font-size: 12px; line-height: 1.45; color: var(--d-text); font-style: italic; }
-.d-lumi-text::before { content: 'Луми'; display: block; font-style: normal; font-weight: 800; color: var(--d-accent-2); font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 3px; }
 
 .d-lib-search { position: relative; width: 100%; }
 .d-lib-search input {
@@ -479,49 +391,15 @@ body::before {
 .d-empty-title { font-size: 18px; font-weight: 900; color: var(--d-text); margin-bottom: 8px; }
 .d-empty-text { font-size: 13px; color: var(--d-text-dim); max-width: 260px; line-height: 1.5; }
 
-.d-admin-tabs { display: flex; gap: 6px; padding: 4px; background: var(--d-surface); border: 1px solid var(--d-border); border-radius: var(--d-radius-md); overflow-x: auto; scrollbar-width: none; }
-.d-admin-tabs::-webkit-scrollbar { display: none; }
-.d-admin-tab { flex-shrink: 0; padding: 8px 16px; border-radius: var(--d-radius-sm); font-size: 12px; font-weight: 800; color: var(--d-text-dim); cursor: pointer; transition: 0.2s; white-space: nowrap; }
-.d-admin-tab.on {
-  background: linear-gradient(135deg, #7c5cff 0%, #6366f1 100%);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(124, 92, 255, 0.4);
-}
-
-.d-admin-user-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--d-surface); border: 1px solid var(--d-border); border-radius: var(--d-radius-md); cursor: pointer; transition: border-color 0.2s; margin-bottom: 8px; }
-.d-admin-user-card:active { border-color: var(--d-accent-2); }
-.d-admin-user-ava { width: 40px; height: 40px; border-radius: 50%; background: var(--d-gradient-soft); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-.d-admin-user-ava svg { width: 100%; height: 100%; }
-.d-admin-user-info { flex: 1; min-width: 0; }
-.d-admin-user-name { font-size: 13px; font-weight: 800; color: var(--d-text); }
-.d-admin-user-sub { font-size: 11px; color: var(--d-text-dim); margin-top: 2px; }
-
 .d-toggle { position: relative; width: 44px; height: 26px; border-radius: 16px; background: var(--d-surface-2); border: 1px solid var(--d-border); cursor: pointer; transition: background 0.25s; flex-shrink: 0; }
 .d-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.25s; }
 .d-toggle.on { background: var(--d-gradient); border-color: transparent; }
 .d-toggle.on::after { transform: translateX(18px); }
 
-.d-premium-hero { padding: 32px 20px; text-align: center; background: var(--d-gradient-soft); border: 1px solid var(--d-border-strong); border-radius: var(--d-radius-xl); margin-bottom: 20px; }
-.d-premium-title { font-size: 22px; font-weight: 900; color: var(--d-text); margin-bottom: 8px; line-height: 1.2; }
-.d-premium-sub { font-size: 13px; color: var(--d-text-dim); margin-bottom: 20px; line-height: 1.5; }
-.d-premium-price { font-size: 32px; font-weight: 900; background: var(--d-gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 4px; line-height: 1.1; }
-.d-premium-price-sub { font-size: 11px; color: var(--d-text-dim); margin-bottom: 24px; }
-.d-premium-features { display: flex; flex-direction: column; gap: 10px; padding: 16px; background: var(--d-surface); border: 1px solid var(--d-border); border-radius: var(--d-radius-lg); margin-bottom: 20px; }
-.d-premium-feature { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--d-text); line-height: 1.4; }
-
-.d-splash-orb { width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ff9d00 0%, #7c5cff 50%, #1e5cff 100%); box-shadow: 0 0 80px rgba(124, 92, 255, 0.6), 0 0 40px rgba(255, 154, 86, 0.4); position: relative; animation: d-splash-orb-pulse 2.5s ease-in-out infinite; }
-.d-splash-orb::after { content: ''; position: absolute; inset: 15%; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), transparent 60%); }
 @keyframes d-splash-orb-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 
-.d-hidden { display: none; }
-.d-center { display: flex; align-items: center; justify-content: center; }
-.d-flex-col { display: flex; flex-direction: column; }
 .d-text-dim { color: var(--d-text-dim); }
-.d-text-sm { font-size: 12px; }
-.d-text-xs { font-size: 10px; }
-.d-fw-800 { font-weight: 800; }
-.d-fw-900 { font-weight: 900; }
-.d-uppercase { text-transform: uppercase; letter-spacing: 0.6px; }
+
 /* Фикс выпадающего списка */
 select option {
   background-color: #1a1428;
@@ -584,40 +462,26 @@ html.light body {
   color: var(--d-text);
 }
 
-html.light .d-header, 
-html.light .d-bottom-nav, 
-html.light .d-card-glass, 
-html.light .d-calendar-strip {
+html.light .d-header, html.light .d-card-glass, html.light .d-calendar-strip {
   background: rgba(255, 255, 255, 0.85);
   border-color: rgba(0, 0, 0, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
-html.light .d-text-dim, 
-html.light .d-focus-action, 
-html.light .d-lib-book-author {
+html.light .d-text-dim, html.light .d-lib-book-author {
   color: var(--d-text-dim);
 }
 
-html.light .d-btn-primary, 
-html.light .d-btn-primary span,
-html.light .d-lib-book-cover span,
-html.light .d-nav-btn.on span {
+html.light .d-btn-primary, html.light .d-btn-primary span, html.light .d-lib-book-cover span {
   color: #ffffff;
 }
 
-html.light .d-focus-title, 
-html.light .d-lib-book-title, 
-html.light .d-lib-folder-title {
+html.light .d-lib-book-title, html.light .d-lib-folder-title {
   color: #1a1428;
 }
 
 /* 4. Луми (Светящийся шар с парением) */
-.d-lumi-orb {
-  background: radial-gradient(circle at 30% 30%, #ffdf7a 0%, #ff9d00 30%, #7c5cff 70%, #1e5cff 100%);
-  box-shadow: inset -5px -5px 15px rgba(0,0,0,0.6), 0 0 25px rgba(124, 92, 255, 0.8), 0 0 50px rgba(255, 154, 86, 0.4);
-  animation: floatLumi 4s ease-in-out infinite;
-}
+
 @keyframes floatLumi {
   0%, 100% { transform: translateY(0) scale(1); }
   50% { transform: translateY(-8px) scale(1.05); }
@@ -636,19 +500,8 @@ html.light .d-lib-folder-title {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* 7. Админка - Список текстов */
-.admin-text-item {
-  display: flex; justify-content: space-between; align-items: center;
-  background: var(--d-surface-2); padding: 12px 16px; border-radius: 12px; margin-bottom: 8px;
-  border: 1px solid var(--d-border);
-}
-.focus-mode .ps-block:not(.timer-wrapper),
-.focus-mode .ritual-hero, 
-.focus-mode .ps-hero, 
-.focus-mode .ps-block:not(.timer-wrapper), 
-.focus-mode .ritual-body > .btn, 
-.focus-mode .ps-content > .btn,
-.focus-mode .practice-focus-hide,
-.focus-mode .difficulty-selector { /* <--- Добавили скрытие кнопок сложности */
+
+.focus-mode .ps-block:not(.timer-wrapper), .focus-mode .ps-block:not(.timer-wrapper), .focus-mode .ritual-body > .btn, .focus-mode .ps-content > .btn, .focus-mode .practice-focus-hide, .focus-mode .difficulty-selector { /* <--- Добавили скрытие кнопок сложности */
   display: none !important;
 }
 
@@ -673,14 +526,7 @@ html.light .d-lib-folder-title {
 }
 
 /* Центрируем кольцо и кнопки */
-.focus-mode .timer-box {
-    margin: 0;
-    max-width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-}
+
 .focus-mode .d-timer-ring-wrap {
     width: 240px;
     height: 240px;
@@ -711,7 +557,7 @@ html.light .d-lib-folder-title {
 
 .splash-main { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 100%; }
 .splash-ring-wrap { position: relative; width: 300px; height: 300px; max-width: 80vw; max-height: 80vw; display: flex; align-items: center; justify-content: center; transform: translateY(-20px); margin-bottom: 20px; }
-.splash-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); filter: drop-shadow(0 0 15px rgba(255, 42, 122, 0.5)) drop-shadow(0 0 25px rgba(124, 92, 255, 0.4)); }
+.splash-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; filter: drop-shadow(0 0 15px rgba(255, 42, 122, 0.5)) drop-shadow(0 0 25px rgba(124, 92, 255, 0.4)); }
 .splash-ring-arc { stroke-dasharray: 816; stroke-dashoffset: 816; animation: drawRing 6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
 .splash-text-center { text-align: center; z-index: 2; animation: fadeInText 1s ease 0.5s forwards; opacity: 1; max-width: 90%; }
@@ -791,7 +637,7 @@ body {
 }
 
 /* 3. Шапка (эффект парящего стекла) */
-.d-header, .main-head {
+.d-header {
   background: rgba(18, 12, 36, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -805,7 +651,7 @@ body {
 }
 
 /* 5. Нижнее меню */
-.bottom-nav, .d-bottom-nav {
+.bottom-nav {
   background: rgba(18, 12, 36, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -899,23 +745,18 @@ div[onclick="showPremium()"] div {
   transform: scale(0.97);
 }
 /* Красивая градиентная кнопка отправки сообщений (самолетик) */
-#feedInputWrap .feed-post-btn,
-#dialogInputWrap .feed-post-btn {
-  background: linear-gradient(135deg, #7c5cff 0%, #ff7a2a 100%);
-  box-shadow: 0 4px 12px rgba(255, 122, 42, 0.3);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+
 #appLoader {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0; /* Заставляет блок прилипнуть к физическому низу экрана */
-  width: 100vw;
-  height: 100%; /* Убрали 100vh и 100dvh, чтобы не было скачков */
+  /* Загрузчик заходит ниже экрана на 160px: на iPhone в первые секунды layout-viewport короче реального
+     (без нижней безопасной зоны) и снизу была чёрная полоса, пока Safari не пересчитает размеры. */
+  bottom: -160px;
+  width: 100%;
+  height: auto;
+  min-height: calc(100dvh + 160px);
   background-color: #120c24;
   background-image: 
     radial-gradient(circle at 10% 10%, rgba(124, 92, 255, 0.25) 0%, transparent 50%),
@@ -928,9 +769,10 @@ div[onclick="showPremium()"] div {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  /* Учитываем безопасную зону (полоску жестов) iPhone */
-  padding-bottom: env(safe-area-inset-bottom, 0px) !important; 
+  /* Возвращаем центр на место: компенсируем заход под экран + безопасная зона iPhone */
+  padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px)) !important;
   box-sizing: border-box;
+  overflow: hidden;
 }
 /* Компактный календарь на Главной */
 .d-calendar-strip {
@@ -999,7 +841,7 @@ div[onclick="showPremium()"] div {
 }
 
 /* 4. Делаем модальные окна (подтверждение, завершение) красивыми, а не черными */
-.modal, .complete-overlay, #confirmModal {
+.modal, .complete-overlay {
   z-index: var(--z-modal);
   background: rgba(18, 12, 36, 0.75);
   backdrop-filter: blur(16px);
@@ -1032,45 +874,6 @@ div[onclick="showPremium()"] div {
    ФИКС КНОПОК БЫСТРОГО ДОСТУПА (Горизонтальные)
    ═══════════════════════════════════════════════ */
 
-.quick-action-btn {
-  flex: 1;
-  display: flex;
-  flex-direction: row; /* Иконка и текст в ряд */
-  align-items: center; /* Центрируем по вертикали */
-  justify-content: center; /* Центрируем по горизонтали */
-  gap: 6px; /* Расстояние между иконкой и текстом */
-  
-  /* Тот самый градиент */
-  background: linear-gradient(135deg, #7c5cff 0%, #6366f1 100%);
-  border: none;
-  border-radius: 16px; /* Овальная форма */
-  padding: 0 8px;
-  height: 46px; /* Фиксируем высоту, чтобы все кнопки были одинаковыми */
-  color: #ffffff;
-  
-  box-shadow: 0 6px 20px rgba(124, 92, 255, 0.4);
-  transition: transform 0.2s;
-  cursor: pointer;
-}
-
-.quick-action-btn svg {
-  flex-shrink: 0; /* Чтобы иконка не сжималась */
-  margin-top: 1px; /* Легкая оптическая коррекция */
-}
-
-.quick-action-btn span {
-  font-size: 10px; 
-  font-weight: 800;
-  line-height: 1;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  white-space: nowrap; /* Запрещаем перенос текста на новую строку */
-}
-
-.quick-action-btn:active {
-  transform: scale(0.95);
-}
 /* ═══════════════════════════════════════════════
    МАГ-ХРАНИТЕЛЬ ANDGER (v6.0 Magical)
    ═══════════════════════════════════════════════ */
@@ -1118,10 +921,6 @@ div[onclick="showPremium()"] div {
   100% { transform: scale(1.1); opacity: 0.7; }
 }
 
-.mascot-cloak {
-  transform-origin: 60px 70px;
-  animation: cloakSway 3.5s ease-in-out infinite alternate;
-}
 @keyframes cloakSway {
   0% { transform: scaleX(1) skewX(0deg); }
   100% { transform: scaleX(1.03) skewX(2deg); }
@@ -1218,10 +1017,7 @@ div[onclick="showPremium()"] div {
 }
 
 /* Увеличиваем цифры внутри кольца, чтобы они не терялись */
-.d-ring-num {
-  font-size: 18px; 
-  font-weight: 900;
-}
+
 /* ═══════════════════════════════════════════════
    ФИКС ПОЛЕЙ ВВОДА (Убираем черный фон)
    ═══════════════════════════════════════════════ */
@@ -1257,11 +1053,6 @@ div[onclick="showPremium()"] div {
 }
 
 /* Уменьшаем блок с идентичностью (Я - тот, кто...) */
-.d-focus-identity {
-  margin-top: 8px;
-  margin-bottom: 12px;
-  padding: 8px 12px;
-}
 
 /* Делаем кнопку "Начать практику" чуть ниже */
 #mpcStartBtn {
@@ -1283,10 +1074,6 @@ div[onclick="showPremium()"] div {
 }
 
 /* 3. Делаем блок "Я — тот, кто..." более плоским */
-#todayScreen .d-focus-identity {
-  margin-bottom: 10px; /* Было 16px */
-  padding: 8px 12px;   /* Было 10px 14px */
-}
 
 /* 4. Чуть уменьшаем высоту кнопки (чтобы была аккуратнее) */
 #todayScreen #mpcStartBtn {
@@ -1332,12 +1119,6 @@ div[onclick="showPremium()"] div {
 }
 
 /* 4. Блок "Я — тот, кто..." — делаем его аккуратным */
-#todayScreen .d-focus-identity {
-  margin-top: 10px;
-  margin-bottom: 14px;
-  padding: 10px 14px;
-  font-size: 12px;
-}
 
 /* 5. Кнопка "Начать практику" — комфортная высота для пальца */
 #todayScreen #mpcStartBtn {
@@ -1347,17 +1128,6 @@ div[onclick="showPremium()"] div {
 }
 
 /* 6. Фикс кнопок быстрого доступа (чтобы не обрезался текст) */
-#todayScreen .quick-actions-row {
-  margin-top: 12px;
-  gap: 8px; /* Чуть увеличили зазор между кнопками */
-}
-#todayScreen .quick-action-btn {
-  padding: 0 8px; 
-}
-#todayScreen .quick-action-btn span {
-  font-size: 9.5px; /* Немного уменьшили шрифт, чтобы влезло "Быстрый режим" */
-  letter-spacing: -0.2px;
-}
 
 /* 7. Делаем равномерные отступы между всеми блоками на экране */
 #todayScreen .wrap {
@@ -1374,9 +1144,6 @@ div[onclick="showPremium()"] div {
    ═══════════════════════════════════════════════ */
 
 /* 1. Убираем нижний отступ у плашки с идентичностью */
-#todayScreen .d-focus-identity {
-  margin-bottom: 6px; /* Было 14px, теперь минимальный зазор */
-}
 
 /* 2. На всякий случай убираем верхний отступ у самой кнопки, если он есть */
 #todayScreen #mpcStartBtn {
@@ -1386,9 +1153,6 @@ div[onclick="showPremium()"] div {
    УМЕНЬШАЕМ ОТСТУП ДО ПЛАШКИ "Я - ТОТ, КТО..."
    ═══════════════════════════════════════════════ */
 
-#todayScreen .d-focus-identity {
-  margin-top: 2px; /* Уменьшили верхний отступ (было 10px) */
-}
 /* ═══════════════════════════════════════════════
    ПРЕМИАЛЬНЫЕ АВАТАРКИ (СВЕЧЕНИЕ И СТЕКЛО)
    ═══════════════════════════════════════════════ */
@@ -1456,30 +1220,12 @@ div[onclick="showPremium()"] div {
   filter: grayscale(1) blur(1px);
 }
 
-.avatar-lock-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 18px;
-  color: var(--d-gold);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-}
-
 .premium-avatar-item.active svg {
   transform: scale(1.15);
   filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
 }
 
 /* Делаем красивую подложку для большой аватарки в профиле */
-.profile-ava-bento {
-  background: radial-gradient(circle at 30% 30%, rgba(124, 92, 255, 0.3), rgba(124, 92, 255, 0.05));
-  border: 2px solid rgba(124, 92, 255, 0.5);
-  box-shadow: 0 10px 30px rgba(124, 92, 255, 0.2);
-}
 
 #profileAva svg {
   width: 100%;
@@ -1562,22 +1308,6 @@ html, body, #screensRoot {
 }
 
 /* 5. Фикс кнопок быстрого доступа (чтобы не распирали экран) */
-.quick-actions-row {
-  width: 100%;
-  max-width: 100%;
-  display: flex;
-  box-sizing: border-box;
-}
-.quick-action-btn {
-  flex: 1;
-  min-width: 0; /* Разрешаем кнопке сжиматься */
-}
-.quick-action-btn span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; /* Если текст не влезает, будет "Быстрый реж..." */
-  display: block;
-}
 
 /* 6. Фикс карточки книги (чтобы кольцо "1/21" не выталкивало текст) */
 .d-focus-card > div:first-child {
@@ -1641,7 +1371,7 @@ input, textarea, select {
 }
 
 /* 5. Фикс контейнеров с прокруткой (карусели) */
-#journalFilters, #statsBooksSwipe, .d-lib-chips, .d-admin-tabs, .tabs-row {
+#journalFilters, #statsBooksSwipe, .d-lib-chips {
   width: 100%;
   max-width: 100vw;
   box-sizing: border-box;
@@ -1689,10 +1419,7 @@ input, textarea, select {
    ═══════════════════════════════════════════════ */
 
 /* 2. Полоски прогресса (в книгах, в профиле, на главной) */
-.d-lib-book-fill, 
-.lc-bar-fill, 
-#mpcCourseBar,
-.abc-fill {
+.d-lib-book-fill, #mpcCourseBar {
   background: linear-gradient(90deg, #ff7a2a 0%, #7c5cff 50%, #1e5cff 100%);
 }
 
@@ -1760,51 +1487,6 @@ button, .nav-btn, .d-icon-btn, .tab-pill, .fp-action {
 /* ═══════════════════════════════════════════════
    НОВЫЙ BENTO DASHBOARD (Админка)
    ═══════════════════════════════════════════════ */
-.admin-bento-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 24px;
-}
-
-.admin-nav-btn {
-  background: var(--d-surface);
-  border: 1px solid var(--d-border);
-  border-radius: 16px;
-  padding: 12px 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  text-align: center;
-}
-
-.admin-nav-btn:active {
-  transform: scale(0.95);
-  background: var(--d-surface-2);
-}
-
-.admin-nav-btn.on {
-  background: linear-gradient(135deg, rgba(124,92,255,0.15), rgba(124,92,255,0.05));
-  border-color: var(--d-accent);
-  box-shadow: 0 4px 15px rgba(124,92,255,0.2);
-}
-
-.admin-nav-btn .anb-icon {
-  font-size: 24px;
-  margin-bottom: 2px;
-  filter: drop-shadow(0 0 8px rgba(255,255,255,0.2));
-}
-
-.admin-nav-btn .anb-text {
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--d-text);
-  line-height: 1.2;
-}
 
 .admin-content-area {
   animation: fadeIn 0.3s ease forwards;
@@ -1843,7 +1525,7 @@ button, .nav-btn, .d-icon-btn, .tab-pill, .fp-action {
 /* ANDGER brand components */
 .d-card-glass { background: linear-gradient(135deg, rgba(40,30,70,.6), rgba(25,18,45,.4)); border-color: rgba(124,92,255,.25); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
 .d-btn-primary { background: linear-gradient(135deg, #7c5cff 0%, #6366f1 100%); color: #fff; box-shadow: 0 6px 20px rgba(124,92,255,.4); }
-.d-header, .d-bottom-nav { background: rgba(18,12,36,.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+.d-header { background: rgba(18,12,36,.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 .d-focus-card { background: linear-gradient(135deg, rgba(124,92,255,.15), rgba(25,18,45,.8)); }
 .d-calendar-strip { background: rgba(40,30,70,.4); }
 
@@ -1871,8 +1553,7 @@ html.light body {
     radial-gradient(circle at 90% 80%, rgba(255, 122, 42, 0.1) 0%, transparent 50%);
 }
 
-html.light .d-header, 
-html.light .d-bottom-nav {
+html.light .d-header {
   background: rgba(255, 255, 255, 0.85) !important;
   border-color: rgba(124, 92, 255, 0.15) !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
@@ -1913,16 +1594,11 @@ html.light .d-cal-day.today {
   border-color: #7c5cff;
 }
 
-html.light .d-cal-dom, 
-html.light .d-focus-title, 
-html.light .d-lib-book-title,
-html.light .andger-bubble-text {
+html.light .d-cal-dom, html.light .d-lib-book-title, html.light .andger-bubble-text {
   color: #1a1428;
 }
 
-html.light .d-focus-action,
-html.light .d-lib-book-author,
-html.light .d-cal-dow {
+html.light .d-lib-book-author, html.light .d-cal-dow {
   color: #6b6880;
 }
 
@@ -1971,28 +1647,10 @@ html.light .andger-bubble {
 }
 
 /* Темная сфера */
-.dark-sphere {
-  background: radial-gradient(circle at 30% 30%, #3b1f66, #0d0a18);
-  border: 1px solid rgba(124, 92, 255, 0.4);
-  box-shadow: inset -3px -3px 8px rgba(0, 0, 0, 0.8), 0 0 15px rgba(124, 92, 255, 0.2);
-}
 
 /* Светлая сфера */
-.light-sphere {
-  background: radial-gradient(circle at 30% 30%, #ffffff, #dcdae5);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: inset -3px -3px 8px rgba(0, 0, 0, 0.15), 0 0 15px rgba(255, 255, 255, 0.1);
-}
-.light-sphere::after {
-  background: rgba(255, 255, 255, 0.9); /* Более яркий блик для светлой */
-}
 
 /* Сфера Авто (идеальный плавный переход) */
-.auto-sphere {
-  background: linear-gradient(135deg, #0d0a18 0%, #2a164a 30%, #7c5cff 60%, #f5f4fa 100%);
-  border: 1px solid rgba(124, 92, 255, 0.6);
-  box-shadow: inset -3px -3px 8px rgba(0, 0, 0, 0.7), inset 2px 2px 10px rgba(255, 255, 255, 0.4), 0 0 20px rgba(124, 92, 255, 0.4);
-}
 
 /* Текст */
 .theme-label {

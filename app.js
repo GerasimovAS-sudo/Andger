@@ -39,59 +39,142 @@ const SVG_ICONS = {
   'crown': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>'
 };
 
-const AVATAR_ICONS = {
-  // ─── БАЗОВЫЕ (Бесплатные) ───
-  'default': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4C7 4 3 8.5 1 12C3 15.5 7 20 12 20C17 20 21 15.5 23 12C21 8.5 17 4 12 4Z" fill="url(#gradDefault)" fill-opacity="0.2" stroke="url(#gradDefault)" stroke-width="1.5"/><circle cx="12" cy="12" r="4" fill="url(#gradDefault)"/><circle cx="12" cy="12" r="1.5" fill="#ffffff"/><path d="M12 2V4M12 20V22M2 12H4M20 12H22M5.6 5.6L7 7M17 17L18.4 18.4M18.4 5.6L17 7M7 17L5.6 18.4" stroke="url(#gradDefault)" stroke-width="1.5" stroke-linecap="round"/></svg>`,
-  'crystal': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L20 9L12 22L4 9L12 2Z" fill="url(#gradCrystal)" fill-opacity="0.6" stroke="url(#gradCrystal)" stroke-width="1.5"/><path d="M12 2L12 22M4 9L20 9M7 9L12 2M17 9L12 2" stroke="#ffffff" stroke-opacity="0.4" stroke-width="1" stroke-linejoin="round"/><path d="M12 22L8.5 9L12 2L15.5 9L12 22Z" fill="#ffffff" fill-opacity="0.2"/></svg>`,
-  'tree': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22V10M12 10C12 10 16 8 18 4C15 4 12 6 12 6C12 6 9 4 6 4C8 8 12 10 12 10ZM12 14C14 14 17 12 18 9C15 9 12 11 12 11C12 11 9 9 6 9C7 12 10 14 12 14Z" fill="url(#gradLeaf)" fill-opacity="0.8" stroke="url(#gradLeaf)" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="4" r="1.5" fill="#ffffff"/></svg>`,
-  'moon': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" fill="url(#gradMoon)" fill-opacity="0.6" stroke="url(#gradMoon)" stroke-width="1.5"/><path d="M17 4L17.5 5.5L19 6L17.5 6.5L17 8L16.5 6.5L15 6L16.5 5.5L17 4Z" fill="#ffffff"/><circle cx="8" cy="14" r="1" fill="#ffffff" fill-opacity="0.6"/><circle cx="13" cy="16" r="1.5" fill="#ffffff" fill-opacity="0.6"/><circle cx="9" cy="9" r="0.8" fill="#ffffff" fill-opacity="0.6"/></svg>`,
-  'owl': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22C17.5 22 20 17 20 12C20 7 17 2 12 2C7 2 4 7 4 12C4 17 6.5 22 12 22Z" fill="url(#gradDefault)" fill-opacity="0.5" stroke="url(#gradDefault)" stroke-width="1.5"/><circle cx="9" cy="10" r="3" fill="#ffffff" fill-opacity="0.9"/><circle cx="15" cy="10" r="3" fill="#ffffff" fill-opacity="0.9"/><circle cx="9" cy="10" r="1.5" fill="#1a1428"/><circle cx="15" cy="10" r="1.5" fill="#1a1428"/><path d="M12 13L10 16H14L12 13Z" fill="#ffffff" fill-opacity="0.8"/><path d="M4 6L7 9M20 6L17 9" stroke="url(#gradDefault)" stroke-width="2" stroke-linecap="round"/></svg>`,
-  'key': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7" r="4" fill="url(#gradDefault)" fill-opacity="0.4" stroke="url(#gradDefault)" stroke-width="1.5"/><circle cx="7" cy="7" r="1.5" fill="#ffffff" fill-opacity="0.6"/><path d="M10 10L20 20M16 16L18 14M18 18L20 16" stroke="url(#gradDefault)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  'compass': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="url(#gradCompass)" fill-opacity="0.2" stroke="url(#gradCompass)" stroke-width="1.5"/><path d="M16 8L13.5 13.5L8 16L10.5 10.5L16 8Z" fill="url(#gradCompass)" stroke="url(#gradCompass)" stroke-width="1"/><circle cx="12" cy="12" r="1.5" fill="#ffffff"/><path d="M12 2V4M12 20V22M2 12H4M20 12H22" stroke="url(#gradCompass)" stroke-width="1.5" stroke-linecap="round"/></svg>`,
-  'sword': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 3.5L20.5 9.5L10.5 19.5L8.5 17.5L14.5 3.5Z" fill="url(#gradCrown)" fill-opacity="0.6" stroke="url(#gradCrown)" stroke-width="1.5"/><path d="M5 19L9 23M3 21L7 17M8.5 17.5L6.5 15.5" stroke="url(#gradCrown)" stroke-width="2" stroke-linecap="round"/><path d="M15 5L19 9" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1"/></svg>`,
-
-  // ─── ПРЕМИУМ (Магазин) ───
-  
-  // 1. Лотос (100 XP) - Многослойный, с золотыми акцентами
-  'lotus': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 21C12 21 19 17 19 11C19 7 15 2 12 2C9 2 5 7 5 11C5 17 12 21 12 21Z" fill="url(#gradLotus)" fill-opacity="0.8"/>
-    <path d="M12 21C12 21 3 18 3 12C3 8 7 4 7 4C7 4 9 8 12 11" fill="url(#gradLotus)" fill-opacity="0.6"/>
-    <path d="M12 21C12 21 21 18 21 12C21 8 17 4 17 4C17 4 15 8 12 11" fill="url(#gradLotus)" fill-opacity="0.6"/>
-    <path d="M12 21V11" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1.5"/>
-    <circle cx="12" cy="8" r="1.5" fill="#ffb800"/>
-  </svg>`,
-
-  // 2. Атом (100 XP) - Светящееся ядро и 3D-орбиты
-  'atom': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="12" cy="12" r="2.5" fill="url(#gradAtom)"/>
-    <circle cx="12" cy="12" r="4" fill="url(#gradAtom)" fill-opacity="0.3" filter="blur(2px)"/>
-    <ellipse cx="12" cy="12" rx="10" ry="3" stroke="url(#gradAtom)" stroke-width="1.5" transform="rotate(30 12 12)"/>
-    <ellipse cx="12" cy="12" rx="10" ry="3" stroke="url(#gradAtom)" stroke-width="1.5" transform="rotate(90 12 12)"/>
-    <ellipse cx="12" cy="12" rx="10" ry="3" stroke="url(#gradAtom)" stroke-width="1.5" transform="rotate(150 12 12)"/>
-    <circle cx="18" cy="8" r="1.5" fill="#ffffff"/>
-    <circle cx="6" cy="16" r="1.5" fill="#ffffff"/>
-    <circle cx="12" cy="18" r="1.5" fill="#ffffff"/>
-  </svg>`,
-
-  // 3. Мишень (150 XP) - Эффект радара
-  'target': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="12" cy="12" r="10" fill="url(#gradTarget)" fill-opacity="0.1" stroke="url(#gradTarget)" stroke-width="1.5"/>
-    <circle cx="12" cy="12" r="6" fill="url(#gradTarget)" fill-opacity="0.2" stroke="url(#gradTarget)" stroke-width="1.5" stroke-dasharray="3 3"/>
-    <circle cx="12" cy="12" r="2" fill="url(#gradTarget)"/>
-    <circle cx="12" cy="12" r="0.8" fill="#ffffff"/>
-    <path d="M12 2V6M12 18V22M2 12H6M18 12H22" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1.5" stroke-linecap="round"/>
-  </svg>`,
-
-  // 4. Корона (250 XP) - Массивная, с драгоценными камнями
-  'crown': `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M3 8L7 14L12 5L17 14L21 8V19H3V8Z" fill="url(#gradCrown)" stroke="url(#gradCrown)" stroke-width="1.5" stroke-linejoin="round"/>
-    <path d="M3 19H21" stroke="#ffffff" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round"/>
-    <circle cx="7" cy="14" r="1.5" fill="#ff5c5c"/>
-    <circle cx="12" cy="5" r="1.5" fill="#4facfe"/>
-    <circle cx="17" cy="14" r="1.5" fill="#3ecf8e"/>
-    <circle cx="12" cy="16.5" r="1.5" fill="#ffffff" fill-opacity="0.8"/>
-  </svg>`
+// ─── ПРЕМИАЛЬНЫЕ АВАТАРЫ-МЕДАЛЬОНЫ ───
+// Единый стиль: металлический обод, глубокий фон, блик, свой символ. Эпические — со скользящим бликом.
+// '@@' в id заменяется на уникальный номер при каждом показе (иначе градиенты ломаются, если первый экземпляр лежит в скрытом экране).
+const _AVT_PAL = {
+  violet:{rim:['#f3ecff','#9275ff','#3b2894'],bg:['#4b3a9c','#130d30'],glow:'#8b6cff',s:['#ffffff','#b9a3ff'],dark:'#0f0a26'},
+  gold:  {rim:['#fff4c2','#f6b93b','#8f5208'],bg:['#5a3511','#1a0e06'],glow:'#ffb52e',s:['#fff6d0','#ffb52e'],dark:'#1a0e06'},
+  teal:  {rim:['#d2fff3','#3ecf8e','#0a645f'],bg:['#11524c','#061f1e'],glow:'#35e0b4',s:['#e4fff7','#3fe0bf'],dark:'#061f1e'},
+  rose:  {rim:['#ffdcf5','#f093fb','#8a37a8'],bg:['#5b2268','#1c0a28'],glow:'#f58be8',s:['#fff0fb','#f58be8'],dark:'#1c0a28'},
+  azure: {rim:['#d9efff','#4facfe','#1a49ad'],bg:['#134083','#071530'],glow:'#4facfe',s:['#eaf6ff','#5fc3ff'],dark:'#071530'},
+  ember: {rim:['#ffe6c9','#ff8a3d','#9c2c0c'],bg:['#63220e','#1f0a06'],glow:'#ff7a2a',s:['#fff0d6','#ff8a3d'],dark:'#1f0a06'},
+  silver:{rim:['#ffffff','#cfc9ee','#6a6397'],bg:['#2d2658','#0b0820'],glow:'#a99cff',s:['#ffffff','#cfc6ff'],dark:'#06040f'}
 };
+function _avtSpark(x,y,r){return `M${x} ${y-r}Q${x} ${y} ${x+r} ${y}Q${x} ${y} ${x} ${y+r}Q${x} ${y} ${x-r} ${y}Q${x} ${y} ${x} ${y-r}Z`;}
+function _avtStops(a){return a.map((c,i)=>`<stop offset="${Math.round(i/(a.length-1)*100)}%" stop-color="${c}"/>`).join('');}
+function _avtMedal(key,pal,symbol,live){
+  const P=_AVT_PAL[pal], id='m-'+key+'-@@';
+  const S=`url(#${id}-s)`;
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" data-medal="1">
+<defs>
+<linearGradient id="${id}-rim" x1="0" y1="0" x2="1" y2="1">${_avtStops(P.rim)}</linearGradient>
+<radialGradient id="${id}-bg" cx="34%" cy="26%" r="90%">${_avtStops(P.bg)}</radialGradient>
+<linearGradient id="${id}-s" x1="0.2" y1="0" x2="0.8" y2="1">${_avtStops(P.s)}</linearGradient>
+<radialGradient id="${id}-glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="${P.glow}" stop-opacity=".5"/><stop offset="100%" stop-color="${P.glow}" stop-opacity="0"/></radialGradient>
+<linearGradient id="${id}-shine" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity=".42"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<linearGradient id="${id}-hi" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#fff" stop-opacity="0"/><stop offset="100%" stop-color="#fff" stop-opacity=".95"/></linearGradient>
+<clipPath id="${id}-clip"><circle cx="50" cy="50" r="44"/></clipPath>
+</defs>
+<circle cx="50" cy="50" r="49" fill="url(#${id}-rim)"/>
+<circle cx="50" cy="50" r="45.5" fill="url(#${id}-bg)"/>
+<circle cx="50" cy="50" r="40" fill="url(#${id}-glow)"/>
+<circle cx="50" cy="50" r="44.4" fill="none" stroke="#fff" stroke-opacity=".16" stroke-width=".9"/>
+${symbol(S,P,id)}
+<path d="M14 40A38 38 0 0 1 86 40Q50 28 14 40Z" fill="url(#${id}-shine)"/>
+${live?`<circle class="avt-sheen" cx="50" cy="50" r="47.3" fill="none" stroke="url(#${id}-hi)" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="52 250"/>`:''}
+</svg>`;
+}
+const _AVT_SYMBOLS = {
+  default:['violet',(S,P)=>`<path d="M19 50C28 33 72 33 81 50C72 67 28 67 19 50Z" fill="${S}" fill-opacity=".16" stroke="${S}" stroke-width="3.2" stroke-linejoin="round"/>
+<circle cx="50" cy="50" r="12.5" fill="${S}"/><circle cx="50" cy="50" r="5.4" fill="${P.dark}"/><circle cx="46" cy="46" r="2.3" fill="#fff" opacity=".95"/>
+<path d="M50 21v6M33 26l3 5M67 26l-3 5M50 79v-6M33 74l3-5M67 74l-3-5" stroke="${S}" stroke-width="3" stroke-linecap="round"/>`],
+  crystal:['azure',(S)=>`<path d="M50 19L73 38L50 81L27 38Z" fill="${S}" fill-opacity=".28" stroke="${S}" stroke-width="2.8" stroke-linejoin="round"/>
+<path d="M27 38H73M50 19L39 38L50 81M50 19L61 38L50 81" fill="none" stroke="${S}" stroke-width="1.8" stroke-linejoin="round" opacity=".9"/>
+<path d="M39 38L50 19L61 38Z" fill="#fff" fill-opacity=".38"/><path d="M33 38L50 79L43 38Z" fill="#fff" fill-opacity=".08"/>`],
+  tree:['teal',(S)=>`<path d="M50 82V54M50 66L39 56M50 61L61 51M50 82q-9 0-16 4M50 82q9 0 16 4" fill="none" stroke="${S}" stroke-width="3.6" stroke-linecap="round"/>
+<circle cx="50" cy="37" r="14.5" fill="${S}" fill-opacity=".92"/><circle cx="36.5" cy="47" r="11" fill="${S}" fill-opacity=".85"/><circle cx="63.5" cy="47" r="11" fill="${S}" fill-opacity=".85"/>
+<circle cx="45" cy="33" r="5" fill="#fff" fill-opacity=".3"/><circle cx="33" cy="44" r="3.6" fill="#fff" fill-opacity=".25"/>`],
+  moon:['violet',(S)=>`<path d="M60 22A29 29 0 1 0 79 62A23 23 0 1 1 60 22Z" fill="${S}"/>
+<path d="${_avtSpark(73,32,7)}" fill="#fff"/><path d="${_avtSpark(80,48,3.6)}" fill="#fff" fill-opacity=".85"/><circle cx="31" cy="38" r="2.2" fill="#fff" fill-opacity=".25"/><circle cx="38" cy="60" r="3.2" fill="#fff" fill-opacity=".2"/>`],
+  owl:['gold',(S,P)=>`<path d="M50 80C32 80 25 63 25 49C25 36 34 27 50 27C66 27 75 36 75 49C75 63 68 80 50 80Z" fill="${S}" fill-opacity=".2" stroke="${S}" stroke-width="3"/>
+<path d="M29 35L25 21L41 29M71 35L75 21L59 29" fill="none" stroke="${S}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="40.5" cy="47" r="10.5" fill="${P.dark}" stroke="${S}" stroke-width="2.6"/><circle cx="59.5" cy="47" r="10.5" fill="${P.dark}" stroke="${S}" stroke-width="2.6"/>
+<circle cx="40.5" cy="47" r="4.6" fill="${S}"/><circle cx="59.5" cy="47" r="4.6" fill="${S}"/><circle cx="38.8" cy="45.3" r="1.5" fill="#fff"/><circle cx="57.8" cy="45.3" r="1.5" fill="#fff"/>
+<path d="M50 52L46 60L54 60Z" fill="${S}"/><path d="M40 69q5 4 10 0q5 4 10 0" fill="none" stroke="${S}" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>`],
+  key:['gold',(S,P)=>`<g transform="rotate(38 50 50)"><circle cx="50" cy="31" r="12" fill="none" stroke="${S}" stroke-width="4.4"/><circle cx="50" cy="31" r="4.2" fill="${S}"/>
+<rect x="47" y="42" width="6" height="38" rx="3" fill="${S}"/><rect x="53" y="60" width="10" height="5.4" rx="2" fill="${S}"/><rect x="53" y="70" width="7" height="5.4" rx="2" fill="${S}"/></g>`],
+  compass:['azure',(S,P)=>`<circle cx="50" cy="50" r="29" fill="none" stroke="${S}" stroke-width="3"/><circle cx="50" cy="50" r="24" fill="${P.dark}" fill-opacity=".45"/>
+<path d="M50 15v7M50 78v7M15 50h7M78 50h7" stroke="${S}" stroke-width="3" stroke-linecap="round"/>
+<g transform="rotate(38 50 50)"><path d="M50 27L57 50H43Z" fill="#fff"/><path d="M50 73L57 50H43Z" fill="${S}" fill-opacity=".6"/></g><circle cx="50" cy="50" r="3.6" fill="${P.dark}" stroke="${S}" stroke-width="1.6"/>`],
+  sword:['ember',(S,P)=>`<g transform="rotate(40 50 50)"><path d="M50 15L57 24V58H43V24Z" fill="${S}"/><path d="M50 26V56" stroke="${P.dark}" stroke-opacity=".4" stroke-width="2"/>
+<rect x="35" y="58" width="30" height="5.6" rx="2.8" fill="${S}"/><rect x="47.2" y="63" width="5.6" height="13" rx="2.4" fill="${S}"/><circle cx="50" cy="80" r="4.4" fill="${S}"/></g>`],
+  lotus:['rose',(S)=>`<g stroke="#fff" stroke-opacity=".35" stroke-width="1">
+<g transform="rotate(-68 50 72)"><path d="M50 72C38 64 38 42 50 26C62 42 62 64 50 72Z" fill="${S}" fill-opacity=".6"/></g>
+<g transform="rotate(68 50 72)"><path d="M50 72C38 64 38 42 50 26C62 42 62 64 50 72Z" fill="${S}" fill-opacity=".6"/></g>
+<g transform="rotate(-34 50 72)"><path d="M50 72C38 64 38 42 50 26C62 42 62 64 50 72Z" fill="${S}" fill-opacity=".82"/></g>
+<g transform="rotate(34 50 72)"><path d="M50 72C38 64 38 42 50 26C62 42 62 64 50 72Z" fill="${S}" fill-opacity=".82"/></g>
+<path d="M50 72C38 64 38 42 50 26C62 42 62 64 50 72Z" fill="${S}"/></g><circle cx="50" cy="60" r="3.4" fill="#ffe6a3"/>`],
+  atom:['teal',(S)=>`<g fill="none" stroke="${S}" stroke-width="2.6"><ellipse cx="50" cy="50" rx="31" ry="11"/><ellipse cx="50" cy="50" rx="31" ry="11" transform="rotate(60 50 50)"/><ellipse cx="50" cy="50" rx="31" ry="11" transform="rotate(120 50 50)"/></g>
+<circle cx="81" cy="50" r="3.4" fill="#fff"/><circle cx="34.5" cy="23.2" r="3.4" fill="#fff"/><circle cx="34.5" cy="76.8" r="3.4" fill="#fff"/><circle cx="50" cy="50" r="7" fill="${S}"/><circle cx="48" cy="48" r="2.2" fill="#fff" fill-opacity=".8"/>`],
+  target:['gold',(S)=>`<circle cx="50" cy="50" r="29" fill="none" stroke="${S}" stroke-width="3.2"/><circle cx="50" cy="50" r="19" fill="none" stroke="${S}" stroke-width="2.6" opacity=".85"/><circle cx="50" cy="50" r="8.5" fill="${S}"/>
+<path d="M50 13v11M50 76v11M13 50h11M76 50h11" stroke="${S}" stroke-width="3" stroke-linecap="round"/><circle cx="47.6" cy="47.6" r="2" fill="#fff" fill-opacity=".8"/>`],
+  crown:['gold',(S)=>`<path d="M23 67L19 36L38 51L50 27L62 51L81 36L77 67Z" fill="${S}" stroke="${S}" stroke-width="2.6" stroke-linejoin="round"/><rect x="23" y="69" width="54" height="7.5" rx="3.2" fill="${S}"/>
+<circle cx="19" cy="34" r="3.2" fill="#fff"/><circle cx="50" cy="25" r="3.2" fill="#fff"/><circle cx="81" cy="34" r="3.2" fill="#fff"/>
+<circle cx="50" cy="58" r="3.8" fill="#ff5c8a"/><circle cx="34" cy="60" r="2.7" fill="#4facfe"/><circle cx="66" cy="60" r="2.7" fill="#3ecf8e"/><path d="M26 66L24 42L36 52" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2"/>`],
+  eclipse:['silver',(S,P,id)=>`<circle cx="50" cy="50" r="36" fill="url(#${id}-glow)"/><circle cx="50" cy="50" r="22" fill="${P.dark}" stroke="${S}" stroke-width="3.4"/><circle cx="50" cy="50" r="27" fill="none" stroke="${S}" stroke-opacity=".35" stroke-width="1.3"/><circle cx="50" cy="50" r="32" fill="none" stroke="${S}" stroke-opacity=".15" stroke-width="1"/>
+<path d="${_avtSpark(69,31,11)}" fill="#fff"/><circle cx="69" cy="31" r="3" fill="#fff"/>`],
+  nebula:['rose',(S,P,id)=>`<g fill="none" stroke="${S}" stroke-linecap="round"><path d="M50 50C50 40 62 36 68 44C76 55 66 71 50 69C32 67 26 48 36 36C44 27 60 24 71 31" stroke-width="3.2"/><path d="M50 50C50 60 38 64 32 56C24 45 34 29 50 31C68 33 74 52 64 64C56 73 40 76 29 69" stroke-width="3.2" opacity=".75"/></g>
+<circle cx="50" cy="50" r="9" fill="url(#${id}-glow)"/><circle cx="50" cy="50" r="4.6" fill="#fff"/><circle cx="22" cy="26" r="1.5" fill="#fff"/><circle cx="78" cy="72" r="1.3" fill="#fff"/><circle cx="73" cy="22" r="1.1" fill="#fff" opacity=".8"/><circle cx="25" cy="73" r="1.2" fill="#fff" opacity=".8"/>`],
+  infinity:['violet',(S)=>`<path d="M50 50C42 36 22 36 22 50C22 64 42 64 50 50C58 36 78 36 78 50C78 64 58 64 50 50Z" fill="none" stroke="${S}" stroke-width="5.4" stroke-linejoin="round"/><path d="M50 50C42 36 22 36 22 50C22 64 42 64 50 50C58 36 78 36 78 50C78 64 58 64 50 50Z" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.3"/><path d="${_avtSpark(50,50,5)}" fill="#fff"/>`],
+  orbit:['azure',(S,P)=>`<g transform="rotate(-22 50 50)"><ellipse cx="50" cy="50" rx="33" ry="10" fill="none" stroke="${S}" stroke-width="3" opacity=".7"/></g>
+<circle cx="50" cy="50" r="16" fill="${S}"/><circle cx="44" cy="44" r="5" fill="#fff" fill-opacity=".28"/>
+<g transform="rotate(-22 50 50)"><path d="M17 50A33 10 0 0 0 83 50" fill="none" stroke="${S}" stroke-width="3.4"/></g><circle cx="76" cy="28" r="4.2" fill="#fff"/><circle cx="25" cy="72" r="1.6" fill="#fff" opacity=".8"/>`],
+  aurora:['teal',(S,P,id)=>`<g clip-path="url(#${id}-clip)"><path d="M0 60C20 40 32 72 52 54S82 44 100 56V100H0Z" fill="#35e0b4" fill-opacity=".55"/><path d="M0 70C22 52 36 82 56 64S84 56 100 66V100H0Z" fill="#8b6cff" fill-opacity=".65"/><path d="M0 80C24 66 40 92 60 76S86 70 100 78V100H0Z" fill="#f58be8" fill-opacity=".6"/></g>
+<path d="${_avtSpark(34,28,6)}" fill="#fff"/><circle cx="62" cy="24" r="1.6" fill="#fff"/><circle cx="76" cy="38" r="1.2" fill="#fff" opacity=".8"/><circle cx="22" cy="44" r="1.2" fill="#fff" opacity=".8"/>`]
+};
+const _AVT_LIVE = {crown:1,target:0,eclipse:1,nebula:1,aurora:1,orbit:0,infinity:0};
+
+// ─── ПОРТРЕТЫ: стилизованные люди в стиле медальонов ───
+function _avtPortrait(o){
+  return (S,P,id)=>{
+    const skin=o.skin, sh=o.shade, hair=o.hair||'#2b1b3d';
+    const face = o.face || `<path d="M42.4 46.2q3.1 2.3 6.2 0M51.4 46.2q3.1 2.3 6.2 0" stroke="#2a1608" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M50 47.5q-1.9 5.2.7 6.6" stroke="${sh}" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+      <path d="M46.2 56.4q3.8 2.8 7.6 0" stroke="${o.lip||'#9a4a4a'}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <circle cx="41" cy="52" r="3" fill="#ff7a8a" fill-opacity=".14"/><circle cx="59" cy="52" r="3" fill="#ff7a8a" fill-opacity=".14"/>`;
+    return `<g clip-path="url(#${id}-clip)">${o.aura||''}${o.back||''}
+      <path d="M14 100C16 73 33 63.5 50 63.5C67 63.5 84 73 86 100Z" fill="${o.cloth}"/>
+      <path d="M14 100C16 73 33 63.5 50 63.5C67 63.5 84 73 86 100Z" fill="url(#${id}-shine)" opacity=".35"/>
+      ${o.collar||''}
+      <path d="M43 58h14v9.5c-3.4 3.2-10.6 3.2-14 0z" fill="${sh}"/>
+      <ellipse cx="50" cy="45" rx="14" ry="16.5" fill="${skin}"/>
+      <path d="M50 28.5A14 16.5 0 0 1 50 61.5Z" fill="#000" fill-opacity=".1"/>
+      <ellipse cx="44" cy="39" rx="5" ry="7" fill="#fff" fill-opacity=".08"/>
+      ${face}${o.front||''}</g>`;
+  };
+}
+_AVT_SYMBOLS.aria=['rose',_avtPortrait({skin:'#f3cdb0',shade:'#d9a68a',hair:'#3a1f55',cloth:'#6d3aa8',
+  back:'<path d="M30 46C28 24 40 17.5 50 17.5C60 17.5 72 24 70 46C72 62 70 78 63 88L37 88C30 78 28 62 30 46Z" fill="#3a1f55"/>',
+  front:'<path d="M34.5 41C35 27 45 22 52 23.5C60 25 65.5 32 65.5 41C58.5 33 46.5 31 34.5 41Z" fill="#3a1f55"/><path d="M34 48C31 61 32 74 36.5 82C41 73 40.5 59 37.5 48Z" fill="#4a2a6a"/><path d="M66 48C69 61 68 74 63.5 82C59 73 59.5 59 62.5 48Z" fill="#4a2a6a"/><path d="M40 27C46 24 54 24 60 27" stroke="#fff" stroke-opacity=".3" stroke-width="1.3" fill="none" stroke-linecap="round"/>'})];
+_AVT_SYMBOLS.leo=['azure',_avtPortrait({skin:'#e3b08a',shade:'#c68f6a',hair:'#1f1a2e',cloth:'#1f3f7a',lip:'#a05a4a',
+  front:'<path d="M35.5 42C33.5 26 44 19.5 51 19.5C60.5 19.5 67 27 64.5 42C62 34 56 31 50 31C44 31 38 34 35.5 42Z" fill="#1f1a2e"/><path d="M36.5 50C37 62 43 66.5 50 66.5C57 66.5 63 62 63.5 50C61 58.5 57 61 50 61C43 61 39 58.5 36.5 50Z" fill="#1f1a2e" fill-opacity=".92"/><path d="M41 25C46 22.5 54 22.5 60 25" stroke="#fff" stroke-opacity=".22" stroke-width="1.3" fill="none" stroke-linecap="round"/>',
+  collar:'<path d="M42 64l8 9 8-9" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.6" stroke-linejoin="round"/>'})];
+_AVT_SYMBOLS.mira=['gold',_avtPortrait({skin:'#d79c72',shade:'#b97c56',hair:'#2a1608',cloth:'#9a5a14',lip:'#8a3a3a',
+  back:'<circle cx="50" cy="19.5" r="8.4" fill="#2a1608"/>',
+  front:'<path d="M35 43C34 28 42 21.5 50 21.5C58 21.5 66 28 65 43C62 33 56 30 50 30C44 30 38 33 35 43Z" fill="#2a1608"/><circle cx="35.2" cy="53.5" r="2.1" fill="#ffd66b"/><circle cx="64.8" cy="53.5" r="2.1" fill="#ffd66b"/><path d="M42 25.5C47 23 53 23 58 25.5" stroke="#fff" stroke-opacity=".25" stroke-width="1.3" fill="none" stroke-linecap="round"/>',
+  collar:'<path d="M40 64.5Q50 72 60 64.5" fill="none" stroke="#ffd66b" stroke-width="1.8" stroke-linecap="round"/>'})];
+_AVT_SYMBOLS.kai=['teal',_avtPortrait({skin:'#8d5a3b',shade:'#70452c',hair:'#120a06',cloth:'#0f6b63',lip:'#5a2a22',
+  back:'<g fill="#120a06"><circle cx="36" cy="31" r="8.5"/><circle cx="45" cy="23" r="8.5"/><circle cx="56" cy="23" r="8.5"/><circle cx="64" cy="31" r="8.5"/><circle cx="33.5" cy="41" r="7"/><circle cx="66.5" cy="41" r="7"/></g>',
+  front:'<g fill="#120a06"><circle cx="40" cy="30" r="5.6"/><circle cx="50" cy="27.5" r="5.8"/><circle cx="60" cy="30" r="5.6"/></g><path d="M38 27.5C44 24 56 24 62 27.5" stroke="#fff" stroke-opacity=".18" stroke-width="1.3" fill="none" stroke-linecap="round"/>'})];
+// Хранитель: капюшон, лицо в тени, светящиеся глаза
+_AVT_SYMBOLS.sage=['violet',(S,P,id)=>`<g clip-path="url(#${id}-clip)"><path d="M22 100C19 52 30 18 50 16C70 18 81 52 78 100Z" fill="#3b2590"/><path d="M14 100C16 73 33 63.5 50 63.5C67 63.5 84 73 86 100Z" fill="#2c1a66"/><path d="M14 100C16 73 33 63.5 50 63.5C67 63.5 84 73 86 100Z" fill="url(#${id}-shine)" opacity=".3"/><ellipse cx="50" cy="45" rx="14" ry="16.5" fill="#07040f"/><ellipse cx="43" cy="46" rx="2.6" ry="1.8" fill="${S}"/><ellipse cx="57" cy="46" rx="2.6" ry="1.8" fill="${S}"/><ellipse cx="43" cy="46" rx="5.5" ry="4" fill="${P.glow}" fill-opacity=".35"/><ellipse cx="57" cy="46" rx="5.5" ry="4" fill="${P.glow}" fill-opacity=".35"/><path d="M32.5 60C30 37 38 25.5 50 23.5C62 25.5 70 37 67.5 60C66 41 58.5 32 50 32C41.5 32 34 41 32.5 60Z" fill="#5740c8"/><path d="M40 27C46 24.5 54 24.5 60 27" stroke="#fff" stroke-opacity=".3" stroke-width="1.3" fill="none" stroke-linecap="round"/></g>`];
+_AVT_SYMBOLS.zen=['ember',_avtPortrait({skin:'#e0a77c',shade:'#c4895f',cloth:'#d9531e',lip:'#8a3a3a',
+  aura:'<circle cx="50" cy="44" r="30" fill="none" stroke="#ffd09a" stroke-opacity=".28" stroke-width="1.2"/><circle cx="50" cy="44" r="36" fill="none" stroke="#ffd09a" stroke-opacity=".14" stroke-width="1"/>',
+  front:'<circle cx="50" cy="34.5" r="1.7" fill="#ff5a1f"/><path d="M36 45.5C34.5 44.5 34.5 50 37 51M64 45.5C65.5 44.5 65.5 50 63 51" fill="none" stroke="#c4895f" stroke-width="1.4" stroke-linecap="round"/>',
+  collar:'<path d="M38 64.5L50 80L62 64.5" fill="none" stroke="#ffd09a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'})];
+_AVT_SYMBOLS.nova=['silver',_avtPortrait({skin:'#f1d3bd',shade:'#d3ad94',hair:'#cfd4ee',cloth:'#242052',
+  face:'<path d="M50 47.5q-1.9 5.2.7 6.6" stroke="#d3ad94" stroke-width="1.3" fill="none" stroke-linecap="round"/><path d="M46.4 57q3.6 2.4 7.2 0" stroke="#9a4a4a" stroke-width="1.5" fill="none" stroke-linecap="round"/>',
+  front:'<path d="M34.5 41C34 27 44 20.5 52 21.5C61 22.5 66 30 65.5 41C60 33.5 47 30 34.5 41Z" fill="#cfd4ee"/><rect x="36" y="42" width="28" height="8.4" rx="4.2" fill="#0a0a22" stroke="#7fd8ff" stroke-width="1.2"/><rect x="38.4" y="44.2" width="23.2" height="2" rx="1" fill="#7fd8ff"/><path d="M44 27C49 24 56 24.5 61 27.5" stroke="#fff" stroke-opacity=".4" stroke-width="1.3" fill="none" stroke-linecap="round"/>',
+  collar:'<path d="M30 76L50 68L70 76" fill="none" stroke="#7fd8ff" stroke-opacity=".7" stroke-width="1.4"/>'})];
+_AVT_SYMBOLS.phoenix=['ember',_avtPortrait({skin:'#f0c4a4',shade:'#d4a07e',hair:'#ff6a1f',cloth:'#7a1a1a',lip:'#a03a3a',
+  back:'<path d="M28 48C24 24 38 14 50 14C62 14 76 24 72 48C75 66 72 82 62 92L38 92C28 82 25 66 28 48Z" fill="#ff6a1f"/><path d="M34 40C32 26 42 18 50 18C58 18 68 26 66 40C66 34 60 24 50 24C40 24 34 34 34 40Z" fill="#ffb347"/>',
+  front:'<path d="M35 42C35.5 28 44 22.5 51 23.5C59 24.5 65 31 65 42C58 33.5 46 31 35 42Z" fill="#ff8a2a"/><path d="M33 50C30 62 31 74 35.5 84C40 73 39.5 60 37 50Z" fill="#ff6a1f"/><path d="M67 50C70 62 69 74 64.5 84C60 73 60.5 60 63 50Z" fill="#ff6a1f"/><path d="M38.5 32.5Q50 25.5 61.5 32.5" stroke="#ffd66b" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="50" cy="29.4" r="2" fill="#ff5c8a"/>',
+  collar:'<path d="M40 64.5Q50 71 60 64.5" fill="none" stroke="#ffd66b" stroke-width="1.8" stroke-linecap="round"/>'})];
+Object.assign(_AVT_LIVE,{sage:1,nova:1,phoenix:1});
+const AVATAR_ICONS = {};
+Object.keys(_AVT_SYMBOLS).forEach(k=>{const d=_AVT_SYMBOLS[k]; AVATAR_ICONS[k]=_avtMedal(k,d[0],d[1],!!_AVT_LIVE[k]);});
+let _avtUid = 0;
 
 // Функция для отрисовки аватарки (теперь поддерживает SVG)
 function getAvatarHtml(avatar, size = 24) {
@@ -105,8 +188,15 @@ function getAvatarHtml(avatar, size = 24) {
     }
   }
   
-  // Если ключ неизвестен (например, старый 'owl' или 'cat') — принудительно ставим дефолт
+  // Если ключ неизвестен (например, старый 'cat') — принудительно ставим дефолт
   if (!content) content = AVATAR_ICONS['default'];
+
+  // Премиальные медальоны: во весь контейнер, с уникальными id градиентов
+  if (typeof content === 'string' && content.includes('data-medal')) {
+    const uid = ++_avtUid;
+    const svg = content.replace(/@@/g, 'u' + uid).replace(/<svg([^>]*)>/, '<svg$1 width="100%" height="100%" class="avt-medal" aria-hidden="true">');
+    return `<span class="avt-wrap">${svg}</span>`;
+  }
 
   // Теперь SVG растягивается на 100% контейнера
   if (typeof content === 'string' && content.trim().startsWith('<svg')) {
@@ -1711,12 +1801,15 @@ function showTodayScreen(){
     if (currentScreen === 'today') {
       const bubbleText = document.getElementById('lumiTip');
       const bubble = document.getElementById('andgerBubble');
+      const microNow = document.getElementById('microActionBtn');
+      if (microNow && microNow.style.display === 'flex') return;   // идёт «Действие дня» — не затираем его
       if (bubbleText && bubble) {
         const tips = [
           "Не забывай делать паузы.", "Твоя энергия заразительна!", "Один шаг сегодня — уже движение.",
           "Маленькие шаги создают большие перемены.", "Фокус — это твоя суперсила.", "Продолжай в том же духе!",
           "Вода и сон — твои лучшие друзья.", "Дыши глубже. Всё идёт по плану."
         ];
+        if (window._mascotPriority) tips.unshift(window._mascotPriority, window._mascotPriority);
         let newTip = tips[Math.floor(Math.random() * tips.length)];
         if (newTip !== bubbleText.textContent) {
           bubbleText.textContent = newTip;
@@ -1839,17 +1932,7 @@ async function showCommunityScreen(){
   await loadFeed();
   subscribeFeed();
 }
-function showRitualBuilderScreen(){
-  hideAll();
-  document.getElementById('ritualBuilderScreen').classList.remove('hidden');
-  
-  // Показываем нижнее меню, чтобы кнопка «Запустить» висела над ним
-  const nav = document.getElementById('bottomNav');
-  if(nav) {
-    nav.classList.remove('hidden');
-    nav.style.display = 'flex';
-  }
-}
+
 function backFromRitualBuilder(){smartHome()}
 
 let profilePrev='today';
@@ -1879,12 +1962,11 @@ async function showProfile(){
     smartHome(); 
   }
 }
-function backFromProfile(){
-  if(profilePrev==='lib')showLibrary();
-  else if(profilePrev==='stats')showStatsScreen();
-  else if(profilePrev==='community')showCommunityScreen();
-  else if(profilePrev==='admin')showAdmin();
-  else smartHome();
+
+// Переход в рейтинг с экрана завершения практики (функции не было — плитка не реагировала)
+function goToRating() {
+  try { document.getElementById('completeOverlay').classList.add('hidden'); } catch (e) {}
+  showRatingScreen();
 }
 function showRatingScreen() {
   hideAll();
@@ -1898,8 +1980,8 @@ function showRatingScreen() {
   
 }
 
-function backFromStats(){ showProfile(); }
-function backFromJournal(){smartHome()}
+
+
 function backFromPublicProfile(){
 
   if (profileSource === 'chat') {
@@ -1969,7 +2051,7 @@ function backFromDialog(){
   cleanupRealtimeSubscriptions(); // Очищаем канал чата при выходе
   showCommunityScreen();
 }
-function backFromCommunity(){ smartHome(); }
+
 
 function navTo(page, el) {
   if (typeof haptic === 'function') haptic('nav');
@@ -2247,50 +2329,12 @@ function showError(msg,...els){
   window._errTimeout=setTimeout(()=>{err.textContent=''},4000);
 }
 
-function showForgotPassword(){
-  document.getElementById('forgotModal').classList.remove('hidden');
-}
+
 
 // ─── СБРОС ПАРОЛЯ ───
 let resetPhoneNumber = '';
 
-async function sendResetSms() {
-  const phoneRaw = document.getElementById('resetPhone').value;
-  const phone = normalizePhone(phoneRaw);
-  const btn = document.getElementById('resetBtn');
-  
-  if (phone.length !== 11) {
-    toast('Введите номер полностью', 'danger');
-    return;
-  }
-  
-  btn.disabled = true;
-  btn.textContent = 'Отправка...';
-  
-  try {
-    const { error } = await sb.auth.signInWithOtp({
-      phone: '+' + phone,
-    });
-    
-    if (error) throw error;
-    
-    resetPhoneNumber = '+' + phone;
-    playSuccess();
-    toast('Код отправлен на ваш номер!');
-    
-    // Показываем окно для ввода кода
-    document.getElementById('forgotModal').classList.add('hidden');
-    document.getElementById('verifyCodeModal').classList.remove('hidden');
-    document.getElementById('verifyCodeInput').value = '';
-    
-  } catch (e) {
-    console.error(e);
-    toast('Ошибка: ' + e.message, 'danger');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Отправить код';
-  }
-}
+
 
 async function verifyResetCode() {
   const code = document.getElementById('verifyCodeInput').value.trim();
@@ -2357,7 +2401,7 @@ async function contactInApp(){
   }
 }
 
-function contactDev(){showContactMenu()}
+
 
 async function logout(){
   if(!(await appConfirm('Выйти? Прогресс сохранится.', 'Выход', 'Выйти')))return;
@@ -2414,15 +2458,7 @@ function checkAdminAccess(){
   const b=document.getElementById('adminBtnProfile');
   if(b)b.classList.toggle('hidden',!isAdmin());  
 }
-function shareApp(){
-  const url='https://andger.ru/';
-  if(navigator.share) {
-    navigator.share({title:'ANDGER',text:'Практикум по книгам',url});
-  } else {
-    copyToClipboard(url); // Используем нашу универсальную функцию
-    toast('Ссылка скопирована');
-  }
-}
+
 
 // ─── УСТАНОВКА ───
 function isStandalone(){
@@ -2520,7 +2556,9 @@ function renderToday() {
   if (lumiTip) {
     const defaultTips = ['Сегодня — хороший день, чтобы сделать первый шаг.','Маленькое действие лучше большого плана.','Один шаг сегодня — уже движение.'];
     const tips = (b.lumi_tips && b.lumi_tips.length) ? b.lumi_tips : defaultTips;
-    lumiTip.textContent = tips[day % tips.length] || tips[0];
+    let cl = ''; try { cl = (window.Coach && Coach.mascotLine) ? Coach.mascotLine(b, bs) : ''; } catch (e) { cl = ''; }
+    window._mascotPriority = cl;   // приоритетная фраза маскота (возврат после пропуска)
+    lumiTip.textContent = cl || tips[day % tips.length] || tips[0];
   }
   
   // Идентичность
@@ -2563,7 +2601,7 @@ function renderToday() {
       
       const defaultTips = ['Сегодня — хороший день, чтобы сделать первый шаг.','Маленькое действие лучше большого плана.','Один шаг сегодня — уже движение.'];
       const tips = (b.lumi_tips && b.lumi_tips.length) ? b.lumi_tips : defaultTips;
-      bubbleText.textContent = tips[day % tips.length] || tips[0];
+      bubbleText.textContent = window._mascotPriority || tips[day % tips.length] || tips[0];
       bubbleText.style.paddingRight = '0';
       
       microBtn.style.display = 'none';
@@ -3712,22 +3750,7 @@ function closeRitual(){
   }
 }
 
-function goToJournalFromRitual() {
-  stopTimer();
-  legacyConfirmAdapter(
-    'Перейти в дневник?', 
-    'Текущая практика не сохранится. Вы уверены?', 
-    () => {
-      const rEl=document.getElementById('ritualScreen');
-      rEl.classList.add('hidden'); 
-      rEl.classList.remove('ritual');
-      rEl.style.cssText=''; 
-      rEl.className='ritual hidden';
-      restoreAppScrolling();
-      showJournalScreen();
-    }
-  );
-}
+
 
 function finishRitual(isSinglePractice = false){
   stopTimer();timerState='idle';
@@ -3845,20 +3868,7 @@ function finishRitual(isSinglePractice = false){
   }
 }
 
-function getNextAch(bookId,streak){
-  const closed=countClosedDays(bookId);
-  const targets=[
-    {name:'Три дня',remaining:3-streak,cond:streak<3&&streak>=1},
-    {name:'Ранняя пташка',remaining:5-streak,cond:streak<5&&streak>=3},
-    {name:'Неделя силы',remaining:7-streak,cond:streak<7&&streak>=5},
-    {name:'Половина',remaining:15-closed,cond:closed<15&&closed>=7},
-    {name:'Мастер утра',remaining:30-closed,cond:closed<30&&closed>=15}
-  ];
-  for(const t of targets){
-    if(t.cond&&t.remaining>0)return{name:t.name,remaining:'Осталось '+t.remaining};
-  }
-  return null;
-}
+
 function markPracticeDoneForBook(bookId, pid){
   const day=currentDay(bookId),date=dateByDay(bookId,day),bs=getBookState(bookId);
   if(!bs.days[date])bs.days[date]={practices:[], earnedXP: 0};
@@ -3953,13 +3963,7 @@ function launchCustomRitual(){
   renderRitualStep();
 }
 
-async function startCustomRitualById(id) {
-  const { data, error } = await sb.from('custom_practices').select('*').eq('id', id).single();
-  if (error || !data) { toast('Ошибка загрузки практики', 'danger'); return; }
-  
-  customRitual = data.practices;
-  launchCustomRitual();
-}
+
 
 // Открытие модалки сохранения (для кнопки "Сохранить")
 function saveCustomRitual() {
@@ -4346,18 +4350,7 @@ function completePracticeSkip(){
     finishRitual(true);
   }
 }
-function addFiveMinutes(){
-  document.getElementById('completeOverlay').classList.add('hidden');
-  timerRemaining=300;timerState='idle';
-  const ctx=completeCallback?completeCallback.context:'practice';
-  completeCallback=null;
-  const timeEl=document.getElementById(ctx==='ritual'?'ritualTime':'timerDisplay');
-  const btn=document.getElementById(ctx==='ritual'?'ritualTimerBtn':'timerBtn');
-  if(timeEl)timeEl.textContent=formatTime(300);
-  if(btn){btn.textContent='▶ Старт';btn.className='timer-big-btn'}
-  startTimer(ctx);timerState='running';
-  if(btn)btn.textContent='⏸ Пауза';
-}
+
 
 function openPractice(id){
   if(!currentBook){toast('Сначала выбери книгу','warm');return}
@@ -4517,14 +4510,7 @@ function showSimpleModal(emoji,title,text){
   document.getElementById('modal').classList.remove('hidden');
   document.getElementById('modalAchList').innerHTML='';
 }
-function showAchModal(emoji,title,text,items){
-  document.getElementById('modalEmoji').textContent=emoji;
-  document.getElementById('modalTitle').textContent=title;
-  document.getElementById('modalText').textContent=text;
-  const list=items.map(i=>`<div class="modal-ach-item"><div class="ico">${i.ico}</div><div class="txt">${i.txt}<small>${i.sub}</small></div></div>`).join('');
-  document.getElementById('modalAchList').innerHTML=list?`<div class="modal-ach-list">${list}</div>`:'';
-  document.getElementById('modal').classList.remove('hidden');
-}
+
 function closeModal(){
   const modal = document.getElementById('modal');
   if(modal) modal.classList.add('hidden');
@@ -4580,19 +4566,7 @@ function ensureGodModeStyles() {
   `;
   document.head.appendChild(style);
 }
-function godModeActions(type, id, label) {
-  if (!isAdminMode()) return '';
-  const safeId = String(id).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-  const safeLabel = String(label || 'элемент').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');
-  
-  const iconEdit = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
-  const iconTrash = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 
-  if (type === 'post') return `<span class="andger-god-actions" onclick="event.stopPropagation()"><div class="action-btn-glass danger" title="Удалить публикацию" onclick="event.stopPropagation(); confirmGodDeletePost('${safeId}','${safeLabel}')">${iconTrash}</div></span>`;
-  if (type === 'book') return `<span class="andger-god-actions" onclick="event.stopPropagation()"><div class="action-btn-glass" title="Редактировать книгу" onclick="event.stopPropagation(); showBookEditor('${safeId}')">${iconEdit}</div><div class="action-btn-glass danger" title="Удалить книгу" onclick="event.stopPropagation(); confirmGodDeleteBook('${safeId}','${safeLabel}')">${iconTrash}</div></span>`;
-  if (type === 'user') return `<span class="andger-god-actions" onclick="event.stopPropagation()"><div class="action-btn-glass" title="Открыть пользователя" onclick="event.stopPropagation(); openAdminUser('${safeId}')">${iconEdit}</div><div class="action-btn-glass danger" title="Удалить пользователя" onclick="event.stopPropagation(); confirmGodDeleteUser('${safeId}','${safeLabel}')">${iconTrash}</div></span>`;
-  return '';
-}
 function confirmGodDeletePost(id, title) {
   if (!isAdminMode()) return toast('Недостаточно прав', 'danger');
   openAndgerConfirm('Удалить публикацию?', `Публикация «${title}» будет удалена из ленты.`, async () => {
@@ -4615,21 +4589,7 @@ function confirmGodDeletePrivateMessage(id) {
     } catch (e) { console.error('[ANDGER] delete private message failed', e); toast('Удаление запрещено политикой базы или не удалось: ' + (e.message || e), 'danger'); }
   });
 }
-function confirmGodDeleteBook(id, title) {
-  if (!isAdminMode()) return toast('Недостаточно прав', 'danger');
-  openAndgerConfirm('Удалить книгу?', `Книга «${title}» будет удалена из базы. Это действие нельзя отменить.`, async () => {
-    try {
-      const { error } = await sb.from('books').delete().eq('id', id);
-      if (error) throw error;
-      BOOKS = BOOKS.filter(b => String(b.id) !== String(id));
-      adminAllBooks = (adminAllBooks || []).filter(b => String(b.id) !== String(id));
-      toast('Книга удалена');
-      if (typeof renderLibrary === 'function') await renderLibrary();
-      if (typeof loadAdminBooks === 'function') await loadAdminBooks();
-      if (typeof renderToday === 'function') renderToday();
-    } catch (e) { console.error('[ANDGER] book delete failed', e); toast('Не удалось удалить книгу: ' + (e.message || e), 'danger'); }
-  });
-}
+
 function confirmGodDeleteUser(id, name) {
   if (!isAdminMode()) return toast('Недостаточно прав', 'danger');
   openAndgerConfirm('Удалить пользователя?', `Пользователь «${name}» и связанные данные будут удалены без возможности восстановления.`, async () => { await adminDelete(id, true); });
@@ -4820,11 +4780,7 @@ async function saveName(){
   await sb.from('profiles').update({name:n, last_name:ln}).eq('id',user.id);
   playSuccess();toast('Профиль сохранен');
 }
-function setAvatar(e){
-  state.avatar=e;saveState();
-  sb.from('profiles').update({avatar:e}).eq('id',user.id).then(()=>{});
-  playClick();renderProfile();
-}
+
 
 // ─── НАСТРОЙКИ ───
 function renderSettings(){
@@ -5251,7 +5207,7 @@ async function createNotification(userId, type, payload) {
 // ─── ПУБЛИЧНЫЙ ПРОФИЛЬ ───
 async function ensureSlug(){
   if(state.slug)return state.slug;
-  const slug='u'+user.phone.slice(-6);
+  const slug='u'+String(user.phone||user.id||'').slice(-6);
   await sb.from('profiles').update({public_slug:slug}).eq('id',user.id);
   state.slug=slug;saveState();
   return slug;
@@ -5474,48 +5430,8 @@ async function deleteNote(noteId) {
     renderJournal();
   });
 }
-function dateToDay(bookId,date){
-  const bs=getBookState(bookId);
-  if(!bs.start)return '?';
-  const start=new Date(bs.start+'T00:00:00');
-  const d=new Date(date+'T00:00:00');
-  return Math.floor((d-start)/86400000)+1;
-}
-async function saveJournal(){
-  const today = todayStr();
-  const q1 = document.getElementById('jq1').value;
-  const q2 = document.getElementById('jq2').value;
-  const q3 = document.getElementById('jq3').value;
 
-    const journalData = {
-    user_id: user.id,
-    date: today,
-    q1: q1,
-    q2: q2,
-    q3: q3
-  };
 
-  if (!navigator.onLine) {
-    addToOfflineQueue('journal', journalData);
-    playSuccess();
-    const msg = document.getElementById('journalMsg');
-    if(msg) msg.textContent = '✓ Сохранено (оффлайн)';
-    setTimeout(() => { if(msg) msg.textContent = ''; }, 2000);
-    return;
-  }
-
-  try {
-    await sb.from('journals').upsert(journalData, { onConflict: 'user_id,date' });
-
-    playSuccess();
-    const msg = document.getElementById('journalMsg');
-    msg.textContent = '✓ Сохранено';
-    setTimeout(() => msg.textContent = '', 2000);
-    renderJournal(); // Перерисовываем, чтобы обновилась история
-  } catch(e) {
-    toast('Ошибка сохранения', 'danger');
-  }
-}
 
 // ═══════════════════════════════════════════════
 // СООБЩЕСТВО
@@ -6388,58 +6304,15 @@ function loadAdminSection(section) {
   }, 100);
 }
 
-function switchModTab(tab, el) {
-  document.querySelectorAll('.admin-filter-pill').forEach(p => p.classList.remove('on'));
-  if (el) el.classList.add('on');
-  playClick();
-  
-  const content = document.getElementById('adminModContent');
-  if (tab === 'reports') {
-    content.innerHTML = '<div id="adminReportsList"></div>';
-    loadAdminReports();
-  } else {
-    content.innerHTML = '<div id="adminFeedbackList"></div>';
-    loadAdminFeedbacks();
-  }
-}
-
-async function replyToFeedback(userId) {
-  playClick();
-  try {
-    // Ищем профиль пользователя в уже загруженном списке
-    const p = adminAllUsers.find(x => x.id === userId);
-    if (p) {
-      openDialog(userId, p);
-    } else {
-      // Если вдруг не нашли, подгружаем из базы
-      const { data } = await sb.from('profiles').select('id,name,avatar').eq('id', userId).single();
-      if (data) openDialog(userId, data);
-      else toast('Пользователь не найден', 'danger');
-    }
-  } catch (e) {
-    console.error(e);
-    toast('Ошибка открытия чата', 'danger');
-  }
-}
 
 
 
 
 
-function filterAdmin(){
-  const q=document.getElementById('adminSearch').value.toLowerCase().trim();
-  let list=[...adminAllUsers];
-  
-  if(q){
-    list=list.filter(p=>{
-      const name=(p.name||'').toLowerCase();
-      const isMe=p.id===user.id;
-      const phone=isMe?user.phone:(p.phone||'');
-      return name.includes(q)||phone.includes(q.replace(/\D/g,''));
-    });
-  }
-  renderAdminList(list);
-}
+
+
+
+
 
 
 
@@ -6770,34 +6643,7 @@ async function toggleBookAccessMode() {
   }
 }
 
-function exportUsers(){
-  if(!adminAllUsers.length) return toast('Нет пользователей', 'warm');
-  
-  const rows=[['Имя','Телефон','Регистрация','Последний визит','Админ','Заблокирован']];
-  adminAllUsers.forEach(p=>{
-    rows.push([
-      p.name||'',
-      p.phone||'',
-      p.created_at?new Date(p.created_at).toLocaleDateString('ru'):'',
-      p.last_seen?new Date(p.last_seen).toLocaleDateString('ru'):'',
-      p.is_admin?'да':'нет',
-      p.blocked?'да':'нет'
-    ]);
-  });
-  const csv=rows.map(r=>r.map(c=>`"${(c||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
-  
-  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'andger_users_' + todayStr() + '.csv';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-  
-  toast('CSV скачан');
-}
+
 
 // ─── РЕДАКТОР КНИГ ───
 
@@ -7122,20 +6968,7 @@ let adminBookFilter = 'all'; // Глобальная переменная для
 
 
 
-function toggleAdminCategory(id, headerEl) {
-  const list = document.getElementById(id);
-  if (!list) return;
-  
-  const isHidden = list.style.display === 'none';
-  list.style.display = isHidden ? 'flex' : 'none';
-  
-  // Крутим стрелочку
-  const arrow = headerEl.querySelector('.admin-cat-arrow');
-  if (arrow) {
-    arrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-  }
-  playClick();
-}
+
 
 async function saveBook(published){
   const err=document.getElementById('edErr');
@@ -7197,56 +7030,9 @@ async function saveBook(published){
 
 let editingTextKey = null;
 
-async function loadAdminTexts() {
-  const el = document.getElementById('adminTextsList');
-  if (!el) return;
-  el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Загрузка...</div>';
-  
-  try {
-    const { data } = await sb.from('ui_texts').select('*').order('key');
-    if (!data || data.length === 0) {
-      el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Текстов пока нет.</div>';
-      return;
-    }
 
-    const labels = {
-      'splash_quote': '⏳ Экран загрузки: Цитата', 
-      'splash_author': '⏳ Экран загрузки: Автор цитаты',
-      'onb_step1_title': '📱 Онбординг (Шаг 1): Заголовок', 
-      'onb_step1_text': '📱 Онбординг (Шаг 1): Текст',
-      'onb_step2_title': '📱 Онбординг (Шаг 2): Заголовок', 
-      'onb_step2_text': '📱 Онбординг (Шаг 2): Текст',
-      'onb_step3_title': '📱 Онбординг (Шаг 3): Заголовок', 
-      'onb_step3_text': '📱 Онбординг (Шаг 3): Текст',
-      'onb_step4_title': '📱 Онбординг (Шаг 4): Заголовок', 
-      'onb_step4_text': '📱 Онбординг (Шаг 4): Текст',
-      'onb_step5_title': '📱 Онбординг (Шаг 5): Заголовок', 
-      'onb_step5_text': '📱 Онбординг (Шаг 5): Текст'
-    };
 
-    el.innerHTML = data.map(item => `
-      <div class="d-card-glass" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; margin-bottom:8px;">
-        <div style="font-size:13px; font-weight:700; color:var(--d-text);">${labels[item.key] || item.key}</div>
-        <div class="action-btn-glass" onclick="openTextEditor('${item.key}')" title="Редактировать">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-        </div>
-      </div>
-    `).join('');
-  } catch(e) {
-    el.innerHTML = '<div style="color:var(--danger); text-align:center;">Ошибка загрузки</div>';
-  }
-}
 
-function openTextEditor(key) {
-  editingTextKey = key;
-  const label = key.replace(/_/g, ' ');
-  document.getElementById('textEditorTitle').textContent = label.toUpperCase();
-  
-  sb.from('ui_texts').select('value').eq('key', key).single().then(({data}) => {
-    document.getElementById('textEditorInput').value = data ? data.value : '';
-    document.getElementById('textEditorModal').classList.remove('hidden');
-  });
-}
 
 async function saveAdminTextFromModal() {
   if (!editingTextKey) return;
@@ -7262,22 +7048,7 @@ async function saveAdminTextFromModal() {
   }
 }
 
-async function saveAdminText(key) {
-  const el = document.getElementById('txt_' + key);
-  if (!el) return;
-  const newValue = el.value.trim();
-  
-  try {
-    const { error } = await sb.from('ui_texts').update({ value: newValue }).eq('key', key);
-    if (error) throw error;
-    
-    playSuccess();
-    toast('Текст сохранен!');
-  } catch (e) {
-    console.error(e);
-    toast('Ошибка сохранения', 'danger');
-  }
-}
+
 
 // ─── УПРАВЛЕНИЕ FAQ ───
 let editingFaqId = null;
@@ -7363,46 +7134,7 @@ async function deleteFaq(id) {
   });
 }
 
-// ─── УПРАВЛЕНИЕ ПОДПИСКАМИ ───
-async function loadAdminSubs() {
-  const el = document.getElementById('adminSubsList');
-  const countEl = document.getElementById('adminSubsCount');
-  if (!el) return;
-  // Never inject this panel into a global/root container; keep it inside the admin tab.
-  el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Загрузка...</div>';
-  
-  try {
-    const now = new Date().toISOString();
-    const { data } = await sb.from('profiles').select('*').gt('sub_until', now).order('sub_until', {ascending: true});
-    
-    if (countEl) countEl.textContent = data ? data.length : 0;
-    const tabSubs = document.getElementById('tabSubSubs');
-    if(tabSubs) tabSubs.textContent = `Активных: ${data ? data.length : 0}`;
 
-    if (!data || data.length === 0) {
-      el.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted);">Нет активных подписок.</div>';
-      return;
-    }
-
-    el.innerHTML = data.map(p => {
-      const subDate = new Date(p.sub_until).toLocaleDateString('ru-RU');
-      return `
-        <div class="admin-item" onclick="openAdminUser('${p.id}')" style="display:flex; justify-content:space-between; align-items:center;">
-          <div style="display:flex; gap:12px; align-items:center;">
-            <div class="ai-ava">${getAvatarHtml(p.avatar, 20)}</div>
-            <div class="ai-info">
-              <div class="ai-name">${escapeHtml(p.name||'Без имени')}</div>
-              <div class="ai-phone" style="color:var(--success);">До ${subDate}</div>
-            </div>
-          </div>
-          <button class="btn-small-inline" style="margin:0; padding:8px 10px; font-size:10px; background:transparent; border: 1px solid var(--success); color:var(--success); box-shadow:none;" onclick="event.stopPropagation(); quickGrantSub('${p.id}')">+30д</button>
-        </div>
-      `;
-    }).join('');
-  } catch(e) {
-    el.innerHTML = '<div style="color:var(--danger); text-align:center;">Ошибка загрузки</div>';
-  }
-}
 
 // ═══════════════════════════════════════════════
 // ─── PWA ОБНОВЛЕНИЯ (УМНЫЙ РЕЖИМ) ───
@@ -8110,21 +7842,7 @@ async function reportPost(postId, authorId) {
     toast('Жалоба отправлена модератору', 'success');
   } catch(e) { toast('Ошибка отправки', 'danger'); }
 }
-function switchActiveBook(bookId) {
-  const b = BOOKS.find(x => x.id === bookId);
-  if(!b) return;
-  if(currentBook && currentBook.id === bookId) {
-    // Если нажали на уже активную книгу, открываем её карточку
-    openBookDetail(bookId);
-  } else {
-    // Переключаем книгу
-    currentBook = b;
-    state.lastBook = b.id;
-    saveState();
-    renderToday(); // Перерисовываем весь экран
-    playClick();
-  }
-}
+
 // Сброс прогресса ОДНОЙ книги
 
 // Сброс ВСЕГО прогресса
@@ -8173,23 +7891,7 @@ async function publishBook(){
   await saveBook(true);
 }
 
-async function deleteBookFromEditor(){
-  if(!editingBookId) return;
-  if(!(await appConfirm('Удалить эту книгу навсегда? Все пользователи потеряют к ней доступ.', 'Удаление книги', 'Удалить навсегда'))) return;
-  
-  try {
-    const { error } = await sb.from('books').delete().eq('id', editingBookId);
-    if (error) throw error;
-    
-    toast('Книга удалена');
-    // Удаляем из локального массива
-    BOOKS = BOOKS.filter(b => b.id !== editingBookId);
-    
-    setTimeout(() => backFromBookEditor(), 500);
-  } catch(e) {
-    toast('Ошибка удаления: ' + e.message, 'danger');
-  }
-}
+
 function parseSmartJson() {
   const raw = document.getElementById('edSmartJson').value.trim();
   if(!raw) return;
@@ -8314,9 +8016,7 @@ function closeTimeModal() {
   document.getElementById('timeModal').classList.add('hidden');
 }
 
-function showVoiceSetupModal() {
-  document.getElementById('voiceSetupModal').classList.remove('hidden');
-}
+
 
 function saveTimeFromModal() {
   const timeInput = document.getElementById('timeInput');
@@ -8587,10 +8287,7 @@ async function adminGrantSub(userId, days) {
     console.error('[ANDGER] adminGrantSub:', e);
   }
 }
-// Быстрая выдача подписки на 30 дней (обёртка для кнопки "+30д")
-function quickGrantSub(userId) {
-  return adminGrantSub(userId, 30);
-}
+
 // ─── ОТЗЫВЫ ───
 let currentReviewBookId = null;
 let currentReviewStars = 5;
@@ -8969,27 +8666,7 @@ async function saveQuickNote() {
   }
 }
 
-// ─── ЗАМОРОЗКА ОГНЯ ───
-function buyShield() {
-  const stats = getGlobalStats();
-  if (stats.totalXP < 200) {
-    toast('Недостаточно XP! Нужно 200 XP.', 'warm');
-    return;
-  }
 
-  legacyConfirmAdapter(
-    'Купить заморозку?',
-    'Списать 200 XP для покупки щита? Он спасет твой огонь, если ты пропустишь 1 день.',
-    () => {
-      state.spentXP = (state.spentXP || 0) + 200;
-      state.shields = (state.shields || 0) + 1;
-      saveState();
-      playSuccess();
-      toast('🛡️ Заморозка куплена!');
-      renderToday(); // Обновляем экран
-    }
-  );
-}
 
 function applyShields(bookId) {
   const b = BOOKS.find(x=>x.id===bookId);
@@ -9154,7 +8831,7 @@ function showAvatarModal() {
                   <div class="avatar-icon-wrap" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
                     ${getAvatarHtml(key, 32)}
                   </div>
-                  ${isLocked ? `<div class="avatar-lock-overlay"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>` : ''}
+                  ${isLocked ? `<div class="avatar-lock-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>${shopItem.price}</span></div>` : ''}
                 </div>
               `;
             });
@@ -9300,19 +8977,7 @@ emotionToUse = isFemale ? (vSettings.emotion || 'neutral') : auto.emotion;
 }
 
 
-// ─── УДАЛЕНИЕ ПОСТА ИЗ ЖАЛОБ ───
-async function deleteReportedPost(reportId, postId) {
-  legacyConfirmAdapter('Удалить пост?', 'Пост будет стерт из ленты, а жалоба закрыта.', async () => {
-    try {
-      await sb.from('messages').delete().eq('id', postId);
-      await sb.from('reports').delete().eq('id', reportId);
-      toast('Пост удален, жалоба закрыта');
-      loadAdminReports(); // Обновляем список
-    } catch(e) {
-      toast('Ошибка удаления', 'danger');
-    }
-  });
-}
+
 // ─── ИСТОРИЯ ДЕЙСТВИЙ АДМИНА ───
 async function loadAdminLogs() {
   const el = document.getElementById('adminLogsContainer');
@@ -9370,16 +9035,7 @@ async function loadAdminLogs() {
   }
 }
 
-async function clearAdminLogs() {
-  if(!(await appConfirm('Очистить всю историю действий?', 'Очистка истории'))) return;
-  try {
-    await sb.from('admin_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Удаляем всё
-    toast('История очищена');
-    loadAdminLogs();
-  } catch(e) {
-    toast('Ошибка очистки', 'danger');
-  }
-}
+
 
 // ═══════════ ИМПОРТ КНИГИ ИЗ JSON ═══════════
 function showJsonImportModal() {
@@ -9564,8 +9220,16 @@ setTimeout(() => {
   });
   window.addEventListener('unhandledrejection', function(event){
     console.error('[ANDGER] Необработанная ошибка Promise/Supabase:', event.reason);
-    const msg = document.getElementById('globalErrorToast');
-    if (msg) { msg.textContent = 'Проблема с соединением. Проверь интернет и попробуй ещё раз.'; msg.classList.remove('hidden'); }
+    // Тост ошибки соединения: создаётся при необходимости, прячется сам, не чаще раза в 8 с
+    let msg = document.getElementById('globalErrorToast');
+    if (!msg) { msg = document.createElement('div'); msg.id = 'globalErrorToast'; msg.className = 'g-toast hidden'; msg.setAttribute('role', 'status'); document.body.appendChild(msg); }
+    const nowTs = Date.now();
+    if (!window._toastAt || nowTs - window._toastAt > 8000) {
+      window._toastAt = nowTs;
+      msg.textContent = 'Проблема с соединением. Проверь интернет и попробуй ещё раз.';
+      msg.classList.remove('hidden'); requestAnimationFrame(() => msg.classList.add('show'));
+      clearTimeout(window._toastT); window._toastT = setTimeout(() => { msg.classList.remove('show'); setTimeout(() => msg.classList.add('hidden'), 300); }, 4000);
+    }
   });
     function pauseAllAudio() {
     try { if (musicAudio) musicAudio.pause(); } catch (e) { console.debug('[ANDGER] ignored:', e); }
@@ -9811,70 +9475,7 @@ function startRitualFromModal() {
   document.getElementById('practiceSelectorModal').classList.add('hidden');
   startRitual(); // Эта функция уже есть, она запускает ритуал
 }
-// ─── ИНТЕРАКТИВНЫЙ МАСКОТ ANDGER ───
-function tapMascot(element) {
-  // 1. Легкий звук клика (если звук включен)
-  if (typeof playClick === 'function') playClick();
-  
-  // 2. Меняем текст в облачке на случайную фразу
-  const tips = [
-    "Я всегда рядом. Давай сделаем шаг.",
-    "Ты сегодня уже молодец.",
-    "Фокус — это твоя суперсила.",
-    "Дыши глубже. Всё идёт по плану.",
-    "Маленькие шаги создают большие перемены.",
-    "Не забывай отдыхать.",
-    "Твоя энергия заразительна!"
-  ];
-  
-  const bubbleText = document.getElementById('lumiTip');
-  const bubble = document.getElementById('andgerBubble');
-  
-  if (bubbleText && bubble) {
-    // Берем случайную фразу, отличную от текущей
-    let newTip = tips[Math.floor(Math.random() * tips.length)];
-    while (newTip === bubbleText.textContent) {
-      newTip = tips[Math.floor(Math.random() * tips.length)];
-    }
-    
-    bubbleText.textContent = newTip;
-    
-    // Перезапускаем анимацию появления облачка
-    bubble.classList.remove('animate-in');
-    void bubble.offsetWidth; // Трюк для перезапуска CSS анимации
-    bubble.classList.add('animate-in');
-  }
 
-  // 3. Создаем эффект разлетающихся искр
-  const rect = element.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-
-  for (let i = 0; i < 8; i++) {
-    const particle = document.createElement('div');
-    particle.className = 'spark-particle';
-    document.body.appendChild(particle);
-
-    // Стартовая позиция (центр персонажа)
-    particle.style.left = `${centerX}px`;
-    particle.style.top = `${centerY}px`;
-
-    // Случайное направление
-    const angle = Math.random() * Math.PI * 2;
-    const distance = 40 + Math.random() * 40;
-    const destX = Math.cos(angle) * distance;
-    const destY = Math.sin(angle) * distance;
-
-    // Анимация через Web Animations API (встроено в браузеры)
-    particle.animate([
-      { transform: 'translate(0, 0) scale(1)', opacity: 1 },
-      { transform: `translate(${destX}px, ${destY}px) scale(0)`, opacity: 0 }
-    ], {
-      duration: 600 + Math.random() * 400,
-      easing: 'cubic-bezier(0.25, 1, 0.5, 1)'
-    }).onfinish = () => particle.remove();
-  }
-}
 // ─── ИГРА С МАСКОТОМ ───
 function playWithMascot(element) {
   // Крутим зверька
@@ -9939,6 +9540,7 @@ function playWithMascot(element) {
     "Волшебство внутри тебя.",
     "Продолжай в том же духе!"
   ];
+  if (window._mascotPriority) tips.unshift(window._mascotPriority);
   
   const bubbleText = document.getElementById('lumiTip');
   const bubble = document.getElementById('andgerBubble');
@@ -11001,7 +10603,16 @@ const SHOP_ITEMS = [
   { id: 'avatar_atom', type: 'avatar', key: 'atom', title: 'Атом', price: 100, ico: 'atom', rarity: 'common', desc: 'Энергия и фокус' },
   { id: 'avatar_target', type: 'avatar', key: 'target', title: 'Мишень', price: 150, ico: 'target', rarity: 'rare', desc: 'Точность намерений' },
   { id: 'shield', type: 'utility', key: 'shield', title: 'Заморозка', price: 200, ico: 'shield', rarity: 'rare', desc: 'Спасет твой огонь' },
-  { id: 'avatar_crown', type: 'avatar', key: 'crown', title: 'Корона', price: 250, ico: 'crown', rarity: 'epic', desc: 'Для истинных лидеров' }
+  { id: 'avatar_crown', type: 'avatar', key: 'crown', title: 'Корона', price: 250, ico: 'crown', rarity: 'epic', desc: 'Для истинных лидеров' },
+  { id: 'avatar_infinity', type: 'avatar', key: 'infinity', title: 'Бесконечность', price: 200, ico: 'infinity', rarity: 'rare', desc: 'Путь без финиша' },
+  { id: 'avatar_orbit', type: 'avatar', key: 'orbit', title: 'Орбита', price: 200, ico: 'orbit', rarity: 'rare', desc: 'Свой центр притяжения' },
+  { id: 'avatar_eclipse', type: 'avatar', key: 'eclipse', title: 'Затмение', price: 300, ico: 'eclipse', rarity: 'epic', desc: 'Тишина перед рассветом' },
+  { id: 'avatar_aurora', type: 'avatar', key: 'aurora', title: 'Аврора', price: 350, ico: 'aurora', rarity: 'epic', desc: 'Свет, который ведёт вперёд' },
+  { id: 'avatar_sage', type: 'avatar', key: 'sage', title: 'Хранитель', price: 450, ico: 'sage', rarity: 'epic', desc: 'Тот, кто видит дальше' },
+  { id: 'avatar_zen', type: 'avatar', key: 'zen', title: 'Монах', price: 300, ico: 'zen', rarity: 'rare', desc: 'Покой как практика' },
+  { id: 'avatar_nova', type: 'avatar', key: 'nova', title: 'Нова', price: 500, ico: 'nova', rarity: 'epic', desc: 'Взгляд из будущего' },
+  { id: 'avatar_phoenix', type: 'avatar', key: 'phoenix', title: 'Феникс', price: 600, ico: 'phoenix', rarity: 'epic', desc: 'Возрождается каждый день' },
+  { id: 'avatar_nebula', type: 'avatar', key: 'nebula', title: 'Туманность', price: 400, ico: 'nebula', rarity: 'epic', desc: 'Рождение новой звезды' }
 ];
 
 function showShopScreen() {
@@ -11657,17 +11268,16 @@ window.AP = {
   }
 };
 
-// Переходники для старых вызовов из остального кода
-function loadAdminDashboard() { return AP.dash(); }
+
 function loadAdminUsers() { return AP.users(); }
 function renderAdminList() { return AP.usersRows(); }
-function setAdminUserFilter() {}
+
 function loadAdminBooks() { return AP.books(); }
 function renderAdminBookList() { return AP.booksRows(); }
-function filterAdminBooks() {}
-function setAdminBookFilter() {}
-function loadAdminReports() { AP.mt = 'reports'; return AP.mod(); }
-function loadAdminFeedbacks() { AP.mt = 'fb'; return AP.mod(); }
+
+
+
+
 
 
 // ═══ ПРОМОКОДЫ И УДАЛЕНИЕ АККАУНТА (SQL: supabase-setup.sql) ═══
@@ -11704,13 +11314,7 @@ async function deletePromo(code) {
   const { error } = await sb.from('promo_codes').delete().eq('code', code);
   if (error) return toast('Ошибка: ' + error.message, 'danger'); toast('Промокод удалён'); loadPromoList();
 }
-async function redeemPromo() {
-  const inp = document.getElementById('promoRedeemInput'), code = (inp.value || '').trim().toUpperCase();
-  if (!code) return toast('Введите промокод', 'warm');
-  const { error } = await sb.rpc('redeem_promo', { p_code: code });
-  if (error) return toast(error.message || 'Не удалось применить промокод', 'danger');
-  inp.value = ''; toast('Промокод применён! Premium активирован 🎉'); setTimeout(() => location.reload(), 1400);
-}
+
 async function deleteMyAccount() {
   const v = await AP.ask({ title: 'Удалить аккаунт навсегда?', text: 'Будут удалены профиль, прогресс, записи дневника, публикации и сообщения. Отменить это нельзя. Для подтверждения введите УДАЛИТЬ.', input: '', ok: 'Удалить аккаунт', danger: true });
   if (v !== 'УДАЛИТЬ') { if (v !== null) toast('Подтверждение не совпало', 'danger'); return; }
@@ -11755,18 +11359,21 @@ window.Coach = {
     box.innerHTML = [pc, ...base].filter(Boolean).slice(0, 2).join('');   // не больше двух карточек сразу
   },
 
-  // 1. Мягкий возврат после пропуска
-  comeback(b, bs) {
+  // 1. Мягкий возврат после пропуска: теперь говорит маскот ANDGER (карточка на главной убрана)
+  comeback() { return ''; },
+  mascotLine(b, bs) {
+    if (!b || !bs || !bs.start) return '';
     const day = currentDay(b.id); if (day < 2) return '';
-    const rec0 = bs.days[todayStr()] || {};
+    const rec0 = (bs.days || {})[todayStr()] || {};
     if ((rec0.practices || []).length || rec0.closed) return '';
     let miss = 0;
     for (let d = day - 1; d >= 1; d--) { const r = bs.days[dateByDay(b.id, d)]; if (r && (r.closed || r.shielded || (r.practices || []).length)) break; miss++; }
     if (!miss) return '';
     const m = this.shortest(b); if (!m) return '';
-    const title = miss === 1 ? 'Вчера не получилось — это нормально' : miss < 4 ? `Перерыв ${miss} дн. Возвращаемся мягко` : 'Давно не виделись. Начни с малого';
-    return this.card(title, `<div class="cc-s">Главное правило: не пропускать дважды. Сегодня достаточно минимальной версии, она сохраняет привычку.</div>
-      <button class="d-btn-primary" style="margin-top:10px" onclick="Coach.startMin()">Минимум: ${this.esc(m.title)} · ${Math.max(1, Math.round(m.time / 60))} мин</button>`);
+    const min = `${m.title}, ${Math.max(1, Math.round(m.time / 60))} мин`;
+    if (miss === 1) return `Вчера не получилось — это нормально. Главное — не пропускать дважды. Минимум на сегодня: ${min}.`;
+    if (miss < 4) return `Перерыв ${miss} дн. — ничего страшного. Возвращаемся мягко: ${min}.`;
+    return `Давно не виделись. Начни с малого: ${min}.`;
   },
   startMin() { if (window.Path && Path.cur()) return Path.open(); const m = this.shortest(currentBook); if (m) openPractice(m.id); },
 
@@ -11922,7 +11529,11 @@ window.Path = {
       </div>
 
       <div class="cinematic-content" style="padding-top: 60px; justify-content: center;">
-        <div class="d-card-glass" style="width: 100%; max-width: 340px; padding: 24px 20px; text-align: center; background: rgba(20, 14, 35, 0.7); border: 1px solid rgba(124,92,255,0.3); backdrop-filter: blur(10px); border-radius: 24px; margin: 0 auto 30px auto;">
+        <div class="cine-orb" aria-hidden="true">
+          <svg class="cine-ring" viewBox="0 0 120 120"><circle class="cine-ring-bg" cx="60" cy="60" r="54"/><circle id="cineRing" class="cine-ring-fg" cx="60" cy="60" r="54" pathLength="100"/></svg>
+          <i class="o1"></i><i class="o2"></i><i class="o3"></i><b class="core"></b>
+        </div>
+        <div class="d-card-glass cine-card">
           <div class="cinematic-subtitle-box" id="cineSubtitles" style="margin-bottom: 0; min-height: 100px; display: flex; align-items: center; justify-content: center; font-size: 20px;">Приготовься...</div>
         </div>
         
@@ -11968,6 +11579,7 @@ window.Path = {
         if (progressBar) {
           const pct = ((overlay.currentSentence + 1) / sentences.length) * 100;
           progressBar.style.width = pct + '%';
+          const ringEl = document.getElementById('cineRing'); if (ringEl) ringEl.style.strokeDashoffset = String(100 - pct);
         }
       }, 400);
 
@@ -12301,12 +11913,14 @@ window.Path = {
     const E = s => this.esc(s), C = 180, R = 128, weeks = b.path.weeks, W = weeks.length, N = Math.max(1, S.nodes.length), rad = a => a * Math.PI / 180, f = n => Math.round(n * 100) / 100;
     const P = (r, a) => [C + r * Math.cos(rad(a)), C + r * Math.sin(rad(a))], arc = (r, a1, a2) => { const [x1, y1] = P(r, a1), [x2, y2] = P(r, a2); return `M${f(x1)} ${f(y1)}A${r} ${r} 0 ${a2 - a1 > 180 ? 1 : 0} 1 ${f(x2)} ${f(y2)}`; };
     const GW = W > 1 ? 9 : 0, d = (360 - W * GW) / N, g = 3, L = R * rad(d), sw = Math.max(8, Math.min(20, L - 4)), cap = (sw / 2) / R * 180 / Math.PI;
-    let a0 = -90 + GW / 2, seg = '', wl = '', ci = 0;
+    let a0 = -90 + GW / 2, seg = '', wl = '', ci = 0, headA = null, curA = null, gloss = '';
     weeks.forEach((w, wi) => {
       const ns = S.nodes.filter(x => x.w === wi), start = a0;
       ns.forEach(it => {
         const prem = it.s !== 'done' && !this.canPlay(b, it), a1 = a0 + g / 2 + cap, a2 = a1 + Math.max(0.01, d - g - 2 * cap), p = arc(R, a1, a2);
         const col = this.brand(S.nodes.indexOf(it) / Math.max(1, N - 1));
+        if (it.s === 'done') headA = a2 + cap; else if (it.s === 'cur' && !curA) curA = (a1 + a2) / 2;
+        if (it.s === 'done') gloss += `<path class="cr-gl" d="${arc(R + sw * .17, a1, a2)}" style="stroke-width:${Math.max(2, sw * .2)}"/>`;
         seg += `<g class="cr-g" style="--i:${ci++}"><path class="cr-hit" d="${p}" onclick="Path.tap('${it.id}')"/><path class="cr-s ${it.s}${prem ? ' prem' : ''}" d="${p}" style="stroke-width:${it.light ? sw - 6 : sw}${it.s === 'done' ? `;stroke:${col};color:${col}` : it.s === 'lock' && !prem ? `;stroke:${col};stroke-opacity:.24` : ''}"><title>${E('День ' + it.n)}</title></path></g>`;
         a0 += d;
       });
@@ -12321,8 +11935,29 @@ window.Path = {
     const fy = C - R - sw / 2 - 13, comet = S.nodes.some(x => x.done) && !(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
       ? `<circle class="cr-comet" r="3.4"><animateMotion dur="18s" repeatCount="indefinite" path="M${C} ${C - R}A${R} ${R} 0 1 1 ${C} ${C + R}A${R} ${R} 0 1 1 ${C} ${C - R}"/></circle>` : '';
     const stars = [[22, 40, 1.4], [318, 56, 1.1], [40, 300, 1.2], [300, 292, 1.5], [150, 14, 1], [12, 170, 1.1], [330, 180, 1.2], [90, 330, 1], [250, 328, 1.1], [60, 90, 1], [286, 120, 1]].map(([x, y, r], i) => `<circle class="cr-st" style="--d:${i * .45}s" cx="${x + 10}" cy="${y + 10}" r="${r}"/>`).join('');
+    // ── Лента прогресса и «голова» на текущем дне ──
+    const rb = R + sw / 2 + 5, ha = curA !== null ? curA : headA;
+    let ribbon = '';
+    if (ha !== null && ha > -90 + GW / 2 + 1) {
+      const [hx, hy] = P(rb, ha);
+      ribbon = `<path class="cr-prog" pathLength="1" d="${arc(rb, -90 + GW / 2, ha)}"/><g class="cr-head" transform="translate(${f(hx)} ${f(hy)})"><circle class="hl" r="11"/><circle class="hl h2" r="11"/><circle class="hc" r="3.8"/></g>`;
+    }
+    // ── Космический декор: ядро, орбиты, деления, планеты, звёзды ──
+    const rz = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+    const tr1 = R + sw / 2 + 8, tr2 = R + sw / 2 + 11, tk = Array.from({ length: 72 }, (_, i) => { const big = i % 6 === 0, [x1, y1] = P(big ? tr1 - 3 : tr1, i * 5), [x2, y2] = P(tr2, i * 5); return `M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}`; }).join('');
+    const dust = Array.from({ length: 30 }, (_, i) => { const [x, y] = P(176 + rz(i + 7) * 62, rz(i) * 360); return `<circle class="cr-st" style="--d:${(rz(i + 3) * 4).toFixed(2)}s" cx="${f(x)}" cy="${f(y)}" r="${(0.6 + rz(i + 9) * 1.2).toFixed(2)}"/>`; }).join('');
+    const spark = (x, y, r, dl) => `<path class="cr-sp" style="--d:${dl}s" d="M${x} ${y - r}Q${x} ${y} ${x + r} ${y}Q${x} ${y} ${x} ${y + r}Q${x} ${y} ${x - r} ${y}Q${x} ${y} ${x} ${y - r}Z"/>`;
+    const deco = `<defs><radialGradient id="crCore" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#a78bff" stop-opacity=".45"/><stop offset=".6" stop-color="#7c5cff" stop-opacity=".14"/><stop offset="1" stop-color="#7c5cff" stop-opacity="0"/></radialGradient><linearGradient id="crOrb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a56" stop-opacity=".7"/><stop offset=".5" stop-color="#a78bff" stop-opacity=".5"/><stop offset="1" stop-color="#4f8bff" stop-opacity=".7"/></linearGradient></defs>
+      <g class="cr-deco" pointer-events="none">${dust}${spark(30, 40, 7, 0)}${spark(332, 322, 6, 1.2)}${spark(338, 60, 5, 2.1)}${spark(20, 310, 5.5, .6)}
+        <circle class="cr-core" cx="${C}" cy="${C}" r="70" fill="url(#crCore)"/>
+        <circle class="cr-spin" cx="${C}" cy="${C}" r="86" fill="none" stroke="url(#crOrb)" stroke-width="1.2" stroke-dasharray="2 7" stroke-linecap="round"/>
+        <circle class="cr-spin rev" cx="${C}" cy="${C}" r="74" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1" stroke-dasharray="14 10 3 10"/>
+        <path d="${tk}" class="cr-tick"/>
+        <g class="cr-spin slow"><circle class="cr-orbit" cx="${C}" cy="${C}" r="170"/><circle class="cr-planet" cx="${C}" cy="${C - 170}" r="4"/><circle cx="${C - 1.4}" cy="${C - 171.4}" r="1.3" fill="#fff" opacity=".7"/></g>
+        <g class="cr-spin slow rev"><circle class="cr-orbit" cx="${C}" cy="${C}" r="162" style="opacity:.5"/><circle class="cr-planet b" cx="${C}" cy="${C + 162}" r="3"/></g>
+      </g>`;
     return `<svg class="cr" viewBox="0 0 360 360" role="img" aria-label="Прогресс пути"><defs><linearGradient id="crG" gradientUnits="userSpaceOnUse" x1="0" y1="360" x2="360" y2="0"><stop offset="0" stop-color="#ff7a2a"/><stop offset=".5" stop-color="#7c5cff"/><stop offset="1" stop-color="#1e5cff"/></linearGradient><linearGradient id="crV" gradientUnits="userSpaceOnUse" x1="0" y1="360" x2="360" y2="0"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c8b4ff"/></linearGradient><radialGradient id="crGl"><stop offset="0" stop-color="#7c5cff" stop-opacity=".34"/><stop offset=".6" stop-color="#7c5cff" stop-opacity=".1"/><stop offset="1" stop-color="#7c5cff" stop-opacity="0"/></radialGradient></defs>
-      <circle cx="${C}" cy="${C}" r="178" fill="url(#crGl)"/>${stars}<circle class="cr-bz" cx="${C}" cy="${C}" r="${R + sw / 2 + 5}"/><circle class="cr-bz" cx="${C}" cy="${C}" r="${R - sw / 2 - 5}"/>${seg}${wl}${comet}
+      <circle cx="${C}" cy="${C}" r="178" fill="url(#crGl)"/>${stars}${deco}<circle class="cr-bz" cx="${C}" cy="${C}" r="${R + sw / 2 + 5}"/><circle class="cr-bz" cx="${C}" cy="${C}" r="${R - sw / 2 - 5}"/>${seg}${gloss}${ribbon}${wl}${comet}
       <g class="cr-fin ${fs}" onclick="Path.tap('fin')"><circle cx="${C}" cy="${fy}" r="14"/><circle class="fi" cx="${C}" cy="${fy}" r="5"/><title>Финал</title></g>
       <text class="cr-k" x="${C}" y="${C - 36}">${k1}</text><text class="cr-big${big.length > 2 ? ' sm' : ''}" x="${C}" y="${C + 22}">${big}</text><text class="cr-k" x="${C}" y="${C + 46}">${k2}</text></svg>`;
   },
