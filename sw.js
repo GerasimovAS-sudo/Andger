@@ -1,5 +1,5 @@
 /* ANDGER service worker — cache versioned assets, online-first with offline fallback. */
-const CACHE_VERSION = 'andger-v11.11.180';
+const CACHE_VERSION = 'andger-v11.11.201';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const APP_SCOPE = new URL(self.registration.scope);
@@ -63,7 +63,7 @@ self.addEventListener('fetch', event => {
           if (response.ok) caches.open(CACHE_DYNAMIC).then(cache => cache.put(request, response.clone())).catch(() => {});
           return response;
         } catch (error) {
-          return (await caches.match(request)) || Response.error();
+          return (await caches.match(request, { ignoreSearch: true })) || Response.error();
         }
       })());
     }
@@ -75,7 +75,7 @@ self.addEventListener('fetch', event => {
       if (response.ok) caches.open(CACHE_DYNAMIC).then(cache => cache.put(request, response.clone())).catch(() => {});
       return response;
     } catch (error) {
-      const cached = await caches.match(request);
+      const cached = await caches.match(request, { ignoreSearch: true });
       if (cached) return cached;
       if (request.mode === 'navigate') {
         return (await caches.match(new URL('./index.html', APP_SCOPE).href)) || Response.error();

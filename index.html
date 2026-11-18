@@ -3,6 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script>
+/* iOS PWA: в первые секунды окно может быть короче экрана. Переустанавливаем viewport (заставляет WebKit пересчитать размеры). */
+(function(){try{
+  var st=navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+  if(!st)return;
+  var m=document.querySelector('meta[name="viewport"]'); if(!m)return; var c=m.getAttribute('content');
+  function kick(){m.setAttribute('content',c+', minimum-scale=1.0');setTimeout(function(){m.setAttribute('content',c);dispatchEvent(new Event('resize'))},40)}
+  [120,700,1800].forEach(function(t){setTimeout(kick,t)});
+}catch(e){}})();
+</script>
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -43,8 +53,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="design-system.css">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="design-system.css?v=143">
+  <link rel="stylesheet" href="styles.css?v=143">
 </head>
 <body>
 
@@ -76,12 +86,7 @@
 
   <!-- SPLASH -->
   <div id="appLoader">
-    <div class="splash-bg-orbs">
-      <div class="orb orb-1"></div>
-      <div class="orb orb-2"></div>
-      <div class="orb orb-3"></div>
-    </div>
-    
+    <div class="splash-ver">v11.11.143</div>
     <div class="splash-main">
       <div class="splash-ring-wrap">
         <!-- Светящееся кольцо -->
@@ -218,6 +223,7 @@
   
   <!-- ЗАГЛУШКИ (чтобы JS не ругался) -->
   <div class="hidden" id="onbScreen" style="position:fixed; inset:0; z-index: var(--z-screen); background:radial-gradient(circle at 50% 40%, #15112a 0%, #05030a 100%);  flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center">
+    <canvas class="cosmos-bg" data-cosmos="galaxy" aria-hidden="true"></canvas>
     <div style="max-width:440px; width:100%; margin:auto; display:flex; flex-direction:column; align-items:center; gap:20px;">
       <div id="onbContent" style="color:#f5f4fa; line-height:1.4;"></div>
       <div id="onbDots" style="display:flex; gap:6px;"></div>
@@ -228,6 +234,7 @@
     </div>
   </div>
   <div class="hidden" id="welcomeScreen" style="position:fixed; inset:0; z-index: var(--z-screen); background:radial-gradient(circle at 50% 40%, #15112a 0%, #05030a 100%);  flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center">
+    <canvas class="cosmos-bg" data-cosmos="galaxy" aria-hidden="true"></canvas>
     <div style="max-width:440px; width:100%; margin:auto; display:flex; flex-direction:column; align-items:center; gap:12px; color:#f5f4fa;">
       <h1 id="welcomeName" style="font-size:22px; font-weight:900;"></h1>
       <div id="welcomeBookIco" style="display:flex; justify-content:center; margin:8px 0;"></div>
@@ -241,6 +248,7 @@
   <div id="screensRoot">
 
     <div id="firstBookScreen" class="hidden" style="position:fixed; inset:0; z-index: 9000; background: transparent; overflow-y: auto; padding: calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));">
+        <canvas class="cosmos-bg" data-cosmos="stars" aria-hidden="true"></canvas>
         <div style="max-width: 520px; margin: 0 auto;">
             <h1 style="font-size: 24px; font-weight: 900; text-align: center; margin-bottom: 8px; color: #fff;">Выбери свою первую книгу</h1>
             <p style="font-size: 13px; color: var(--d-text-dim); text-align: center; margin-bottom: 24px; line-height: 1.5;">Пройди её до конца бесплатно. Следующая книга откроется после завершения этой или её можно будет приобрести.</p>
@@ -2082,7 +2090,7 @@
   <!-- Скрипты -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=143"></script>
 </body>
 </html>
 

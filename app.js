@@ -390,12 +390,19 @@ const MOODS = [
   `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><path d="M9 9l1 1"></path><path d="M15 9l-1 1"></path><line x1="12" y1="15" x2="12" y2="18"></line></svg>`
 ];
 
+const ONB_IC = {
+  spark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 3v4M21 5h-4M5 17v4M7 19H3"/></svg>',
+  sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  orbit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.6"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-25 12 12)"/><circle cx="19.3" cy="7.4" r="1.2" fill="currentColor"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>',
+  rocket: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></svg>'
+};
 const ONB=[
-  {ico:'🌅',title:'Это игра по книгам',body:'<p>Ты не читаешь книги. Ты <strong>играешь в них</strong>. Каждое утро — цепочка практик, и день закрывается сам.</p>'},
-  {ico:'📚',title:'Библиотека книг',body:'<p>У тебя может быть <strong>несколько книг одновременно</strong>. У каждой — свои практики, свой прогресс, свой дневник.</p>'},
-  {ico:'🔥',title:'Собирай огонь',body:'<p>Каждое закрытое утро = <strong>+1 к огню</strong>. Не разрывай его!</p>'},
-  {ico:'🏆',title:'Награды и уровни',body:'<p>За прогресс ты получаешь <strong>награды</strong>. Растёшь в уровнях — от Новичка до Легенды.</p>'},
-  {ico:'🚀',title:'Готов?',body:'<p>Начни с первой практики. Жми «Начать» — вперёд.</p>'}
+  {ico:ONB_IC.spark,title:'Прочитал — и забыл?',body:'<p>Книги меняют жизнь, только когда идеи становятся <strong>действиями</strong>. ANDGER превращает книгу в ежедневные практики на 5–20 минут.</p>'},
+  {ico:ONB_IC.sun,title:'Каждый день — один шаг',body:'<p>Открываешь приложение и видишь <strong>ровно одну задачу дня</strong>. Без выбора и перегруза: просто делай.</p>'},
+  {ico:ONB_IC.orbit,title:'Прогресс, который видно',body:'<p>Каждый день — планета на твоей орбите. Пройденные <strong>светятся</strong>, огонь растёт, и ты летишь к центру.</p>'},
+  {ico:ONB_IC.heart,title:'Не получилось? Это нормально',body:'<p>Пропустил день — не страшно. Маскот подскажет <strong>минимум на 1 минуту</strong>, чтобы вернуться без вины.</p>'},
+  {ico:ONB_IC.rocket,title:'Готов?',body:'<p>Выбери первую книгу — она <strong>бесплатная</strong>. Первый шаг займёт около 5 минут.</p>'}
 ];
 
 const EMOJIS=['👤','😎','🧠','🔥','🌅','⚡','🎯','💪','🦁','🌟','🚀','🎨','🧘','🏆','☀️','🍀'];
@@ -1963,6 +1970,92 @@ async function showProfile(){
   }
 }
 
+
+// ─── КОСМОС ДЛЯ «ПОГРУЖЕНИЯ»: звёзды, галактика, туманности, метеоры (canvas) ───
+function startCosmos(canvas, opts = {}) {
+  const ctx = canvas.getContext('2d');
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const DPR = Math.min(1.5, window.devicePixelRatio || 1);
+  let W = 0, H = 0, raf = 0, last = performance.now(), t = 0, nextMeteor = 3, neb = null;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const stars = Array.from({ length: 170 }, () => ({ x: rnd(-1, 1), y: rnd(-1, 1), z: rnd(.05, 1), tw: rnd(0, 6.28), c: Math.random() < .18 ? '255,190,140' : (Math.random() < .35 ? '170,200,255' : '255,255,255') }));
+  const gal = [];
+  for (let i = 0; i < 1700; i++) {                       // спиральные рукава
+    const arm = i % 3, r = Math.pow(Math.random(), .7), ang = arm * 2.0944 + r * 4.6 + rnd(-.55, .55) * (.25 + r * .9);
+    gal.push({ r, a: ang, s: rnd(.7, 2.2), al: rnd(.4, 1), h: r });
+  }
+  for (let i = 0; i < 420; i++) {                        // яркое ядро-балдж
+    const r = Math.pow(Math.random(), 2.2) * .24, ang = rnd(0, 6.2832);
+    gal.push({ r, a: ang, s: rnd(.8, 2.4), al: rnd(.6, 1), h: r * .5 });
+  }
+  const gas = Array.from({ length: 46 }, () => ({ r: Math.pow(Math.random(), .8), a: rnd(0, 6.2832), s: rnd(14, 38), c: Math.random() < .5 ? '124,92,255' : (Math.random() < .5 ? '255,122,60' : '60,120,255') }));
+  const meteors = [];
+  function bake() {
+    neb = document.createElement('canvas'); neb.width = Math.max(2, Math.round(W * .5)); neb.height = Math.max(2, Math.round(H * .5));
+    const g = neb.getContext('2d'), nw = neb.width, nh = neb.height;
+    [[.2, .22, .6, '124,92,255', .34], [.88, .3, .5, '30,92,255', .24], [.5, .92, .6, '255,122,42', .15], [.08, .78, .45, '200,70,200', .15], [.92, .88, .4, '62,207,142', .07]].forEach(([x, y, r, c, a]) => {
+      const rad = r * Math.max(nw, nh), gr = g.createRadialGradient(x * nw, y * nh, 0, x * nw, y * nh, rad);
+      gr.addColorStop(0, `rgba(${c},${a})`); gr.addColorStop(1, `rgba(${c},0)`); g.fillStyle = gr; g.fillRect(0, 0, nw, nh);
+    });
+  }
+  function size() {
+    W = canvas.clientWidth || window.innerWidth; H = canvas.clientHeight || window.innerHeight;
+    canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); bake();
+  }
+  function frame(now) {
+    if (!canvas.isConnected) return;
+    if (!canvas.getClientRects().length) { last = now; raf = requestAnimationFrame(frame); return; }   // экран скрыт — не рисуем
+    const dt = Math.min(.05, (now - last) / 1000); last = now; if (!reduce) t += dt;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#04020d'; ctx.fillRect(0, 0, W, H);
+    // туманности: медленный дрейф и «дыхание»
+    const br = .5 + .5 * Math.sin(t * .785);
+    ctx.globalAlpha = .75 + .25 * br;
+    ctx.drawImage(neb, -W * .1 + Math.sin(t * .05) * W * .06, -H * .1 + Math.cos(t * .04) * H * .05, W * 1.2, H * 1.2);
+    ctx.globalAlpha = .35; ctx.save(); ctx.translate(W / 2, H / 2); ctx.rotate(t * .008); ctx.drawImage(neb, -W * .7, -H * .7, W * 1.4, H * 1.4); ctx.restore();
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'lighter';
+    // галактика за карточкой
+    const cx = W / 2, cy = H * (opts.cy || .27), R = Math.min(W * .62, H * .42) * (opts.scale || 1) * (1 + .045 * Math.sin(t * .785)), tilt = .52, rot = t * .05;
+    if (opts.galaxy !== false) {
+    const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * .5);
+    core.addColorStop(0, 'rgba(255,235,205,.8)'); core.addColorStop(.22, 'rgba(255,160,100,.34)'); core.addColorStop(1, 'rgba(124,92,255,0)');
+    ctx.fillStyle = core; ctx.save(); ctx.translate(cx, cy); ctx.scale(1, tilt + .1); ctx.beginPath(); ctx.arc(0, 0, R * .5, 0, 6.2832); ctx.fill(); ctx.restore();
+    for (const q of gas) {                               // светящийся газ в рукавах
+      const a = q.a + rot * (1.25 - q.r * .9), rr = q.r * R, x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr * tilt;
+      const gg = ctx.createRadialGradient(x, y, 0, x, y, q.s); gg.addColorStop(0, `rgba(${q.c},.12)`); gg.addColorStop(1, `rgba(${q.c},0)`);
+      ctx.fillStyle = gg; ctx.fillRect(x - q.s, y - q.s, q.s * 2, q.s * 2);
+    }
+    for (const p of gal) {
+      const a = p.a + rot * (1.25 - p.r * .9), rr = p.r * R, x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr * tilt;
+      const k = p.h, rC = 255 - k * 120 | 0, gC = 200 - k * 90 | 0, bC = 160 + k * 95 | 0;
+      ctx.fillStyle = `rgba(${rC},${gC},${bC},${p.al * (.85 - k * .45)})`; ctx.fillRect(x, y, p.s, p.s);
+    }
+    }
+    // звёзды: медленный полёт вперёд, три слоя глубины
+    const sc = Math.max(W, H) * .5;
+    for (const s of stars) {
+      if (!reduce) s.z -= dt * .018 * (1.2 - s.z * .6); if (s.z <= .02) { s.z = 1; s.x = rnd(-1, 1); s.y = rnd(-1, 1); }
+      const px = W / 2 + s.x / s.z * sc * .22, py = H / 2 + s.y / s.z * sc * .22;
+      if (px < -5 || px > W + 5 || py < -5 || py > H + 5) { s.z = 1; continue; }
+      const sz = (1 - s.z) * 2.1 + .35, tw = .65 + .35 * Math.sin(t * 1.8 + s.tw);
+      ctx.fillStyle = `rgba(${s.c},${(1 - s.z * .65) * tw})`; ctx.beginPath(); ctx.arc(px, py, sz, 0, 6.2832); ctx.fill();
+    }
+    // метеоры
+    nextMeteor -= dt; if (!reduce && nextMeteor <= 0) { nextMeteor = rnd(4, 9); meteors.push({ x: rnd(W * .1, W * 1.0), y: rnd(0, H * .35), vx: -rnd(380, 560), vy: rnd(200, 320), life: 1 }); }
+    for (let i = meteors.length - 1; i >= 0; i--) {
+      const m = meteors[i]; m.x += m.vx * dt; m.y += m.vy * dt; m.life -= dt * 1.15;
+      if (m.life <= 0) { meteors.splice(i, 1); continue; }
+      const g = ctx.createLinearGradient(m.x, m.y, m.x - m.vx * .16, m.y - m.vy * .16);
+      g.addColorStop(0, `rgba(255,255,255,${m.life})`); g.addColorStop(1, 'rgba(160,140,255,0)');
+      ctx.strokeStyle = g; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x - m.vx * .16, m.y - m.vy * .16); ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    raf = requestAnimationFrame(frame);
+  }
+  size(); window.addEventListener('resize', size); raf = requestAnimationFrame(frame);
+  return function stop() { cancelAnimationFrame(raf); window.removeEventListener('resize', size); };
+}
+
 // Переход в рейтинг с экрана завершения практики (функции не было — плитка не реагировала)
 function goToRating() {
   try { document.getElementById('completeOverlay').classList.add('hidden'); } catch (e) {}
@@ -2208,12 +2301,12 @@ function renderOnb(){
   const text = appTexts['onb_step' + stepNum + '_text'] || s.body.replace(/<[^>]*>/g, ''); 
 
   document.getElementById('onbContent').innerHTML =
-    `<div class="onb-ico">${s.ico}</div><h2>${title}</h2><p>${text}</p>`;
+    `<div class="onb-in"><div class="onb-ico">${s.ico}</div><h2>${title}</h2><p>${text}</p></div>`;
   document.getElementById('onbDots').innerHTML=
     ONB.map((_,i)=>`<div class="onb-dot ${i===onbIndex?'on':''}"></div>`).join('');
   document.getElementById('onbBack').classList.toggle('hidden',onbIndex===0);
   document.getElementById('onbNext').textContent=
-    onbIndex===ONB.length-1?'Начать путь 🚀':'Далее';
+    onbIndex===ONB.length-1?'Начать путь':'Далее';
 }
 function onbNext(){
   if(onbIndex<ONB.length-1){onbIndex++;renderOnb()}
@@ -6232,76 +6325,13 @@ function loadAdminSection(section) {
     section = 'moderation';
   }
 
-  if (['dashboard','books','users','moderation'].includes(section)) {
+  if (['dashboard','books','users','moderation','system'].includes(section)) {
     AP.mount(section, area);
     return;
   }
 
-  // Для остальных вкладок оставляем твой старый код загрузки
-  area.innerHTML = '<div style="text-align:center; padding:40px; color:var(--d-text-dim);"><div class="spinner" style="margin:0 auto 10px;"></div>Загрузка данных...</div>';
-  
-  setTimeout(() => {
-    if (section === 'system') {
-      area.innerHTML = `
-        <!-- Блок 1: Рассылка -->
-        <div class="admin-pro-card">
-          <div class="admin-pro-card-header">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <div class="admin-icon-box" style="background:rgba(124,92,255,0.15); color:var(--d-accent-2);">📢</div>
-              <div>
-                <div class="admin-pro-card-title">Push-рассылка</div>
-                <div class="admin-pro-card-sub">Отправить уведомление всем юзерам</div>
-              </div>
-            </div>
-          </div>
-          
-          <div style="padding: 0 16px 16px;">
-            <input type="text" id="broadcastTitle" placeholder="Заголовок" class="admin-pro-input" maxlength="100">
-            <textarea id="broadcastText" rows="3" placeholder="Текст уведомления..." class="admin-pro-input" maxlength="500"></textarea>
-            <button class="d-btn-primary" style="margin-top:8px; height:44px; border-radius:12px; font-size:12px;" onclick="sendBroadcast()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-              Отправить всем
-            </button>
-          </div>
-        </div>
-        
-        <!-- Блок 2: Глобальные настройки -->
-        <div class="admin-pro-card" id="systemContent"></div>
-        
-        <!-- Блок 3: Данные и логи -->
-        <div class="admin-pro-card" style="padding-bottom: 8px;">
-          <div class="admin-pro-card-header" style="margin-bottom:0; padding-bottom:0;">
-             <div style="display:flex; align-items:center; gap:8px;">
-              <div class="admin-icon-box" style="background:rgba(255,154,86,0.15); color:var(--d-warm);">💾</div>
-              <div>
-                <div class="admin-pro-card-title">Данные системы</div>
-                <div class="admin-pro-card-sub">Экспорт и логи</div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="admin-settings-list">
-            <div class="admin-settings-row" onclick="exportAllBooks()">
-              <div class="asr-left">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Скачать все книги (JSON)
-              </div>
-              <div style="color:var(--d-text-dim); font-size:16px;">›</div>
-            </div>
-            <div class="admin-settings-row" onclick="loadAdminLogs()">
-              <div class="asr-left">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                История действий
-              </div>
-              <div style="color:var(--d-text-dim); font-size:16px;">›</div>
-            </div>
-          </div>
-          <div id="adminLogsContainer" style="padding: 0 16px 16px;"></div>
-        </div>
-      `;
-      renderSystem(); 
-    }
-  }, 100);
+  // Неизвестная вкладка — открываем обзор
+  AP.mount('dashboard', area);
 }
 
 
@@ -6309,167 +6339,6 @@ function loadAdminSection(section) {
 
 
 
-
-
-
-
-
-
-
-async function openAdminUser(id){
-  const wrap = document.getElementById('adminDetailWrap');
-  if (wrap) wrap.dataset.openUserId = id;
-
-  const p = adminAllUsers.find(x=>x.id===id); if(!p) return;
-  const isMe = p.id === user.id;
-  const phone = isMe ? user.phone : (p.phone || 'Нет данных');
-  const phoneShown = phone && phone !== 'Нет данных' ? '+7 ('+phone.slice(1,4)+') '+phone.slice(4,7)+'-'+phone.slice(7,9)+'-'+phone.slice(9) : 'Нет данных';
-  
-  const regDate = p.created_at ? new Date(p.created_at).toLocaleDateString('ru') : '—';
-  const lastSeenMs = parseTimestamp(p.last_seen);
-  const lastSeen = lastSeenMs !== null ? new Date(lastSeenMs).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'Нет данных';
-  
-  let isSubActive = false;
-  let subDateText = 'Нет подписки';
-  if (p.sub_until) {
-    const subDate = new Date(p.sub_until);
-    if (subDate > new Date()) {
-      isSubActive = true;
-      subDateText = 'Активна до ' + subDate.toLocaleDateString('ru-RU');
-    } else {
-      subDateText = 'Истекла ' + subDate.toLocaleDateString('ru-RU');
-    }
-  }
-
-  const access = p.book_access || [];
-  let booksHtml = '';
-  const categories = {};
-  BOOKS.forEach(b => {
-    const cat = b.category || 'Разное';
-    if(!categories[cat]) categories[cat] = [];
-    categories[cat].push(b);
-  });
-
-  Object.keys(categories).forEach(cat => {
-    booksHtml += `<div style="font-size:10px; font-weight:900; color:var(--accent-2); text-transform:uppercase; margin-top:12px; margin-bottom:6px;">📁 ${cat}</div>`;
-    categories[cat].forEach(b => {
-      const has = p.is_admin || access.includes(b.id);
-      booksHtml += `
-        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px 10px; border-radius:10px; margin-bottom:4px;">
-          <div style="font-size:12px; font-weight:700; color:var(--text);">${escapeHtml(b.title)}</div>
-          <div class="d-toggle ${has ? 'on' : ''}" onclick="toggleBookAccess('${id}','${b.id}',${!has})"></div>
-        </div>
-      `;
-    });
-  });
-
-  wrap.innerHTML = `
-    <div class="bento-card" style="margin-top:16px; border-color: var(--accent); animation: fadeIn 0.3s;">
-      <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
-        <div class="uc-ava" style="width:60px; height:60px; font-size:28px;">${getAvatarHtml(p.avatar, 36)}</div>
-        <div style="flex:1;">
-          <h3 style="font-size:18px; font-weight:900; margin:0; display:flex; align-items:center; gap:6px;">${escapeHtml(p.name||'Без имени')} ${p.is_admin?'👑':''}</h3>
-          <div style="font-size:12px; color:var(--muted); margin-top:4px;">${isMe ? 'Это вы' : 'Пользователь'}</div>
-        </div>
-        <div style="font-size:20px; color:var(--muted); cursor:pointer; padding:8px; background:var(--card2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center;" onclick="document.getElementById('adminDetailWrap').innerHTML=''">✕</div>
-      </div>
-
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; background:rgba(255,255,255,0.02); padding:12px; border-radius:12px;">
-        <div><div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Телефон</div><div style="font-size:13px; font-weight:700;">${phoneShown}</div></div>
-        <div><div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Регистрация</div><div style="font-size:13px; font-weight:700;">${regDate}</div></div>
-        <div style="grid-column: 1 / -1;"><div style="font-size:9px; color:var(--muted); text-transform:uppercase;">Последний визит</div><div style="font-size:13px; font-weight:700;">${lastSeen}</div></div>
-      </div>
-
-      <div style="background:rgba(62,207,142,0.08); border:1px solid rgba(62,207,142,0.2); padding:12px; border-radius:12px; margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <span style="font-size:12px; font-weight:800; color:var(--text);">💎 Premium</span>
-          <span style="font-size:12px; color:${isSubActive?'var(--success)':'var(--muted)'}; font-weight:800;">${subDateText}</span>
-        </div>
-        <div style="display:flex; gap:8px;">
-          <button class="btn" style="margin:0; padding:8px; font-size:11px; background:var(--success); border-radius:10px;" onclick="adminGrantSub('${id}', 30)">🎁 +1 Месяц</button>
-          ${isSubActive ? `<button class="btn" style="margin:0; padding:8px; font-size:11px; background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:10px;" onclick="adminGrantSub('${id}', 0)">Забрать</button>` : ''}
-        </div>
-      </div>
-
-      <div style="margin-bottom:16px;">
-        <div onclick="this.nextElementSibling.classList.toggle('hidden')" style="font-size:11px; font-weight:900; color:var(--muted); text-transform:uppercase; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
-          <span>📊 Последние действия</span>
-          <span style="font-size:14px;">⌄</span>
-        </div>
-        <div id="adminUserActivity" style="background:rgba(255,255,255,0.02); padding:12px; border-radius:12px; font-size:12px; color:var(--muted);">Загрузка...</div>
-      </div>
-
-      <div style="margin-bottom:20px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <div style="font-size:11px; font-weight:900; color:var(--muted); text-transform:uppercase;">📚 Доступ к книгам</div>
-          <div style="display:flex; gap:8px;">
-            <span style="font-size:10px; color:var(--success); cursor:pointer; font-weight:800;" onclick="setAllBooksAccess('${id}', true)">ВСЕ ВКЛ</span>
-            <span style="font-size:10px; color:var(--danger); cursor:pointer; font-weight:800;" onclick="setAllBooksAccess('${id}', false)">ВСЕ ВЫКЛ</span>
-          </div>
-        </div>
-        <div style="max-height:150px; overflow-y:auto; padding-right:4px;">
-          ${booksHtml}
-        </div>
-      </div>
-
-      ${!isMe ? `
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; border-top:1px solid var(--border); padding-top:16px;">
-        <button class="d-btn-secondary" style="margin:0; height:40px; font-size:11px; border-radius:12px;" onclick="adminSendMessage('${id}')">💬 Написать</button>
-        <button class="d-btn-secondary" style="margin:0; height:40px; font-size:11px; border-radius:12px; color:${p.blocked?'var(--d-success)':'var(--d-danger)'}; border-color:${p.blocked?'var(--d-success)':'var(--d-danger)'};" onclick="adminToggleBlock('${id}',${!p.blocked})">${p.blocked?'✓ Разблок':'🚫 Блок'}</button>
-      </div>
-      <div style="margin-top:8px;">
-        <button class="d-btn-secondary" style="margin:0; width:100%; height:40px; font-size:11px; border-radius:12px; background:rgba(124,92,255,0.1); color:var(--accent-2); border-color:rgba(124,92,255,0.3);" onclick="adminTestPush('${id}')">🔔 Отправить тестовый Push</button>
-      </div>` : ''}
-    </div>
-  `;
-  wrap.scrollIntoView({behavior:'smooth'});
-
-  try {
-    const [notesRes, feedRes] = await Promise.all([
-      sb.from('notes').select('practice_title, created_at').eq('user_id', id).order('created_at', {ascending:false}).limit(2),
-      sb.from('messages').select('text, created_at').eq('user_id', id).eq('room','feed').order('created_at', {ascending:false}).limit(2)
-    ]);
-    
-    let actHtml = '';
-    if (notesRes.data && notesRes.data.length) {
-      notesRes.data.forEach(n => {
-        actHtml += `<div style="margin-bottom:6px; padding-left:8px; border-left:2px solid var(--accent); color:var(--text);">📝 <i>${escapeHtml(n.practice_title)}</i></div>`;
-      });
-    }
-    if (feedRes.data && feedRes.data.length) {
-      feedRes.data.forEach(m => {
-        actHtml += `<div style="margin-bottom:6px; padding-left:8px; border-left:2px solid var(--d-warm); color:var(--text);">💬 <i>"${escapeHtml(m.text.slice(0, 30))}..."</i></div>`;
-      });
-    }
-    
-    const actEl = document.getElementById('adminUserActivity');
-    if (actEl) actEl.innerHTML = actHtml || '<div style="color:var(--muted); font-style:italic; text-align:center;">Нет недавней активности</div>';
-  } catch(e) { console.warn('Activity load error', e); }
-}
-
-async function adminToggleBlock(id, blocked) {
-  if (!(await appConfirm(blocked ? 'Заблокировать участника?' : 'Разблокировать?', 'Управление участником'))) return;
-  try {
-    await rpcCall('admin_toggle_block', { target_id: id, blocked: Boolean(blocked), reason: blocked ? 'Нарушение правил' : null });
-    await loadAdminUsers();
-    await openAdminUser(id);
-    playSuccess();
-  } catch (e) {
-    console.error('[ANDGER] adminToggleBlock:', e);
-  }
-}
-
-async function adminToggleAdmin(id, makeAdmin) {
-  if (!(await appConfirm(makeAdmin ? 'Сделать админом?' : 'Снять права админа?', 'Права администратора'))) return;
-  try {
-    await rpcCall('admin_toggle_admin', { target_id: id, make_admin: Boolean(makeAdmin) });
-    await loadAdminUsers();
-    await openAdminUser(id);
-    playSuccess();
-  } catch (e) {
-    console.error('[ANDGER] adminToggleAdmin:', e);
-  }
-}
 
 async function adminDelete(id, confirmed = false) {
   if (!confirmed) {
@@ -6571,65 +6440,8 @@ async function logAdmin(action,targetId,meta){
 
 // ─── АНАЛИТИКА ───
 
-async function sendBroadcast() {
-  const titleEl = document.getElementById('broadcastTitle');
-  const textEl = document.getElementById('broadcastText');
-  const title = titleEl?.value.trim() || '';
-  const body = textEl?.value.trim() || '';
-  if (!title || !body) { toast('Заполни оба поля', 'warm'); return; }
-  if (title.length > 100 || body.length > 500) { toast('Лимиты: 100 и 500 символов', 'warm'); return; }
-  try {
-    // Получаем всех пользователей с включенными пушами
-    const { data: users } = await sb.from('notification_prefs').select('user_id').eq('push_enabled', true);
-    if (!users || users.length === 0) throw new Error('Нет пользователей с включенными пушами');
 
-    let count = 0;
-    for (const u of users) {
-      await sb.functions.invoke('create-notification', {
-        body: { 
-          type: 'admin', 
-          event_id: u.user_id, 
-          text: title + ': ' + body 
-        }
-      });
-      count++;
-    }
-    playSuccess();
-    toast(`Рассылка отправлена (${count} чел.)!`);
-    if (titleEl) titleEl.value = '';
-    if (textEl) textEl.value = '';
-  } catch (e) {
-    console.error('[ANDGER] sendBroadcast:', e);
-  }
-}
 
-// ─── СИСТЕМА ───
-async function renderSystem(){
-  const el = document.getElementById('systemContent');
-  if(!el) return;
-  
-  el.innerHTML = `
-    <div class="admin-pro-card-header" style="margin-bottom:8px;">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <div class="admin-icon-box" style="background:rgba(62,207,142,0.15); color:var(--d-success);">⚙️</div>
-        <div>
-          <div class="admin-pro-card-title">Настройки доступа</div>
-          <div class="admin-pro-card-sub">Глобальные правила для всех книг</div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="admin-settings-list" style="margin-top:0; border-top: 1px solid var(--d-border);">
-      <div class="admin-settings-row">
-        <div>
-          <div style="font-size:13px; font-weight:800; color:var(--d-text); margin-bottom:2px;">Открытый доступ</div>
-          <div style="font-size:11px; color:var(--d-text-dim); line-height:1.3;">Если включено — все книги бесплатны (для тестов)</div>
-        </div>
-        <div class="d-toggle ${bookAccessMode === 'everyone' ? 'on' : ''}" onclick="toggleBookAccessMode()" style="flex-shrink:0;"></div>
-      </div>
-    </div>
-  `;
-}
 
 async function toggleBookAccessMode() {
   bookAccessMode = bookAccessMode === 'everyone' ? 'individual' : 'everyone';
@@ -6637,7 +6449,7 @@ async function toggleBookAccessMode() {
     await sb.from('app_settings').upsert({key:'book_access_mode', value:bookAccessMode}, {onConflict:'key'});
     toast(bookAccessMode === 'everyone' ? 'Режим: Всем открыто' : 'Режим: Индивидуально');
     playCheck();
-    renderSystem(); // Перерисовываем кнопку
+    if (window.AP && AP.sec === 'system') AP.system(); // Перерисовываем
   } catch(e) {
     toast('Ошибка сохранения', 'danger');
   }
@@ -7358,19 +7170,7 @@ function goToAuth() {
 
 // Оставляем один пушстейт для инициализации
 history.pushState(null, null, location.href);
-async function setAllBooksAccess(userId, grant) {
-  const p = adminAllUsers.find(x => x.id === userId);
-  if (!p) return;
-  const access = grant ? BOOKS.map(b => String(b.id)) : [];
-  try {
-    await rpcCall('admin_set_book_access', { target_id: userId, book_ids: access });
-    p.book_access = access;
-    playCheck();
-    await openAdminUser(userId);
-  } catch (e) {
-    console.error('[ANDGER] setAllBooksAccess:', e);
-  }
-}// ─── УПРАВЛЕНИЕ ЦИТАТАМИ ───
+// ─── УПРАВЛЕНИЕ ЦИТАТАМИ ───
 let editingQuoteId=null;
 
 async function loadAdminQuotes(){
@@ -8273,20 +8073,7 @@ async function rpcCall(functionName, params = {}) {
   return data;
 }
 
-async function adminGrantSub(userId, days) {
-  try {
-    await rpcCall('admin_grant_sub', { target_id: userId, days: Number(days) });
-    const p = (adminAllUsers || []).find(x => String(x.id) === String(userId));
-    if (p) {
-      p.sub_until = Number(days) > 0 ? new Date(Date.now() + Number(days) * 86400000).toISOString() : null;
-    }
-    playSuccess();
-    toast(Number(days) > 0 ? 'Подписка выдана ✓' : 'Подписка забрана');
-    openAdminUser(userId);
-  } catch (e) {
-    console.error('[ANDGER] adminGrantSub:', e);
-  }
-}
+
 
 // ─── ОТЗЫВЫ ───
 let currentReviewBookId = null;
@@ -8978,62 +8765,7 @@ emotionToUse = isFemale ? (vSettings.emotion || 'neutral') : auto.emotion;
 
 
 
-// ─── ИСТОРИЯ ДЕЙСТВИЙ АДМИНА ───
-async function loadAdminLogs() {
-  const el = document.getElementById('adminLogsContainer');
-  if(!el) return;
-  
-  el.innerHTML = '<div style="text-align:center; color:var(--muted); padding:20px;"><div class="spinner" style="margin:0 auto 10px;"></div>Загрузка...</div>';
 
-  try {
-    const { data: logs, error } = await sb.from('admin_logs').select('*').order('created_at', {ascending: false}).limit(20);
-    if (error) throw error;
-    
-    if (!logs || logs.length === 0) {
-      el.innerHTML = '<div style="text-align:center; color:var(--d-text-dim); padding:20px; font-size:12px;">История пуста.</div>';
-      return;
-    }
-
-    const adminIds = [...new Set(logs.map(l => l.admin_id))];
-    const { data: profiles } = await sb.from('profiles').select('id, name').in('id', adminIds);
-    const adminsMap = {}; (profiles || []).forEach(p => adminsMap[p.id] = p.name);
-
-    let html = '<div class="admin-timeline">';
-    logs.forEach(log => {
-      const date = new Date(log.created_at).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
-      const adminName = adminsMap[log.admin_id] || 'Админ';
-      
-      let actionText = 'Действие';
-      let color = 'var(--d-text)';
-      let icon = '⚙️';
-      
-      if (log.action === 'block') { actionText = 'Блокировка'; color = 'var(--d-danger)'; icon='🚫'; }
-      else if (log.action === 'admin') { actionText = 'Выдача прав'; color = 'var(--d-gold)'; icon='👑'; }
-      else if (log.action === 'grant_book') { actionText = 'Доступ к книге'; color = 'var(--d-accent-2)'; icon='📚'; }
-      else if (log.action === 'delete') { actionText = 'Удаление'; color = 'var(--d-danger)'; icon='🗑'; }
-
-      html += `
-        <div class="admin-timeline-item">
-          <div class="ati-icon">${icon}</div>
-          <div class="ati-content">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <span style="font-size:12px; font-weight:800; color:${color};">${actionText}</span>
-              <span style="font-size:9px; color:var(--d-text-mute);">${date}</span>
-            </div>
-            <div style="font-size:11px; color:var(--d-text-dim); margin-top:2px;">
-              Админ: <b style="color:var(--d-text);">${escapeHtml(adminName)}</b>
-            </div>
-          </div>
-        </div>
-      `;
-    });
-    html += `</div>`;
-    el.innerHTML = html;
-  } catch(e) {
-    console.error('Logs error:', e);
-    el.innerHTML = '<div style="text-align:center; color:var(--d-danger); padding:20px; font-size:12px;">История недоступна</div>';
-  }
-}
 
 
 
@@ -10045,20 +9777,7 @@ function switchMusicTrack() {
   toast(`🎵 Музыка №${trackNumber}`);
 }
 
-async function adminTestPush(userId) {
-  if(!(await appConfirm('Отправить тестовый push этому пользователю?', 'Проверка Push'))) return;
-  try {
-    // В Supabase Edge Functions вызываем отправку
-    const { error } = await sb.functions.invoke('send-scheduled-push', {
-      body: { target_user_id: userId, is_test: true }
-    });
-    if (error) throw error;
-    toast('Тестовый Push отправлен!');
-  } catch (e) {
-    console.error(e);
-    toast('Ошибка: ' + e.message, 'danger');
-  }
-}
+
 function updateEditorStatusBanner(b) {
   const banner = document.getElementById('edStatusBanner');
   const dot = document.getElementById('edStatusDot');
@@ -10089,37 +9808,7 @@ function updateEditorStatusBanner(b) {
   }
 }
 
-async function toggleBookPublication() {
-  if(!editingBookId) return;
-  
-  const b = (BOOKS.find(x=>x.id===editingBookId) || (adminAllBooks||[]).find(x=>x.id===editingBookId));
-  if(!b) return;
 
-  const isCurrentlyPublished = (b.published === true || b.published === 'true');
-  const newStatus = !isCurrentlyPublished;
-
-  // Если скрываем — просим подтверждение
-  if (newStatus === false) {
-    if(!(await appConfirm('Скрыть книгу от пользователей? Она переместится в «В разработке».', 'Скрыть книгу', 'Скрыть'))) return;
-  }
-
-  try {
-    const { error } = await sb.from('books').update({ published: newStatus }).eq('id', editingBookId);
-    if (error) throw error;
-
-    // Обновляем в памяти
-    b.published = newStatus;
-    const ab = (adminAllBooks||[]).find(x => x.id === editingBookId);
-    if (ab) ab.published = newStatus;
-
-    updateEditorStatusBanner(b);
-    playSuccess();
-    toast(newStatus ? '✅ Книга опубликована' : '📁 Книга скрыта (в разработке)');
-  } catch(e) {
-    console.error('[ANDGER] toggleBookPublication:', e);
-    toast('Ошибка: ' + (e.message || e), 'danger');
-  }
-}
 async function exportAllBooks() {
   try {
     toast('Сбор данных...');
@@ -10770,6 +10459,8 @@ function startMusic(practiceId = 'default'){
     currentPlaylist = MUSIC_TRACKS.sport;
   } else if (searchStr.includes('read') || searchStr.includes('чтени') || searchStr.includes('journal') || searchStr.includes('edit') || searchStr.includes('book') || searchStr.includes('дневник') || searchStr.includes('запис')) {
     currentPlaylist = MUSIC_TRACKS.read;
+  } else if (/meditat|медит|погруж|immers|дыхан|breath|тишин|релакс|relax|сон\b|sleep|визуализ/.test(searchStr)) {
+    currentPlaylist = MUSIC_TRACKS.default;   // медитативные треки — для погружений и дыхания
   } else {
     currentPlaylist = MUSIC_TRACKS.silence; 
   }
@@ -10865,6 +10556,26 @@ const AP_VOICES = ['alena','filipp','omazh','ermil','jane'], AP_EMO = ['','good'
 const AP_BOOK_KEYS = 'id emoji title author days category about method author_bio for_whom result identity summary lumi_tips quotes voice_settings practices cover_url published is_free authorBio forWhom coverUrl format path'.split(' ');
 const AP_NEW_BOOK = {id:'',emoji:'📖',title:'',author:'',days:21,category:'Разное',about:'',method:[],author_bio:'',for_whom:'',result:'',identity:'',summary:[],lumi_tips:[],quotes:[],voice_settings:null,practices:[]};
 const AP_PAGE = 40;
+const AP_SVG = {
+  user: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+  star: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>',
+  edit: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  ban: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg>',
+  check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16 9.5"/></svg>',
+  crown: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>',
+  copy: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',
+  phone: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>',
+  trash: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>',
+  down: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0 4-4m-4 4-4-4M5 20h14"/></svg>',
+  dup: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/></svg>',
+  braces: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1M16 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg>',
+  msg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  bell: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
+  key: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3"/></svg>',
+  db: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>',
+  log: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>'
+};
 
 window.AP = {
   sec: 'dashboard', mt: 'reports', q: '', uf: 'all', bf: 'all', sort: 'new', lim: AP_PAGE, preUf: null,
@@ -10906,7 +10617,7 @@ window.AP = {
   mount(section, area) {
     this.sec = section; this.q = ''; this.uf = 'all'; this.bf = 'all'; this.lim = AP_PAGE;
     area.innerHTML = '<div class="ap"><div class="ap-bar" id="apBar"></div><div id="apView"><div class="ap-empty"><div class="spinner" style="margin:0 auto 10px"></div>Загрузка…</div></div></div>';
-    ({ dashboard: () => this.dash(), books: () => this.books(), users: () => this.users(), moderation: () => this.mod() })[section]();
+    ({ dashboard: () => this.dash(), books: () => this.books(), users: () => this.users(), moderation: () => this.mod(), system: () => this.system() })[section]();
   },
   bar(html) { const b = document.getElementById('apBar'); if (b) b.innerHTML = html; },
   nav(section, uf) { this.preUf = uf || null; const i = { dashboard: 0, books: 1, users: 2, moderation: 3, system: 4 }[section]; switchAdminTab(section, document.querySelectorAll('.admin-pro-tab')[i]); },
@@ -10917,7 +10628,7 @@ window.AP = {
   // ── Обзор ──
   async dash() {
     if (!this.area()) return;
-    this.bar('<div class="ap-title">Обзор</div><button class="ap-btn" onclick="AP.dash()">⟳ Обновить</button>');
+    this.bar('<div class="ap-title">Обзор</div><button class="ap-btn" onclick="AP.find()" aria-label="Поиск">' + AP_SVG.search + '</button><button class="ap-btn" onclick="AP.dash()" aria-label="Обновить">⟳</button>');
     const [u, b, r, f] = await Promise.all([
       sb.from('profiles').select('*').limit(10000),
       sb.from('books').select('id,published,is_free'),
@@ -10930,6 +10641,11 @@ window.AP = {
     const fresh = [...us].sort((a, c) => new Date(c.created_at) - new Date(a.created_at)).slice(0, 5);
     const k = (n, l, go = '', c = '') => `<div class="ap-card ap-kpi ${go ? 'tap' : ''}" ${go ? `onclick="${go}"` : ''}><b style="${c}">${n}</b><span>${l}</span></div>`;
     const nr = r.count || 0, nf = f.count || 0;
+    const reg14 = (() => {
+      const days = Array.from({ length: 14 }, (_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (13 - i)); return d; });
+      const cnt = days.map(d => us.filter(x => { const c = new Date(x.created_at); return c >= d && c < new Date(+d + day); }).length), mx = Math.max(1, ...cnt);
+      return { total: cnt.reduce((a, c) => a + c, 0), html: cnt.map((n, i) => `<div class="ap-col" title="${days[i].toLocaleDateString('ru-RU')}: ${n}"><em>${n || ''}</em><i style="height:${Math.max(4, n / mx * 100)}%"></i><span>${i % 2 ? '' : days[i].getDate()}</span></div>`).join('') };
+    })();
     const mini = (p, ex) => `<div class="ap-mini" onclick="AP.userMenu('${p.id}')"><div class="ap-ava s" style="--h:${this.hue(p.id)}">${this.esc((p.name || '?')[0].toUpperCase())}</div><div class="ap-main"><div class="ap-name">${this.esc(p.name || 'Без имени')}</div><div class="ap-sub">${ex}</div></div><span class="ap-dim">›</span></div>`;
     if (!this.area()) return;
     this.area().innerHTML = `
@@ -10942,12 +10658,103 @@ window.AP = {
         ${k(bs.filter(x => x.published).length + ' / ' + bs.length, 'Книг опубликовано', "AP.nav('books')")}${k(nr, 'Жалоб', "AP.mt='reports';AP.nav('moderation')", nr ? 'color:var(--d-danger)' : '')}
         ${k(nf, 'Отзывов', "AP.mt='fb';AP.nav('moderation')")}${k(us.filter(x => x.blocked).length, 'Заблокировано', "AP.nav('users','blocked')")}
       </div>
+      <div class="ap-h">Регистрации · 14 дней <i class="ap-cnt">${reg14.total}</i></div>
+      <div class="ap-card ap-chart">${reg14.html}</div>
       <div class="ap-h">Быстрые действия</div>
       <div class="ap-quick"><button class="ap-btn" onclick="AP.nav('books');setTimeout(()=>AP.edit(null),250)">＋ Новая книга</button><button class="ap-btn" onclick="showJsonImportModal()">⇪ Импорт JSON</button><button class="ap-btn" onclick="AP.nav('system')">📣 Push-рассылка</button><button class="ap-btn" onclick="AP.csv()">⇩ Экспорт CSV</button><button class="ap-btn" onclick="openPromoModal()">🏷 Промокоды</button></div>
       <div class="ap-h">Premium заканчивается ≤ 7 дней <i class="ap-cnt">${exp.length}</i></div>
       <div class="ap-card ap-lst">${exp.slice(0, 5).map(p => mini(p, 'до ' + this.day(p.sub_until))).join('') || '<div class="ap-empty s">Нет подписок, которые скоро закончатся</div>'}</div>
       <div class="ap-h">Новые пользователи</div>
       <div class="ap-card ap-lst">${fresh.map(p => mini(p, 'регистрация ' + this.fmt(p.created_at))).join('') || '<div class="ap-empty s">Пока никого</div>'}</div>`;
+  },
+
+  // ── Глобальный поиск: юзеры и книги ──
+  async find() {
+    if (!adminAllUsers || !adminAllUsers.length) { const { data } = await sb.from('profiles').select('*').order('created_at', { ascending: false }).limit(10000); adminAllUsers = data || []; }
+    if (!this._books) { const { data } = await sb.from('books').select('id,title,author,emoji,published'); this._books = data || []; }
+    const d = document.createElement('dialog'); d.className = 'ap-dlg ap-sheet ap-find';
+    d.innerHTML = `<div class="ap-sh-h"><input class="ap-in" id="apFindIn" type="search" placeholder="Найти юзера или книгу…" autocomplete="off"></div><div class="ap-sh-b" id="apFindOut"><div class="ap-empty s">Введи имя, телефон, ID или название книги</div></div><button class="ap-sh-i ap-sh-c" data-x="1">Закрыть</button>`;
+    document.body.appendChild(d);
+    const out = d.querySelector('#apFindOut'), inp = d.querySelector('#apFindIn');
+    const draw = () => {
+      const q = inp.value.toLowerCase().trim(); if (q.length < 2) { out.innerHTML = '<div class="ap-empty s">Введи минимум 2 символа</div>'; return; }
+      const digits = q.replace(/\D/g, '');
+      const us = adminAllUsers.filter(p => [p.name, p.last_name, p.id].join(' ').toLowerCase().includes(q) || (digits.length > 2 && String(p.phone || '').replace(/\D/g, '').includes(digits))).slice(0, 8);
+      const bs = this._books.filter(b => [b.title, b.author, b.id].join(' ').toLowerCase().includes(q)).slice(0, 6);
+      out.innerHTML = (us.length ? '<div class="ap-h s">Пользователи</div>' + us.map(p => `<button class="ap-sh-i" data-u="${this.qs(p.id)}"><span class="ap-ava s" style="--h:${this.hue(p.id)}">${this.esc((p.name || '?')[0].toUpperCase())}</span>${this.esc(p.name || 'Без имени')} <small class="ap-dim">${this.esc(this.phone(p.phone))}</small></button>`).join('') : '')
+        + (bs.length ? '<div class="ap-h s">Книги</div>' + bs.map(b => `<button class="ap-sh-i" data-b="${this.qs(b.id)}"><span>${this.esc(b.emoji || '📖')}</span>${this.esc(b.title)} <small class="ap-dim">${this.esc(b.author || '')}${b.published ? '' : ' · черновик'}</small></button>`).join('') : '') || '<div class="ap-empty s">Ничего не найдено</div>';
+    };
+    inp.oninput = draw;
+    d.onclick = e => {
+      if (e.target === d || e.target.closest('[data-x]')) return d.close();
+      const u = e.target.closest('[data-u]'), b = e.target.closest('[data-b]');
+      if (u) { d.close(); this.user(u.dataset.u); }
+      if (b) { d.close(); this.nav('books'); setTimeout(() => this.edit(b.dataset.b), 300); }
+    };
+    d.onclose = () => d.remove(); d.showModal(); setTimeout(() => inp.focus(), 50);
+  },
+
+  // ── Система: рассылка, доступ, данные, история ──
+  async system() {
+    const v = this.area(); if (!v) return;
+    this.bar('<div class="ap-title">Система</div>');
+    v.innerHTML = `
+      <div class="ap-card ap-sec"><div class="ap-sec-h"><span class="ap-sic">${AP_SVG.bell}</span><div><b>Push-рассылка</b><div class="ap-sub" id="bcAud">Считаю получателей…</div></div></div>
+        <input class="ap-in" id="bcTitle" maxlength="100" placeholder="Заголовок" autocomplete="off">
+        <textarea class="ap-in" id="bcText" rows="3" maxlength="500" placeholder="Текст уведомления…"></textarea>
+        <div class="ap-sub ap-end-t" id="bcLen">0 / 500</div>
+        <div class="ap-prev" id="bcPrev" hidden></div>
+        <div class="ap-row"><button class="ap-btn" onclick="AP.bcTest()">Тест мне</button><button class="ap-btn p" id="bcBtn" onclick="AP.bcSend()">Отправить всем</button></div></div>
+
+      <div class="ap-card ap-sec"><div class="ap-sec-h"><span class="ap-sic">${AP_SVG.key}</span><div><b>Доступ к книгам</b><div class="ap-sub">Глобальное правило для всех</div></div></div>
+        <div class="ap-set"><div><b>Открытый доступ</b><div class="ap-sub">Все книги бесплатны. Включай только для тестов.</div></div><div class="d-toggle ${bookAccessMode === 'everyone' ? 'on' : ''}" onclick="toggleBookAccessMode()" role="switch" aria-checked="${bookAccessMode === 'everyone'}"></div></div></div>
+
+      <div class="ap-card ap-sec"><div class="ap-sec-h"><span class="ap-sic">${AP_SVG.db}</span><div><b>Данные</b><div class="ap-sub">Резервные копии и импорт</div></div></div>
+        <button class="ap-row-btn" onclick="exportAllBooks()"><span>Скачать все книги (JSON)</span><i>›</i></button>
+        <button class="ap-row-btn" onclick="showJsonImportModal()"><span>Импортировать книгу (JSON)</span><i>›</i></button>
+        <button class="ap-row-btn" onclick="AP.csvLoad()"><span>Пользователи (CSV)</span><i>›</i></button></div>
+
+      <div class="ap-card ap-sec"><div class="ap-sec-h"><span class="ap-sic">${AP_SVG.log}</span><div><b>История действий</b><div class="ap-sub">Последние 20 действий администраторов</div></div></div>
+        <div id="apLogs"><div class="ap-empty s"><div class="spinner" style="margin:0 auto 8px"></div>Загрузка…</div></div></div>`;
+    const tt = document.getElementById('bcTitle'), tx = document.getElementById('bcText'), len = document.getElementById('bcLen'), pv = document.getElementById('bcPrev');
+    const upd = () => { len.textContent = `${tx.value.length} / 500`; pv.hidden = !(tt.value || tx.value); pv.innerHTML = `<div class="ap-pv"><b>${this.esc(tt.value || 'Заголовок')}</b><span>${this.esc(tx.value || 'Текст уведомления')}</span></div>`; };
+    tt.oninput = tx.oninput = upd;
+    sb.from('notification_prefs').select('user_id', { count: 'exact', head: true }).eq('push_enabled', true).then(({ count }) => { const a = document.getElementById('bcAud'); if (a) a.textContent = `Получат: ${count || 0} чел. (с включёнными пушами)`; this._aud = count || 0; });
+    this.logs();
+  },
+  async bcSend() {
+    const t = (document.getElementById('bcTitle') || {}).value?.trim(), x = (document.getElementById('bcText') || {}).value?.trim();
+    if (!t || !x) return this.err('Заполни заголовок и текст');
+    const { data: us, error } = await sb.from('notification_prefs').select('user_id').eq('push_enabled', true);
+    if (error || !us || !us.length) return this.err('Нет получателей с включёнными пушами');
+    if (!await this.ask({ title: 'Отправить рассылку?', text: `«${t}» получат ${us.length} чел. Отменить отправку будет нельзя.`, ok: 'Отправить' })) return;
+    const btn = document.getElementById('bcBtn'); if (btn) btn.disabled = true;
+    let sent = 0, failed = 0;
+    for (let i = 0; i < us.length; i += 8) {
+      const res = await Promise.allSettled(us.slice(i, i + 8).map(u => sb.functions.invoke('create-notification', { body: { type: 'admin', event_id: u.user_id, text: t + ': ' + x } })));
+      res.forEach(r => (r.status === 'fulfilled' && !(r.value && r.value.error)) ? sent++ : failed++);
+      if (btn) btn.textContent = `Отправка… ${Math.min(us.length, i + 8)}/${us.length}`;
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'Отправить всем'; }
+    if (failed) this.err(`Отправлено ${sent}, не удалось ${failed}`); else { playSuccess(); this.ok(`Рассылка отправлена (${sent} чел.)`); }
+    if (!failed) { document.getElementById('bcTitle').value = ''; document.getElementById('bcText').value = ''; document.getElementById('bcPrev').hidden = true; }
+  },
+  async bcTest() {
+    const t = (document.getElementById('bcTitle') || {}).value?.trim(), x = (document.getElementById('bcText') || {}).value?.trim();
+    if (!t || !x) return this.err('Заполни заголовок и текст');
+    await this.run(async () => { const { error } = await sb.functions.invoke('create-notification', { body: { type: 'admin', event_id: user.id, text: t + ': ' + x } }); if (error) throw error; }, 'Тест отправлен тебе');
+  },
+  async csvLoad() { if (!adminAllUsers || !adminAllUsers.length) { const { data } = await sb.from('profiles').select('*').limit(10000); adminAllUsers = data || []; } this.csv(); },
+  async logs() {
+    const el = document.getElementById('apLogs'); if (!el) return;
+    try {
+      const { data: logs, error } = await sb.from('admin_logs').select('*').order('created_at', { ascending: false }).limit(20); if (error) throw error;
+      if (!logs || !logs.length) { el.innerHTML = '<div class="ap-empty s">История пуста</div>'; return; }
+      const ids = [...new Set(logs.map(l => l.admin_id))]; const { data: ps } = await sb.from('profiles').select('id,name').in('id', ids);
+      const nm = {}; (ps || []).forEach(p => nm[p.id] = p.name);
+      const A = { block: ['Блокировка', 'er'], admin: ['Выдача прав', 'wr'], grant_book: ['Доступ к книге', 'ac'], delete: ['Удаление', 'er'] };
+      el.innerHTML = logs.map(l => { const a = A[l.action] || [l.action || 'Действие', '']; return `<div class="ap-log"><span class="ap-tag ${a[1]}">${this.esc(a[0])}</span><div class="ap-sub">${this.esc(nm[l.admin_id] || 'Админ')} · ${this.fmt(l.created_at)}${l.details ? ' · ' + this.esc(typeof l.details === 'string' ? l.details : JSON.stringify(l.details)).slice(0, 90) : ''}</div></div>`; }).join('');
+    } catch (e) { el.innerHTML = '<div class="ap-empty s">Не удалось загрузить историю</div>'; }
   },
 
   // ── Пользователи ──
@@ -10982,7 +10789,7 @@ window.AP = {
     v.innerHTML = l.slice(0, this.lim).map(p => {
       const on = p.last_seen && now - new Date(p.last_seen) < 5 * 6e4;
       return `<div class="ap-card ap-item"><div class="ap-ava ${on ? 'on' : ''}" style="--h:${this.hue(p.id)}">${this.esc((p.name || '?')[0].toUpperCase())}</div>
-        <div class="ap-main" onclick="openAdminUser('${p.id}')"><div class="ap-name">${this.esc(((p.name || 'Без имени') + ' ' + (p.last_name || '')).trim())}</div>
+        <div class="ap-main" onclick="AP.user('${p.id}')"><div class="ap-name">${this.esc(((p.name || 'Без имени') + ' ' + (p.last_name || '')).trim())}</div>
         <div class="ap-tags">${p.is_admin ? '<span class="ap-tag ac">ADMIN</span>' : ''}${this.isPaid(p) ? `<span class="ap-tag wr">⭐ до ${this.day(p.sub_until)}</span>` : ''}${p.blocked ? '<span class="ap-tag er">БЛОК</span>' : ''}</div>
         <div class="ap-sub">${this.esc(this.phone(p.phone))}</div><div class="ap-sub">XP ${p.xp || 0} · рег. ${this.day(p.created_at)} · ${on ? '<span style="color:#3ecf8e">онлайн</span>' : this.ago(p.last_seen)}</div></div>
         <button class="ap-more" onclick="AP.userMenu('${p.id}')" aria-label="Действия">⋯</button></div>`;
@@ -10993,18 +10800,77 @@ window.AP = {
     if (!p) { const { data } = await sb.from('profiles').select('*').eq('id', id).maybeSingle(); if (!data) return this.err('Профиль не найден'); (adminAllUsers = adminAllUsers || []).push(data); p = data; }
     const paid = this.isPaid(p), name = ((p.name || 'Без имени') + ' ' + (p.last_name || '')).trim();
     this.sheet(name, this.phone(p.phone) + ' · ' + String(p.id).slice(0, 8), [
-      { ic: '👤', t: 'Открыть профиль и доступ к книгам', fn: () => openAdminUser(id) },
+      { ic: AP_SVG.user, t: 'Профиль, Premium и доступ к книгам', fn: () => this.user(id) },
       { sep: 1 },
-      { ic: '⭐', t: 'Premium +30 дней', fn: () => this.subDays(id, 30) }, { ic: '⭐', t: 'Premium +90 дней', fn: () => this.subDays(id, 90) }, { ic: '⭐', t: 'Premium +365 дней', fn: () => this.subDays(id, 365) },
-      { ic: '✏️', t: 'Premium: другой срок…', fn: () => this.uact('sub', id) },
-      ...(paid ? [{ ic: '⛔', t: 'Снять Premium', fn: () => this.subDays(id, 0) }] : []),
+      { ic: AP_SVG.star, t: 'Premium +30 дней', fn: () => this.subDays(id, 30) }, { ic: AP_SVG.star, t: 'Premium +90 дней', fn: () => this.subDays(id, 90) }, { ic: AP_SVG.star, t: 'Premium +365 дней', fn: () => this.subDays(id, 365) },
+      { ic: AP_SVG.edit, t: 'Premium: другой срок…', fn: () => this.uact('sub', id) },
+      ...(paid ? [{ ic: AP_SVG.ban, t: 'Снять Premium', fn: () => this.subDays(id, 0) }] : []),
       { sep: 1 },
-      { ic: p.blocked ? '✅' : '🚫', t: p.blocked ? 'Разблокировать' : 'Заблокировать', fn: () => this.uact('blk', id) },
-      { ic: '👑', t: p.is_admin ? 'Снять права админа' : 'Назначить админом', fn: () => this.uact('adm', id) },
+      { ic: p.blocked ? AP_SVG.check : AP_SVG.ban, t: p.blocked ? 'Разблокировать' : 'Заблокировать', fn: () => this.uact('blk', id) },
+      { ic: AP_SVG.crown, t: p.is_admin ? 'Снять права админа' : 'Назначить админом', fn: () => this.uact('adm', id) },
       { sep: 1 },
-      { ic: '📋', t: 'Скопировать ID', fn: () => this.clip(p.id) }, ...(p.phone ? [{ ic: '📞', t: 'Скопировать телефон', fn: () => this.clip(p.phone) }] : []),
-      { sep: 1 }, { ic: '🗑', t: 'Удалить пользователя…', d: 1, fn: () => this.uact('del', id) }
+      { ic: AP_SVG.copy, t: 'Скопировать ID', fn: () => this.clip(p.id) }, ...(p.phone ? [{ ic: AP_SVG.phone, t: 'Скопировать телефон', fn: () => this.clip(p.phone) }] : []),
+      { sep: 1 }, { ic: AP_SVG.trash, t: 'Удалить пользователя…', d: 1, fn: () => this.uact('del', id) }
     ]);
+  },
+  // ── Карточка пользователя ──
+  async user(id) {
+    let p = (adminAllUsers || []).find(x => String(x.id) === String(id));
+    if (!p) { const { data } = await sb.from('profiles').select('*').eq('id', id).maybeSingle(); if (!data) return this.err('Профиль не найден'); (adminAllUsers = adminAllUsers || []).push(data); p = data; }
+    if (!this._allBooks) { const { data } = await sb.from('books').select('id,title,author,emoji,published').order('title'); this._allBooks = data || []; }
+    const d = document.createElement('dialog'); d.className = 'ap-dlg ap-sheet ap-user'; d._q = '';
+    const online = () => p.last_seen && (Date.now() - new Date(p.last_seen)) < 5 * 6e4;
+    const top = () => {
+      const paid = this.isPaid(p), name = ((p.name || 'Без имени') + ' ' + (p.last_name || '')).trim();
+      d.querySelector('#apuTop').innerHTML = `
+        <div class="ap-u-head"><div class="ap-u-ava">${getAvatarHtml(p.avatar || 'default', 56)}</div>
+          <div class="ap-u-id"><b>${this.esc(name)}</b>
+            <div class="ap-tags">${online() ? '<span class="ap-tag ok">онлайн</span>' : ''}${paid ? '<span class="ap-tag wr">Premium</span>' : ''}${p.is_admin ? '<span class="ap-tag ac">админ</span>' : ''}${p.blocked ? '<span class="ap-tag er">заблокирован</span>' : ''}</div></div></div>
+        <div class="ap-u-grid">
+          <div><span>Телефон</span><b>${this.esc(this.phone(p.phone))}</b></div>
+          <div><span>Регистрация</span><b>${this.day(p.created_at)}</b></div>
+          <div><span>Был(а)</span><b>${this.ago(p.last_seen)}</b></div>
+          <div><span>Опыт</span><b>${p.xp || 0} XP</b></div>
+          <div class="w"><span>Premium</span><b>${paid ? 'до ' + this.day(p.sub_until) : 'нет'}</b></div></div>
+        <div class="ap-h s">Premium</div>
+        <div class="ap-chips"><button class="ap-chip" data-sub="30">+30 дн</button><button class="ap-chip" data-sub="90">+90 дн</button><button class="ap-chip" data-sub="365">+365 дн</button><button class="ap-chip" data-sub="x">Свой срок</button>${paid ? '<button class="ap-chip d" data-sub="0">Снять</button>' : ''}</div>`;
+    };
+    const books = () => {
+      const acc = new Set((p.book_access || []).map(String)), q = d._q.toLowerCase(), list = this._allBooks.filter(b => !q || ((b.title || '') + ' ' + (b.author || '')).toLowerCase().includes(q));
+      d.querySelector('#apuBooks').innerHTML = `<div class="ap-h s">Доступ к книгам <i class="ap-cnt">${acc.size}/${this._allBooks.length}</i></div>
+        <div class="ap-u-bulk"><button class="ap-chip" data-all="1">Открыть все</button><button class="ap-chip" data-all="0">Закрыть все</button></div>
+        <input class="ap-in" id="apuQ" type="search" placeholder="Поиск книги…" value="${this.esc(d._q)}" autocomplete="off">
+        <div class="ap-u-books">${list.map(b => `<label class="ap-u-bk"><span class="ap-u-bt"><em>${this.esc(b.emoji || '📖')}</em><span>${this.esc(b.title)}${b.published ? '' : ' <small class="ap-dim">· черновик</small>'}</span></span><div class="d-toggle ${acc.has(String(b.id)) ? 'on' : ''}" data-bk="${this.qs(b.id)}" role="switch" aria-checked="${acc.has(String(b.id))}"></div></label>`).join('') || '<div class="ap-empty s">Ничего не найдено</div>'}</div>`;
+      const q2 = d.querySelector('#apuQ'); q2.oninput = () => { d._q = q2.value; const pos = q2.selectionStart; books(); const n = d.querySelector('#apuQ'); n.focus(); n.setSelectionRange(pos, pos); };
+    };
+    d.innerHTML = `<div class="ap-sh-b ap-u-body"><div id="apuTop"></div><div id="apuBooks"></div>
+      <div class="ap-h s">Действия</div>
+      <button class="ap-sh-i" data-a="msg"><span>${AP_SVG.msg}</span>Написать сообщение</button>
+      <button class="ap-sh-i" data-a="blk"><span>${AP_SVG.ban}</span><b id="apuBlk"></b></button>
+      <button class="ap-sh-i" data-a="adm"><span>${AP_SVG.crown}</span><b id="apuAdm"></b></button>
+      <button class="ap-sh-i" data-a="cid"><span>${AP_SVG.copy}</span>Скопировать ID</button>
+      <button class="ap-sh-i d" data-a="del"><span>${AP_SVG.trash}</span>Удалить пользователя…</button></div>
+      <button class="ap-sh-i ap-sh-c" data-x="1">Закрыть</button>`;
+    const labels = () => { d.querySelector('#apuBlk').textContent = p.blocked ? 'Разблокировать' : 'Заблокировать'; d.querySelector('#apuAdm').textContent = p.is_admin ? 'Снять права админа' : 'Назначить админом'; };
+    const all = () => { top(); books(); labels(); };
+    d.onclick = async e => {
+      if (e.target === d || e.target.closest('[data-x]')) return d.close();
+      const sub = e.target.closest('[data-sub]'), bk = e.target.closest('[data-bk]'), al = e.target.closest('[data-all]'), ac = e.target.closest('[data-a]');
+      if (sub) { const v = sub.dataset.sub; if (v === 'x') await this.uact('sub', id); else await this.subDays(id, Number(v)); all(); }
+      else if (bk) {
+        const bid = String(bk.dataset.bk), cur = new Set((p.book_access || []).map(String)); cur.has(bid) ? cur.delete(bid) : cur.add(bid);
+        if (await this.run(() => this.rpc('admin_set_book_access', { target_id: p.id, book_ids: [...cur] }))) { p.book_access = [...cur]; logAdmin('grant_book', p.id, { book: bid, grant: cur.has(bid) }); playCheck(); books(); }
+      } else if (al) {
+        const ids = al.dataset.all === '1' ? this._allBooks.map(b => String(b.id)) : [];
+        if (await this.run(() => this.rpc('admin_set_book_access', { target_id: p.id, book_ids: ids }), ids.length ? 'Открыты все книги' : 'Доступ закрыт')) { p.book_access = ids; playCheck(); books(); }
+      } else if (ac) {
+        const a = ac.dataset.a;
+        if (a === 'msg') { d.close(); adminSendMessage(id); }
+        else if (a === 'cid') this.clip(p.id);
+        else { await this.uact(a, id); if (!(adminAllUsers || []).includes(p)) d.close(); else all(); }
+      }
+    };
+    d.onclose = () => d.remove(); document.body.appendChild(d); all(); d.showModal();
   },
   async subDays(id, n) {
     const p = adminAllUsers.find(x => String(x.id) === String(id));
@@ -11075,9 +10941,9 @@ window.AP = {
   bookMenu(id) {
     const b = this.byId(id); if (!b) return;
     this.sheet(b.title, b.author + ' · ' + b.id, [
-      { ic: '✏️', t: 'Визуальный редактор', fn: () => showBookEditor(id) }, { ic: '{ }', t: 'Редактор JSON с проверкой', fn: () => this.editId(id) },
-      { ic: '⧉', t: 'Создать копию', fn: () => this.dup(id) }, { ic: '⇩', t: 'Скопировать JSON в буфер', fn: () => { const c = { ...b }; delete c._isLocal; this.clip(JSON.stringify(c, null, 2)); } },
-      { ic: '📋', t: 'Скопировать ID', fn: () => this.clip(b.id) }, { sep: 1 }, { ic: '🗑', t: 'Удалить книгу…', d: 1, fn: () => this.del(id) }
+      { ic: AP_SVG.edit, t: 'Визуальный редактор', fn: () => showBookEditor(id) }, { ic: AP_SVG.braces, t: 'Редактор JSON с проверкой', fn: () => this.editId(id) },
+      { ic: AP_SVG.dup, t: 'Создать копию', fn: () => this.dup(id) }, { ic: AP_SVG.down, t: 'Скопировать JSON в буфер', fn: () => { const c = { ...b }; delete c._isLocal; this.clip(JSON.stringify(c, null, 2)); } },
+      { ic: AP_SVG.copy, t: 'Скопировать ID', fn: () => this.clip(b.id) }, { sep: 1 }, { ic: AP_SVG.trash, t: 'Удалить книгу…', d: 1, fn: () => this.del(id) }
     ]);
   },
   async tog(id, k) {
@@ -11513,7 +11379,7 @@ window.Path = {
 
     overlay.innerHTML = `
       <div class="cinematic-bg-blur"></div>
-      <div class="cinematic-particles" id="cineParticles"></div>
+      <canvas class="cine-cosmos" id="cineCosmos" aria-hidden="true"></canvas>
       
       <div class="ritual-progress" style="position:absolute; top:0; left:0; right:0; z-index:10; background:transparent; border-bottom:1px solid rgba(124,92,255,0.15); padding-top:calc(12px + env(safe-area-inset-top)); padding-bottom: 12px; max-width:520px; margin:0 auto; display:flex; gap:6px; align-items:center;">
         <div class="rp-left" style="flex:1; padding-left:16px;">
@@ -11529,13 +11395,10 @@ window.Path = {
       </div>
 
       <div class="cinematic-content" style="padding-top: 60px; justify-content: center;">
-        <div class="cine-orb" aria-hidden="true">
-          <svg class="cine-ring" viewBox="0 0 120 120"><circle class="cine-ring-bg" cx="60" cy="60" r="54"/><circle id="cineRing" class="cine-ring-fg" cx="60" cy="60" r="54" pathLength="100"/></svg>
-          <i class="o1"></i><i class="o2"></i><i class="o3"></i><b class="core"></b>
-        </div>
         <div class="d-card-glass cine-card">
           <div class="cinematic-subtitle-box" id="cineSubtitles" style="margin-bottom: 0; min-height: 100px; display: flex; align-items: center; justify-content: center; font-size: 20px;">Приготовься...</div>
         </div>
+        <div class="cine-breath" aria-hidden="true"><span>вдох</span><span>выдох</span></div>
         
         <div class="cinematic-controls" style="display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; max-width:260px;">
           <button class="d-btn-primary" id="cinePlayBtn" style="width: 100%; height: 52px; font-size: 14px; border-radius: 16px; text-transform: none; letter-spacing: 0;">⏸ Пауза</button>
@@ -11571,7 +11434,7 @@ window.Path = {
 
       subEl.classList.remove('show');
       setTimeout(() => {
-        subEl.textContent = sentence;
+        subEl.innerHTML = '<div class="cws">' + sentence.split(/\s+/).map((w, i) => `<span class="cw" style="--i:${i}">${escapeHtml(w)}</span>`).join(' ') + '</div>';
         subEl.classList.add('show');
         
         // Обновляем полосу прогресса
@@ -11579,7 +11442,6 @@ window.Path = {
         if (progressBar) {
           const pct = ((overlay.currentSentence + 1) / sentences.length) * 100;
           progressBar.style.width = pct + '%';
-          const ringEl = document.getElementById('cineRing'); if (ringEl) ringEl.style.strokeDashoffset = String(100 - pct);
         }
       }, 400);
 
@@ -11629,96 +11491,8 @@ window.Path = {
 
     updateSoundUI();
     
-    const particleContainer = document.getElementById('cineParticles');
-    if (particleContainer) {
-      const particles = [];
-      const colors = ['#ffffff', '#a78bfa', '#ff7a2a', '#3ecf8e', '#4facfe'];
-      
-      for (let i = 0; i < 80; i++) {
-        const pEl = document.createElement('div');
-        pEl.className = 'cinematic-particle';
-        particleContainer.appendChild(pEl);
-        
-        let size;
-        const isLarge = Math.random() < 0.15; // 15% шанс, что частица будет крупной
-        
-        if (isLarge) {
-          size = 15 + Math.random() * 20; // Размер от 15 до 35px
-        } else {
-          size = 1.5 + Math.random() * 4.5; // Размер от 1.5 до 6px
-        }
-        
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        
-        pEl.style.width = size + 'px';
-        pEl.style.height = size + 'px';
-        pEl.style.background = color;
-        pEl.style.boxShadow = `0 0 ${size * 1.5}px ${color}`;
-        
-        if (isLarge) {
-          // Уменьшили размытие, чтобы сферы были более очерченными
-          pEl.style.filter = 'blur(1.5px)';
-          pEl.style.opacity = 0.3 + Math.random() * 0.3;
-        } else {
-          // Мелкие остаются четкими и яркими
-          pEl.style.opacity = 0.5 + Math.random() * 0.5;
-        }
-        
-        particles.push({
-          el: pEl,
-          x: Math.random() * window.innerWidth,
-          y: Math.random() * window.innerHeight,
-          vx: (Math.random() - 0.5) * 2.5, 
-          vy: (Math.random() - 0.5) * 2.5
-        });
-      }
-      
-      function animateParticles() {
-        if (!document.getElementById('cinematicOverlay')) return;
-        
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        
-        particles.forEach(p => {
-          p.x += p.vx;
-          p.y += p.vy;
-          
-          let bounced = false;
-          
-          if (p.x <= 0) {
-            p.x = 0;
-            p.vx *= -1;
-            bounced = true;
-          } else if (p.x >= w) {
-            p.x = w;
-            p.vx *= -1;
-            bounced = true;
-          }
-          
-          if (p.y <= 0) {
-            p.y = 0;
-            p.vy *= -1;
-            bounced = true;
-          } else if (p.y >= h) {
-            p.y = h;
-            p.vy *= -1;
-            bounced = true;
-          }
-          
-          if (bounced) {
-            const newColor = colors[Math.floor(Math.random() * colors.length)];
-            p.el.style.background = newColor;
-            p.el.style.boxShadow = `0 0 ${parseInt(p.el.style.width) * 2}px ${newColor}`;
-          }
-          
-          p.el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%)`;
-        });
-        
-        overlay._animId = requestAnimationFrame(animateParticles);
-      }
-      
-      animateParticles();
-    }
+    const cosmosEl = document.getElementById('cineCosmos');
+    if (cosmosEl) overlay._stopCosmos = startCosmos(cosmosEl);
 
     playNext();
   },  
@@ -11773,6 +11547,7 @@ window.Path = {
     const el = document.getElementById('cinematicOverlay');
     if (el) {
       if (el._animId) cancelAnimationFrame(el._animId);
+      if (el._stopCosmos) el._stopCosmos();
       el.style.opacity = 0;
       setTimeout(() => el.remove(), 300);
     }
@@ -11906,60 +11681,53 @@ window.Path = {
     const wk = cur && cur.kind === 'node' ? b.path.weeks[cur.w] : null;
     const cap = !cur ? '<b>Путь пройден</b><span>Все дни светятся. Ты молодец</span>' : cur.kind === 'node' ? `<b>Неделя ${cur.w + 1} · ${E(wk.title)}</b><span>${E(wk.goal || '')}</span>` : `<b>${cur.kind === 'finale' ? 'Финал пути' : 'Знакомство с книгой'}</b><span>${E(cur.kind === 'finale' ? 'Подведи итоги и прочитай своё письмо' : `Шаг ${cur.pos} из ${PT_INTRO.length}: ${cur.t}`)}</span>`;
     el.innerHTML = `<div class="pt-h"><div class="pt-ht"><div class="pt-kk">Путь · ${b.days} ${plural(b.days, 'день', 'дня', 'дней')}</div><div class="pt-bt">${E(b.title)}</div></div><div class="pt-fire"><span class="pt-fi">${fireIc}</span>${this.globalStreak()}</div><button class="pt-hb" onclick="Path.digestFlow()" aria-label="Выжимка книги">${PT_SVG.book}</button><button class="pt-x" onclick="Path.close()" aria-label="Закрыть">✕</button></div>
-      <div class="pt-body" id="ptBody"><div class="pt-cr">${this.crystal(b, S)}</div><div class="pt-crc">${cap}<em>${nd} из ${S.nodes.length} ${plural(S.nodes.length, 'дня', 'дней', 'дней')} пройдено</em></div>${this.action(b, S)}${this.list(b, S)}</div>`;
+      <div class="pt-body" id="ptBody"><div class="pt-cr">${this.crystal(b, S)}</div><div class="pt-legend"><span><i class="ld done"></i>пройдено</span><span><i class="ld cur"></i>сегодня</span><span><i class="ld lock"></i>впереди</span><span><i class="ld star"></i>финал</span></div><div class="pt-crc">${cap}<em>${nd} из ${S.nodes.length} ${plural(S.nodes.length, 'дня', 'дней', 'дней')} пройдено</em></div>${this.action(b, S)}${this.list(b, S)}</div>`;
   },
-  // Кольцо (как в логотипе): внешнее — дни практики по неделям, внутреннее — знакомство, сверху — грань финала, в центре — текущий день
+  // Орбитальная карта: внешние орбиты — первые недели, каждый день — планета; лети к центру. Сверху — финальная звезда, снаружи — звёзды знакомства.
   crystal(b, S) {
-    const E = s => this.esc(s), C = 180, R = 128, weeks = b.path.weeks, W = weeks.length, N = Math.max(1, S.nodes.length), rad = a => a * Math.PI / 180, f = n => Math.round(n * 100) / 100;
-    const P = (r, a) => [C + r * Math.cos(rad(a)), C + r * Math.sin(rad(a))], arc = (r, a1, a2) => { const [x1, y1] = P(r, a1), [x2, y2] = P(r, a2); return `M${f(x1)} ${f(y1)}A${r} ${r} 0 ${a2 - a1 > 180 ? 1 : 0} 1 ${f(x2)} ${f(y2)}`; };
-    const GW = W > 1 ? 9 : 0, d = (360 - W * GW) / N, g = 3, L = R * rad(d), sw = Math.max(8, Math.min(20, L - 4)), cap = (sw / 2) / R * 180 / Math.PI;
-    let a0 = -90 + GW / 2, seg = '', wl = '', ci = 0, headA = null, curA = null, gloss = '';
+    const E = s => this.esc(s), C = 180, weeks = b.path.weeks, W = weeks.length, N = Math.max(1, S.nodes.length), rad = a => a * Math.PI / 180, f = n => Math.round(n * 100) / 100;
+    const P = (r, a) => [C + r * Math.cos(rad(a)), C + r * Math.sin(rad(a))];
+    const arc = (r, a1, a2) => { const [x1, y1] = P(r, a1), [x2, y2] = P(r, a2); return `M${f(x1)} ${f(y1)}A${r} ${r} 0 ${a2 - a1 > 180 ? 1 : 0} 1 ${f(x2)} ${f(y2)}`; };
+    const RMAX = W > 4 ? 150 : 146, RMIN = W > 4 ? 72 : 80, gap = W > 1 ? (RMAX - RMIN) / (W - 1) : 40;
+    const Rw = wi => W === 1 ? 118 : RMAX - wi * gap;
+    let orbits = '', prog = '', pl = '', wl = '', ci = 0, curR = null;
     weeks.forEach((w, wi) => {
-      const ns = S.nodes.filter(x => x.w === wi), start = a0;
-      ns.forEach(it => {
-        const prem = it.s !== 'done' && !this.canPlay(b, it), a1 = a0 + g / 2 + cap, a2 = a1 + Math.max(0.01, d - g - 2 * cap), p = arc(R, a1, a2);
-        const col = this.brand(S.nodes.indexOf(it) / Math.max(1, N - 1));
-        if (it.s === 'done') headA = a2 + cap; else if (it.s === 'cur' && !curA) curA = (a1 + a2) / 2;
-        if (it.s === 'done') gloss += `<path class="cr-gl" d="${arc(R + sw * .17, a1, a2)}" style="stroke-width:${Math.max(2, sw * .2)}"/>`;
-        seg += `<g class="cr-g" style="--i:${ci++}"><path class="cr-hit" d="${p}" onclick="Path.tap('${it.id}')"/><path class="cr-s ${it.s}${prem ? ' prem' : ''}" d="${p}" style="stroke-width:${it.light ? sw - 6 : sw}${it.s === 'done' ? `;stroke:${col};color:${col}` : it.s === 'lock' && !prem ? `;stroke:${col};stroke-opacity:.24` : ''}"><title>${E('День ' + it.n)}</title></path></g>`;
-        a0 += d;
+      const ns = S.nodes.filter(x => x.w === wi), n = Math.max(1, ns.length), R = Rw(wi), step = 360 / n;
+      const rn = Math.max(5.6, Math.min(9.6, gap * .42, R * Math.PI / n * .52));
+      orbits += `<circle class="cr-bz og-orb" cx="${C}" cy="${C}" r="${f(R)}"/>`;
+      let lastDone = null, firstA = null;
+      ns.forEach((it, i) => {
+        const th = -90 + step / 2 + i * step, [x, y] = P(R, th), prem = it.s !== 'done' && !this.canPlay(b, it);
+        const col = this.brand(S.nodes.indexOf(it) / Math.max(1, N - 1)), rr = it.light ? rn - 1.6 : rn;
+        if (firstA === null) firstA = th; if (it.s === 'done') lastDone = th; if (it.s === 'cur') curR = R;
+        const halo = it.s === 'cur' ? `<circle class="og-halo" cx="${f(x)}" cy="${f(y)}" r="${f(rr + 3)}"/><circle class="og-halo h2" cx="${f(x)}" cy="${f(y)}" r="${f(rr + 3)}"/>` : '';
+        pl += `<g class="cr-g" style="--i:${ci++}"><circle class="cr-hitd" cx="${f(x)}" cy="${f(y)}" r="16" onclick="Path.tap('${it.id}')"/>${halo}<circle class="og-p ${it.s}${prem ? ' prem' : ''}" cx="${f(x)}" cy="${f(y)}" r="${f(it.s === 'cur' ? rr + 1.6 : rr)}" style="--c:${col}"><title>${E('День ' + it.n)}</title></circle>${it.s !== 'lock' || prem ? '' : ''}<text class="og-n ${it.s}" x="${f(x)}" y="${f(y + .4)}">${it.n}</text></g>`;
       });
-      const [lx, ly] = P(R + sw / 2 + 20, (start + a0) / 2); wl += `<text class="cr-w${ns.some(x => x.s === 'cur') ? ' on' : ''}" x="${f(lx)}" y="${f(ly)}">НЕД ${wi + 1}</text>`;
-      a0 += GW;
+      if (lastDone !== null) prog += `<path class="cr-prog" pathLength="1" d="${arc(R, firstA, lastDone)}" style="animation-delay:${(.25 + wi * .35).toFixed(2)}s"/>`;
+      wl += `<g class="og-wl${ns.some(x => x.s === 'cur') ? ' on' : ''}"><rect x="${C - 19}" y="${f(C - R - 7)}" width="38" height="14" rx="7"/><text x="${C}" y="${f(C - R + .5)}">НЕД ${wi + 1}</text></g>`;
     });
-    const intro = S.items.filter(x => x.kind === 'intro'), k = intro.length, r2 = 100;
-    intro.forEach((it, i) => { const [x, y] = P(r2, -90 + (i + .5) * 360 / k); seg += `<g class="cr-g" style="--i:${ci++}"><circle class="cr-hitd" cx="${f(x)}" cy="${f(y)}" r="15" onclick="Path.tap('${it.id}')"/><circle class="cr-d ${it.s}" cx="${f(x)}" cy="${f(y)}" r="${it.s === 'cur' ? 7 : 5.6}"${it.s === 'done' ? ` style="fill:${this.brand(i / Math.max(1, k - 1))};color:${this.brand(i / Math.max(1, k - 1))}"` : it.s === 'lock' ? ` style="fill:${this.brand(i / Math.max(1, k - 1))};fill-opacity:.35"` : ''}><title>${E(it.t)}</title></circle></g>`; });
+    // знакомство: внешнее кольцо маленьких звёзд
+    const intro = S.items.filter(x => x.kind === 'intro'), k = intro.length, RI = 168;
+    let ig = ''; intro.forEach((it, i) => {
+      const th = -90 + (i + .5) * 360 / Math.max(1, k), [x, y] = P(RI, th), col = this.brand(i / Math.max(1, k - 1));
+      ig += `<g class="cr-g" style="--i:${ci++}"><circle class="cr-hitd" cx="${f(x)}" cy="${f(y)}" r="14" onclick="Path.tap('${it.id}')"/>${it.s === 'cur' ? `<circle class="og-halo" cx="${f(x)}" cy="${f(y)}" r="7"/>` : ''}<circle class="og-p og-i ${it.s}" cx="${f(x)}" cy="${f(y)}" r="${it.s === 'cur' ? 5.4 : 4.4}" style="--c:${col}"><title>${E(it.t)}</title></circle></g>`;
+    });
     const cur = S.items.find(x => x.s === 'cur'), fin = S.items.find(x => x.kind === 'finale'), allDone = S.nodes.every(x => x.done), fs = fin && fin.done ? 'done' : allDone ? 'cur' : 'lock';
     let k1, big, k2;
     if (!cur) { k1 = 'ПУТЬ'; big = '✓'; k2 = 'пройден'; } else if (cur.kind === 'node') { k1 = 'ДЕНЬ'; big = String(cur.n); k2 = `из ${N}`; } else if (cur.kind === 'intro') { k1 = 'ЗНАКОМСТВО'; big = String(cur.pos); k2 = `из ${k}`; } else { k1 = 'ФИНАЛ'; big = '★'; k2 = 'откройте'; }
-    const fy = C - R - sw / 2 - 13, comet = S.nodes.some(x => x.done) && !(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
-      ? `<circle class="cr-comet" r="3.4"><animateMotion dur="18s" repeatCount="indefinite" path="M${C} ${C - R}A${R} ${R} 0 1 1 ${C} ${C + R}A${R} ${R} 0 1 1 ${C} ${C - R}"/></circle>` : '';
-    const stars = [[22, 40, 1.4], [318, 56, 1.1], [40, 300, 1.2], [300, 292, 1.5], [150, 14, 1], [12, 170, 1.1], [330, 180, 1.2], [90, 330, 1], [250, 328, 1.1], [60, 90, 1], [286, 120, 1]].map(([x, y, r], i) => `<circle class="cr-st" style="--d:${i * .45}s" cx="${x + 10}" cy="${y + 10}" r="${r}"/>`).join('');
-    // ── Лента прогресса и «голова» на текущем дне ──
-    const rb = R + sw / 2 + 5, ha = curA !== null ? curA : headA;
-    let ribbon = '';
-    if (ha !== null && ha > -90 + GW / 2 + 1) {
-      const [hx, hy] = P(rb, ha);
-      ribbon = `<path class="cr-prog" pathLength="1" d="${arc(rb, -90 + GW / 2, ha)}"/><g class="cr-head" transform="translate(${f(hx)} ${f(hy)})"><circle class="hl" r="11"/><circle class="hl h2" r="11"/><circle class="hc" r="3.8"/></g>`;
-    }
-    // ── Космический декор: ядро, орбиты, деления, планеты, звёзды ──
+    const star = (cx, cy, r) => { let d = ''; for (let i = 0; i < 10; i++) { const rr = i % 2 ? r * .44 : r, a = rad(-90 + i * 36); d += (i ? 'L' : 'M') + f(cx + rr * Math.cos(a)) + ' ' + f(cy + rr * Math.sin(a)); } return d + 'Z'; };
+    const fy = C - 174;
+    const comet = curR && !(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) ? `<circle class="cr-comet" r="3"><animateMotion dur="13s" repeatCount="indefinite" path="M${C} ${C - curR}A${curR} ${curR} 0 1 1 ${C} ${C + curR}A${curR} ${curR} 0 1 1 ${C} ${C - curR}"/></circle>` : '';
     const rz = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
-    const tr1 = R + sw / 2 + 8, tr2 = R + sw / 2 + 11, tk = Array.from({ length: 72 }, (_, i) => { const big = i % 6 === 0, [x1, y1] = P(big ? tr1 - 3 : tr1, i * 5), [x2, y2] = P(tr2, i * 5); return `M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}`; }).join('');
-    const dust = Array.from({ length: 30 }, (_, i) => { const [x, y] = P(176 + rz(i + 7) * 62, rz(i) * 360); return `<circle class="cr-st" style="--d:${(rz(i + 3) * 4).toFixed(2)}s" cx="${f(x)}" cy="${f(y)}" r="${(0.6 + rz(i + 9) * 1.2).toFixed(2)}"/>`; }).join('');
+    const dust = Array.from({ length: 34 }, (_, i) => { const [x, y] = P(180 + rz(i + 7) * 60, rz(i) * 360); return `<circle class="cr-st" style="--d:${(rz(i + 3) * 4).toFixed(2)}s" cx="${f(x)}" cy="${f(y)}" r="${(0.6 + rz(i + 9) * 1.2).toFixed(2)}"/>`; }).join('');
     const spark = (x, y, r, dl) => `<path class="cr-sp" style="--d:${dl}s" d="M${x} ${y - r}Q${x} ${y} ${x + r} ${y}Q${x} ${y} ${x} ${y + r}Q${x} ${y} ${x - r} ${y}Q${x} ${y} ${x} ${y - r}Z"/>`;
-    const deco = `<defs><radialGradient id="crCore" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#a78bff" stop-opacity=".45"/><stop offset=".6" stop-color="#7c5cff" stop-opacity=".14"/><stop offset="1" stop-color="#7c5cff" stop-opacity="0"/></radialGradient><linearGradient id="crOrb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a56" stop-opacity=".7"/><stop offset=".5" stop-color="#a78bff" stop-opacity=".5"/><stop offset="1" stop-color="#4f8bff" stop-opacity=".7"/></linearGradient></defs>
-      <g class="cr-deco" pointer-events="none">${dust}${spark(30, 40, 7, 0)}${spark(332, 322, 6, 1.2)}${spark(338, 60, 5, 2.1)}${spark(20, 310, 5.5, .6)}
-        <circle class="cr-core" cx="${C}" cy="${C}" r="70" fill="url(#crCore)"/>
-        <circle class="cr-spin" cx="${C}" cy="${C}" r="86" fill="none" stroke="url(#crOrb)" stroke-width="1.2" stroke-dasharray="2 7" stroke-linecap="round"/>
-        <circle class="cr-spin rev" cx="${C}" cy="${C}" r="74" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1" stroke-dasharray="14 10 3 10"/>
-        <path d="${tk}" class="cr-tick"/>
-        <g class="cr-spin slow"><circle class="cr-orbit" cx="${C}" cy="${C}" r="170"/><circle class="cr-planet" cx="${C}" cy="${C - 170}" r="4"/><circle cx="${C - 1.4}" cy="${C - 171.4}" r="1.3" fill="#fff" opacity=".7"/></g>
-        <g class="cr-spin slow rev"><circle class="cr-orbit" cx="${C}" cy="${C}" r="162" style="opacity:.5"/><circle class="cr-planet b" cx="${C}" cy="${C + 162}" r="3"/></g>
-      </g>`;
-    return `<svg class="cr" viewBox="0 0 360 360" role="img" aria-label="Прогресс пути"><defs><linearGradient id="crG" gradientUnits="userSpaceOnUse" x1="0" y1="360" x2="360" y2="0"><stop offset="0" stop-color="#ff7a2a"/><stop offset=".5" stop-color="#7c5cff"/><stop offset="1" stop-color="#1e5cff"/></linearGradient><linearGradient id="crV" gradientUnits="userSpaceOnUse" x1="0" y1="360" x2="360" y2="0"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c8b4ff"/></linearGradient><radialGradient id="crGl"><stop offset="0" stop-color="#7c5cff" stop-opacity=".34"/><stop offset=".6" stop-color="#7c5cff" stop-opacity=".1"/><stop offset="1" stop-color="#7c5cff" stop-opacity="0"/></radialGradient></defs>
-      <circle cx="${C}" cy="${C}" r="178" fill="url(#crGl)"/>${stars}${deco}<circle class="cr-bz" cx="${C}" cy="${C}" r="${R + sw / 2 + 5}"/><circle class="cr-bz" cx="${C}" cy="${C}" r="${R - sw / 2 - 5}"/>${seg}${gloss}${ribbon}${wl}${comet}
-      <g class="cr-fin ${fs}" onclick="Path.tap('fin')"><circle cx="${C}" cy="${fy}" r="14"/><circle class="fi" cx="${C}" cy="${fy}" r="5"/><title>Финал</title></g>
-      <text class="cr-k" x="${C}" y="${C - 36}">${k1}</text><text class="cr-big${big.length > 2 ? ' sm' : ''}" x="${C}" y="${C + 22}">${big}</text><text class="cr-k" x="${C}" y="${C + 46}">${k2}</text></svg>`;
+    return `<svg class="cr" viewBox="0 0 360 360" role="img" aria-label="Орбитальная карта пути"><defs><filter id="ogGlow" x="-150%" y="-150%" width="400%" height="400%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="crG" gradientUnits="userSpaceOnUse" x1="0" y1="360" x2="360" y2="0"><stop offset="0" stop-color="#ff7a2a"/><stop offset=".5" stop-color="#7c5cff"/><stop offset="1" stop-color="#1e5cff"/></linearGradient><linearGradient id="crV" gradientUnits="userSpaceOnUse" x1="0" y1="360" x2="360" y2="0"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c8b4ff"/></linearGradient><radialGradient id="crGl"><stop offset="0" stop-color="#7c5cff" stop-opacity=".34"/><stop offset=".6" stop-color="#7c5cff" stop-opacity=".1"/><stop offset="1" stop-color="#7c5cff" stop-opacity="0"/></radialGradient><radialGradient id="crCore" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffd9a8" stop-opacity=".55"/><stop offset=".35" stop-color="#a78bff" stop-opacity=".3"/><stop offset="1" stop-color="#7c5cff" stop-opacity="0"/></radialGradient></defs>
+      <circle cx="${C}" cy="${C}" r="178" fill="url(#crGl)"/><g pointer-events="none">${dust}${spark(30, 40, 7, 0)}${spark(332, 322, 6, 1.2)}${spark(338, 60, 5, 2.1)}${spark(20, 310, 5.5, .6)}</g>
+      <circle class="cr-core" cx="${C}" cy="${C}" r="64" fill="url(#crCore)" pointer-events="none"/>
+      <circle class="cr-spin og-dash" cx="${C}" cy="${C}" r="56" pointer-events="none"/>
+      <circle class="cr-bz og-orb" cx="${C}" cy="${C}" r="${RI}"/>${orbits}${prog}${ig}${wl}${pl}${comet}
+      <g class="cr-fin ${fs}" onclick="Path.tap('fin')"><circle cx="${C}" cy="${fy}" r="12"/><path class="og-star" d="${star(C, fy, 8)}"/><title>Финал</title></g>
+      <text class="cr-k og-k" x="${C}" y="${C - 26}">${k1}</text><text class="cr-big og-b${big.length > 2 ? ' sm' : ''}" x="${C}" y="${C + 16}">${big}</text><text class="cr-k og-k" x="${C}" y="${C + 36}">${k2}</text></svg>`;
   },
   // Карта по неделям: понятный список, текущая неделя раскрыта
   list(b, S) {
@@ -12521,3 +12289,24 @@ function safeEmotion(voice, emo) {
   const ok = { alena: ['neutral', 'good'], jane: ['neutral', 'good', 'evil'], omazh: ['neutral', 'evil'] }, e = emo || 'neutral';
   return ok[voice] ? (ok[voice].includes(e) ? e : 'neutral') : e;
 }
+
+
+// Космический фон на входных экранах (онбординг, приветствие, выбор книги)
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('canvas[data-cosmos]').forEach(c => startCosmos(c, { galaxy: c.dataset.cosmos === 'galaxy', cy: .28, scale: .9 }));
+});
+
+// Страховка прокрутки: если модальное окно/экран закрылись, а body остался заблокированным — снимаем блокировку при первом касании.
+(function scrollLockGuard() {
+  const OPEN = '.modal:not(.hidden), .complete-overlay:not(.hidden), #practiceScreen:not(.hidden), #ritualScreen:not(.hidden), #cinematicOverlay, dialog[open], .pt:not(.hidden), #bookEditorScreen:not(.hidden)';
+  const idle = () => {
+    const b = document.body; if (!b) return;
+    if (b.style.overflow !== 'hidden' && b.style.position !== 'fixed') return;
+    if (document.querySelector(OPEN)) return;
+    b.style.overflow = ''; b.style.position = ''; b.style.width = ''; b.style.top = '';
+    document.documentElement.style.overflow = '';
+  };
+  ['touchstart', 'pointerdown'].forEach(t => document.addEventListener(t, idle, { capture: true, passive: true }));
+  document.addEventListener('visibilitychange', idle);
+  window.addEventListener('pageshow', idle);
+})();

@@ -300,11 +300,6 @@ body::before {
 .d-ring { position: absolute; top: 16px; right: 16px; width: 56px; height: 56px; }
 .d-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 
-@keyframes d-lumi-pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(124, 92, 255, 0.5), 0 0 8px rgba(255, 154, 86, 0.4); }
-  50% { transform: scale(1.06); box-shadow: 0 0 30px rgba(124, 92, 255, 0.75), 0 0 14px rgba(255, 154, 86, 0.55); }
-}
-
 .d-lib-search { position: relative; width: 100%; }
 .d-lib-search input {
   width: 100%; height: 48px; padding: 0 16px 0 44px; background: var(--d-surface); border: 1px solid var(--d-border); border-radius: var(--d-radius-md); color: var(--d-text); font-size: 14px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: border-color 0.2s;
@@ -380,7 +375,7 @@ body::before {
 .d-lib-folder-count { font-size: 11px; color: var(--d-text-dim); font-weight: 600; margin-top: 1px; }
 
 .d-timer-ring-wrap { position: relative; width: 240px; height: 240px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; }
-.d-timer-ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); filter: drop-shadow(0 0 20px rgba(124, 92, 255, 0.4)); }
+.d-timer-ring-svg { width: 100%; height: 100%; transform: rotate(-90deg);  }
 .d-timer-ring-bg { fill: none; stroke: rgba(255, 255, 255, 0.05); stroke-width: 8; }
 .d-timer-ring-fill { fill: none; stroke: url(#dTimerGrad); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
 .d-timer-text { position: absolute; font-size: 40px; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 0 20px rgba(255, 255, 255, 0.2); letter-spacing: -1px; }
@@ -395,8 +390,6 @@ body::before {
 .d-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.25s; }
 .d-toggle.on { background: var(--d-gradient); border-color: transparent; }
 .d-toggle.on::after { transform: translateX(18px); }
-
-@keyframes d-splash-orb-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 
 .d-text-dim { color: var(--d-text-dim); }
 
@@ -482,11 +475,6 @@ html.light .d-lib-book-title, html.light .d-lib-folder-title {
 
 /* 4. Луми (Светящийся шар с парением) */
 
-@keyframes floatLumi {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-8px) scale(1.05); }
-}
-
 /* 5. Настройка голоса (Скрываем галочки у невыбранных) */
 .voice-option .voice-check { display: none; }
 .voice-option.active .voice-check { display: block; }
@@ -557,7 +545,7 @@ html.light .d-lib-book-title, html.light .d-lib-folder-title {
 
 .splash-main { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 100%; }
 .splash-ring-wrap { position: relative; width: 300px; height: 300px; max-width: 80vw; max-height: 80vw; display: flex; align-items: center; justify-content: center; transform: translateY(-20px); margin-bottom: 20px; }
-.splash-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; filter: drop-shadow(0 0 15px rgba(255, 42, 122, 0.5)) drop-shadow(0 0 25px rgba(124, 92, 255, 0.4)); }
+.splash-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
 .splash-ring-arc { stroke-dasharray: 816; stroke-dashoffset: 816; animation: drawRing 6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
 .splash-text-center { text-align: center; z-index: 2; animation: fadeInText 1s ease 0.5s forwards; opacity: 1; max-width: 90%; }
@@ -709,10 +697,7 @@ body {
 }
 
 /* 2. Все второстепенные кнопки (Поделиться, Настройки, Сообщения, Рейтинг) */
-.d-btn-secondary,
-.tab-pill,
-.d-lib-chip,
-.admin-filter-pill {
+.d-btn-secondary, .tab-pill, .d-lib-chip {
   padding: 6px 12px;
   border-radius: 16px;
   background: var(--d-surface);
@@ -725,12 +710,7 @@ body {
   white-space: nowrap;
   transition: .2s;
 }
-.admin-filter-pill.on {
-  background: linear-gradient(135deg, var(--d-accent), var(--d-accent-2));
-  border-color: transparent;
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(124,92,255,0.3);
-}
+
 /* 3. Перекрашиваем баннер Premium в Библиотеке (который в HTML) */
 div[onclick="showPremium()"] {
   background: linear-gradient(135deg, rgba(124, 92, 255, 0.2) 0%, rgba(179, 107, 255, 0.1) 100%);
@@ -751,12 +731,10 @@ div[onclick="showPremium()"] div {
   top: 0;
   left: 0;
   right: 0;
-  /* Загрузчик заходит ниже экрана на 160px: на iPhone в первые секунды layout-viewport короче реального
-     (без нижней безопасной зоны) и снизу была чёрная полоса, пока Safari не пересчитает размеры. */
-  bottom: -160px;
+  bottom: 0;
   width: 100%;
-  height: auto;
-  min-height: calc(100dvh + 160px);
+  min-height: 100vh;
+  min-height: 100dvh;
   background-color: #120c24;
   background-image: 
     radial-gradient(circle at 10% 10%, rgba(124, 92, 255, 0.25) 0%, transparent 50%),
@@ -769,8 +747,6 @@ div[onclick="showPremium()"] div {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  /* Возвращаем центр на место: компенсируем заход под экран + безопасная зона iPhone */
-  padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px)) !important;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -919,11 +895,6 @@ div[onclick="showPremium()"] div {
 @keyframes pulseGlow {
   0% { transform: scale(0.9); opacity: 0.3; }
   100% { transform: scale(1.1); opacity: 0.7; }
-}
-
-@keyframes cloakSway {
-  0% { transform: scaleX(1) skewX(0deg); }
-  100% { transform: scaleX(1.03) skewX(2deg); }
 }
 
 .mascot-orb {
@@ -1222,7 +1193,7 @@ div[onclick="showPremium()"] div {
 
 .premium-avatar-item.active svg {
   transform: scale(1.15);
-  filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
+  
 }
 
 /* Делаем красивую подложку для большой аватарки в профиле */
@@ -1232,7 +1203,7 @@ div[onclick="showPremium()"] div {
   height: 100%;
   padding: 0; /* Убрали жесткий отступ */
   box-sizing: border-box;
-  filter: drop-shadow(0 4px 12px rgba(124,92,255,0.6));
+  
 }
 /* ═══════════════════════════════════════════════
    ФИКС МАСКОТА (Чтобы облачко не скрывало тело)
@@ -1269,7 +1240,7 @@ div[onclick="showPremium()"] div {
 html, body, #screensRoot {
   width: 100%;
   max-width: 100vw;
-  overflow-x: hidden; 
+  overflow-x: clip; 
   position: relative;
 }
 
@@ -1343,10 +1314,10 @@ html, body, #screensRoot {
 html, body {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden; /* Запрет скролла вбок */
+  overflow-x: clip; /* Запрет скролла вбок */
   margin: 0;
   padding: 0;
-  overscroll-behavior-y: none; /* Отключает "резиновый" отскок страницы */
+   /* Отключает "резиновый" отскок страницы */
 }
 
 /* 2. Блокируем выделение текста и вызов контекстного меню (как в приложении) */
