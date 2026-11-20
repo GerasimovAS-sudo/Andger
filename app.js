@@ -600,6 +600,7 @@ const MUSIC_TRACKS = {
     'assets/music/calm/calm-7.mp3'
   ] 
 };
+const MUSIC_VOL = 0.3, MUSIC_DUCK_VOL = 0.08; /* громкость музыки / при голосе */
 let currentTrackIdx = 0;
 let currentPlaylist = [];
 
@@ -613,7 +614,7 @@ function nextTrack(){
   if (state.soundMode === 'sound') {
     musicAudio.volume = 0.01; 
     musicAudio.play().then(() => {
-      const targetVol = isVoicePlaying ? 0.15 : 0.3;
+      const targetVol = isVoicePlaying ? MUSIC_DUCK_VOL : MUSIC_VOL;
       fadeAudio(musicAudio, 0.01, targetVol, 1000);
     }).catch(()=>{});
   } else {
@@ -2246,13 +2247,13 @@ function toggleSound(){
            if (isPracticeActive && musicAudio.src) {
           // Включаем воспроизведение с того же места (currentTime сохранился при pause)
           musicAudio.play().then(() => {
-            const targetVol = isVoicePlaying ? 0.05 : 0.3;
+            const targetVol = isVoicePlaying ? MUSIC_DUCK_VOL : MUSIC_VOL;
             fadeAudio(musicAudio, 0, targetVol, 500); // Плавно поднимаем громкость с нуля
           }).catch(e => dlog('Ошибка возобновления музыки:', e));
         }
       } else {
         // Музыка играет, просто меняем громкость
-        const targetVol = isVoicePlaying ? 0.05 : 0.3;
+        const targetVol = isVoicePlaying ? MUSIC_DUCK_VOL : MUSIC_VOL;
         fadeAudio(musicAudio, musicAudio.volume, targetVol, 500);
       }
     }
@@ -3204,7 +3205,7 @@ function renderStatsScreen(){
       <div class="d-lib-book-card" onclick="selectStatsBook('${b.id}')" style="min-width: calc(100% - 20px); scroll-snap-align: start; ${isActive ? 'border-color: var(--d-accent); box-shadow: 0 0 15px rgba(124,92,255,0.15);' : 'opacity: 0.6;'}">
         <div class="d-lib-book-cover" style="padding:0; overflow:hidden;">${b.cover_url ? `<img src="${b.cover_url}" style="width:100%; height:100%; object-fit:cover;">` : getEmojiOrSvg(b.emoji, 36, b.title)}</div>
         <div class="d-lib-book-body">
-          <div class="d-lib-book-title">${b.title}</div>
+          <div class="d-lib-book-title">${escapeHtml(String(b.title ?? ""))}</div>
           <div class="d-lib-book-author">${b.author || 'Неизвестный автор'}</div>
           <div style="font-size:10px; color:var(--d-text-dim); margin-bottom:6px;">День ${day} из ${b.days}</div>
           <div class="d-lib-book-bar"><div class="d-lib-book-fill" style="width:${pct}%"></div></div>
@@ -3453,7 +3454,7 @@ function startRitual(){
   const rEl=document.getElementById('ritualScreen');
   if(rEl) {
     rEl.className='ritual';
-    rEl.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100dvh;z-index:9999;display:flex;flex-direction:column;';
+    rEl.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:var(--app-h,100dvh);z-index:9999;display:flex;flex-direction:column;';
   } else {
     console.error('❌ Элемент #ritualScreen не найден в HTML!');
     toast('Ошибка интерфейса. Обновите страницу.', 'danger');
@@ -3572,7 +3573,7 @@ function toggleTimer(ctx){
           // Если это было ПАУЗА -> ПРОДОЛЖИТЬ, просто возобновляем текущий трек
           if (musicAudio && musicAudio.src) {
              musicAudio.play().catch(()=>{});
-             const targetVol = isVoicePlaying ? 0.15 : 0.3;
+             const targetVol = isVoicePlaying ? MUSIC_DUCK_VOL : MUSIC_VOL;
              fadeAudio(musicAudio, musicAudio.volume, targetVol, 500); 
           }
        }
@@ -4165,8 +4166,8 @@ function renderRitualBuilder() {
               ${b.cover_url ? `<img src="${b.cover_url}" style="width:100%; height:100%; object-fit:cover;">` : getEmojiOrSvg(b.emoji, 28, b.title)}
             </div>
             <div style="flex:1;">
-              <div style="font-size:15px; font-weight:800; color:var(--d-text);">${b.title}</div>
-              <div style="font-size:11px; color:var(--d-text-dim);">${b.author}</div>
+              <div style="font-size:15px; font-weight:800; color:var(--d-text);">${escapeHtml(String(b.title ?? ""))}</div>
+              <div style="font-size:11px; color:var(--d-text-dim);">${escapeHtml(String(b.author ?? ""))}</div>
             </div>
             <div class="selected-badge ${hasSelected ? '' : 'hidden'}" style="font-size:10px; background:var(--d-accent); color:#fff; padding:3px 8px; border-radius:10px; font-weight:800; margin-right:8px;">выбрано</div>
             <div class="arrow-icon" style="font-size:22px; color:var(--muted); transition:transform 0.3s;">›</div>
@@ -4332,7 +4333,7 @@ function showCompleteOverlay(practice, context) {
   let quoteHtml = '';
   if (currentBook && currentBook.quotes && currentBook.quotes.length > 0) {
     const randomQuote = currentBook.quotes[Math.floor(Math.random() * currentBook.quotes.length)];
-    quoteHtml = `<div style="margin-top: 4px; font-style: italic; color: var(--accent-2); font-size: 13px;">«${randomQuote.text}»</div>`;
+    quoteHtml = `<div style="margin-top: 4px; font-style: italic; color: var(--accent-2); font-size: 13px;">«${escapeHtml(String(randomQuote.text ?? ""))}»</div>`;
   }
 
   // Вопрос из дневника
@@ -5405,7 +5406,7 @@ async function renderJournal(){
           <div class="d-lib-book-card" onclick="setJournalFilter('${item.id}')" style="width: calc(100% - 20px); flex-shrink: 0; scroll-snap-align: start; ${isActive ? 'border-color: var(--d-accent); box-shadow: 0 0 15px rgba(124,92,255,0.15);' : 'opacity: 0.6;'}">
             <div class="d-lib-book-cover" style="padding:0; overflow:hidden;">${b.cover_url ? `<img src="${b.cover_url}" style="width:100%; height:100%; object-fit:cover;">` : getEmojiOrSvg(b.emoji, 36, b.title)}</div>
             <div class="d-lib-book-body">
-              <div class="d-lib-book-title">${b.title}</div>
+              <div class="d-lib-book-title">${escapeHtml(String(b.title ?? ""))}</div>
               <div class="d-lib-book-author">${b.author || 'Неизвестный автор'}</div>
               <div style="font-size:10px; color:var(--d-text-dim); margin-bottom:6px;">День ${day} из ${b.days}</div>
               <div class="d-lib-book-bar"><div class="d-lib-book-fill" style="width:${pct}%"></div></div>
@@ -8699,7 +8700,7 @@ emotionToUse = isFemale ? (vSettings.emotion || 'neutral') : auto.emotion;
     // Приглушаем музыку ТОЛЬКО плавно
     isVoicePlaying = true; 
     if (musicAudio) {
-      fadeAudio(musicAudio, musicAudio.volume, 0.15, 400);
+      fadeAudio(musicAudio, musicAudio.volume, MUSIC_DUCK_VOL, 400);
     }
 
 
@@ -8721,10 +8722,12 @@ emotionToUse = isFemale ? (vSettings.emotion || 'neutral') : auto.emotion;
     ttsAudio.src = URL.createObjectURL(blob);
     
     // Возврат музыки обратно
+    const _myTts = ttsAudio;
     const restoreMusic = () => {
+      if (_myTts !== ttsAudio || (ttsAudio && !ttsAudio.paused && !ttsAudio.ended)) return;
       isVoicePlaying = false; 
       if (musicAudio && state.soundMode === 'sound') {
-        fadeAudio(musicAudio, musicAudio.volume, 0.3, 800);
+        fadeAudio(musicAudio, musicAudio.volume, MUSIC_VOL, 800);
       }
     };
 
@@ -8745,14 +8748,18 @@ emotionToUse = isFemale ? (vSettings.emotion || 'neutral') : auto.emotion;
     
     // При ошибке тоже возвращаем музыку
     isVoicePlaying = false;
-    if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, 0.3, 800);
+    if (musicAudio) fadeAudio(musicAudio, musicAudio.volume, MUSIC_VOL, 800);
 
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel(); 
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ru-RU';
-      
+      isVoicePlaying = true;
+      if (musicAudio && state.soundMode === 'sound') fadeAudio(musicAudio, musicAudio.volume, MUSIC_DUCK_VOL, 300);
+      const _unduck = () => { isVoicePlaying = false; if (musicAudio && state.soundMode === 'sound') fadeAudio(musicAudio, musicAudio.volume, MUSIC_VOL, 800); };
+      utterance.onerror = _unduck;
       utterance.onend = () => {
+        _unduck();
         if (subEl) { subEl.classList.remove('show'); setTimeout(() => { subEl.textContent = ''; }, 500); }
       };
       
@@ -9029,7 +9036,7 @@ document.addEventListener('visibilitychange', function(){
       // ВОЗОБНОВЛЯЕМ МУЗЫКУ И ГОЛОС ПРИ ВОЗВРАТЕ
       if (state.soundMode === 'sound' && musicAudio) {
         musicAudio.play().catch(()=>{});
-        const targetVol = isVoicePlaying ? 0.15 : 0.3;
+        const targetVol = isVoicePlaying ? MUSIC_DUCK_VOL : MUSIC_VOL;
         fadeAudio(musicAudio, musicAudio.volume, targetVol, 500);
       }
       if (ttsAudio && isVoicePlaying) {
@@ -10290,18 +10297,18 @@ function showFutureLetterIfExists(bookId) {
 const SHOP_ITEMS = [
   { id: 'avatar_lotus', type: 'avatar', key: 'lotus', title: 'Лотос', price: 100, ico: 'lotus', rarity: 'common', desc: 'Символ спокойствия и баланса' },
   { id: 'avatar_atom', type: 'avatar', key: 'atom', title: 'Атом', price: 100, ico: 'atom', rarity: 'common', desc: 'Энергия и фокус' },
-  { id: 'avatar_target', type: 'avatar', key: 'target', title: 'Мишень', price: 150, ico: 'target', rarity: 'rare', desc: 'Точность намерений' },
+  { id: 'avatar_target', type: 'avatar', key: 'target', title: 'Мишень', price: 200, ico: 'target', rarity: 'rare', desc: 'Точность намерений' },
   { id: 'shield', type: 'utility', key: 'shield', title: 'Заморозка', price: 200, ico: 'shield', rarity: 'rare', desc: 'Спасет твой огонь' },
-  { id: 'avatar_crown', type: 'avatar', key: 'crown', title: 'Корона', price: 250, ico: 'crown', rarity: 'epic', desc: 'Для истинных лидеров' },
+  { id: 'avatar_crown', type: 'avatar', key: 'crown', title: 'Корона', price: 350, ico: 'crown', rarity: 'epic', desc: 'Для истинных лидеров' },
   { id: 'avatar_infinity', type: 'avatar', key: 'infinity', title: 'Бесконечность', price: 200, ico: 'infinity', rarity: 'rare', desc: 'Путь без финиша' },
   { id: 'avatar_orbit', type: 'avatar', key: 'orbit', title: 'Орбита', price: 200, ico: 'orbit', rarity: 'rare', desc: 'Свой центр притяжения' },
-  { id: 'avatar_eclipse', type: 'avatar', key: 'eclipse', title: 'Затмение', price: 300, ico: 'eclipse', rarity: 'epic', desc: 'Тишина перед рассветом' },
+  { id: 'avatar_eclipse', type: 'avatar', key: 'eclipse', title: 'Затмение', price: 350, ico: 'eclipse', rarity: 'epic', desc: 'Тишина перед рассветом' },
   { id: 'avatar_aurora', type: 'avatar', key: 'aurora', title: 'Аврора', price: 350, ico: 'aurora', rarity: 'epic', desc: 'Свет, который ведёт вперёд' },
-  { id: 'avatar_sage', type: 'avatar', key: 'sage', title: 'Хранитель', price: 450, ico: 'sage', rarity: 'epic', desc: 'Тот, кто видит дальше' },
-  { id: 'avatar_zen', type: 'avatar', key: 'zen', title: 'Монах', price: 300, ico: 'zen', rarity: 'rare', desc: 'Покой как практика' },
+  { id: 'avatar_sage', type: 'avatar', key: 'sage', title: 'Хранитель', price: 500, ico: 'sage', rarity: 'epic', desc: 'Тот, кто видит дальше' },
+  { id: 'avatar_zen', type: 'avatar', key: 'zen', title: 'Монах', price: 200, ico: 'zen', rarity: 'rare', desc: 'Покой как практика' },
   { id: 'avatar_nova', type: 'avatar', key: 'nova', title: 'Нова', price: 500, ico: 'nova', rarity: 'epic', desc: 'Взгляд из будущего' },
   { id: 'avatar_phoenix', type: 'avatar', key: 'phoenix', title: 'Феникс', price: 600, ico: 'phoenix', rarity: 'epic', desc: 'Возрождается каждый день' },
-  { id: 'avatar_nebula', type: 'avatar', key: 'nebula', title: 'Туманность', price: 400, ico: 'nebula', rarity: 'epic', desc: 'Рождение новой звезды' }
+  { id: 'avatar_nebula', type: 'avatar', key: 'nebula', title: 'Туманность', price: 350, ico: 'nebula', rarity: 'epic', desc: 'Рождение новой звезды' }
 ];
 
 function showShopScreen() {
@@ -10484,7 +10491,7 @@ function startMusic(practiceId = 'default'){
   if (playPromise !== undefined) {
     playPromise.then(() => {
       // Если голос уже говорит, делаем тише (0.15), иначе 0.3
-      const targetVol = isVoicePlaying ? 0.15 : 0.3;
+      const targetVol = isVoicePlaying ? MUSIC_DUCK_VOL : MUSIC_VOL;
       fadeAudio(musicAudio, 0.01, targetVol, 1500);
     }).catch((e) => {
       dlog('Музыка заблокирована браузером:', e);
@@ -11380,6 +11387,7 @@ window.Path = {
     overlay.innerHTML = `
       <div class="cinematic-bg-blur"></div>
       <canvas class="cine-cosmos" id="cineCosmos" aria-hidden="true"></canvas>
+      <div class="cine-aura" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
       
       <div class="ritual-progress" style="position:absolute; top:0; left:0; right:0; z-index:10; background:transparent; border-bottom:1px solid rgba(124,92,255,0.15); padding-top:calc(12px + env(safe-area-inset-top)); padding-bottom: 12px; max-width:520px; margin:0 auto; display:flex; gap:6px; align-items:center;">
         <div class="rp-left" style="flex:1; padding-left:16px;">
@@ -11740,7 +11748,7 @@ window.Path = {
       const st = it.s === 'done' ? '<span class="pt-st ok">✓</span>' : prem ? '<span class="pt-st pr">Premium</span>' : it.s === 'cur' ? (it.wait ? '<span class="pt-st wt">завтра</span>' : '<span class="pt-st now">сегодня</span>') : `<span class="pt-st lk">${PT_SVG.lock}</span>`;
       return `<button class="pt-li ${it.s}${prem ? ' prem' : ''}" onclick="Path.tap('${it.id}')"><span class="pt-lg"><i></i></span><span class="pt-lx"><b>${E(t)}</b><em>${E(m)}</em></span>${st}</button>`;
     };
-    const sec = (title, sub, items, open) => `<details class="pt-det"${open ? ' open' : ''}><summary><div><b>${title}</b>${sub ? `<span>${E(sub)}</span>` : ''}</div><i>${items.filter(x => x.done).length}/${items.length}</i></summary><div class="pt-lis">${items.map(row).join('')}</div></details>`;
+    const sec = (title, sub, items, open) => `<details class="pt-det"${open ? ' open' : ''}><summary><div><b>${title}</b>${sub ? `<span>${E(sub)}</span>` : ''}<u class="pt-bar" aria-hidden="true"><s style="width:${items.length ? Math.round(items.filter(x => x.done).length / items.length * 100) : 0}%"></s></u></div><i>${items.length && items.every(x => x.done) ? '✓ ' : ''}${items.filter(x => x.done).length}/${items.length}</i></summary><div class="pt-lis">${items.map(row).join('')}</div></details>`;
     const intro = S.items.filter(x => x.kind === 'intro'), fin = S.items.find(x => x.kind === 'finale');
     let html = '<div class="pt-lh">Карта пути</div>' + sec('Знакомство', 'Зачем ты это делаешь', intro, intro.some(x => !x.done));
     b.path.weeks.forEach((w, wi) => { const ns = S.items.filter(x => x.kind === 'node' && x.w === wi); html += sec(`Неделя ${wi + 1} · ${E(w.title)}`, w.goal || '', ns, ns.some(x => x.s === 'cur')); });
@@ -12309,4 +12317,51 @@ document.addEventListener('DOMContentLoaded', () => {
   ['touchstart', 'pointerdown'].forEach(t => document.addEventListener(t, idle, { capture: true, passive: true }));
   document.addEventListener('visibilitychange', idle);
   window.addEventListener('pageshow', idle);
+})();
+
+/* ─── Пробная практика без регистрации: изолирована, ничего не сохраняет и не обращается к базе ─── */
+function startTryPractice(){
+  if(document.getElementById('tryPractice'))return;
+  const o=document.createElement('div');o.id='tryPractice';
+  o.style.cssText='position:fixed;left:0;top:0;right:0;height:var(--app-h,100dvh);z-index:10000;background:radial-gradient(120% 90% at 50% 20%,#2a1d63,#120c24);color:#f5f4fa;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px calc(24px + env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) calc(24px + env(safe-area-inset-left,0px));text-align:center;font-family:inherit';
+  o.innerHTML='<div class="cine-aura" style="top:38%"><i></i><i></i><i></i><b></b></div>'+
+   '<div style="position:relative;z-index:2;max-width:360px"><div id="tpPhase" style="font-size:13px;letter-spacing:6px;color:#a78bff;font-weight:800">ПРИГОТОВЬСЯ</div>'+
+   '<div id="tpText" style="font-size:24px;font-weight:700;line-height:1.35;margin:18px 0 8px;min-height:96px">Сядь удобно. Опусти плечи.</div>'+
+   '<div id="tpSub" style="font-size:13px;color:#8a8aa5">Одна минута, чтобы почувствовать, как работают практики</div></div>'+
+   '<div id="tpBtns" style="position:relative;z-index:2;width:100%;max-width:360px;margin-top:36px;display:flex;flex-direction:column;gap:10px"><button class="d-btn-secondary" id="tpClose" style="width:100%">Закрыть</button></div>';
+  document.body.appendChild(o);
+  const $=i=>o.querySelector('#'+i);let alive=true,t;
+  const close=()=>{alive=false;clearTimeout(t);o.remove();};
+  $('tpClose').onclick=close;
+  const steps=[['ВДОХ','Медленно вдохни носом — 4 секунды',4],['ПАУЗА','Задержи дыхание — 2 секунды',2],['ВЫДОХ','Длинный выдох — 6 секунд. Замечай, как уходит напряжение',6]];
+  let n=0,total=5;
+  function next(){
+    if(!alive)return;
+    if(n>=total*3){
+      $('tpPhase').textContent='ГОТОВО';$('tpText').textContent='Так выглядит одна практика. Дальше — идеи из книг, превращённые в ежедневные шаги.';$('tpSub').textContent='Создай аккаунт, чтобы сохранять прогресс';
+      $('tpBtns').innerHTML='<button class="d-btn-primary" id="tpGo" style="width:100%">Создать аккаунт</button><button class="d-btn-secondary" id="tpClose2" style="width:100%">Позже</button>';
+      $('tpGo').onclick=()=>{close();goToAuth();};$('tpClose2').onclick=close;return;}
+    const s=steps[n%3];$('tpPhase').textContent=s[0];$('tpText').textContent=s[1];n++;
+    t=setTimeout(next,s[2]*1000);
+  }
+  t=setTimeout(next,2500);
+}
+
+/* ─── Плавное закрытие окон (.modal, .complete-overlay): перехватываем добавление класса hidden, играем «выход» 0.2 с и только потом скрываем ─── */
+(function(){
+  const SEL='.modal,.complete-overlay';
+  const reduce=()=>typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  new MutationObserver(list=>{
+    for(const m of list){
+      const el=m.target;
+      if(!el.matches||!el.matches(SEL))continue;
+      if(el._ignore){el._ignore--;continue;}
+      const wasHidden=/(^|\s)hidden(\s|$)/.test(m.oldValue||''),nowHidden=el.classList.contains('hidden');
+      if(!wasHidden&&nowHidden&&!reduce()&&!document.hidden){
+        el._ignore=1;el.className=el.className.replace(/(^|\s)hidden(?=\s|$)/,'')+' is-closing';
+        clearTimeout(el._cl);
+        el._cl=setTimeout(()=>{el._cl=0;el._ignore=1;el.className=el.className.replace(/\s*is-closing/,'')+' hidden';},220);
+      }
+    }
+  }).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class'],attributeOldValue:true});
 })();

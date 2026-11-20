@@ -194,8 +194,8 @@ body::before {
   margin: 0 auto;
   padding: calc(12px + var(--d-safe-top)) 16px 12px;
   background: var(--d-bg-header);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(124, 92, 255, 0.25); /* Фиолетовая рамка */
   display: flex;
   align-items: center;
@@ -328,7 +328,7 @@ body::before {
   font-weight: 800; 
   cursor: pointer; 
   text-align: center;
-  transition: all 0.25s ease; 
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, opacity 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease; 
 }
 .d-lib-chip.on { 
   background: linear-gradient(135deg, #7c5cff 0%, #6366f1 100%); 
@@ -627,8 +627,8 @@ body {
 /* 3. Шапка (эффект парящего стекла) */
 .d-header {
   background: rgba(18, 12, 36, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(124, 92, 255, 0.2);
 }
 
@@ -641,8 +641,8 @@ body {
 /* 5. Нижнее меню */
 .bottom-nav {
   background: rgba(18, 12, 36, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-top: 1px solid rgba(124, 92, 255, 0.2);
 }
 
@@ -1164,7 +1164,7 @@ div[onclick="showPremium()"] div {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
 }
 
@@ -1496,7 +1496,7 @@ button, .nav-btn, .d-icon-btn, .tab-pill, .fp-action {
 /* ANDGER brand components */
 .d-card-glass { background: linear-gradient(135deg, rgba(40,30,70,.6), rgba(25,18,45,.4)); border-color: rgba(124,92,255,.25); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
 .d-btn-primary { background: linear-gradient(135deg, #7c5cff 0%, #6366f1 100%); color: #fff; box-shadow: 0 6px 20px rgba(124,92,255,.4); }
-.d-header { background: rgba(18,12,36,.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+.d-header { background: rgba(18,12,36,.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 .d-focus-card { background: linear-gradient(135deg, rgba(124,92,255,.15), rgba(25,18,45,.8)); }
 .d-calendar-strip { background: rgba(40,30,70,.4); }
 
@@ -1665,7 +1665,7 @@ html.light .andger-bubble {
   background: transparent;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .theme-card:active {
@@ -1685,7 +1685,7 @@ html.light .andger-bubble {
   width: 24px;
   height: 24px;
   color: var(--d-text-mute);
-  transition: all 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 .theme-icon svg {

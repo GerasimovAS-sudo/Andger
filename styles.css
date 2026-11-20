@@ -179,8 +179,8 @@ html.light, body.light { background: var(--bg); color: var(--text); }
   left: 0; 
   right: 0;
   background: var(--d-bg-nav);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-top: 1px solid rgba(124, 92, 255, 0.25); 
   display: flex; 
   justify-content: space-around;
@@ -344,8 +344,8 @@ html.light, body.light { background: var(--bg); color: var(--text); }
   z-index: var(--z-practice); 
   padding: calc(12px + var(--safe-top)) 16px 12px; 
   background: rgba(30, 20, 55, 0.85); /* Полупрозрачный фиолетовый */
-  backdrop-filter: blur(20px); 
-  -webkit-backdrop-filter: blur(20px); 
+  backdrop-filter: blur(14px); 
+  -webkit-backdrop-filter: blur(14px); 
   border-bottom: 1px solid rgba(124, 92, 255, 0.25); /* Фиолетовая рамка */
   display: flex; 
   gap: 6px; 
@@ -373,7 +373,7 @@ html.light, body.light { background: var(--bg); color: var(--text); }
   padding: 0; 
   z-index: 100002; 
   pointer-events: auto; 
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 .rp-close:active {
   background: rgba(124, 92, 255, 0.2);
@@ -471,8 +471,8 @@ html.light, body.light { background: var(--bg); color: var(--text); }
   padding: 14px 20px;
   border-radius: 16px;
   background: rgba(30, 25, 45, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   color: var(--color-white);
   font-size: 13px;
   font-weight: 600;
@@ -510,7 +510,7 @@ html.light, body.light { background: var(--bg); color: var(--text); }
 .conf-piece { position: absolute; width: 8px; height: 8px; top: -20px; animation: confFall linear forwards; }
 
 .books-dots { display: flex; justify-content: center; gap: 4px; margin-top: 8px; margin-bottom: 12px; }
-.b-dot, .hero-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); transition: all 0.3s ease; }
+.b-dot, .hero-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; }
 .b-dot.on, .hero-dot.on { background: var(--accent-2); width: 16px; border-radius: 3px; }
 .arrow-icon { display: inline-block; transition: transform 0.3s ease; color: var(--muted); font-size: 12px; }
 .open .arrow-icon, .open .lc-arrow { transform: rotate(90deg); }
@@ -589,8 +589,7 @@ body.app-focus-mode {
   position: fixed;
   inset: 0;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;          /* на Android 100vh выше видимой области (панель браузера) */
+  height: var(--app-h, 100dvh);          /* на Android 100vh выше видимой области (панель браузера) */
   touch-action: manipulation;
 }
 body.keyboard-open .bottom-nav { display: none; }
@@ -687,8 +686,7 @@ html, body, #screensRoot {
 
 .ritual {
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
+  height: var(--app-h, 100dvh);
 }
 
 .andger-mascot-wrap {
@@ -713,8 +711,8 @@ html, body, #screensRoot {
     margin: 10px auto 20px;
     padding: 12px 16px;
     background: linear-gradient(135deg, rgba(40, 30, 70, 0.85), rgba(25, 18, 45, 0.85));
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border: 1px solid rgba(124, 92, 255, 0.5);
     border-radius: 16px;
     font-size: 15px; /* Чуть крупнее для чтения */
@@ -741,8 +739,8 @@ html, body, #screensRoot {
     margin: 10px auto 20px;
     padding: 12px 16px;
     background: linear-gradient(135deg, rgba(40, 30, 70, 0.85), rgba(25, 18, 45, 0.85));
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border: 1px solid rgba(124, 92, 255, 0.5);
     border-radius: 16px;
     font-size: 14px; /* Уменьшили шрифт */
@@ -863,7 +861,7 @@ html, body {
   border-radius: var(--d-radius-md, 16px);
   margin-bottom: 10px;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .faq-q {
@@ -1007,7 +1005,7 @@ input:-webkit-autofill:focus {
   align-items: center;
   justify-content: center;
   color: var(--d-text);
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 .d-icon-btn:active {
   background: rgba(124, 92, 255, 0.15);
@@ -1114,7 +1112,7 @@ input:-webkit-autofill:focus {
   border-radius: 16px;
   background: var(--d-surface);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   position: relative;
 }
 .notif-item.unread {
@@ -1265,7 +1263,7 @@ body::before { content: none; }
 /* ═══════════════════════════════════════════════ */
 .fp-action { 
   display: flex; align-items: center; gap: 6px; cursor: pointer; 
-  color: var(--d-text-dim); transition: all 0.2s ease;
+  color: var(--d-text-dim); transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 .fp-action span {
   font-size: 12px; font-weight: 700;
@@ -1300,8 +1298,8 @@ body::before { content: none; }
   padding: 14px 18px;
   border-radius: 20px;
   background: rgba(30, 22, 55, 0.95);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(124, 92, 255, 0.4);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   display: flex;
@@ -1410,7 +1408,7 @@ body, #screensRoot {
   padding: 14px 16px;
   color: #fff;
   font-size: 16px; 
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* При фокусе (когда нажимаем) */
@@ -1429,7 +1427,7 @@ body, #screensRoot {
 }
 
 .auth-tab {
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
   color: var(--d-text-dim);
 }
 /* Убираем лишний отступ для экранов без нижнего меню */
@@ -1647,7 +1645,7 @@ body {
   height: 6px; 
   border-radius: 50%; 
   background: var(--border); 
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 .cal-dot.on {
   background: var(--d-accent-2); 
@@ -1673,8 +1671,8 @@ body {
   display: flex;
   gap: 6px;
   background: rgba(18, 12, 36, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   padding: 10px 0;
   margin-bottom: 16px;
   border-bottom: 1px solid rgba(124, 92, 255, 0.15);
@@ -1685,8 +1683,8 @@ body {
 /* Красивая нижняя панель редактора */
 #bookEditorScreen div[style*="position: fixed; bottom: 0;"] {
   background: rgba(30, 20, 55, 0.85) !important;
-  backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
   border-top: 1px solid rgba(124, 92, 255, 0.2) !important;
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)) !important;
   border-radius: 24px 24px 0 0 !important; /* Скруглили верхние углы */
@@ -1763,7 +1761,7 @@ input, textarea, select {
   padding: 8px 4px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 .diff-btn .diff-title {
   font-size: 11px;
@@ -1995,7 +1993,7 @@ input, textarea, select {
   border: 1px solid var(--d-border);
   border-radius: 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   position: relative;
 }
 
@@ -2079,8 +2077,8 @@ input, textarea, select {
   
   /* Стеклянная панель (раньше был сплошной чёрный #120c24 — давал тёмные прямоугольники) */
   background: linear-gradient(180deg, var(--d-bg-header, rgba(30,20,55,.85)) 0%, color-mix(in srgb, var(--d-bg-header, rgba(30,20,55,.85)) 55%, transparent) 100%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
   border-bottom: 1px solid rgba(124, 92, 255, 0.18);
   box-sizing: border-box;
   
@@ -2186,8 +2184,8 @@ input, textarea, select {
   position: sticky;
   top: calc(124px + env(safe-area-inset-top, 0px));
   background: var(--d-bg-header, rgba(30,20,55,.85));
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
   border: 1px solid rgba(124, 92, 255, 0.2);
   border-radius: 18px;
   box-shadow: 0 8px 24px rgba(0,0,0,.18);
@@ -2249,8 +2247,8 @@ dialog.ap-dlg {
   max-width: 100vw;
   margin: auto; /* ВОТ ЭТО ЦЕНТРИРУЕТ ОКНО */
   box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 dialog.ap-dlg::backdrop {
   background: rgba(13, 10, 24, 0.75);
@@ -2692,7 +2690,7 @@ html.light .ap-ava.on::after{border-color:#fff}
 .cr-bz{stroke:rgba(167,139,255,.28)}
 
 /* Карточка «Сегодня»: живая рамка */
-.ac{isolation:isolate;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 18px 50px rgba(20,8,60,.55),inset 0 1px 0 rgba(255,255,255,.12)}
+.ac{isolation:isolate;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 18px 50px rgba(20,8,60,.55),inset 0 1px 0 rgba(255,255,255,.12)}
 .ac::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;pointer-events:none;z-index:2;
   background:conic-gradient(from var(--acAng),rgba(255,122,42,.95),rgba(124,92,255,.95),rgba(30,92,255,.9),rgba(255,122,42,.95));
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
@@ -2718,7 +2716,7 @@ html.light .ap-ava.on::after{border-color:#fff}
 
 .cine-card{width:100%;max-width:340px;padding:26px 22px;text-align:center;margin:0 auto 30px;border-radius:26px;
   background:linear-gradient(180deg,rgba(46,32,92,.55),rgba(18,12,36,.72));border:1px solid rgba(167,139,255,.28);
-  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
   box-shadow:0 22px 60px rgba(10,4,40,.6),inset 0 1px 0 rgba(255,255,255,.12)}
 .cinematic-subtitle-box{filter:blur(8px);transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1),filter .9s cubic-bezier(.16,1,.3,1);letter-spacing:.1px}
 .cinematic-subtitle-box.show{filter:blur(0)}
@@ -2852,15 +2850,10 @@ body{min-height:100vh;min-height:100dvh}
    Теперь горизонтальный overflow обрезает только окно (html), body/#screensRoot — clip (не скроллер). */
 html{overflow-x:hidden;overscroll-behavior-y:none}
 body,#screensRoot{overflow-x:clip;overflow-y:visible;touch-action:manipulation}
-#practiceScreen,#ritualScreen{height:100vh;height:100dvh}
+
 
 /* ═══ ЗАГРУЗЧИК (iOS): свечение без фильтра на <svg>, ровный низ, цвет подложки ═══ */
 html{background:#120c24!important}
-.splash-ring-wrap::before{content:"";position:absolute;inset:-14%;border-radius:50%;pointer-events:none;
-  background:radial-gradient(circle closest-side,transparent 47%,rgba(124,92,255,.34) 60%,rgba(255,42,122,.3) 66%,rgba(124,92,255,.14) 75%,transparent 90%);
-  animation:splashGlow 3.2s ease-in-out infinite alternate}
-@keyframes splashGlow{from{opacity:.65;transform:scale(.97)}to{opacity:1;transform:scale(1.03)}}
-@media (prefers-reduced-motion:reduce){.splash-ring-wrap::before{animation:none}}
 
 /* Загрузчик: нижний край плавно уходит в цвет подложки (#120c24) — если iOS в первые секунды показывает полосу ниже окна, она сливается */
 #appLoader::after{content:"";position:absolute;left:0;right:0;bottom:0;height:96px;pointer-events:none;background:linear-gradient(to top,#120c24 8%,rgba(18,12,36,0) 100%)}
@@ -2869,3 +2862,40 @@ html{background:#120c24!important}
 /* Тени/свечение без фильтров на корневом <svg> (WebKit обрезает их по рамке → «квадрат») */
 .avt-wrap{border-radius:50%;box-shadow:0 3px 8px rgba(0,0,0,.45)}
 #profileAva{filter:drop-shadow(0 4px 12px rgba(124,92,255,.6))}
+
+/* ═══ Полноэкранные слои: высота = реальная высота экрана (--app-h из JS), а не 100dvh, который в iOS-PWA бывает короче ═══ */
+html,body{min-height:var(--app-h,100dvh);background-color:#120c24}
+.pt,#practiceScreen,#ritualScreen,#bookEditorScreen,#appLoader,#authScreen,.ritual{top:0;bottom:auto;height:var(--app-h,100dvh)}
+dialog.ap-full{height:min(var(--app-h,100dvh),940px)}
+
+/* ═══ ПОГРУЖЕНИЕ v6: дышащая аура (цикл 8 с = вдох/выдох), стеклянная карточка с бегущим бликом ═══ */
+.cine-aura{position:absolute;left:50%;top:34%;width:min(78vw,380px);aspect-ratio:1;transform:translate(-50%,-50%);z-index:1;pointer-events:none}
+.cine-aura i{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(167,139,255,.35);animation:cineRing 8s ease-in-out infinite;will-change:transform,opacity}
+.cine-aura i:nth-child(2){animation-delay:-2.6s;border-color:rgba(255,122,42,.28)}
+.cine-aura i:nth-child(3){animation-delay:-5.3s;border-color:rgba(79,172,254,.3)}
+.cine-aura b{position:absolute;inset:30%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9) 0,rgba(167,139,255,.55) 22%,rgba(124,92,255,.18) 50%,transparent 70%);animation:cineCore 8s ease-in-out infinite;will-change:transform,opacity}
+@keyframes cineRing{0%{transform:scale(.45);opacity:0}25%{opacity:.9}100%{transform:scale(1.15);opacity:0}}
+@keyframes cineCore{0%,100%{transform:scale(.8);opacity:.7}50%{transform:scale(1.25);opacity:1}}
+.cinematic-content{position:relative;z-index:2}
+.cine-card{background:linear-gradient(160deg,rgba(60,44,120,.42),rgba(18,12,36,.55))!important;border:1px solid rgba(167,139,255,.28)!important;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 18px 50px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12);overflow:hidden!important}
+.cine-card::after{content:"";position:absolute;top:0;left:-60%;will-change:transform;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.08),transparent);animation:cineSheen 7s ease-in-out infinite;pointer-events:none}
+@keyframes cineSheen{0%,60%{transform:translateX(0)}100%{transform:translateX(450%)}}
+.cinematic-subtitle-box{font-weight:600;line-height:1.4;letter-spacing:.2px;text-shadow:0 2px 18px rgba(124,92,255,.6)}
+@media (prefers-reduced-motion:reduce){.cine-aura i,.cine-aura b,.cine-card::after{animation:none}}
+
+/* ═══ v6: прокрутка/касания (Android Chrome: pull-to-refresh и «залипание» жестов во вложенных скроллерах) ═══ */
+.pt-body,#practiceScreen,#ritualScreen,#bookEditorScreen,#authScreen,dialog.ap-full,.cinematic-overlay{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.pt-body{touch-action:pan-y}
+button,a,[onclick],.d-btn-primary,.d-btn-secondary{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:active,.d-btn-primary:active,.d-btn-secondary:active{transform:scale(.97);transition:transform .08s}
+:focus-visible{outline:2px solid #a78bff;outline-offset:2px}
+
+/* v6.3 Путь: полоска прогресса недели */
+.pt-bar{display:block;height:4px;margin-top:10px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden;text-decoration:none}
+.pt-bar s{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#7c5cff,#ff9d00);transition:width .6s cubic-bezier(.2,.8,.2,1);text-decoration:none}
+
+/* v6.5: анимация закрытия окон */
+.modal.is-closing,.complete-overlay.is-closing{animation:ovOut .2s ease-in forwards;pointer-events:none}
+.modal.is-closing .modal-box{animation:boxOut .2s ease-in forwards}
+@keyframes ovOut{to{opacity:0}}
+@keyframes boxOut{to{opacity:0;transform:translateY(14px) scale(.97)}}
