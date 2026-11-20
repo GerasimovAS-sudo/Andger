@@ -63,8 +63,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="design-system.css?v=144">
-  <link rel="stylesheet" href="styles.css?v=144">
+  <link rel="stylesheet" href="design-system.css?v=145">
+  <link rel="stylesheet" href="styles.css?v=145">
 </head>
 <body>
 
@@ -96,7 +96,7 @@
 
   <!-- SPLASH -->
   <div id="appLoader">
-    <div class="splash-ver">v11.11.144</div>
+    <div class="splash-ver">v11.11.145</div>
     <div class="splash-main">
       <div class="splash-ring-wrap">
         <!-- Светящееся кольцо -->
@@ -224,11 +224,22 @@
           </div>
           <div><b style="font-size:15px; color:#f5f4fa;">Прогресс, который видно</b><div style="font-size:12px; color:#8a8aa5; margin-top:4px;">Отмечай практики, веди дневник</div></div>
         </div>
+        <div class="d-card-glass" style="display:flex; align-items:center; gap:14px; padding:16px; text-align:left;">
+          <div style="width:40px; height:40px; border-radius:12px; background:rgba(167,139,255,.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#a78bff;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <div><b style="font-size:15px; color:#f5f4fa;">Идея из книги — в действие</b><div style="font-size:12px; color:#8a8aa5; margin-top:4px;">Каждую мысль превращаем в короткое упражнение с голосом и таймером</div></div>
+        </div>
+        <div class="d-card-glass" style="display:flex; align-items:center; gap:14px; padding:16px; text-align:left;">
+          <div style="width:40px; height:40px; border-radius:12px; background:rgba(79,172,254,.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#4facfe;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div><b style="font-size:15px; color:#f5f4fa;">Дневник и сообщество</b><div style="font-size:12px; color:#8a8aa5; margin-top:4px;">Записывай инсайты, делись прогрессом в ленте и поддерживай других</div></div>
+        </div>
       </div>
       
-      <button class="d-btn-primary" onclick="goToAuth()" style="margin-bottom:12px;">Начать путь</button>
-      <button class="d-btn-secondary" onclick="startTryPractice()" style="margin-bottom:16px;width:100%;">Попробовать за 1 минуту — без регистрации</button>
-      <div style="font-size:13px; color:#8a8aa5; cursor:pointer; font-weight: 600;" onclick="goToAuth()">У меня уже есть аккаунт</div>
+      <div class="land-cta"><button class="d-btn-primary" onclick="goToAuth()">Начать путь</button>
+      <div style="font-size:13px; color:#8a8aa5; cursor:pointer; font-weight: 600; margin-top:12px;" onclick="goToAuth()">У меня уже есть аккаунт</div></div>
     </div>
   </div>
   
@@ -476,7 +487,7 @@
         </div>
 
         <!-- НОВЫЙ БЛОК: Особые режимы практики -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px;" class="lib-modes">
           
           <!-- Умная практика -->
           <button onclick="showPracticeModeInfo('fast')" style="background: linear-gradient(135deg, rgba(124,92,255,0.15), rgba(25,18,45,0.8)); border: 1px solid rgba(124,92,255,0.4); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; cursor: pointer; text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
@@ -509,7 +520,6 @@
           <div class="d-lib-chip lib-filter on" data-filter="all" onclick="setLibFilter('all', this)">Все</div>
           <div class="d-lib-chip lib-filter" data-filter="active" onclick="setLibFilter('active', this)">В процессе</div>
           <div class="d-lib-chip lib-filter" data-filter="done" onclick="setLibFilter('done', this)">Завершённые</div>
-          <div class="d-lib-chip lib-filter" data-filter="new" onclick="setLibFilter('new', this)">Новые</div>
         </div>
 
         <!-- Контейнер для книг (ЕГО ЗАПОЛНЯЕТ JS) -->
@@ -663,7 +673,7 @@
       <div class="wrap">
        
         <!-- Мои книги (фильтры) -->
-        <h2 style="font-size:11px; font-weight:900; color:var(--d-text-dim); text-transform:uppercase; letter-spacing:1px; margin-top:8px;">📖 Мои книги</h2>
+        
         <div id="journalFilters" style="display:flex; overflow-x:auto; gap:12px; padding-bottom:8px;"></div>
         <div class="books-dots" id="journalDots" style="margin-bottom:8px;"></div>
 
@@ -2101,7 +2111,7 @@
   <!-- Скрипты -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
-  <script src="app.js?v=144"></script>
+  <script src="app.js?v=145"></script>
 </body>
 </html>
 

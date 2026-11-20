@@ -172,6 +172,11 @@ _AVT_SYMBOLS.phoenix=['ember',_avtPortrait({skin:'#f0c4a4',shade:'#d4a07e',hair:
   front:'<path d="M35 42C35.5 28 44 22.5 51 23.5C59 24.5 65 31 65 42C58 33.5 46 31 35 42Z" fill="#ff8a2a"/><path d="M33 50C30 62 31 74 35.5 84C40 73 39.5 60 37 50Z" fill="#ff6a1f"/><path d="M67 50C70 62 69 74 64.5 84C60 73 60.5 60 63 50Z" fill="#ff6a1f"/><path d="M38.5 32.5Q50 25.5 61.5 32.5" stroke="#ffd66b" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="50" cy="29.4" r="2" fill="#ff5c8a"/>',
   collar:'<path d="M40 64.5Q50 71 60 64.5" fill="none" stroke="#ffd66b" stroke-width="1.8" stroke-linecap="round"/>'})];
 Object.assign(_AVT_LIVE,{sage:1,nova:1,phoenix:1});
+/* ─── Новые абстрактные символы (геометрия, свет) ─── */
+_AVT_SYMBOLS.pulse=['azure',(S)=>`<g fill="none" stroke="${S}"><circle cx="50" cy="50" r="35" stroke-width="2" opacity=".28"/><circle cx="50" cy="50" r="26" stroke-width="2.6" opacity=".5"/><circle cx="50" cy="50" r="17" stroke-width="3" opacity=".8"/></g><circle cx="50" cy="50" r="8" fill="${S}"/><circle cx="47" cy="47" r="2.6" fill="#fff" fill-opacity=".75"/><circle cx="76" cy="27" r="3.2" fill="#fff"/><circle cx="24" cy="74" r="1.8" fill="#fff" opacity=".8"/>`];
+_AVT_SYMBOLS.prism=['violet',(S)=>`<path d="M50 22L74 68H26Z" fill="${S}" fill-opacity=".2" stroke="${S}" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 22L50 68" stroke="#fff" stroke-opacity=".25" stroke-width="1.6"/><path d="M12 52L41 52" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/><g stroke-width="3.2" stroke-linecap="round"><path d="M58 50L88 34" stroke="#ff5c8a"/><path d="M60 56L90 54" stroke="#ffd66b"/><path d="M58 62L88 74" stroke="#4facfe"/></g>`];
+_AVT_SYMBOLS.trinity=['rose',(S)=>`<g fill="${S}" fill-opacity=".5" stroke="${S}" stroke-width="2.4"><circle cx="50" cy="38" r="18"/><circle cx="38" cy="59" r="18"/><circle cx="62" cy="59" r="18"/></g><circle cx="50" cy="52" r="5.4" fill="#fff"/><circle cx="50" cy="52" r="9" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.4"/>`];
+
 const AVATAR_ICONS = {};
 Object.keys(_AVT_SYMBOLS).forEach(k=>{const d=_AVT_SYMBOLS[k]; AVATAR_ICONS[k]=_avtMedal(k,d[0],d[1],!!_AVT_LIVE[k]);});
 let _avtUid = 0;
@@ -2143,6 +2148,9 @@ async function clearAllNotifications() {
 function backFromNotifications(){smartHome()}
 function backFromDialog(){
   cleanupRealtimeSubscriptions(); // Очищаем канал чата при выходе
+  const back=dialogReturn;dialogReturn=null;
+  if(back==='admin'&&typeof showAdmin==='function'){showAdmin();return;}
+  if(back==='profile'&&typeof showProfile==='function'){showProfile();return;}
   showCommunityScreen();
 }
 
@@ -2742,13 +2750,18 @@ async function renderLibrary(){
   let html = '';
 
   if(!list.length) {
+    const _all = "setLibFilter('all', document.querySelector('.lib-filter[data-filter=all]'))";
+    const cfg = q ? ['Ничего не найдено', 'Попробуй другое название или автора.', '']
+      : libFilter === 'done' ? ['Завершённых книг пока нет', 'Пройди путь книги до конца, и она появится здесь.', `<button class="d-btn-secondary" style="margin-top:16px" onclick="${_all}">Показать все книги</button>`]
+      : libFilter === 'active' ? ['Нет книг в процессе', 'Выбери книгу из списка и начни свой путь.', `<button class="d-btn-secondary" style="margin-top:16px" onclick="${_all}">Показать все книги</button>`]
+      : ['Здесь пока пусто', 'Книги скоро появятся.', ''];
     listEl.innerHTML = `
       <div class="d-empty-state" style="margin-top:20px;">
         <div class="d-empty-ico-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
         </div>
-        <div class="d-empty-title">Ничего не найдено</div>
-        <div class="d-empty-text">Попробуй изменить поисковый запрос или фильтр.</div>
+        <div class="d-empty-title">${cfg[0]}</div>
+        <div class="d-empty-text">${cfg[1]}</div>${cfg[2]}
       </div>
     `;
     return;
@@ -5493,7 +5506,7 @@ async function renderJournal(){
 
 
   // 3. Статистика записей
-  const statsHtml = `
+  const statsHtml = (!notes || !notes.length) ? '' : `
     <div class="d-card-glass" style="padding:16px; text-align:center; margin-bottom:16px;">
       <div style="font-size:28px; font-weight:900; color:var(--d-accent-2);">${notes ? notes.length : 0}</div>
       <div style="font-size:10px; color:var(--d-text-dim); text-transform:uppercase; font-weight:800; margin-top:4px; letter-spacing:1px;">Записей</div>
@@ -5926,7 +5939,9 @@ async function loadChats(){
 
 // ─── ОТКРЫТЬ ДИАЛОГ ───
 let currentDialogProfile=null;
+let dialogReturn=null;
 async function openDialog(otherId,p){
+  { const ad=document.getElementById('adminScreen'); dialogReturn=(ad&&!ad.classList.contains('hidden'))?'admin':(currentScreen==='profile'?'profile':null); }
   if(otherId===user.id){toast('Это ты 😄','warm');return}
   currentDialogUserId=otherId;
   if(!p){
@@ -6006,32 +6021,24 @@ async function loadDialog(){
       el.innerHTML='<div style="color:var(--muted);text-align:center;padding:40px 20px;font-size:13px">Напиши первым 👋</div>';
       return;
     }
-        el.innerHTML=data.map(m=>{
-      const own=m.from_user===user.id;
-      const t=new Date(m.created_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-      
-      // Логика галочек: если сообщение мое, показываем статус
-      let tick = '';
-      if (own) {
-        if (m.read) {
-          // Прочитано (две фиолетовые галочки)
-          tick = '<span style="color:#7c5cff; margin-left:4px; font-weight:bold;">✓✓</span>';
-        } else {
-          // Отправлено (одна серая галочка)
-          tick = '<span style="color:rgba(255,255,255,0.4); margin-left:4px;">✓</span>';
-        }
-      }
-
-      return `<div class="msg-bubble ${own?'own':'other'}">
-        ${escapeHtml(m.text)}
-        <span class="msg-time" style="display:flex; align-items:center; justify-content:flex-end; gap:4px;">
-          ${t} ${tick} 
-          ${own || isAdminMode() ? `
-            <div class="msg-delete-btn" onclick="event.stopPropagation(); ${own ? `deletePrivateMessage('${m.id}')` : `confirmGodDeletePrivateMessage('${m.id}')`}" title="Удалить">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </div>` : ''}
-        </span>
-      </div>`;
+        const dayKey=d=>d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();
+    const dayLabel=d=>{const n=new Date(),y=new Date(Date.now()-864e5);
+      if(dayKey(d)===dayKey(n))return 'Сегодня'; if(dayKey(d)===dayKey(y))return 'Вчера';
+      return d.toLocaleDateString('ru-RU',{day:'numeric',month:'long',...(d.getFullYear()!==n.getFullYear()?{year:'numeric'}:{})});};
+    el.innerHTML=data.map((m,idx)=>{
+      const own=m.from_user===user.id, d=new Date(m.created_at), prev=data[idx-1], next=data[idx+1];
+      const t=d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+      const newDay=!prev||dayKey(new Date(prev.created_at))!==dayKey(d);
+      const sameAsPrev=prev&&!newDay&&prev.from_user===m.from_user;
+      const sameAsNext=next&&dayKey(new Date(next.created_at))===dayKey(d)&&next.from_user===m.from_user;
+      const tick = own ? (m.read ? '<span class="msg-tick read">✓✓</span>' : '<span class="msg-tick">✓</span>') : '';
+      const canDel = own || isAdminMode();
+      const delAction = own ? `deletePrivateMessage('${m.id}')` : `confirmGodDeletePrivateMessage('${m.id}')`;
+      return (newDay ? `<div class="msg-day"><span>${dayLabel(d)}</span></div>` : '') +
+        `<div class="msg-bubble ${own?'own':'other'}${sameAsPrev?' grp-mid':''}${sameAsNext?' grp-cont':' grp-last'}" onclick="this.classList.toggle('sel')">
+          <span class="msg-text">${escapeHtml(m.text)}</span><span class="msg-time">${t}${tick}</span>
+          ${canDel ? `<div class="msg-delete-btn" onclick="event.stopPropagation(); ${delAction}" title="Удалить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg><span>Удалить</span></div>` : ''}
+        </div>`;
     }).join('');
     el.scrollTop=el.scrollHeight;
     window.scrollTo(0,document.body.scrollHeight);
@@ -7139,8 +7146,19 @@ window.addEventListener('popstate', (e) => {
 
   if (ritualOpen) { closeRitual(); history.pushState(null, null, location.href); return; }
   if (practiceOpen) { closePractice(); history.pushState(null, null, location.href); return; }
+  // Системная «Назад» ведёт туда же, куда и стрелка на экране
+  const _open = id => { const e = document.getElementById(id); return !!e && !e.classList.contains('hidden'); };
+  const _backMap = [['dialogScreen', 'backFromDialog'], ['publicProfileScreen', 'backFromPublicProfile'], ['bookDetailScreen', 'backFromBookDetail'],
+    ['bookEditorScreen', 'backFromBookEditor'], ['ritualBuilderScreen', 'backFromRitualBuilder']];
+  for (const [id, fn] of _backMap) {
+    if (_open(id) && typeof window[fn] === 'function') { window[fn](); history.pushState(null, null, location.href); return; }
+  }
+  if (_open('shopScreen') || _open('ratingScreen') || _open('statsScreen')) { showProfile(); history.pushState(null, null, location.href); return; }
   
-  if (helpOpen || settingsOpen || notifOpen || adminOpen) {
+  if (notifOpen) {
+    backFromNotifications();
+    history.pushState(null, null, location.href);
+  } else if (helpOpen || settingsOpen || adminOpen) {
     showProfile();
     history.pushState(null, null, location.href);
   } else if (currentScreen !== 'today' && !authOpen) {
@@ -9314,11 +9332,11 @@ function injectQuickNoteButton() {
     btn.onclick = openQuickNote;
     // Стили наследуются от .d-icon-btn, кнопка будет в едином стиле
     
-    // Иконка карандаша (Lucide Edit)
+    // Иконка «быстрая заметка»: плюс в скруглённом квадрате (не путать с карандашом «Дневника»)
     btn.innerHTML = `
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px; height:18px;">
-        <path d="M12 20h9"></path>
-        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+        <rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect>
+        <path d="M12 8.5v7M8.5 12h7"></path>
       </svg>
     `;
 
@@ -9341,49 +9359,50 @@ document.addEventListener('DOMContentLoaded', () => {
 // ИДЕАЛЬНЫЙ ФИКС КЛАВИАТУРЫ ДЛЯ iOS (Как в Telegram)
 // ═══════════════════════════════════════════════
 if (window.visualViewport) {
-  const handleKeyboard = () => {
-    const wrap = document.getElementById('dialogInputWrap') || document.getElementById('feedInputWrap');
-    const nav = document.getElementById('bottomNav');
-    
-    if (!wrap || wrap.style.display === 'none') return;
-
-    const vv = window.visualViewport;
-    const viewportHeight = document.documentElement.clientHeight;
-    
-    // Если визуальная высота меньше 75% от реальной высоты экрана — клавиатура открыта
-    const isKeyboardOpen = vv.height < viewportHeight * 0.8;
-    const keyboardHeight = Math.max(0, viewportHeight - vv.height - vv.offsetTop);
-
-    if (isKeyboardOpen && keyboardHeight > 100) {
-      document.body.classList.add('keyboard-open');
-      
-      // Привязываем поле ввода ровно к верхнему краю клавиатуры
-      wrap.style.bottom = `${keyboardHeight}px`;
-      wrap.style.borderRadius = '16px 16px 0 0'; // Скругляем только верх
-      wrap.style.transition = 'none'; // Убираем задержку для моментального отклика
-      
-      if (nav) nav.style.display = 'none'; // Прячем нижнее меню
-
-      // Автоматически прокручиваем чат вниз при открытии клавиатуры
-      setTimeout(() => {
-        const dialogMessages = document.getElementById('dialogMessages');
-        if (dialogMessages) dialogMessages.scrollTop = dialogMessages.scrollHeight;
-        window.scrollTo(0, document.body.scrollHeight);
-      }, 50);
-
-    } else {
-      // Клавиатура закрыта — возвращаем всё как было
-      document.body.classList.remove('keyboard-open');
-      wrap.style.bottom = 'calc(85px + env(safe-area-inset-bottom, 0px))';
-      wrap.style.borderRadius = '16px';
-      wrap.style.transition = 'bottom 0.2s ease-out';
-      
-      if (nav) nav.style.display = ''; // Возвращаем меню
+  /* Клавиатура как в Telegram: поле ввода едет точно над клавиатурой, страница не «прыгает», шапка стоит на месте */
+  const vv = window.visualViewport;
+  const activeWrap = () => {
+    for (const id of ['dialogInputWrap', 'feedInputWrap']) {
+      const w = document.getElementById(id);
+      if (w && getComputedStyle(w).display !== 'none') return w;
     }
+    return null;
   };
-
-  window.visualViewport.addEventListener('resize', handleKeyboard);
-  window.visualViewport.addEventListener('scroll', handleKeyboard);
+  let raf = 0;
+  const handleKeyboard = () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      const wrap = activeWrap();
+      const nav = document.getElementById('bottomNav');
+      const ae = document.activeElement;
+      const typing = !!(wrap && ae && wrap.contains(ae));
+      const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      if (wrap && typing && kb > 80) {
+        document.body.classList.add('keyboard-open');
+        document.documentElement.style.setProperty('--kb', kb + 'px');
+        wrap.style.bottom = kb + 'px';
+        wrap.style.borderRadius = '16px 16px 0 0';
+        wrap.style.transition = 'none';
+        if (nav) nav.style.display = 'none';
+        if (window.scrollY !== 0 || vv.offsetTop !== 0) window.scrollTo(0, 0); /* не даём iOS сдвигать страницу и шапку */
+        const dm = document.getElementById('dialogMessages');
+        if (dm && wrap.id === 'dialogInputWrap') dm.scrollTop = dm.scrollHeight;
+      } else if (document.body.classList.contains('keyboard-open')) {
+        document.body.classList.remove('keyboard-open');
+        document.documentElement.style.removeProperty('--kb');
+        document.querySelectorAll('#dialogInputWrap,#feedInputWrap').forEach(w => {
+          w.style.bottom = 'calc(85px + env(safe-area-inset-bottom, 0px))';
+          w.style.borderRadius = '16px';
+          w.style.transition = 'bottom .2s ease-out';
+        });
+        if (nav) nav.style.display = '';
+      }
+    });
+  };
+  vv.addEventListener('resize', handleKeyboard);
+  vv.addEventListener('scroll', handleKeyboard);
+  document.addEventListener('focusin', () => setTimeout(handleKeyboard, 60));
+  document.addEventListener('focusout', () => setTimeout(handleKeyboard, 60));
 }
 
 // Функция для показа окна перед началом практики
@@ -10308,7 +10327,10 @@ const SHOP_ITEMS = [
   { id: 'avatar_zen', type: 'avatar', key: 'zen', title: 'Монах', price: 200, ico: 'zen', rarity: 'rare', desc: 'Покой как практика' },
   { id: 'avatar_nova', type: 'avatar', key: 'nova', title: 'Нова', price: 500, ico: 'nova', rarity: 'epic', desc: 'Взгляд из будущего' },
   { id: 'avatar_phoenix', type: 'avatar', key: 'phoenix', title: 'Феникс', price: 600, ico: 'phoenix', rarity: 'epic', desc: 'Возрождается каждый день' },
-  { id: 'avatar_nebula', type: 'avatar', key: 'nebula', title: 'Туманность', price: 350, ico: 'nebula', rarity: 'epic', desc: 'Рождение новой звезды' }
+  { id: 'avatar_nebula', type: 'avatar', key: 'nebula', title: 'Туманность', price: 350, ico: 'nebula', rarity: 'epic', desc: 'Рождение новой звезды' },
+  { id: 'avatar_pulse', type: 'avatar', key: 'pulse', title: 'Пульс', price: 100, ico: 'pulse', rarity: 'common', desc: 'Ритм твоей практики' },
+  { id: 'avatar_prism', type: 'avatar', key: 'prism', title: 'Призма', price: 200, ico: 'prism', rarity: 'rare', desc: 'Один свет — много граней' },
+  { id: 'avatar_trinity', type: 'avatar', key: 'trinity', title: 'Триединство', price: 350, ico: 'trinity', rarity: 'epic', desc: 'Мысль, чувство, действие' }
 ];
 
 function showShopScreen() {
@@ -11387,8 +11409,7 @@ window.Path = {
     overlay.innerHTML = `
       <div class="cinematic-bg-blur"></div>
       <canvas class="cine-cosmos" id="cineCosmos" aria-hidden="true"></canvas>
-      <div class="cine-aura" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
-      
+            
       <div class="ritual-progress" style="position:absolute; top:0; left:0; right:0; z-index:10; background:transparent; border-bottom:1px solid rgba(124,92,255,0.15); padding-top:calc(12px + env(safe-area-inset-top)); padding-bottom: 12px; max-width:520px; margin:0 auto; display:flex; gap:6px; align-items:center;">
         <div class="rp-left" style="flex:1; padding-left:16px;">
           <div class="rp-text" style="font-size:14px; font-weight:800; color:var(--d-text); text-transform:none; letter-spacing:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.title)}</div>
@@ -11500,7 +11521,7 @@ window.Path = {
     updateSoundUI();
     
     const cosmosEl = document.getElementById('cineCosmos');
-    if (cosmosEl) overlay._stopCosmos = startCosmos(cosmosEl);
+    if (cosmosEl) overlay._stopCosmos = startBalls(cosmosEl);
 
     playNext();
   },  
@@ -12055,7 +12076,7 @@ window.Path = {
         const intro = S.items.filter(x => x.kind === 'intro');
         const idn = intro.filter(x => x.done).length;
         pct = Math.round((nd + idn) / Math.max(1, S.total) * 100);
-        metaText = idn < intro.length ? `Знакомство: ${idn} из ${intro.length}` : `Пройдено: ${nd} из ${S.nodes.length}`;
+        metaText = idn < intro.length ? `Знакомство: ${idn} из ${intro.length}` : `Пройдено шагов: ${nd + idn} из ${S.total}`;
         
         const cur = S.items.find(x => x.s === 'cur');
         if (cur) {
@@ -12319,34 +12340,6 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('pageshow', idle);
 })();
 
-/* ─── Пробная практика без регистрации: изолирована, ничего не сохраняет и не обращается к базе ─── */
-function startTryPractice(){
-  if(document.getElementById('tryPractice'))return;
-  const o=document.createElement('div');o.id='tryPractice';
-  o.style.cssText='position:fixed;left:0;top:0;right:0;height:var(--app-h,100dvh);z-index:10000;background:radial-gradient(120% 90% at 50% 20%,#2a1d63,#120c24);color:#f5f4fa;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px calc(24px + env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) calc(24px + env(safe-area-inset-left,0px));text-align:center;font-family:inherit';
-  o.innerHTML='<div class="cine-aura" style="top:38%"><i></i><i></i><i></i><b></b></div>'+
-   '<div style="position:relative;z-index:2;max-width:360px"><div id="tpPhase" style="font-size:13px;letter-spacing:6px;color:#a78bff;font-weight:800">ПРИГОТОВЬСЯ</div>'+
-   '<div id="tpText" style="font-size:24px;font-weight:700;line-height:1.35;margin:18px 0 8px;min-height:96px">Сядь удобно. Опусти плечи.</div>'+
-   '<div id="tpSub" style="font-size:13px;color:#8a8aa5">Одна минута, чтобы почувствовать, как работают практики</div></div>'+
-   '<div id="tpBtns" style="position:relative;z-index:2;width:100%;max-width:360px;margin-top:36px;display:flex;flex-direction:column;gap:10px"><button class="d-btn-secondary" id="tpClose" style="width:100%">Закрыть</button></div>';
-  document.body.appendChild(o);
-  const $=i=>o.querySelector('#'+i);let alive=true,t;
-  const close=()=>{alive=false;clearTimeout(t);o.remove();};
-  $('tpClose').onclick=close;
-  const steps=[['ВДОХ','Медленно вдохни носом — 4 секунды',4],['ПАУЗА','Задержи дыхание — 2 секунды',2],['ВЫДОХ','Длинный выдох — 6 секунд. Замечай, как уходит напряжение',6]];
-  let n=0,total=5;
-  function next(){
-    if(!alive)return;
-    if(n>=total*3){
-      $('tpPhase').textContent='ГОТОВО';$('tpText').textContent='Так выглядит одна практика. Дальше — идеи из книг, превращённые в ежедневные шаги.';$('tpSub').textContent='Создай аккаунт, чтобы сохранять прогресс';
-      $('tpBtns').innerHTML='<button class="d-btn-primary" id="tpGo" style="width:100%">Создать аккаунт</button><button class="d-btn-secondary" id="tpClose2" style="width:100%">Позже</button>';
-      $('tpGo').onclick=()=>{close();goToAuth();};$('tpClose2').onclick=close;return;}
-    const s=steps[n%3];$('tpPhase').textContent=s[0];$('tpText').textContent=s[1];n++;
-    t=setTimeout(next,s[2]*1000);
-  }
-  t=setTimeout(next,2500);
-}
-
 /* ─── Плавное закрытие окон (.modal, .complete-overlay): перехватываем добавление класса hidden, играем «выход» 0.2 с и только потом скрываем ─── */
 (function(){
   const SEL='.modal,.complete-overlay';
@@ -12364,4 +12357,80 @@ function startTryPractice(){
       }
     }
   }).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class'],attributeOldValue:true});
+})();
+
+/* ─── «Погружение»: разноцветные шарики летают, отскакивают от стен и меняют цвет при ударе ─── */
+function startBalls(canvas){
+  const ctx=canvas.getContext('2d'),DPR=Math.min(2,window.devicePixelRatio||1);
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const PAL=[[124,92,255],[79,172,254],[255,122,42],[236,92,200],[62,207,142],[255,200,60]];
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+  let W=0,H=0,raf=0,last=performance.now();
+  const size=()=>{const r=canvas.getBoundingClientRect();W=r.width;H=r.height;canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);};
+  size();
+  const balls=Array.from({length:22},()=>{const p=Math.floor(rnd(0,PAL.length)),s=rnd(45,115),an=rnd(0,6.28),r=rnd(7,30);
+    return{x:rnd(r,Math.max(r+1,W-r)),y:rnd(r,Math.max(r+1,H-r)),vx:Math.cos(an)*s,vy:Math.sin(an)*s,r,p,col:PAL[p].slice(),flash:0};});
+  function frame(now){
+    const dt=Math.min(.05,(now-last)/1000);last=now;ctx.clearRect(0,0,W,H);
+    for(const b of balls){
+      if(!reduce){b.x+=b.vx*dt;b.y+=b.vy*dt;}
+      let hit=false;
+      if(b.x<b.r){b.x=b.r;b.vx=Math.abs(b.vx);hit=true;}else if(b.x>W-b.r){b.x=W-b.r;b.vx=-Math.abs(b.vx);hit=true;}
+      if(b.y<b.r){b.y=b.r;b.vy=Math.abs(b.vy);hit=true;}else if(b.y>H-b.r){b.y=H-b.r;b.vy=-Math.abs(b.vy);hit=true;}
+      if(hit){b.p=(b.p+1+Math.floor(rnd(0,PAL.length-1)))%PAL.length;b.flash=1;}
+      const t=PAL[b.p];for(let i=0;i<3;i++)b.col[i]+=(t[i]-b.col[i])*Math.min(1,dt*6);
+      b.flash=Math.max(0,b.flash-dt*3);
+      const R=b.r*(1+b.flash*.25),c=b.col.map(Math.round).join(',');
+      const g=ctx.createRadialGradient(b.x-R*.3,b.y-R*.3,R*.1,b.x,b.y,R*1.9);
+      g.addColorStop(0,`rgba(${c},${.95})`);g.addColorStop(.45,`rgba(${c},${.55+b.flash*.3})`);g.addColorStop(1,`rgba(${c},0)`);
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(b.x,b.y,R*1.9,0,6.283);ctx.fill();
+    }
+    raf=requestAnimationFrame(frame);
+  }
+  window.addEventListener('resize',size);raf=requestAnimationFrame(frame);
+  return function stop(){cancelAnimationFrame(raf);window.removeEventListener('resize',size);};
+}
+
+/* ─── «Назад» возвращает в раздел, откуда открыли экран (уведомления, профиль и др.) ─── */
+let navFrom = null;
+['showNotifications','showProfile','showSettings','showHelp','showShopScreen','showRatingScreen','showStatsScreen','showAdmin'].forEach(n => {
+  const f = window[n]; if (typeof f !== 'function') return;
+  window[n] = function () {
+    const t = document.querySelector('.nav-btn.on')?.dataset.page;
+    if (t) navFrom = t;
+    return f.apply(this, arguments);
+  };
+});
+window.backFromNotifications = function () {
+  const p = navFrom || 'today', btn = document.querySelector('.nav-btn[data-page="' + p + '"]');
+  try { currentScreen = ''; } catch (e) {}
+  if (typeof navTo === 'function' && btn) navTo(p, btn); else smartHome();
+};
+
+/* ─── Маскот Andger: больше реакций на нажатие ─── */
+(function () {
+  const orig = window.playWithMascot; if (typeof orig !== 'function') return;
+  let n = 0, taps = [];
+  const say = t => { const b = document.getElementById('lumiTip'); if (b) b.textContent = t; };
+  const float = (el, list, count) => {
+    const r = el.getBoundingClientRect();
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.textContent = list[Math.floor(Math.random() * list.length)];
+      p.style.cssText = 'position:fixed;z-index:10050;pointer-events:none;font-size:' + (16 + Math.random() * 14) + 'px;left:' + (r.left + r.width * (.2 + Math.random() * .6)) + 'px;top:' + (r.top + r.height * .3) + 'px';
+      document.body.appendChild(p);
+      p.animate([{ transform: 'translate(0,0) scale(.6)', opacity: 0 }, { opacity: 1, offset: .2 }, { transform: 'translate(' + ((Math.random() - .5) * 90) + 'px,' + (-70 - Math.random() * 70) + 'px) scale(1.1)', opacity: 0 }], { duration: 1100 + Math.random() * 600, easing: 'ease-out' }).onfinish = () => p.remove();
+    }
+  };
+  window.playWithMascot = function (el) {
+    orig.apply(this, arguments);
+    const now = Date.now(); taps = taps.filter(t => now - t < 3000); taps.push(now);
+    const k = n++ % 5;
+    if (taps.length >= 6) { el.classList.remove('mascot-spin'); el.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-6px) rotate(-4deg)' }, { transform: 'translateX(6px) rotate(4deg)' }, { transform: 'translateX(0)' }], { duration: 220, iterations: 4 }); float(el, ['😆', '✨'], 4); say('Ой, щекотно! Давай лучше займёмся практикой 😄'); taps = []; return; }
+    if (k === 0) { el.classList.remove('mascot-spin'); el.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-26px) scale(1.06,.94)' }, { transform: 'translateY(0) scale(.95,1.05)' }, { transform: 'translateY(0)' }], { duration: 650, easing: 'cubic-bezier(.3,1.4,.5,1)' }); float(el, ['💜', '💙', '🧡'], 6); say('Я рад, что ты здесь!'); }
+    else if (k === 1) { el.classList.remove('mascot-spin'); el.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(-10deg)' }, { transform: 'rotate(10deg)' }, { transform: 'rotate(-6deg)' }, { transform: 'rotate(0)' }], { duration: 700 }); float(el, ['⭐', '✨', '🌟'], 7); say('Одно маленькое действие — и день уже другой.'); }
+    else if (k === 2) { el.classList.remove('mascot-spin'); el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.2,.8)' }, { transform: 'scale(.9,1.12)' }, { transform: 'scale(1)' }], { duration: 520, easing: 'ease-out' }); float(el, ['🔥'], 3); say('Огонь растёт, когда ты не пропускаешь дни.'); }
+    else if (k === 3) { float(el, ['🎉', '🎊', '✨', '💫'], 10); say('Праздник маленьких побед!'); }
+    else { el.classList.remove('mascot-spin'); el.animate([{ transform: 'rotate(0) scale(1)' }, { transform: 'rotate(8deg) scale(.96)' }, { transform: 'rotate(0) scale(1)' }], { duration: 900, easing: 'ease-in-out' }); float(el, ['💤', 'z'], 3); say('Дыши глубже… Всё идёт по плану.'); }
+  };
 })();

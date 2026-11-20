@@ -2899,3 +2899,69 @@ button:active,.d-btn-primary:active,.d-btn-secondary:active{transform:scale(.97)
 .modal.is-closing .modal-box{animation:boxOut .2s ease-in forwards}
 @keyframes ovOut{to{opacity:0}}
 @keyframes boxOut{to{opacity:0;transform:translateY(14px) scale(.97)}}
+
+/* v6.7 */
+.cine-breath,.cine-aura{display:none!important}
+.lib-modes button{padding:10px 12px!important;gap:4px!important;border-radius:14px!important;background:linear-gradient(135deg,rgba(124,92,255,.16),rgba(25,18,45,.8))!important;border:1px solid rgba(124,92,255,.4)!important}
+.lib-modes button>div:first-child{width:26px!important;height:26px!important;border-radius:8px!important;background:rgba(124,92,255,.22)!important;color:var(--d-accent-3,#a78bff)!important;margin-bottom:2px!important}
+.lib-modes button>div:first-child svg{width:15px!important;height:15px!important}
+.lib-modes button>div:nth-child(2){font-size:13px!important}
+.lib-modes button>div:nth-child(3){font-size:11px!important;line-height:1.3!important}
+#journalFilters{margin-top:0!important}
+
+/* v6.8 Админка: карточка пользователя (раньше этим классам не было стилей — всё шло сплошным текстом) */
+.ap-u-body{padding:4px 16px 8px}
+.ap-u-head{display:flex;align-items:center;gap:14px;padding:6px 0 14px}
+.ap-u-ava{flex:none;width:56px;height:56px;border-radius:50%;overflow:hidden}
+.ap-u-id{min-width:0;flex:1}.ap-u-id>b{display:block;font-size:19px;font-weight:900;color:#f5f4fa;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ap-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.ap-u-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ap-u-grid>div{background:rgba(255,255,255,.05);border:1px solid rgba(124,92,255,.22);border-radius:14px;padding:10px 12px;min-width:0}
+.ap-u-grid>div.w{grid-column:1/-1}
+.ap-u-grid span{display:block;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#8a8aa5;margin-bottom:3px}
+.ap-u-grid b{display:block;font-size:14px;font-weight:800;color:#f5f4fa;overflow:hidden;text-overflow:ellipsis}
+.ap-chips{display:flex;flex-wrap:wrap;gap:8px;padding:2px 2px 4px}
+.ap-u-bulk{display:flex;gap:8px;margin:0 2px 10px}
+.ap-cnt{font-style:normal;margin-left:6px;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.08);color:#c9c5e6}
+.ap-u-books{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.ap-u-bk{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);cursor:pointer}
+.ap-u-bt{display:flex;align-items:center;gap:10px;min-width:0;font-size:14px;font-weight:700;color:#f5f4fa}
+.ap-u-bt em{font-style:normal;font-size:20px;flex:none}
+.ap-u-bt>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ap-u-bk .d-toggle{flex:none}
+.ap-u-body .ap-h.s{padding:12px 2px 6px}
+
+/* v6.9 Админка: редакторы практик, FAQ, текстов и цитат — на весь экран, кнопка «Сохранить» закреплена внизу */
+#practiceEditorModal,#faqEditorModal,#textEditorModal,#bookQuoteEditorModal{padding:0;align-items:stretch;background:#120c24;-webkit-backdrop-filter:none;backdrop-filter:none;height:var(--app-h,100dvh)}
+#practiceEditorModal .modal-box,#faqEditorModal .modal-box,#textEditorModal .modal-box,#bookQuoteEditorModal .modal-box{max-width:none!important;width:100%;min-height:100%;max-height:none!important;margin:0;border:0!important;border-radius:0!important;box-shadow:none!important;background:linear-gradient(180deg,#1b1340,#120c24 60%)!important;padding:calc(env(safe-area-inset-top,0px) + 18px) 18px calc(env(safe-area-inset-bottom,0px) + 20px)!important;animation:edIn .28s cubic-bezier(.2,.8,.2,1) both!important}
+#practiceEditorModal .modal-box>.d-btn-primary,#faqEditorModal .modal-box>.d-btn-primary,#textEditorModal .modal-box>.d-btn-primary,#bookQuoteEditorModal .modal-box>.d-btn-primary{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);z-index:3;box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 0 6px rgba(18,12,36,.85)}
+#practiceEditorModal .modal-box input,#practiceEditorModal .modal-box textarea,#practiceEditorModal .modal-box select,#faqEditorModal .modal-box input,#faqEditorModal .modal-box textarea,#faqEditorModal .modal-box select,#textEditorModal .modal-box input,#textEditorModal .modal-box textarea,#textEditorModal .modal-box select,#bookQuoteEditorModal .modal-box input,#bookQuoteEditorModal .modal-box textarea,#bookQuoteEditorModal .modal-box select{font-size:16px!important;max-width:100%}
+#practiceEditorModal .modal-box [style*="grid-template-columns:1fr 1fr 1fr"],#practiceEditorModal .modal-box [style*="grid-template-columns: 1fr 1fr 1fr"]{grid-template-columns:1fr 1fr!important}
+#practiceEditorModal .modal-box>div[style*="grid-template-columns:1fr 1fr"],#practiceEditorModal .modal-box>div[style*="grid-template-columns: 1fr 1fr"]{grid-template-columns:1fr!important}
+@keyframes edIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+
+/* v6.10 Чат и лента: клавиатура */
+body.keyboard-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;overscroll-behavior:none}
+body.keyboard-open #dialogMessages{padding-bottom:calc(var(--kb,0px) + 90px)}
+#dialogInputWrap,#feedInputWrap{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+#dialogInputWrap .feed-input,#feedInputWrap .feed-input{font-size:16px}
+
+/* v6.13 Чат в стиле Telegram */
+#dialogMessages{display:flex;flex-direction:column;gap:2px;padding-top:10px}
+.msg-day{align-self:center;margin:14px 0 8px}.msg-day span{display:block;padding:4px 12px;border-radius:12px;background:rgba(255,255,255,.08);color:#b9b4d6;font-size:12px;font-weight:700;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.msg-bubble{max-width:78%;padding:7px 11px 6px;font-size:15px;line-height:1.38;border-radius:18px;position:relative;animation:msgIn .22s cubic-bezier(.2,.8,.2,1) both;word-break:break-word}
+.msg-bubble.own{background:linear-gradient(135deg,#6a4cf0,#7c8cff);color:#fff;border:0;border-bottom-right-radius:5px}
+.msg-bubble.other{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);color:#f5f4fa;border-bottom-left-radius:5px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.msg-bubble.grp-cont.own{border-bottom-right-radius:18px}.msg-bubble.grp-cont.other{border-bottom-left-radius:18px}
+.msg-bubble.grp-last{margin-bottom:8px}
+.msg-bubble .msg-time{float:right;margin:7px 0 -3px 10px;display:inline-flex;align-items:center;gap:3px;font-size:11px;opacity:.7;line-height:1}
+.msg-tick{font-size:11px;letter-spacing:-2px;margin-left:2px;opacity:.7}.msg-tick.read{color:#9be7ff;opacity:1}
+.msg-bubble .msg-delete-btn{display:none;position:static;clear:both;margin-top:8px;padding:6px 10px;width:auto;height:auto;border-radius:10px;background:rgba(0,0,0,.28);color:#ffb4b4;font-size:12px;font-weight:700;align-items:center;gap:6px;float:none}
+.msg-bubble .msg-delete-btn svg{width:14px;height:14px}
+.msg-bubble.sel .msg-delete-btn{display:inline-flex}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.msg-bubble{animation:none}}
+
+/* v6.15 Знакомство: кнопка всегда видна внизу экрана */
+.land-cta{position:sticky;bottom:0;z-index:5;margin:0 -4px;padding:18px 4px calc(env(safe-area-inset-bottom,0px) + 14px);text-align:center;background:linear-gradient(180deg,rgba(18,12,36,0),rgba(18,12,36,.92) 38%)}
+.land-cta .d-btn-primary{width:100%}
