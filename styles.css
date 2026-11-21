@@ -2941,7 +2941,6 @@ button:active,.d-btn-primary:active,.d-btn-secondary:active{transform:scale(.97)
 @keyframes edIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 
 /* v6.10 Чат и лента: клавиатура */
-body.keyboard-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;overscroll-behavior:none}
 body.keyboard-open #dialogMessages{padding-bottom:calc(var(--kb,0px) + 90px)}
 #dialogInputWrap,#feedInputWrap{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 #dialogInputWrap .feed-input,#feedInputWrap .feed-input{font-size:16px}
@@ -2965,3 +2964,13 @@ body.keyboard-open #dialogMessages{padding-bottom:calc(var(--kb,0px) + 90px)}
 /* v6.15 Знакомство: кнопка всегда видна внизу экрана */
 .land-cta{position:sticky;bottom:0;z-index:5;margin:0 -4px;padding:18px 4px calc(env(safe-area-inset-bottom,0px) + 14px);text-align:center;background:linear-gradient(180deg,rgba(18,12,36,0),rgba(18,12,36,.92) 38%)}
 .land-cta .d-btn-primary{width:100%}
+
+/* v6.16 Клавиатура как в Telegram: меню скрыто, поле прижато к клавиатуре */
+body.typing #bottomNav{display:none!important}
+body.typing #feedInputWrap,body.typing #dialogInputWrap{bottom:calc(var(--kb,0px) + 8px)!important;transition:none!important;border-radius:22px}
+body.typing #dialogMessages{padding-bottom:90px}
+.land-cta{position:static!important;margin:22px 0 0!important;padding:0!important;background:none!important}
+#landPg1[hidden],#landPg2[hidden]{display:none!important}
+
+.jr{margin:10px 0;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(124,92,255,.3);font-size:12px;max-height:30vh;overflow:auto}
+.jr ul{margin:8px 0 0;padding-left:16px}.jr li{margin:3px 0;line-height:1.35}.jr li.e{color:#ff8a8a}.jr li.w{color:#ffd66b}

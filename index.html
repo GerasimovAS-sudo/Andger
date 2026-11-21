@@ -63,8 +63,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="design-system.css?v=145">
-  <link rel="stylesheet" href="styles.css?v=145">
+  <link rel="stylesheet" href="design-system.css?v=148">
+  <link rel="stylesheet" href="styles.css?v=148">
 </head>
 <body>
 
@@ -96,7 +96,7 @@
 
   <!-- SPLASH -->
   <div id="appLoader">
-    <div class="splash-ver">v11.11.145</div>
+    <div class="splash-ver">v11.11.148</div>
     <div class="splash-main">
       <div class="splash-ring-wrap">
         <!-- Светящееся кольцо -->
@@ -207,7 +207,7 @@
       
       <div style="width:100%; display:flex; flex-direction:column; gap:12px; margin-bottom:32px;">
         <div class="d-card-glass" style="display:flex; align-items:center; gap:14px; padding:16px; text-align:left;">
-          <div style="width:40px; height:40px; border-radius:12px; background: rgba(124,92,255,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#818cf8;">
+          <div style="display:flex;flex-direction:column;gap:12px" id="landPg1"><div style="width:40px; height:40px; border-radius:12px; background: rgba(124,92,255,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#818cf8;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
           </div>
           <div><b style="font-size:15px; color:#f5f4fa;">5–20 минут в день</b><div style="font-size:12px; color:#8a8aa5; margin-top:4px;">Короткие практики, легко вписать в рутину</div></div>
@@ -224,7 +224,7 @@
           </div>
           <div><b style="font-size:15px; color:#f5f4fa;">Прогресс, который видно</b><div style="font-size:12px; color:#8a8aa5; margin-top:4px;">Отмечай практики, веди дневник</div></div>
         </div>
-        <div class="d-card-glass" style="display:flex; align-items:center; gap:14px; padding:16px; text-align:left;">
+        </div><div style="display:flex;flex-direction:column;gap:12px" id="landPg2" hidden><div class="d-card-glass" style="display:flex; align-items:center; gap:14px; padding:16px; text-align:left;">
           <div style="width:40px; height:40px; border-radius:12px; background:rgba(167,139,255,.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#a78bff;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
           </div>
@@ -238,7 +238,7 @@
         </div>
       </div>
       
-      <div class="land-cta"><button class="d-btn-primary" onclick="goToAuth()">Начать путь</button>
+      </div><div class="land-cta"><button class="d-btn-primary" id="landBtn" onclick="landNext()">Далее</button>
       <div style="font-size:13px; color:#8a8aa5; cursor:pointer; font-weight: 600; margin-top:12px;" onclick="goToAuth()">У меня уже есть аккаунт</div></div>
     </div>
   </div>
@@ -423,8 +423,8 @@
                 <ellipse cx="80" cy="122" rx="4" ry="6" fill="#ffb36b" />
                 <ellipse cx="120" cy="122" rx="4" ry="6" fill="#ffb36b" />
               </g>
-              <circle cx="100" cy="160" r="7" fill="#d69a6a" />
-              <circle cx="100" cy="158" r="4" fill="#f0c09a" opacity="0.6" />
+              <path d="M85 155 Q100 173 115 155" fill="none" stroke="#d69a6a" stroke-width="5.5" stroke-linecap="round" />
+              <path d="M90 158 Q100 167 110 158" fill="none" stroke="#f0c09a" stroke-width="2" stroke-linecap="round" opacity="0.7" />
               <g class="mascot-book">
                 <rect x="45" y="180" width="22" height="32" rx="3" fill="#1e1338" stroke="#d69a6a" stroke-width="2" transform="rotate(-15 45 180)" />
                 <path d="M 50 185 L 62 182" stroke="#ffb36b" stroke-width="2" filter="url(#glowLight)" />
@@ -1575,10 +1575,6 @@
             
             <button class="d-btn-primary" onclick="completePracticeDone()" style="height: 48px; min-height: 48px; font-size: 14px;">Сохранить</button>
             
-            <button class="d-btn-secondary" onclick="completePracticeSkip()" style="margin-top: 10px; height: 44px; min-height: 44px; font-size: 13px;">
-              Пропустить
-            </button>
-            
             <div onclick="openFeedbackModal()" style="margin-top: 12px; font-size: 12px; color: var(--d-text-dim); text-decoration: underline; cursor: pointer; text-align: center;">
               Оставить обратную связь
             </div>
@@ -1599,7 +1595,7 @@
       <!-- Модалка статистики дня -->
       <div class="modal hidden" id="dayStatsModal">
         <div class="modal-box">
-          <div class="emoji">📅</div>
+          <div class="emoji" style="display:flex;justify-content:center;color:#a78bff"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="4"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg></div>
           <h2 id="dayStatsTitle">Итоги дня</h2>
           <div id="dayStatsContent" style="text-align:left; margin-top:15px; font-size:14px; line-height:1.6"></div>
           <button class="d-btn-primary" onclick="closeDayStatsModal()" style="margin-top:20px; position: relative; z-index: 10;">Закрыть</button>
@@ -2111,7 +2107,7 @@
   <!-- Скрипты -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
-  <script src="app.js?v=145"></script>
+  <script src="app.js?v=148"></script>
 </body>
 </html>
 

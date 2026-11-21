@@ -177,6 +177,26 @@ _AVT_SYMBOLS.pulse=['azure',(S)=>`<g fill="none" stroke="${S}"><circle cx="50" c
 _AVT_SYMBOLS.prism=['violet',(S)=>`<path d="M50 22L74 68H26Z" fill="${S}" fill-opacity=".2" stroke="${S}" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 22L50 68" stroke="#fff" stroke-opacity=".25" stroke-width="1.6"/><path d="M12 52L41 52" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/><g stroke-width="3.2" stroke-linecap="round"><path d="M58 50L88 34" stroke="#ff5c8a"/><path d="M60 56L90 54" stroke="#ffd66b"/><path d="M58 62L88 74" stroke="#4facfe"/></g>`];
 _AVT_SYMBOLS.trinity=['rose',(S)=>`<g fill="${S}" fill-opacity=".5" stroke="${S}" stroke-width="2.4"><circle cx="50" cy="38" r="18"/><circle cx="38" cy="59" r="18"/><circle cx="62" cy="59" r="18"/></g><circle cx="50" cy="52" r="5.4" fill="#fff"/><circle cx="50" cy="52" r="9" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.4"/>`];
 
+/* ─── Портреты заменены абстрактной геометрией (ключи и цены те же) ─── */
+const _ABS = {
+  aria:(S)=>`<g fill="none" stroke="${S}" stroke-width="3"><ellipse cx="50" cy="50" rx="33" ry="13" transform="rotate(0 50 50)" opacity=".9"/><ellipse cx="50" cy="50" rx="33" ry="13" transform="rotate(60 50 50)" opacity=".6"/><ellipse cx="50" cy="50" rx="33" ry="13" transform="rotate(120 50 50)" opacity=".4"/></g><circle cx="50" cy="50" r="8" fill="${S}"/><circle cx="47" cy="47" r="2.6" fill="#fff" opacity=".9"/>`,
+  leo:(S)=>`<path d="M50 20L76 35V65L50 80L24 65V35Z" fill="${S}" fill-opacity=".16" stroke="${S}" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 20V80M24 35L76 65M76 35L24 65" stroke="${S}" stroke-opacity=".45" stroke-width="1.8"/><path d="M50 36L63 58H37Z" fill="${S}"/><circle cx="50" cy="52" r="2.4" fill="#fff" opacity=".9"/>`,
+  mira:(S)=>`<g fill="${S}" fill-opacity=".42" stroke="${S}" stroke-width="2"><rect x="38" y="16" width="24" height="42" rx="12"/><rect x="38" y="16" width="24" height="42" rx="12" transform="rotate(90 50 50)"/><rect x="38" y="16" width="24" height="42" rx="12" transform="rotate(45 50 50)"/><rect x="38" y="16" width="24" height="42" rx="12" transform="rotate(135 50 50)"/></g><circle cx="50" cy="50" r="7" fill="#fff" opacity=".92"/>`,
+  kai:(S)=>`<g fill="${S}"><rect x="21" y="40" width="9" height="20" rx="4.5" opacity=".55"/><rect x="33" y="28" width="9" height="44" rx="4.5" opacity=".8"/><rect x="45.5" y="18" width="9" height="64" rx="4.5"/><rect x="58" y="30" width="9" height="40" rx="4.5" opacity=".8"/><rect x="70" y="42" width="9" height="16" rx="4.5" opacity=".55"/></g>`,
+  sage:(S)=>`<path d="M50 50m0-5a5 5 0 1 1-5 5a12 12 0 1 1 12 12a20 20 0 1 1-20-20a29 29 0 1 1 29 29" fill="none" stroke="${S}" stroke-width="3.4" stroke-linecap="round"/><circle cx="50" cy="50" r="3.4" fill="#fff"/>`,
+  zen:(S)=>`<path d="M72 30A31 31 0 1 0 79 50" fill="none" stroke="${S}" stroke-width="6" stroke-linecap="round"/><circle cx="50" cy="50" r="5" fill="${S}" opacity=".85"/><circle cx="76" cy="26" r="2.6" fill="#fff"/>`,
+  nova:(S)=>`<g stroke="${S}" stroke-width="3.4" stroke-linecap="round"><path d="M50 14V30M50 70V86M14 50H30M70 50H86"/><path d="M26 26L37 37M63 63L74 74M74 26L63 37M37 63L26 74" opacity=".55"/></g><circle cx="50" cy="50" r="11" fill="${S}"/><circle cx="46" cy="46" r="3.4" fill="#fff" opacity=".9"/>`,
+  phoenix:(S)=>`<path d="M50 80C26 70 22 44 50 18C78 44 74 70 50 80Z" fill="${S}" fill-opacity=".2" stroke="${S}" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 74C38 64 38 48 50 34C62 48 62 64 50 74Z" fill="${S}"/><circle cx="50" cy="56" r="4" fill="#fff" opacity=".85"/>`
+};
+_AVT_SYMBOLS.aria=['rose',_ABS.aria];
+_AVT_SYMBOLS.leo=['azure',_ABS.leo];
+_AVT_SYMBOLS.mira=['gold',_ABS.mira];
+_AVT_SYMBOLS.kai=['teal',_ABS.kai];
+_AVT_SYMBOLS.sage=['violet',_ABS.sage];
+_AVT_SYMBOLS.zen=['ember',_ABS.zen];
+_AVT_SYMBOLS.nova=['silver',_ABS.nova];
+_AVT_SYMBOLS.phoenix=['ember',_ABS.phoenix];
+
 const AVATAR_ICONS = {};
 Object.keys(_AVT_SYMBOLS).forEach(k=>{const d=_AVT_SYMBOLS[k]; AVATAR_ICONS[k]=_avtMedal(k,d[0],d[1],!!_AVT_LIVE[k]);});
 let _avtUid = 0;
@@ -8804,7 +8824,7 @@ function showJsonImportModal() {
     modal.innerHTML = `
       <div class="modal-box" style="text-align:left; max-height: 90vh;">
         <h2 style="font-size:20px; margin-bottom:16px; text-align:center;">📥 Импорт книги из JSON</h2>
-        <p style="font-size:12px; color:var(--d-text-dim); margin-bottom:12px; text-align:center;">Вставь JSON от ИИ сюда, и книга появится в приложении.</p>
+        <p style="font-size:12px; color:var(--d-text-dim); margin-bottom:12px; text-align:center;">Вставь целую книгу или по частям: нажимай «Принять часть» после каждой. Исправленные практики просто вставь ещё раз: они заменят старые по id.</p>
         <textarea id="adminJsonInput" rows="8" placeholder='{ "id": "new-book", "title": "Название", ... }' style="width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--d-border); border-radius:12px; padding:12px; color:var(--d-text); font-family:monospace; font-size:12px; resize:vertical; margin-bottom:16px;"></textarea>
         
         <div style="background:rgba(124,92,255,0.1); border:1px solid rgba(124,92,255,0.3); padding:12px; border-radius:12px; margin-bottom:16px; font-size:12px; color:var(--d-text-dim); line-height:1.4;">
@@ -8821,7 +8841,12 @@ function showJsonImportModal() {
           <div class="d-toggle" id="jsonFreeToggle" onclick="this.classList.toggle('on')"></div>
         </div>
 
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button class="d-btn-secondary" style="flex:1" onclick="jsonAcceptPart()">➕ Принять часть</button>
+          <button class="d-btn-secondary" style="flex:1" onclick="jsonCopyReport()">📋 Скопировать отчёт</button>
+        </div>
         <button class="d-btn-primary" onclick="addBookFromJSON()">Добавить в базу</button>
+        <button class="d-btn-secondary" onclick="jsonClearStage()" style="margin-top:8px;">Очистить собранное</button>
         <button class="d-btn-secondary" onclick="document.getElementById('jsonImportModal').classList.add('hidden')" style="margin-top:8px;">Отмена</button>
       </div>
     `;
@@ -8829,16 +8854,19 @@ function showJsonImportModal() {
   }
   document.getElementById('adminJsonInput').value = '';
   modal.classList.remove('hidden');
+  jsonLoadStage();
 }
 
 async function addBookFromJSON() {
   const textarea = document.getElementById('adminJsonInput');
   const jsonStr = textarea.value.trim();
-  if (!jsonStr) return toast('Вставь JSON', 'warm');
+  if (!jsonStr && !window._jStage) return toast('Вставь JSON', 'warm');
 
   try {
     // Парсим JSON
-    let bookData = JSON.parse(jsonStr);
+    if (jsonStr && !jsonAcceptPart()) return;
+    let bookData = JSON.parse(JSON.stringify(window._jStage));
+    { const rep = validateBookJson(bookData); showJsonReport(rep); if (rep.errors.length) return toast('Исправь ошибки (список выше) или скопируй отчёт для ИИ', 'danger'); }
     
     // ✨ ВАЛИДАТОР ИИ: Чиним галлюцинации таймингов
     let fixedTimelines = 0;
@@ -8910,6 +8938,7 @@ async function addBookFromJSON() {
     if (error) throw error;
 
     // Очищаем и закрываем
+    jsonClearStage(true);
     textarea.value = '';
     document.getElementById('jsonImportModal').classList.add('hidden');
     
@@ -9377,25 +9406,13 @@ if (window.visualViewport) {
       const ae = document.activeElement;
       const typing = !!(wrap && ae && wrap.contains(ae));
       const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      if (wrap && typing && kb > 80) {
-        document.body.classList.add('keyboard-open');
-        document.documentElement.style.setProperty('--kb', kb + 'px');
-        wrap.style.bottom = kb + 'px';
-        wrap.style.borderRadius = '16px 16px 0 0';
-        wrap.style.transition = 'none';
-        if (nav) nav.style.display = 'none';
-        if (window.scrollY !== 0 || vv.offsetTop !== 0) window.scrollTo(0, 0); /* не даём iOS сдвигать страницу и шапку */
+      document.body.classList.toggle('typing', typing);
+      document.body.classList.toggle('keyboard-open', typing);
+      document.documentElement.style.setProperty('--kb', (typing && kb > 80 ? kb : 0) + 'px');
+      if (typing) {
+        if (vv.offsetTop > 0) window.scrollTo(0, 0);
         const dm = document.getElementById('dialogMessages');
         if (dm && wrap.id === 'dialogInputWrap') dm.scrollTop = dm.scrollHeight;
-      } else if (document.body.classList.contains('keyboard-open')) {
-        document.body.classList.remove('keyboard-open');
-        document.documentElement.style.removeProperty('--kb');
-        document.querySelectorAll('#dialogInputWrap,#feedInputWrap').forEach(w => {
-          w.style.bottom = 'calc(85px + env(safe-area-inset-bottom, 0px))';
-          w.style.borderRadius = '16px';
-          w.style.transition = 'bottom .2s ease-out';
-        });
-        if (nav) nav.style.display = '';
       }
     });
   };
@@ -11307,7 +11324,7 @@ window.Coach = {
   evening(b, bs) {
     const today = todayStr(), rec = bs.days[today] || {};
     // Показываем только с 18:00 до 23:59 и если есть практики и еще не заполнено
-    if (new Date().getHours() < 18 || !(rec.practices || []).length || this.data(bs).evening[today]) return '';
+    if (true || new Date().getHours() < 18 || !(rec.practices || []).length || this.data(bs).evening[today]) return '';
     
     return this.card('Итоги дня', `
       <div class="cc-s" style="margin-bottom: 12px;">Удели 1 минуту, чтобы зафиксировать результат.</div>
@@ -11828,6 +11845,15 @@ window.Path = {
     
     if (it.s === 'done') {
       msg = '<div class="pt-ok">Пройдено ✓</div>';
+      const _doneToday = ((this.st(b).nodes || {})[it.id] || {}).date === todayStr(), _bonus = node.bonus_practices || [];
+      if (_doneToday && _bonus.length) {
+        const _rc = getBookState(b.id).days[todayStr()] || { practices: [] };
+        btn = `<div style="display:flex;flex-direction:column;width:100%"><div style="font-size:10px;font-weight:800;color:var(--d-text-dim);text-transform:uppercase;margin:6px 0 8px;text-align:left">✨ Бонусные практики — по желанию</div>` + _bonus.map(pid => {
+          const p = this.prac(b, pid); if (!p) return '';
+          const dn = (_rc.practices || []).includes(pid), pm = Math.max(1, Math.round((p.time || 60) / 60));
+          return `<button class="d-btn-secondary" ${dn ? '' : `onclick="Path.startNode('${it.id}', '${pid}')"`} style="width:100%;margin-bottom:6px;height:44px;font-size:13px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;padding:0 16px;${dn ? 'opacity:.5;' : ''}"><span style="text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%">${dn ? '✅ ' : ''}${E(p.title)}</span><span style="font-size:10px;color:var(--d-text-dim)">${pm} мин</span></button>`;
+        }).join('') + '</div>';
+      }
     } else if (it.s === 'lock' && !bypass) {
       msg = '<div class="pt-note">Этот узел откроется после предыдущих.</div>';
     } else if (prem && !bypass) {
@@ -11901,8 +11927,9 @@ window.Path = {
   },
   startNode(id, specificPid = null) {
     const b = this.cur(); if (!b) return; const it = this.state(b).items.find(x => x.id === id); const bypass = isAdminMode();
-    if (!it || (it.s !== 'cur' && !bypass) || (it.wait && !bypass)) return;
-    if (!this.canPlay(b, it)) { this.closeSheet(); return showPremium(); }
+    const _bn = it && it.s === 'done' && specificPid && (it.node.bonus_practices || []).includes(specificPid) && ((this.st(b).nodes || {})[it.id] || {}).date === todayStr();
+    if (!it || (it.s !== 'cur' && !bypass && !_bn) || (it.wait && !bypass && !_bn)) return;
+    if (!_bn && !this.canPlay(b, it)) { this.closeSheet(); return showPremium(); }
     
     const bs = getBookState(b.id), rec = bs.days[todayStr()] || { practices: [] };
     let pidToStart = specificPid;
@@ -12434,3 +12461,87 @@ window.backFromNotifications = function () {
     else { el.classList.remove('mascot-spin'); el.animate([{ transform: 'rotate(0) scale(1)' }, { transform: 'rotate(8deg) scale(.96)' }, { transform: 'rotate(0) scale(1)' }], { duration: 900, easing: 'ease-in-out' }); float(el, ['💤', 'z'], 3); say('Дыши глубже… Всё идёт по плану.'); }
   };
 })();
+
+/* ─── Знакомство в два шага: «Далее» → вторая страница → «Начать путь» ─── */
+function landNext() {
+  const p1 = document.getElementById('landPg1'), p2 = document.getElementById('landPg2'), b = document.getElementById('landBtn');
+  if (!p1 || !p2 || !b) return goToAuth();
+  p1.hidden = true; p2.hidden = false; p2.style.animation = 'screenFadeIn .35s ease both';
+  b.textContent = 'Начать путь'; b.onclick = goToAuth;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ─── Проверка JSON книги перед импортом ─── */
+function validateBookJson(b) {
+  const er = [], wr = [], P = Array.isArray(b && b.practices) ? b.practices : [];
+  if (!b || typeof b !== 'object') return { errors: ['JSON не объект'], warnings: [] };
+  ['id', 'title', 'author', 'days'].forEach(k => { if (!b[k]) er.push(`Нет поля «${k}»`); });
+  if (!P.length) er.push('Нет списка practices');
+  const ids = new Map();
+  P.forEach((p, i) => {
+    const t = `Практика ${p.id || '#' + (i + 1)}`;
+    if (!p.id) er.push(`${t}: нет id`); else if (ids.has(p.id)) er.push(`${t}: id повторяется`); else ids.set(p.id, p);
+    if (!p.title) er.push(`${t}: нет title`);
+    if (!['action', 'audio'].includes(p.type)) er.push(`${t}: type должен быть action или audio`);
+    if (typeof p.time !== 'number' || p.time < 30) er.push(`${t}: time должен быть числом секунд`);
+    if (p.type === 'audio' && !p.immersion_text) er.push(`${t}: у погружения нет immersion_text`);
+    if (p.type === 'action' && !(p.voiceTimeline || []).length) er.push(`${t}: у практики нет voiceTimeline`);
+    if (p.type === 'action' && (!Array.isArray(p.how) || p.how.length < 2)) wr.push(`${t}: меньше 2 шагов в how`);
+    ['trigger', 'why', 'result', 'micro_action', 'journal_prompt'].forEach(k => { if (!p[k]) wr.push(`${t}: пустое «${k}»`); });
+    if (p.type === 'audio' && p.immersion_text) { const w = p.immersion_text.trim().split(/\s+/).length; if (w < p.time * 1.2 || w > p.time * 2.4) wr.push(`${t}: текст ${w} слов, для ${p.time} сек ждали ${Math.round(p.time * 1.4)}–${Math.round(p.time * 2.2)}`); }
+  });
+  const used = new Set(), weeks = (b.path && b.path.weeks) || [];
+  let nodes = 0;
+  weeks.forEach(w => (w.nodes || []).forEach(n => {
+    nodes++;
+    [].concat(n.practices || [], n.bonus_practices || [], n.recap || []).forEach(id => { used.add(id); if (!ids.has(id)) er.push(`Узел ${n.id}: нет практики «${id}»`); });
+    if (!(n.practices || []).length) er.push(`Узел ${n.id}: нет основных практик`);
+  }));
+  if (b.path && nodes !== Number(b.days)) wr.push(`Узлов ${nodes}, а days = ${b.days}`);
+  const unused = [...ids.keys()].filter(id => !used.has(id)); if (b.path && unused.length) wr.push(`Не используются: ${unused.slice(0, 8).join(', ')}${unused.length > 8 ? '…' : ''}`);
+  if (Array.isArray(b.lumi_tips) && b.days && b.lumi_tips.length !== Number(b.days)) wr.push(`lumi_tips: ${b.lumi_tips.length}, ждали ${b.days}`);
+  return { errors: er, warnings: wr };
+}
+function showJsonReport(rep, staged) {
+  const m = document.getElementById('jsonImportModal'); if (!m) return;
+  let r = document.getElementById('jsonReport');
+  if (!r) { r = document.createElement('div'); r.id = 'jsonReport'; const ta = document.getElementById('adminJsonInput'); ta.parentNode.insertBefore(r, ta.nextSibling); }
+  const li = (arr, cls) => arr.slice(0, 40).map(x => `<li class="${cls}">${escapeHtml(x)}</li>`).join('') + (arr.length > 40 ? `<li class="${cls}">…и ещё ${arr.length - 40}</li>` : '');
+  const S = window._jStage, P = (S && S.practices) || [], head = staged && S ? `<div style="margin-bottom:6px;color:#c9c5e6">Собрано: <b>${S.title || 'книга без названия'}</b> · практик ${P.length}${S.path ? ' · узлов ' + ((S.path.weeks || []).reduce((n, w) => n + (w.nodes || []).length, 0)) : ' · структура (часть 1) ещё не принята'}</div>` : '';
+  r.className = 'jr'; r.innerHTML = head + (rep.errors.length || rep.warnings.length
+    ? `<b>${rep.errors.length ? '✖ Ошибок: ' + rep.errors.length : '✔ Ошибок нет'}${rep.warnings.length ? ' · замечаний: ' + rep.warnings.length : ''}</b><ul>${li(rep.errors, 'e')}${li(rep.warnings, 'w')}</ul>`
+    : '<b>✔ Структура в порядке</b>');
+}
+
+/* ─── Сборка книги из частей ─── */
+function jsonSaveStage() { try { localStorage.setItem('andger_json_stage', JSON.stringify(window._jStage || null)); } catch (e) {} }
+function jsonLoadStage() { try { window._jStage = JSON.parse(localStorage.getItem('andger_json_stage') || 'null'); } catch (e) { window._jStage = null; } if (window._jStage) showJsonReport(validateBookJson(window._jStage), true); else { const r = document.getElementById('jsonReport'); if (r) r.innerHTML = ''; } }
+function jsonClearStage(silent) { window._jStage = null; jsonSaveStage(); const r = document.getElementById('jsonReport'); if (r) r.innerHTML = ''; if (!silent) toast('Собранное очищено', 'warm'); }
+function jsonAcceptPart() {
+  const ta = document.getElementById('adminJsonInput'); let t = (ta.value || '').trim();
+  if (!t) { toast('Вставь JSON-часть', 'warm'); return false; }
+  const s = t.indexOf('{'), s2 = t.indexOf('['); const st = s < 0 ? s2 : (s2 < 0 ? s : Math.min(s, s2));
+  const en = Math.max(t.lastIndexOf('}'), t.lastIndexOf(']'));
+  let obj; try { obj = JSON.parse(t.slice(st, en + 1)); } catch (e) { toast('Не получилось прочитать JSON: ' + e.message, 'danger'); return false; }
+  const S = window._jStage || { practices: [] };
+  if (Array.isArray(obj)) obj = { practices: obj };
+  Object.keys(obj).forEach(k => {
+    if (k === 'practices' && Array.isArray(obj[k])) {
+      const m = new Map((S.practices || []).map(p => [p.id, p]));
+      obj[k].forEach(p => { if (p && p.id) m.set(p.id, p); });
+      S.practices = [...m.values()];
+    } else if (k !== 'plan') S[k] = obj[k];
+  });
+  window._jStage = S; jsonSaveStage(); ta.value = '';
+  showJsonReport(validateBookJson(S), true);
+  toast('Часть принята', 'success');
+  return true;
+}
+function jsonCopyReport() {
+  const S = window._jStage; if (!S) return toast('Сначала прими часть', 'warm');
+  const r = validateBookJson(S);
+  const txt = (r.errors.length + r.warnings.length)
+    ? `Исправь ошибки в JSON книги «${S.title || ''}». Верни ТОЛЬКО один блок json вида {"practices":[...]} с исправленными практиками (только те, что указаны ниже, остальное не повторяй). Если ошибка в структуре книги (path/weeks/nodes) — верни {"path":{...}} целиком.\n\nОШИБКИ:\n${r.errors.map(x => '- ' + x).join('\n') || '- нет'}\n\nЗАМЕЧАНИЯ:\n${r.warnings.map(x => '- ' + x).join('\n') || '- нет'}`
+    : 'Ошибок и замечаний нет.';
+  (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast('Отчёт скопирован — отправь в DeepSeek', 'success')).catch(() => { const ta = document.getElementById('adminJsonInput'); ta.value = txt; ta.select(); toast('Скопируй текст из поля вручную', 'warm'); });
+}
