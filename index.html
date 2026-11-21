@@ -63,8 +63,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="design-system.css?v=148">
-  <link rel="stylesheet" href="styles.css?v=148">
+  <link rel="stylesheet" href="design-system.css?v=149">
+  <link rel="stylesheet" href="styles.css?v=149">
 </head>
 <body>
 
@@ -96,7 +96,7 @@
 
   <!-- SPLASH -->
   <div id="appLoader">
-    <div class="splash-ver">v11.11.148</div>
+    <div class="splash-ver">v11.11.149</div>
     <div class="splash-main">
       <div class="splash-ring-wrap">
         <!-- Светящееся кольцо -->
@@ -192,54 +192,34 @@
 
   <!-- ═══════ LANDING (ЭКРАН ЗНАКОМСТВА) ═══════ -->
   <div id="landingScreen" class="hidden" style="position:fixed; inset:0; z-index:50; background: transparent !important; display:flex; flex-direction:column; padding: 40px 20px calc(40px + env(safe-area-inset-bottom, 0px)); overflow: hidden;">
-    <div style="max-width:440px; width:100%; display:flex; flex-direction:column; align-items:center; text-align:center; margin:auto;">
-      
-      <div style="font-size:28px; font-weight:900; letter-spacing:10px; background: linear-gradient(135deg, #c4b5fd, #4f46e5, #ff9d00); -webkit-background-clip:text; background-clip: text; -webkit-text-fill-color:transparent; margin-bottom:16px; filter: drop-shadow(0 0 15px rgba(124,92,255,0.4));">ANDGER</div>
-      
-      <h1 style="font-size:24px; font-weight:900; line-height:1.2; color:#f5f4fa; margin-bottom:12px;">
-        Меньше читать впустую.<br>
-        <span style="background: linear-gradient(135deg, #4f46e5, #ff9d00); -webkit-background-clip:text; background-clip: text; -webkit-text-fill-color:transparent;">Больше применять в жизнь.</span>
-      </h1>
-      
-      <p style="font-size:14px; color:#8a8aa5; line-height:1.5; margin-bottom:32px; max-width: 90%;">
-        Практикум по внедрению книжных привычек. Превращай идеи из сильных книг в ежедневные действия.
-      </p>
-      
-      <div style="width:100%; display:flex; flex-direction:column; gap:12px; margin-bottom:32px;">
-        <div class="d-card-glass" style="display:flex; align-items:center; gap:14px; padding:16px; text-align:left;">
-          <div style="display:flex;flex-direction:column;gap:12px" id="landPg1"><div style="width:40px; height:40px; border-radius:12px; background: rgba(124,92,255,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#818cf8;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+    <div class="ld">
+      <div class="ld-logo">ANDGER</div>
+      <div class="ld-body">
+        <div class="ld-pg" id="landPg1">
+          <h1>Прочитанное не меняет жизнь.<br><em>Применённое — меняет.</em></h1>
+          <p class="ld-sub">ANDGER превращает идеи сильных книг в 21 день простых шагов. Читать всю книгу не нужно: ты сразу делаешь то, что в ней работает.</p>
+          <div class="ld-cards">
+            <div class="ld-card"><div class="ld-ic" style="background:rgba(167,139,255,.16);color:#a78bff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><div><b>Суть книги за 5 минут</b><span>Главные идеи с примерами из жизни: без воды и пересказа глав.</span></div></div>
+            <div class="ld-card"><div class="ld-ic" style="background:rgba(255,177,74,.16);color:#ffb14a"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div><div><b>Один шаг в день</b><span>Практика, погружение и действие дня: 5–15 минут, без героизма.</span></div></div>
+            <div class="ld-card"><div class="ld-ic" style="background:rgba(62,207,142,.16);color:#3ecf8e"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div><div><b>Результат, который видно</b><span>Огонь, оценки «было/стало» и дневник показывают, что изменилось.</span></div></div>
           </div>
-          <div><b style="font-size:15px; color:#f5f4fa;">5–20 минут в день</b><div style="font-size:12px; color:#8a8aa5; margin-top:4px;">Короткие практики, легко вписать в рутину</div></div>
         </div>
-        <div class="d-card-glass" style="display:flex; align-items:center; gap:14px; padding:16px; text-align:left;">
-          <div style="width:40px; height:40px; border-radius:12px; background: rgba(255,154,86,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#ff9d00;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <div class="ld-pg" id="landPg2" hidden>
+          <h1>Как проходит<br><em>твой день</em></h1>
+          <p class="ld-sub">Каждый день одна и та же простая схема. Ты всегда знаешь, что делать дальше.</p>
+          <div class="ld-cards">
+            <div class="ld-card"><div class="ld-ic" style="background:rgba(167,139,255,.16);color:#a78bff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z"/></svg></div><div><b>1. Практика</b><span>Делаешь конкретное действие в жизни. Голос ведёт по шагам.</span></div></div>
+            <div class="ld-card"><div class="ld-ic" style="background:rgba(79,172,254,.16);color:#4facfe"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></div><div><b>2. Погружение</b><span>2–3 минуты тренируешь внимание: учишься замечать и выбирать.</span></div></div>
+            <div class="ld-card"><div class="ld-ic" style="background:rgba(255,177,74,.16);color:#ffb14a"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div><div><b>3. Действие дня</b><span>Один маленький шаг на сегодня и запись вывода в дневник.</span></div></div>
           </div>
-          <div><b style="font-size:15px; color:#f5f4fa;">Пошаговые программы</b><div style="font-size:12px; color:#8a8aa5; margin-top:4px;">Готовые планы на основе бестселлеров</div></div>
-        </div>
-        <div class="d-card-glass" style="display:flex; align-items:center; gap:14px; padding:16px; text-align:left;">
-          <div style="width:40px; height:40px; border-radius:12px; background: rgba(62,207,142,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#3ecf8e;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-          </div>
-          <div><b style="font-size:15px; color:#f5f4fa;">Прогресс, который видно</b><div style="font-size:12px; color:#8a8aa5; margin-top:4px;">Отмечай практики, веди дневник</div></div>
-        </div>
-        </div><div style="display:flex;flex-direction:column;gap:12px" id="landPg2" hidden><div class="d-card-glass" style="display:flex; align-items:center; gap:14px; padding:16px; text-align:left;">
-          <div style="width:40px; height:40px; border-radius:12px; background:rgba(167,139,255,.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#a78bff;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          </div>
-          <div><b style="font-size:15px; color:#f5f4fa;">Идея из книги — в действие</b><div style="font-size:12px; color:#8a8aa5; margin-top:4px;">Каждую мысль превращаем в короткое упражнение с голосом и таймером</div></div>
-        </div>
-        <div class="d-card-glass" style="display:flex; align-items:center; gap:14px; padding:16px; text-align:left;">
-          <div style="width:40px; height:40px; border-radius:12px; background:rgba(79,172,254,.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#4facfe;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          </div>
-          <div><b style="font-size:15px; color:#f5f4fa;">Дневник и сообщество</b><div style="font-size:12px; color:#8a8aa5; margin-top:4px;">Записывай инсайты, делись прогрессом в ленте и поддерживай других</div></div>
+          <p class="ld-note">Пропустил день? Вернись в тот же день, без вины.</p>
         </div>
       </div>
-      
-      </div><div class="land-cta"><button class="d-btn-primary" id="landBtn" onclick="landNext()">Далее</button>
-      <div style="font-size:13px; color:#8a8aa5; cursor:pointer; font-weight: 600; margin-top:12px;" onclick="goToAuth()">У меня уже есть аккаунт</div></div>
+      <div class="ld-foot">
+        <div class="ld-dots"><i class="on" id="landD1"></i><i id="landD2"></i></div>
+        <button class="d-btn-primary" id="landBtn" onclick="landNext()">Далее</button>
+        <div class="ld-acc" onclick="goToAuth()">У меня уже есть аккаунт</div>
+      </div>
     </div>
   </div>
   
@@ -2107,7 +2087,7 @@
   <!-- Скрипты -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
-  <script src="app.js?v=148"></script>
+  <script src="app.js?v=149"></script>
 </body>
 </html>
 

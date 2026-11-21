@@ -6060,6 +6060,7 @@ async function loadDialog(){
           ${canDel ? `<div class="msg-delete-btn" onclick="event.stopPropagation(); ${delAction}" title="Удалить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg><span>Удалить</span></div>` : ''}
         </div>`;
     }).join('');
+    requestAnimationFrame(() => { const w = document.querySelector('#dialogScreen .wrap'); if (w) w.scrollTop = w.scrollHeight; });
     el.scrollTop=el.scrollHeight;
     window.scrollTo(0,document.body.scrollHeight);
   }catch(e){
@@ -8865,8 +8866,8 @@ async function addBookFromJSON() {
   try {
     // Парсим JSON
     if (jsonStr && !jsonAcceptPart()) return;
-    let bookData = JSON.parse(JSON.stringify(window._jStage));
-    { const rep = validateBookJson(bookData); showJsonReport(rep); if (rep.errors.length) return toast('Исправь ошибки (список выше) или скопируй отчёт для ИИ', 'danger'); }
+    let bookData = JSON.parse(JSON.stringify(window._jStage)); delete bookData._plan; delete bookData.plan;
+    { const rep = validateBookJson(bookData); showJsonReport(); if (rep.errors.length || rep.missing.length) return toast('Книга ещё не готова — см. шаги выше', 'danger'); }
     
     // ✨ ВАЛИДАТОР ИИ: Чиним галлюцинации таймингов
     let fixedTimelines = 0;
@@ -9401,6 +9402,7 @@ if (window.visualViewport) {
   const handleKeyboard = () => {
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(() => {
+      document.documentElement.style.setProperty('--vvh', vv.height + 'px'); document.documentElement.style.setProperty('--vvt', vv.offsetTop + 'px');
       const wrap = activeWrap();
       const nav = document.getElementById('bottomNav');
       const ae = document.activeElement;
@@ -9411,8 +9413,8 @@ if (window.visualViewport) {
       document.documentElement.style.setProperty('--kb', (typing && kb > 80 ? kb : 0) + 'px');
       if (typing) {
         if (vv.offsetTop > 0) window.scrollTo(0, 0);
-        const dm = document.getElementById('dialogMessages');
-        if (dm && wrap.id === 'dialogInputWrap') dm.scrollTop = dm.scrollHeight;
+        const dw = document.querySelector('#dialogScreen .wrap');
+        if (dw && wrap.id === 'dialogInputWrap') dw.scrollTop = dw.scrollHeight;
       }
     });
   };
@@ -12468,6 +12470,7 @@ function landNext() {
   if (!p1 || !p2 || !b) return goToAuth();
   p1.hidden = true; p2.hidden = false; p2.style.animation = 'screenFadeIn .35s ease both';
   b.textContent = 'Начать путь'; b.onclick = goToAuth;
+  const d1 = document.getElementById('landD1'), d2 = document.getElementById('landD2'); if (d1) d1.classList.remove('on'); if (d2) d2.classList.add('on');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -12545,3 +12548,141 @@ function jsonCopyReport() {
     : 'Ошибок и замечаний нет.';
   (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast('Отчёт скопирован — отправь в DeepSeek', 'success')).catch(() => { const ta = document.getElementById('adminJsonInput'); ta.value = txt; ta.select(); toast('Скопируй текст из поля вручную', 'warm'); });
 }
+
+/* ═════ Мастер добавления книги (v6.19) ═════ */
+function validateBookJson(b) {
+  const er = [], wr = [], P = Array.isArray(b && b.practices) ? b.practices : [];
+  if (!b || typeof b !== 'object') return { errors: ['JSON не объект'], warnings: [], missing: [], stubs: [], need: { main: [], bonus: [] } };
+  ['id', 'title', 'author', 'days'].forEach(k => { if (!b[k]) er.push(`Нет поля «${k}»`); });
+  const ids = new Map(), stubs = [];
+  P.forEach((p, i) => {
+    const t = `Практика ${p.id || '#' + (i + 1)}`;
+    if (!p.id) { er.push(`${t}: нет id`); return; }
+    if (ids.has(p.id)) er.push(`${t}: id повторяется`); else ids.set(p.id, p);
+    if (!['action', 'audio'].includes(p.type)) er.push(`${t}: type должен быть action или audio`);
+    if (typeof p.time !== 'number' || p.time < 30) er.push(`${t}: time — число секунд`);
+    const body = p.type === 'audio' ? p.immersion_text : (p.voiceTimeline || []).length;
+    if (!body || !p.trigger || !p.why) { stubs.push(p.id); return; }
+    if (p.type === 'action' && (!Array.isArray(p.how) || p.how.length < 2)) wr.push(`${t}: меньше 2 шагов в how`);
+    ['result', 'micro_action', 'journal_prompt'].forEach(k => { if (!p[k]) wr.push(`${t}: пустое «${k}»`); });
+    if (p.type === 'audio') { const w = p.immersion_text.trim().split(/\s+/).length; if (w < p.time * 1.1 || w > p.time * 2.5) wr.push(`${t}: текст ${w} слов при ${p.time} сек`); }
+  });
+  if (stubs.length) er.push(`Заглушки без текста (${stubs.length}): ${stubs.slice(0, 10).join(', ')}${stubs.length > 10 ? '…' : ''}. Нужны ПОЛНЫЕ практики.`);
+  const need = { main: [], bonus: [] }, weeks = (b.path && b.path.weeks) || [], missing = [];
+  let nodes = 0;
+  weeks.forEach(w => (w.nodes || []).forEach(n => {
+    nodes++;
+    const pr = n.practices || [];
+    if (pr.length < 1 || pr.length > 2) er.push(`Узел ${n.id}: должно быть 1–2 практики`);
+    pr.forEach(id => { if (!need.main.includes(id)) need.main.push(id); });
+    (n.bonus_practices || []).forEach(id => { if (!need.bonus.includes(id)) need.bonus.push(id); });
+    if (n.focus && n.focus.length > 90) wr.push(`Узел ${n.id}: focus длиннее 90 символов`);
+  }));
+  [...need.main, ...need.bonus].forEach(id => { if (!ids.has(id)) missing.push(id); });
+  if (b.path && nodes !== Number(b.days)) er.push(`Узлов ${nodes}, а days = ${b.days}`);
+  if (Array.isArray(b.lumi_tips) && b.days && b.lumi_tips.length !== Number(b.days)) wr.push(`lumi_tips: ${b.lumi_tips.length}, ждали ${b.days}`);
+  return { errors: er, warnings: wr, missing, stubs, need };
+}
+const _jRange = ids => { const o = []; ids.forEach(id => o.push(id)); return o.length > 8 ? o.slice(0, 8).join(', ') + ` … (+${o.length - 8})` : o.join(', '); };
+function jsonProgress(S, rep) {
+  const done = ids => ids.filter(id => !rep.missing.includes(id) && !rep.stubs.includes(id)).length;
+  const hasBase = !!(S && S.path && S.title), mN = rep.need.main.length, bN = rep.need.bonus.length;
+  const mD = done(rep.need.main), bD = done(rep.need.bonus);
+  const real = rep.errors.filter(e => !e.startsWith('Заглушки'));
+  const steps = [
+    { ok: hasBase, t: 'Основа книги', s: hasBase ? `${S.title} · ${(S.path.weeks || []).reduce((n, w) => n + (w.nodes || []).length, 0)} дней` : 'Вставь ЧАСТЬ 1' },
+    { ok: hasBase && mN && mD === mN, t: 'Практики и погружения', s: hasBase ? `${mD} из ${mN}` : 'после части 1' },
+    { ok: hasBase && bN && bD === bN, t: 'Бонусные практики', s: hasBase ? `${bD} из ${bN}` : 'после части 1' },
+    { ok: hasBase && !rep.errors.length, t: 'Проверка', s: !hasBase ? '—' : rep.errors.length ? `ошибок: ${rep.errors.length}` : 'всё хорошо' }
+  ];
+  let next = 'Нажми «Добавить в базу».';
+  if (!hasBase) next = 'Вставь ЧАСТЬ 1 (основа книги) и нажми «Принять часть».';
+  else if (rep.missing.length) next = `Вставь следующую часть с практиками. Не хватает: ${_jRange(rep.missing)}.`;
+  else if (rep.stubs.length) next = 'Часть практик пришла «заглушками». Нажми значок копирования в отчёте, отправь текст в DeepSeek и вставь ответ.';
+  else if (real.length) next = 'Исправь ошибки: нажми значок копирования в отчёте и отправь текст в DeepSeek.';
+  return { steps, next, ready: hasBase && !rep.errors.length && !rep.missing.length };
+}
+function showJsonReport() {
+  const S = window._jStage, box = document.getElementById('jsonReport'), st = document.getElementById('jwSteps'), nx = document.getElementById('jwNext');
+  if (!box || !st) return;
+  if (!S) { st.innerHTML = ''; box.innerHTML = ''; if (nx) nx.textContent = 'Вставь ЧАСТЬ 1 (основа книги) из DeepSeek и нажми «Принять часть».'; jwRefresh(); return; }
+  const rep = validateBookJson(S), pg = jsonProgress(S, rep);
+  window._jRep = rep; window._jReady = pg.ready;
+  st.innerHTML = pg.steps.map(x => `<div class="jw-st ${x.ok ? 'ok' : ''}"><i>${x.ok ? '✓' : '○'}</i><b>${x.t}</b><span>${escapeHtml(x.s)}</span></div>`).join('');
+  if (nx) nx.textContent = '→ ' + pg.next;
+  const li = (arr, cls) => arr.slice(0, 30).map(x => `<li class="${cls}">${escapeHtml(x)}</li>`).join('') + (arr.length > 30 ? `<li class="${cls}">…и ещё ${arr.length - 30}</li>` : '');
+  const real = rep.errors, hasIssue = real.length || rep.warnings.length || rep.missing.length;
+  box.innerHTML = hasIssue ? `<div class="jr-h"><b>${real.length ? 'Ошибки: ' + real.length : 'Ошибок нет'}${rep.warnings.length ? ' · замечаний: ' + rep.warnings.length : ''}</b><button class="jr-cp" onclick="jsonCopyReport()" aria-label="Скопировать для DeepSeek" title="Скопировать для DeepSeek"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15V6a3 3 0 0 1 3-3h9"/></svg></button></div><ul>${li(real, 'e')}${li(rep.warnings, 'w')}</ul>` : '<div class="jr-h"><b>✔ Всё в порядке</b></div>';
+  jwRefresh();
+}
+function jwRefresh() {
+  const ta = document.getElementById('adminJsonInput'), acc = document.getElementById('jwAccept'), add = document.getElementById('jwAdd');
+  if (acc && ta) acc.disabled = !ta.value.trim();
+  if (add) add.disabled = !window._jReady;
+}
+function jsonCopyReport() {
+  const S = window._jStage, rep = S && validateBookJson(S); if (!rep) return toast('Сначала прими часть', 'warm');
+  const need = [...new Set([...rep.stubs, ...rep.missing])], plan = (S._plan || []), tt = id => { const p = plan.find(x => x.id === id); return p ? `${id} («${p.title}»${p.type ? ', ' + p.type : ''})` : id; };
+  const other = rep.errors.filter(e => !e.startsWith('Заглушки')), parts = [];
+  if (need.length) parts.push(`Выдай ПОЛНЫЕ объекты практик для: ${need.slice(0, 6).map(tt).join('; ')}. Каждый объект — со ВСЕМИ полями схемы (id, title, sub, ico, type, time, trigger, identity, micro_action, journal_prompt, why, book_link, how, result, mistakes, advice, voiceTimeline ИЛИ immersion_text, voice_settings). Заглушки, сокращения и многоточия запрещены. Не больше 6 практик за ответ.${need.length > 6 ? ` Остальные (${need.length - 6}) дам следом, когда напишу «дальше».` : ''}`);
+  if (other.length) parts.push('Исправь ошибки:\n' + other.map(x => '- ' + x).join('\n'));
+  if (rep.warnings.length) parts.push('Замечания (по возможности учти):\n' + rep.warnings.slice(0, 12).map(x => '- ' + x).join('\n'));
+  const txt = `Книга «${S.title || ''}». ` + (parts.join('\n\n') || 'Ошибок нет.') + '\n\nОтветь ТОЛЬКО одним блоком json вида {"practices":[...]} (если ошибка в структуре — {"path":{...}}), без пояснений.';
+  (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast('Скопировано — вставь в DeepSeek', 'success')).catch(() => { const ta = document.getElementById('adminJsonInput'); ta.value = txt; ta.select(); toast('Скопируй текст из поля вручную', 'warm'); });
+}
+function jsonLoadStage() { try { window._jStage = JSON.parse(localStorage.getItem('andger_json_stage') || 'null'); } catch (e) { window._jStage = null; } showJsonReport(); }
+function jsonClearStage(silent) { window._jStage = null; jsonSaveStage(); showJsonReport(); if (!silent) toast('Начинаем заново', 'warm'); }
+function jsonAcceptPart() {
+  const ta = document.getElementById('adminJsonInput'); let t = (ta.value || '').trim();
+  if (!t) { toast('Вставь JSON-часть', 'warm'); return false; }
+  const s = t.indexOf('{'), s2 = t.indexOf('['), st = s < 0 ? s2 : (s2 < 0 ? s : Math.min(s, s2)), en = Math.max(t.lastIndexOf('}'), t.lastIndexOf(']'));
+  let obj; try { obj = JSON.parse(t.slice(st, en + 1)); } catch (e) { toast('Не получилось прочитать JSON: ' + e.message, 'danger'); return false; }
+  const S = window._jStage || { practices: [] };
+  if (Array.isArray(obj)) obj = { practices: obj };
+  Object.keys(obj).forEach(k => {
+    if (k === 'practices' && Array.isArray(obj[k])) { const m = new Map((S.practices || []).map(p => [p.id, p])); obj[k].forEach(p => { if (p && p.id) m.set(p.id, p); }); S.practices = [...m.values()]; }
+    else if (k === 'plan') S._plan = obj[k];
+    else S[k] = obj[k];
+  });
+  const isId = x => typeof x === 'string' && x.length < 14 && !/\s/.test(x);
+  ((S.path && S.path.weeks) || []).forEach(w => (w.nodes || []).forEach(n => { n.recap = (n.recap || []).filter(isId); }));
+  window._jStage = S; jsonSaveStage(); ta.value = ''; showJsonReport();
+  toast('Часть принята', 'success'); return true;
+}
+function showJsonImportModal() {
+  let m = document.getElementById('jsonImportModal'); if (m) m.remove();
+  m = document.createElement('div'); m.id = 'jsonImportModal'; m.className = 'modal hidden';
+  m.innerHTML = `<div class="modal-box jw">
+    <div class="jw-h"><div><b>Новая книга</b><span>Собери её из частей DeepSeek</span></div><button class="jw-x" onclick="document.getElementById('jsonImportModal').classList.add('hidden')" aria-label="Закрыть">✕</button></div>
+    <div class="jw-next" id="jwNext"></div><div class="jw-steps" id="jwSteps"></div>
+    <textarea id="adminJsonInput" rows="5" spellcheck="false" autocapitalize="off" placeholder="Вставь сюда часть от DeepSeek (можно с текстом вокруг)"></textarea>
+    <div id="jsonReport" class="jr"></div>
+    <div class="jw-opt"><span>Опубликовать сразу</span><div class="d-toggle" id="jsonPublishToggle" onclick="this.classList.toggle('on')"></div></div>
+    <div class="jw-opt"><span>Бесплатная книга</span><div class="d-toggle" id="jsonFreeToggle" onclick="this.classList.toggle('on')"></div></div>
+    <button class="jw-link" onclick="jsonClearStage()">Начать заново</button>
+    <div class="jw-bar"><button class="d-btn-secondary" id="jwAccept" onclick="jsonAcceptPart()">Принять часть</button><button class="d-btn-primary" id="jwAdd" onclick="addBookFromJSON()">Добавить в базу</button></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector('#adminJsonInput').addEventListener('input', jwRefresh);
+  m.classList.remove('hidden'); jsonLoadStage();
+}
+
+/* ─── Запись в ленту: отдельный экран, как «новое сообщение» (без прыжков страницы) ─── */
+(function () {
+  const vv = window.visualViewport;
+  const setVV = () => { const d = document.documentElement.style; d.setProperty('--vvh', (vv ? vv.height : innerHeight) + 'px'); d.setProperty('--vvt', (vv ? vv.offsetTop : 0) + 'px'); };
+  setVV(); if (vv) { vv.addEventListener('resize', setVV); vv.addEventListener('scroll', setVV); }
+  window.openFeedComposer = function () {
+    if (document.getElementById('feedComposer')) return;
+    const old = document.getElementById('feedInput'), o = document.createElement('div'); o.id = 'feedComposer';
+    o.innerHTML = `<div class="fc-h"><button class="fc-x" aria-label="Отмена">Отмена</button><b>Новая запись</b><button class="fc-send" disabled>Опубликовать</button></div>
+      <textarea class="fc-t" maxlength="500" placeholder="Чем поделишься? Вывод из практики, успех, вопрос…" autocapitalize="sentences"></textarea>
+      <div class="fc-f"><span id="fcCnt">0 / 500</span></div>`;
+    document.body.appendChild(o);
+    const t = o.querySelector('.fc-t'), s = o.querySelector('.fc-send'), close = () => { o.remove(); };
+    t.addEventListener('input', () => { s.disabled = !t.value.trim(); o.querySelector('#fcCnt').textContent = t.value.length + ' / 500'; });
+    o.querySelector('.fc-x').onclick = close;
+    s.onclick = () => { if (!t.value.trim()) return; old.value = t.value; close(); sendFeedPost(); };
+    setTimeout(() => t.focus(), 50);
+  };
+  document.addEventListener('focusin', e => { if (e.target && e.target.id === 'feedInput') { e.target.blur(); window.openFeedComposer(); } });
+})();
