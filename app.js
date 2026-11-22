@@ -625,6 +625,19 @@ const MUSIC_TRACKS = {
     'assets/music/calm/calm-7.mp3'
   ] 
 };
+/* Плеер на экране блокировки: название и иконка вместо «andger.ru» */
+function setupMediaSession(title){
+  if(!('mediaSession' in navigator)) return;
+  try{
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: title || 'Практика', artist: 'ANDGER', album: 'Практикум',
+      artwork: [{src:'assets/icons/icon-192x192.png',sizes:'192x192',type:'image/png'},{src:'assets/icons/icon-512x512.png',sizes:'512x512',type:'image/png'}]
+    });
+    navigator.mediaSession.setActionHandler('play', ()=>{ try{ if(musicAudio && state.soundMode==='sound') musicAudio.play(); }catch(e){} });
+    navigator.mediaSession.setActionHandler('pause', ()=>{ try{ if(musicAudio) musicAudio.pause(); }catch(e){} });
+    ['seekbackward','seekforward','previoustrack','nexttrack','seekto'].forEach(a=>{ try{ navigator.mediaSession.setActionHandler(a, null); }catch(e){} });
+  }catch(e){ console.debug('[ANDGER] mediaSession', e); }
+}
 const MUSIC_VOL = 0.3, MUSIC_DUCK_VOL = 0.08; /* громкость музыки / при голосе */
 let currentTrackIdx = 0;
 let currentPlaylist = [];
@@ -6354,7 +6367,7 @@ function loadAdminSection(section) {
     section = 'moderation';
   }
 
-  if (['dashboard','books','users','moderation','system'].includes(section)) {
+  if (['dashboard','books','users','moderation','content','system'].includes(section)) {
     AP.mount(section, area);
     return;
   }
@@ -6582,142 +6595,173 @@ function showBookEditor(id){
 window._tempPractices = [];
 let editingPracticeIndex = -1;
 
+window._pracQ = '';
 function renderAdminPracticesList() {
   const list = document.getElementById('adminPracticesList');
   if (!list) return;
-  if (window._tempPractices.length === 0) {
-    list.innerHTML = '<div style="color:var(--muted); font-size:13px; text-align:center;">Нет практик. Нажмите «+ Добавить».</div>';
-    return;
-  }
-  list.innerHTML = window._tempPractices.map((p, i) => `
-    <div class="admin-item" style="padding:10px 14px; margin-bottom:8px; border:1px solid var(--border);">
-      <div class="ai-info" style="flex:1;">
-        <div class="ai-name" style="font-size:14px;">${escapeHtml(p.title || 'Без названия')}</div>
-        <div class="ai-phone">${escapeHtml(p.sub || '')}</div>
-      </div>
-      <div style="display:flex; gap:6px;">
-        <div class="action-btn-glass" onclick="openPracticeEditor(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
-        <div class="action-btn-glass danger" onclick="deleteAdminPractice(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>
-      </div>
-    </div>
-  `).join('');
+  const arr = window._tempPractices || [];
+  const q = (window._pracQ || '').toLowerCase().trim();
+  const total = arr.reduce((s, p) => s + (p.time || 0), 0);
+  const head = '<div class="pe-listhead"><input class="ap-in" id="adminPracSearch" type="search" placeholder="Поиск: название или id" value="' + escapeHtml(window._pracQ || '') + '" oninput="window._pracQ=this.value;renderAdminPracticesList();var e=document.getElementById(\'adminPracSearch\');e.focus();e.setSelectionRange(e.value.length,e.value.length)"><div class="ap-sub">' + arr.length + ' практик · ≈ ' + Math.round(total / 60) + ' мин</div></div>';
+  if (!arr.length) { list.innerHTML = head + '<div style="color:var(--muted);font-size:13px;text-align:center;padding:14px">Нет практик. Нажмите «+ Добавить».</div>'; return; }
+  const rows = arr.map((p, i) => ({ p, i })).filter(({ p }) => !q || (p.title || '').toLowerCase().includes(q) || String(p.id || '').toLowerCase().includes(q));
+  const isA = p => p.type === 'audio' || (p.immersion_text && !(p.voiceTimeline || []).length);
+  list.innerHTML = head + (rows.map(({ p, i }) => {
+    const audio = isA(p), bad = audio ? !p.immersion_text : !(p.voiceTimeline || []).length;
+    return `<div class="pe-row${bad ? ' bad' : ''}"><div class="pe-main" onclick="openPracticeEditor(${i})"><div class="pe-n">${i + 1}</div><div class="pe-t"><b>${escapeHtml(p.title || 'Без названия')}</b><span>${audio ? '🎧' : '⚡'} ${escapeHtml(String(p.id || ''))} · ${Math.round((p.time || 0) / 6) / 10} мин${bad ? ' · ⚠ нет озвучки' : ''}</span></div></div><div class="pe-acts"><button type="button" aria-label="Выше" onclick="movePractice(${i},-1)">↑</button><button type="button" aria-label="Ниже" onclick="movePractice(${i},1)">↓</button><button type="button" aria-label="Копия" onclick="duplicatePractice(${i})">⧉</button><button type="button" class="d" aria-label="Удалить" onclick="deleteAdminPractice(${i})">🗑</button></div></div>`;
+  }).join('') || '<div style="color:var(--muted);font-size:13px;text-align:center;padding:14px">Ничего не найдено</div>');
+}
+function movePractice(i, d) {
+  const a = window._tempPractices, j = i + d;
+  if (j < 0 || j >= a.length) return;
+  [a[i], a[j]] = [a[j], a[i]];
+  renderAdminPracticesList();
+}
+function duplicatePractice(i) {
+  const a = window._tempPractices, src = a[i];
+  let n = 2, id;
+  do { id = String(src.id || 'p') + '-' + n++; } while (a.some(x => x.id === id));
+  a.splice(i + 1, 0, { ...JSON.parse(JSON.stringify(src)), id, title: (src.title || '') + ' (копия)' });
+  renderAdminPracticesList();
+  toast('Копия создана');
 }
 
+
+const PE_ICONS = ['wind','clock','search','zap','play','link','layout','user','check-square','brain','book','sun','heart','users','sprout','sunrise','waves','compass','shield','sparkles','smile','flame','check-circle','shield-check','target','crown'];
+let _peSnap = '';
+function peSnapshot() {
+  const ids = ['peTitleInp','peSubInp','peTimeInp','peIdInp','peIcoInp','peTypeInp','peTriggerInp','peIdentityInp','peMicroActionInp','peJournalPromptInp','peBookLinkInp','peWhyInp','peHowInp','peResultInp','peMistakesInp','peAdviceInp','peImmersionInp','peVoiceInp','peEmotionInp','peSpeedInp'];
+  return ids.map(i => (document.getElementById(i) || {}).value || '').join('\u0001') + '\u0002' + Array.from(document.querySelectorAll('#voiceTimelineContainer > div')).map(r => r.querySelector('.vt-time').value + ':' + r.querySelector('.vt-text').value).join('|');
+}
+function peSetType(t) {
+  document.getElementById('peTypeInp').value = t;
+  document.querySelectorAll('#peTypeSeg button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  document.getElementById('peAudioBox').style.display = t === 'audio' ? '' : 'none';
+  document.getElementById('peActionBox').style.display = t === 'audio' ? 'none' : '';
+  peTimeHint();
+}
+function peSetIcon(k) {
+  document.getElementById('peIcoInp').value = k;
+  document.querySelectorAll('#peIcoGrid button').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+}
+function peTimeHint() {
+  const t = parseInt(document.getElementById('peTimeInp').value) || 0;
+  const th = document.getElementById('peTimeHint');
+  if (th) th.textContent = t ? '≈ ' + (Math.round(t / 6) / 10) + ' мин' : '';
+  const wh = document.getElementById('peWordHint');
+  if (wh) {
+    const txt = document.getElementById('peImmersionInp').value;
+    const w = txt.split(/\s+/).filter(Boolean).length;
+    if (!w) { wh.textContent = 'Пока пусто'; wh.className = 'pe-hint'; }
+    else if (!t) { wh.textContent = w + ' слов'; wh.className = 'pe-hint'; }
+    else {
+      const r = w / t, ok = r >= 1.4 && r <= 2.2;
+      wh.textContent = w + ' слов · ' + r.toFixed(2) + ' сл/сек · норма 1.4–2.2 (для ' + t + ' с: ' + Math.round(t * 1.4) + '–' + Math.round(t * 2.2) + ' слов)';
+      wh.className = 'pe-hint ' + (ok ? 'ok' : 'bad');
+    }
+  }
+}
+function renderPeIcons() {
+  const g = document.getElementById('peIcoGrid');
+  if (!g || g.dataset.ready) return;
+  g.dataset.ready = '1';
+  g.innerHTML = PE_ICONS.map(k => '<button type="button" data-k="' + k + '" title="' + k + '" onclick="peSetIcon(\'' + k + '\')">' + ((typeof SVG_ICONS !== 'undefined' && SVG_ICONS[k]) || k.slice(0, 2)) + '</button>').join('');
+}
 function openPracticeEditor(index) {
   editingPracticeIndex = index;
   const p = index >= 0 ? window._tempPractices[index] : null;
-  
+  renderPeIcons();
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v == null ? '' : v; };
   document.getElementById('peTitle').textContent = index >= 0 ? 'Редактировать практику' : 'Новая практика';
-  document.getElementById('peTitleInp').value = p?.title || '';
-  document.getElementById('peTimeInp').value = p?.time ? Math.round(p.time/60) : 5;
-  document.getElementById('peSubInp').value = p?.sub || '';
-  document.getElementById('peIcoInp').value = p?.ico || 'brain';
-  
-  // Новые поля
-  document.getElementById('peTriggerInp').value = p?.trigger || '';
-  document.getElementById('peIdentityInp').value = p?.identity || '';
-  document.getElementById('peMicroActionInp').value = p?.micro_action || '';
-  document.getElementById('peJournalPromptInp').value = p?.journal_prompt || '';
-
-  document.getElementById('peWhyInp').value = p?.why || '';
-  document.getElementById('peHowInp').value = p?.how ? p.how.join('\n') : '';
-  document.getElementById('peResultInp').value = p?.result || '';
-  document.getElementById('peMistakesInp').value = p?.mistakes ? p.mistakes.join('\n') : '';
-  document.getElementById('peAdviceInp').value = p?.advice || '';
-  
-  // --- НОВАЯ ЛОГИКА ДЛЯ ГОЛОСА ---
-  // Заполняем поля, если они уже были сохранены
+  set('peTitleInp', p?.title); set('peSubInp', p?.sub);
+  set('peTimeInp', p?.time || 180);
+  set('peIdInp', p?.id || ('p' + String((window._tempPractices || []).length + 1).padStart(2, '0')));
+  document.getElementById('peIdInp').readOnly = !!p;
+  set('peTriggerInp', p?.trigger); set('peIdentityInp', p?.identity); set('peMicroActionInp', p?.micro_action);
+  set('peJournalPromptInp', p?.journal_prompt); set('peBookLinkInp', p?.book_link);
+  set('peWhyInp', p?.why); set('peHowInp', (p?.how || []).join('\n')); set('peResultInp', p?.result);
+  set('peMistakesInp', (p?.mistakes || []).join('\n')); set('peAdviceInp', p?.advice);
+  set('peImmersionInp', p?.immersion_text);
   const vs = p?.voice_settings || {};
-  document.getElementById('peVoiceInp').value = vs.voice || '';
-  document.getElementById('peEmotionInp').value = vs.emotion || '';
-  document.getElementById('peSpeedInp').value = vs.speed || '';
-  // --------------------------------
-
-  const tlContainer = document.getElementById('voiceTimelineContainer');
-  tlContainer.innerHTML = '';
-  const tl = p?.voiceTimeline || [];
-  if (tl.length === 0) addVoiceLine(); 
-  else tl.forEach(item => addVoiceLine(item.time, item.text));
-
-  document.getElementById('practiceEditorModal').classList.remove('hidden');
+  set('peVoiceInp', vs.voice); set('peEmotionInp', vs.emotion); set('peSpeedInp', vs.speed);
+  const cont = document.getElementById('voiceTimelineContainer'); cont.innerHTML = '';
+  (p?.voiceTimeline || []).forEach(v => addVoiceLine(v.time, v.text));
+  peSetIcon(p?.ico || 'brain');
+  peSetType(p?.type === 'audio' || (p && p.immersion_text && !(p.voiceTimeline || []).length) ? 'audio' : 'action');
+  peTimeHint();
+  const m = document.getElementById('practiceEditorModal');
+  m.classList.remove('hidden');
+  const box = m.querySelector('.modal-box'); if (box) box.scrollTop = 0;
+  _peSnap = peSnapshot();
 }
-
+async function closePracticeEditor(force) {
+  if (!force && peSnapshot() !== _peSnap) {
+    const ok = await (window.AP ? AP.ask({ title: 'Закрыть без сохранения?', text: 'Изменения в практике будут потеряны.', ok: 'Закрыть', danger: true }) : Promise.resolve(true));
+    if (!ok) return;
+  }
+  document.getElementById('practiceEditorModal').classList.add('hidden');
+}
 function addVoiceLine(time = '', text = '') {
   const container = document.getElementById('voiceTimelineContainer');
   const div = document.createElement('div');
-  div.style.display = 'flex'; div.style.gap = '8px'; div.style.alignItems = 'center';
-  
-  div.innerHTML = `
-    <input type="number" class="vt-time" placeholder="Сек" value="${time}" style="width:70px; flex-shrink:0; padding:10px; text-align:center; background:var(--d-surface-2); color:var(--d-text); border:1px solid var(--d-border); border-radius:10px; outline:none; font-size:14px;">
-    <input type="text" class="vt-text" placeholder="Текст фразы..." value="${escapeHtml(text)}" style="flex:1; padding:10px; background:var(--d-surface-2); color:var(--d-text); border:1px solid var(--d-border); border-radius:10px; outline:none; font-size:14px;">
-    <button class="d-icon-btn" onclick="this.parentElement.remove()" style="width:36px; height:36px; flex-shrink:0; color:var(--d-danger); background:transparent; border:none; font-size:16px;">✕</button>
-  `;
+  div.className = 'pe-line';
+  div.innerHTML = `<input type="number" inputmode="numeric" class="vt-time" placeholder="Сек" value="${time}"><input type="text" class="vt-text" placeholder="Текст фразы…" value="${escapeHtml(String(text))}"><button type="button" class="pe-del" aria-label="Удалить фразу" onclick="this.parentElement.remove()">✕</button>`;
   container.appendChild(div);
 }
-
-function savePracticeEditor() {
-  const title = document.getElementById('peTitleInp').value.trim();
-  const timeMins = parseInt(document.getElementById('peTimeInp').value) || 5;
-  const sub = document.getElementById('peSubInp').value.trim();
-  const ico = document.getElementById('peIcoInp').value.trim() || 'brain';
-  
-    // Новые поля
-  const trigger = document.getElementById('peTriggerInp').value.trim();
-  const identity = document.getElementById('peIdentityInp').value.trim();
-  const micro_action = document.getElementById('peMicroActionInp').value.trim();
-  const journal_prompt = document.getElementById('peJournalPromptInp').value.trim();
-
-  const why = document.getElementById('peWhyInp').value.trim();
-  const how = document.getElementById('peHowInp').value.split('\n').map(s => s.trim()).filter(Boolean);
-  const result = document.getElementById('peResultInp').value.trim();
-  const mistakes = document.getElementById('peMistakesInp').value.split('\n').map(s => s.trim()).filter(Boolean);
-  const advice = document.getElementById('peAdviceInp').value.trim();
-
-  // Собираем таймлайн
+async function savePracticeEditor() {
+  const v = id => (document.getElementById(id).value || '').trim();
+  const lines = id => document.getElementById(id).value.split('\n').map(s => s.trim()).filter(Boolean);
+  const type = v('peTypeInp') === 'audio' ? 'audio' : 'action';
+  const title = v('peTitleInp');
+  const time = parseInt(v('peTimeInp'));
+  const id = v('peIdInp').replace(/\s+/g, '-');
+  const list = window._tempPractices || (window._tempPractices = []);
+  const old = editingPracticeIndex >= 0 ? list[editingPracticeIndex] : {};
+  if (!title) { toast('Введите название практики', 'danger'); return; }
+  if (!id) { toast('Введите ID практики', 'danger'); return; }
+  if (list.some((x, i) => x.id === id && i !== editingPracticeIndex)) { toast('Практика с таким ID уже есть', 'danger'); return; }
+  if (!time || time < 30 || time > 3600) { toast('Время: от 30 до 3600 секунд', 'danger'); return; }
   const tl = [];
   document.querySelectorAll('#voiceTimelineContainer > div').forEach(row => {
-    const t = parseInt(row.querySelector('.vt-time').value);
-    const txt = row.querySelector('.vt-text').value.trim();
+    const t = parseInt(row.querySelector('.vt-time').value), txt = row.querySelector('.vt-text').value.trim();
     if (!isNaN(t) && txt) tl.push({ time: t, text: txt });
   });
   tl.sort((a, b) => a.time - b.time);
-
-  if (!title) { toast('Введите название практики', 'danger'); return; }
-
-  // --- НОВАЯ ЛОГИКА ДЛЯ ГОЛОСА ---
-  // Читаем то, что ты выбрал в выпадающих списках
-  const voiceSelect = document.getElementById('peVoiceInp').value;
-  const emotionSelect = document.getElementById('peEmotionInp').value;
-  const speedVal = parseFloat(document.getElementById('peSpeedInp').value);
-
-  let vSettings = {};
-  if (voiceSelect) vSettings.voice = voiceSelect;
-  if (emotionSelect) vSettings.emotion = emotionSelect;
-  if (!isNaN(speedVal)) vSettings.speed = speedVal;
-  // --------------------------------
-
-  const p = {
-    id: editingPracticeIndex >= 0 ? (window._tempPractices[editingPracticeIndex].id || 'practice-' + Date.now()) : 'practice-' + Date.now(),
-    title, time: timeMins * 60, sub, ico, 
-    trigger,           
-    identity,                
-    micro_action,      
-    journal_prompt,    
-    why, how, result, mistakes, advice,
-    voiceTimeline: tl,
-    voice_settings: Object.keys(vSettings).length > 0 ? vSettings : null 
-  };
-
-  if (editingPracticeIndex >= 0) {
-    window._tempPractices[editingPracticeIndex] = p;
+  const imm = document.getElementById('peImmersionInp').value.trim();
+  const warn = [];
+  if (type === 'audio') {
+    if (!imm) { toast('Для погружения нужен текст', 'danger'); return; }
+    const w = imm.split(/\s+/).filter(Boolean).length, r = w / time;
+    if (r < 1.1 || r > 2.5) warn.push('Объём текста (' + r.toFixed(2) + ' сл/сек) вне нормы 1.1–2.5.');
   } else {
-    window._tempPractices.push(p);
+    if (!tl.length) warn.push('Нет голосовых фраз — практика будет молчать.');
+    else if (tl[tl.length - 1].time > time - 10) warn.push('Последняя фраза слишком близко к концу практики.');
+    if (new Set(tl.map(x => x.time)).size !== tl.length) warn.push('Есть фразы с одинаковым временем.');
   }
-
+  if (warn.length && window.AP && !(await AP.ask({ title: 'Есть замечания', text: warn.join(' ') + ' Сохранить всё равно?', ok: 'Сохранить' }))) return;
+  const vs = {};
+  if (v('peVoiceInp')) vs.voice = v('peVoiceInp');
+  if (v('peEmotionInp')) vs.emotion = v('peEmotionInp');
+  const sp = parseFloat(v('peSpeedInp')); if (!isNaN(sp)) vs.speed = sp;
+  const p = {
+    ...old, id, title, type, time, sub: v('peSubInp'), ico: v('peIcoInp') || 'brain',
+    trigger: v('peTriggerInp'), identity: v('peIdentityInp'), micro_action: v('peMicroActionInp'),
+    journal_prompt: v('peJournalPromptInp'), book_link: v('peBookLinkInp'),
+    why: v('peWhyInp'), how: lines('peHowInp'), result: v('peResultInp'), mistakes: lines('peMistakesInp'), advice: v('peAdviceInp'),
+    voice_settings: Object.keys(vs).length ? vs : null
+  };
+  if (type === 'audio') { p.immersion_text = imm; p.voiceTimeline = []; }
+  else { p.voiceTimeline = tl; delete p.immersion_text; }
+  if (editingPracticeIndex >= 0) list[editingPracticeIndex] = p; else list.push(p);
   document.getElementById('practiceEditorModal').classList.add('hidden');
   renderAdminPracticesList();
   playSuccess();
+  toast('Практика сохранена · не забудьте сохранить книгу');
 }
+
+
+
+
 
 function deleteAdminPractice(index) {
   legacyConfirmAdapter('Удалить практику?', 'Она пропадет из книги.', () => {
@@ -6894,36 +6938,7 @@ async function saveAdminTextFromModal() {
 // ─── УПРАВЛЕНИЕ FAQ ───
 let editingFaqId = null;
 
-async function loadAdminFaq() {
-  const el = document.getElementById('adminFaqList');
-  el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Загрузка...</div>';
-  
-  try {
-    const { data } = await sb.from('faq').select('*').order('sort_order');
-    
-    if (!data || data.length === 0) {
-      el.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted);">Вопросов пока нет.</div>';
-      return;
-    }
-
-    el.innerHTML = data.map(item => `
-      <div class="admin-detail" style="margin-bottom:10px; padding:14px;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-          <div style="flex:1;">
-            <div style="font-size:14px; font-weight:800; color:var(--accent-2); margin-bottom:4px;">${escapeHtml(item.question)}</div>
-            <div style="font-size:13px; color:var(--muted); line-height:1.4;">${escapeHtml(item.answer)}</div>
-          </div>
-          <div style="display:flex; gap:6px; margin-left:10px;">
-            <div class="action-btn-glass" onclick="openFaqEditor('${item.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
-            <div class="action-btn-glass danger" onclick="deleteFaq('${item.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  } catch(e) {
-    el.innerHTML = '<div style="color:var(--danger); text-align:center;">Ошибка загрузки</div>';
-  }
-}
+async function loadAdminFaq() { if (window.AP && AP.sec === 'content') return AP.content(); }
 
 function openFaqEditor(id = null) {
   editingFaqId = id;
@@ -7213,33 +7228,7 @@ history.pushState(null, null, location.href);
 // ─── УПРАВЛЕНИЕ ЦИТАТАМИ ───
 let editingQuoteId=null;
 
-async function loadAdminQuotes(){
-  const el=document.getElementById('adminQuotesList');
-  if(!el)return;
-  try{
-    const{data}=await sb.from('quotes').select('*').order('sort_order',{ascending:true});
-    const quotes=data||[];
-    if(!quotes.length){
-      el.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Пока нет цитат</div>';
-      return;
-    }
-    el.innerHTML=quotes.map(q=>`
-      <div class="d-card-glass" style="display:flex; justify-content:space-between; align-items:flex-start; padding:14px; margin-bottom:10px;">
-        <div style="flex:1; padding-right:10px;">
-          <div style="font-size:14px; font-weight:800; color:var(--accent-2); margin-bottom:6px; font-style:italic; line-height:1.4;">«${escapeHtml(q.text)}»</div>
-          <div style="font-size:11px; color:var(--muted); font-weight:600;">${q.active?'🟢 Активна':'⚫ Скрыта'} · ${escapeHtml(q.author||'Андрей Герасимов')}</div>
-        </div>
-        <div style="display:flex; gap:6px; flex-shrink:0;">
-          <div class="action-btn-glass" onclick="editQuote('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
-          <div class="action-btn-glass" onclick="toggleQuoteActive('${q.id}',${!q.active})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${q.active ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>' : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'}</svg></div>
-          <div class="action-btn-glass danger" onclick="deleteQuote('${q.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>
-        </div>
-      </div>
-    `).join('');
-  }catch(e){
-    el.innerHTML='<div style="color:var(--danger);padding:20px;text-align:center">Ошибка</div>';
-  }
-}
+async function loadAdminQuotes() { if (window.AP && AP.sec === 'content') return AP.content(); }
 
 function openQuoteEditor(id){
   editingQuoteId=id||null;
@@ -8759,6 +8748,7 @@ emotionToUse = isFemale ? (vSettings.emotion || 'neutral') : auto.emotion;
 
     const blob = new Blob([bytes], { type: 'audio/mpeg' });
     ttsAudio.src = URL.createObjectURL(blob);
+    try{ const _p = currentPractice || (ritualQueue && ritualQueue[ritualIndex]); setupMediaSession(_p && _p.title); }catch(e){}
     
     // Возврат музыки обратно
     const _myTts = ttsAudio;
@@ -10486,6 +10476,7 @@ async function shareStoryNative() {
   }
 }
 function startMusic(practiceId = 'default'){
+  try{ const _p = currentPractice || (ritualQueue && ritualQueue[ritualIndex]); setupMediaSession(_p && _p.title); }catch(e){}
   // ЖЕСТКО сбрасываем флаг, чтобы музыка всегда стартовала на 30%, а не на 5%
   isVoicePlaying = false;
 
@@ -10562,7 +10553,8 @@ async function showAdmin(initialSection = 'dashboard') {
     initialSection = 'moderation';
     targetBtn = allBtns[3];
   }
-  else if (initialSection === 'system') targetBtn = allBtns[4];
+  else if (initialSection === 'content') targetBtn = allBtns[4];
+  else if (initialSection === 'system') targetBtn = allBtns[5];
   
   if (targetBtn) { targetBtn.classList.add('on'); try { targetBtn.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch (e) { console.debug('[ANDGER] ignored:', e); } }
   
@@ -10665,10 +10657,10 @@ window.AP = {
   mount(section, area) {
     this.sec = section; this.q = ''; this.uf = 'all'; this.bf = 'all'; this.lim = AP_PAGE;
     area.innerHTML = '<div class="ap"><div class="ap-bar" id="apBar"></div><div id="apView"><div class="ap-empty"><div class="spinner" style="margin:0 auto 10px"></div>Загрузка…</div></div></div>';
-    ({ dashboard: () => this.dash(), books: () => this.books(), users: () => this.users(), moderation: () => this.mod(), system: () => this.system() })[section]();
+    ({ dashboard: () => this.dash(), books: () => this.books(), users: () => this.users(), moderation: () => this.mod(), content: () => this.content(), system: () => this.system() })[section]();
   },
   bar(html) { const b = document.getElementById('apBar'); if (b) b.innerHTML = html; },
-  nav(section, uf) { this.preUf = uf || null; const i = { dashboard: 0, books: 1, users: 2, moderation: 3, system: 4 }[section]; switchAdminTab(section, document.querySelectorAll('.admin-pro-tab')[i]); },
+  nav(section, uf) { this.preUf = uf || null; const i = { dashboard: 0, books: 1, users: 2, moderation: 3, content: 4, system: 5 }[section]; switchAdminTab(section, document.querySelectorAll('.admin-pro-tab')[i]); },
   chips(list, cur, key) { return list.map(([k, l, n]) => `<button class="ap-chip ${cur === k ? 'on' : ''}" onclick="AP.setF('${key}','${k}')">${l}${n !== undefined ? ` <i>${n}</i>` : ''}</button>`).join(''); },
   setF(key, v) { this[key] = v; this.lim = AP_PAGE; this.sec === 'users' ? this.usersRows() : this.booksRows(); },
   more() { this.lim += AP_PAGE; this.sec === 'users' ? this.usersRows() : this.booksRows(); },
@@ -10838,7 +10830,7 @@ window.AP = {
       const on = p.last_seen && now - new Date(p.last_seen) < 5 * 6e4;
       return `<div class="ap-card ap-item"><div class="ap-ava ${on ? 'on' : ''}" style="--h:${this.hue(p.id)}">${this.esc((p.name || '?')[0].toUpperCase())}</div>
         <div class="ap-main" onclick="AP.user('${p.id}')"><div class="ap-name">${this.esc(((p.name || 'Без имени') + ' ' + (p.last_name || '')).trim())}</div>
-        <div class="ap-tags">${p.is_admin ? '<span class="ap-tag ac">ADMIN</span>' : ''}${this.isPaid(p) ? `<span class="ap-tag wr">⭐ до ${this.day(p.sub_until)}</span>` : ''}${p.blocked ? '<span class="ap-tag er">БЛОК</span>' : ''}</div>
+        <div class="ap-tags">${p.is_admin ? '<span class="ap-tag acc">ADMIN</span>' : ''}${this.isPaid(p) ? `<span class="ap-tag wr">⭐ до ${this.day(p.sub_until)}</span>` : ''}${p.blocked ? '<span class="ap-tag er">БЛОК</span>' : ''}</div>
         <div class="ap-sub">${this.esc(this.phone(p.phone))}</div><div class="ap-sub">XP ${p.xp || 0} · рег. ${this.day(p.created_at)} · ${on ? '<span style="color:#3ecf8e">онлайн</span>' : this.ago(p.last_seen)}</div></div>
         <button class="ap-more" onclick="AP.userMenu('${p.id}')" aria-label="Действия">⋯</button></div>`;
     }).join('') + (l.length > this.lim ? `<button class="ap-btn wide" onclick="AP.more()">Показать ещё (${l.length - this.lim})</button>` : '') || '<div class="ap-empty">Никого не найдено</div>';
@@ -10873,7 +10865,7 @@ window.AP = {
       d.querySelector('#apuTop').innerHTML = `
         <div class="ap-u-head"><div class="ap-u-ava">${getAvatarHtml(p.avatar || 'default', 56)}</div>
           <div class="ap-u-id"><b>${this.esc(name)}</b>
-            <div class="ap-tags">${online() ? '<span class="ap-tag ok">онлайн</span>' : ''}${paid ? '<span class="ap-tag wr">Premium</span>' : ''}${p.is_admin ? '<span class="ap-tag ac">админ</span>' : ''}${p.blocked ? '<span class="ap-tag er">заблокирован</span>' : ''}</div></div></div>
+            <div class="ap-tags">${online() ? '<span class="ap-tag ok">онлайн</span>' : ''}${paid ? '<span class="ap-tag wr">Premium</span>' : ''}${p.is_admin ? '<span class="ap-tag acc">админ</span>' : ''}${p.blocked ? '<span class="ap-tag er">заблокирован</span>' : ''}</div></div></div>
         <div class="ap-u-grid">
           <div><span>Телефон</span><b>${this.esc(this.phone(p.phone))}</b></div>
           <div><span>Регистрация</span><b>${this.day(p.created_at)}</b></div>
@@ -10989,7 +10981,7 @@ window.AP = {
   bookMenu(id) {
     const b = this.byId(id); if (!b) return;
     this.sheet(b.title, b.author + ' · ' + b.id, [
-      { ic: AP_SVG.edit, t: 'Визуальный редактор', fn: () => showBookEditor(id) }, { ic: AP_SVG.braces, t: 'Редактор JSON с проверкой', fn: () => this.editId(id) },
+      { ic: AP_SVG.edit, t: 'Визуальный редактор', fn: () => showBookEditor(id) }, { ic: AP_SVG.edit, t: 'Практики книги', fn: () => { showBookEditor(id); setTimeout(() => switchEditorTab('practices', document.querySelectorAll('.ed-tab-btn')[2]), 60); } }, { ic: AP_SVG.braces, t: 'Редактор JSON с проверкой', fn: () => this.editId(id) },
       { ic: AP_SVG.dup, t: 'Создать копию', fn: () => this.dup(id) }, { ic: AP_SVG.down, t: 'Скопировать JSON в буфер', fn: () => { const c = { ...b }; delete c._isLocal; this.clip(JSON.stringify(c, null, 2)); } },
       { ic: AP_SVG.copy, t: 'Скопировать ID', fn: () => this.clip(b.id) }, { sep: 1 }, { ic: AP_SVG.trash, t: 'Удалить книгу…', d: 1, fn: () => this.del(id) }
     ]);
@@ -11112,10 +11104,11 @@ window.AP = {
       if (o instanceof Error) { iss.innerHTML = `<div class="e">Некорректный JSON: ${this.esc(o.message)}</div>`; $('#apStat').innerHTML = '<span class="ap-tag er">✖ JSON</span>'; return null; }
       cur = o; toForm(o); const r = this.check(o, allowed); $('#apInf').textContent = r.info; $('#apEdT').textContent = o.title || 'Новая книга';
       $('#apStat').innerHTML = (r.E.length ? `<span class="ap-tag er">✖ ${r.E.length}</span>` : '') + (r.W.length ? `<span class="ap-tag wr">⚠ ${r.W.length}</span>` : '') + (!r.E.length && !r.W.length ? '<span class="ap-tag ok">✔</span>' : '');
-      iss.innerHTML = r.E.map(m => `<div class="e">✖ ${this.esc(m)}</div>`).join('') + r.W.map(m => `<div class="w">⚠ ${this.esc(m)}</div>`).join('') + (r.E.length || r.W.length ? '' : '<div class="g">✔ Всё в порядке — можно сохранять</div>');
+      iss.innerHTML = r.E.map(m => `<div class="e" data-q="${this.esc((m.match(/(?:Практика|практика)\s+[«"]?([A-Za-z][\w-]*)/)||[])[1]||'')}">✖ ${this.esc(m)}</div>`).join('') + r.W.map(m => `<div class="w" data-q="${this.esc((m.match(/(?:Практика|практика)\s+[«"]?([A-Za-z][\w-]*)/)||[])[1]||'')}">⚠ ${this.esc(m)}</div>`).join('') + (r.E.length || r.W.length ? '' : '<div class="g">✔ Всё в порядке — можно сохранять</div>');
       $('#apPr').innerHTML = (r.rows || []).map((p, i) => `<div class="ap-pr"><i class="${p.st}"></i><span class="n">${i + 1}</span><span class="t">${this.esc(p.t)}</span><span class="ap-dim">${Math.round(p.s / 60 * 10) / 10} мин · ${p.v} фраз</span></div>`).join('') || '<div class="ap-sub">Практик пока нет</div>';
       return r;
     };
+    $('#apIss').onclick = ev => { const d = ev.target.closest('[data-q]'); const q = d && d.dataset.q; if (!q) return; const needle = '"id": "' + q + '"'; const at = ta.value.indexOf(needle); if (at < 0) return; ta.focus(); ta.setSelectionRange(at, at + needle.length); const line = ta.value.slice(0, at).split('\n').length - 1; ta.scrollTop = Math.max(0, line * (parseFloat(getComputedStyle(ta).lineHeight) || 18) - 60); ta.scrollIntoView({ block: 'center', behavior: 'smooth' }); };
     put(src); initial = ta.value; toForm(src); sw($('#apf_pub'), !!src.published); sw($('#apf_free'), !!src.is_free); validate();
     const dirty = () => ta.value !== initial || isOn($('#apf_pub')) !== !!src.published || isOn($('#apf_free')) !== !!src.is_free;
     let tm; ta.oninput = () => { clearTimeout(tm); tm = setTimeout(validate, 250); };
@@ -12593,10 +12586,10 @@ function jsonProgress(S, rep) {
     { ok: hasBase, t: 'Основа книги', s: hasBase ? `${S.title} · ${(S.path.weeks || []).reduce((n, w) => n + (w.nodes || []).length, 0)} дней` : 'Вставь ЧАСТЬ 1' },
     { ok: hasBase && mN && mD === mN, t: 'Практики и погружения', s: hasBase ? `${mD} из ${mN}` : 'после части 1' },
     { ok: hasBase && bN && bD === bN, t: 'Бонусные практики', s: hasBase ? `${bD} из ${bN}` : 'после части 1' },
-    { ok: hasBase && !rep.errors.length, t: 'Проверка', s: !hasBase ? '—' : rep.errors.length ? `ошибок: ${rep.errors.length}` : 'всё хорошо' }
+    { ok: hasBase && !rep.errors.length && !rep.missing.length, t: 'Проверка', s: !hasBase ? '—' : rep.errors.length ? `ошибок: ${rep.errors.length}` : rep.missing.length ? `ждёт практик: ${rep.missing.length}` : 'всё хорошо' }
   ];
   let next = 'Нажми «Добавить в базу».';
-  if (!hasBase) next = 'Вставь ЧАСТЬ 1 (основа книги) и нажми «Принять часть».';
+  if (!hasBase) next = 'Вставь части A и B из DeepSeek (книга и путь) и нажми «Принять часть».';
   else if (rep.missing.length) next = `Вставь следующую часть с практиками. Не хватает: ${_jRange(rep.missing)}.`;
   else if (rep.stubs.length) next = 'Часть практик пришла «заглушками». Нажми значок копирования в отчёте, отправь текст в DeepSeek и вставь ответ.';
   else if (real.length) next = 'Исправь ошибки: нажми значок копирования в отчёте и отправь текст в DeepSeek.';
@@ -12605,20 +12598,24 @@ function jsonProgress(S, rep) {
 function showJsonReport() {
   const S = window._jStage, box = document.getElementById('jsonReport'), st = document.getElementById('jwSteps'), nx = document.getElementById('jwNext');
   if (!box || !st) return;
-  if (!S) { st.innerHTML = ''; box.innerHTML = ''; if (nx) nx.textContent = 'Вставь ЧАСТЬ 1 (основа книги) из DeepSeek и нажми «Принять часть».'; jwRefresh(); return; }
+  if (!S) { st.innerHTML = ''; box.innerHTML = ''; if (nx) nx.textContent = 'Скопируй промпт, отправь его в DeepSeek с названием книги и вставь ответ (часть A).'; jwRefresh(); return; }
   const rep = validateBookJson(S), pg = jsonProgress(S, rep);
   window._jRep = rep; window._jReady = pg.ready;
   st.innerHTML = pg.steps.map(x => `<div class="jw-st ${x.ok ? 'ok' : ''}"><i>${x.ok ? '✓' : '○'}</i><b>${x.t}</b><span>${escapeHtml(x.s)}</span></div>`).join('');
   if (nx) nx.textContent = '→ ' + pg.next;
   const li = (arr, cls) => arr.slice(0, 30).map(x => `<li class="${cls}">${escapeHtml(x)}</li>`).join('') + (arr.length > 30 ? `<li class="${cls}">…и ещё ${arr.length - 30}</li>` : '');
   const real = rep.errors, hasIssue = real.length || rep.warnings.length || rep.missing.length;
-  box.innerHTML = hasIssue ? `<div class="jr-h"><b>${real.length ? 'Ошибки: ' + real.length : 'Ошибок нет'}${rep.warnings.length ? ' · замечаний: ' + rep.warnings.length : ''}</b><button class="jr-cp" onclick="jsonCopyReport()" aria-label="Скопировать для DeepSeek" title="Скопировать для DeepSeek"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15V6a3 3 0 0 1 3-3h9"/></svg></button></div><ul>${li(real, 'e')}${li(rep.warnings, 'w')}</ul>` : '<div class="jr-h"><b>✔ Всё в порядке</b></div>';
+  box.innerHTML = hasIssue ? `<div class="jr-h"><b>${real.length ? 'Ошибки: ' + real.length : rep.missing.length ? 'Не хватает практик: ' + rep.missing.length : 'Ошибок нет'}${rep.warnings.length ? ' · замечаний: ' + rep.warnings.length : ''}</b><button class="jr-cp" onclick="jsonCopyReport()" aria-label="Скопировать для DeepSeek" title="Скопировать для DeepSeek"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15V6a3 3 0 0 1 3-3h9"/></svg></button></div><ul>${li(real, 'e')}${li(rep.warnings, 'w')}</ul>` : '<div class="jr-h"><b>✔ Всё в порядке</b></div>';
   jwRefresh();
 }
 function jwRefresh() {
   const ta = document.getElementById('adminJsonInput'), acc = document.getElementById('jwAccept'), add = document.getElementById('jwAdd');
   if (acc && ta) acc.disabled = !ta.value.trim();
   if (add) add.disabled = !window._jReady;
+}
+const BOOK_PROMPT = "Ты — ведущий автор практикумов ANDGER. Ты превращаешь идеи книги в курс ежедневных действий, который меняет жизнь, а не пересказывает главы. Пиши по-русски, на «ты»: живо, конкретно, тепло, без воды, морали и мотивационных штампов.\n\nЗАДАЧА\nЯ называю книгу и число дней. Ты собираешь JSON для приложения ANDGER и выдаёшь его ЧАСТЯМИ. Я вставляю каждую часть в приложение, оно проверяет её и присылает отчёт об ошибках. Тогда ты возвращаешь ТОЛЬКО исправленные объекты.\n\nЧЕСТНОСТЬ\nЕсли не знаешь книгу достоверно, скажи об этом одной фразой и попроси конспект. Ничего не выдумывай: ни цитат, ни страниц, ни исследований, ни фактов об авторе.\n\nПРОТОКОЛ ЧАСТЕЙ\nЧасть A: данные о книге (схема A).\nЧасть B: путь, выжимка, финал и план (схема B).\nЧасти C1, C2, …: практики по плану, не больше 6 объектов за ответ. Сначала основные по порядку (m01, m02, …, light-nNN), потом бонусные (b01, b02, …).\nНа слово «дальше» выдавай следующую часть по плану и не повторяй уже выданное. Когда практики закончатся, напиши: «Книга готова».\nПервым ответом напиши только: «Готов. Назови книгу, автора и число дней.»\n\nФОРМАТ ОТВЕТА (жёстко)\nОдин блок ```json … ``` и всё. После блока допустима одна короткая строка: что будет дальше.\nТолько валидный JSON: двойные кавычки, без комментариев, без запятой перед закрывающей скобкой, без «...» и заглушек вроде «см. выше». Внутри текстов используй только кавычки-ёлочки «», никогда \". Без переносов строк внутри строк, без markdown и эмодзи в текстах (эмодзи только в поле emoji). Числа записывай числами. Все id латиницей без пробелов, не длиннее 13 символов.\n\nСХЕМА A\n{\"id\":\"kebab-case латиницей\",\"format\":2,\"emoji\":\"один эмодзи\",\"title\":\"Название\",\"author\":\"Автор\",\"days\":21,\n\"category\":\"ровно одна строка из: Психология и отношения | Привычки и дисциплина | Продуктивность и фокус | Здоровье и энергия | Финансы и карьера | Духовность и спокойствие | Бизнес и лидерство | Разное\",\n\"about\":\"2–3 предложения: чем книга цепляет и что человек получит\",\n\"method\":[\"3–5 коротких шагов: как устроен путь именно по этой книге\"],\n\"author_bio\":\"1–2 предложения, только проверенные факты\",\n\"for_whom\":\"кому и в какой жизненной ситуации подойдёт\",\n\"result\":\"измеримый результат к концу пути, без обещаний чудес\",\n\"identity\":\"Я — человек, который …\",\n\"summary\":[\"6–8 главных идей по 1–2 предложения\"],\n\"lumi_tips\":[\"РОВНО days подсказок маскота, по одной на день, до 90 символов, поддержка без давления\"],\n\"quotes\":[{\"text\":\"дословная короткая цитата\",\"author\":\"Автор\"}],\n\"voice_settings\":{\"voice\":\"alena\",\"emotion\":\"\",\"speed\":1.0}}\nЦитаты включай только если уверен в дословности (0–5 штук, каждая до 15 слов). Не уверен — оставь \"quotes\":[].\n\nСХЕМА B\n{\"path\":{\"weeks\":[{\"title\":\"Название недели\",\"goal\":\"1 предложение\",\"checkpoint\":{\"questions\":[\"2–3 конкретных вопроса\"]},\"nodes\":[{\"id\":\"n01\",\"focus\":\"до 90 символов: что делаем сегодня и зачем\",\"practices\":[\"m01\"],\"bonus_practices\":[\"b01\",\"b02\"],\"recap\":[],\"light\":false}]}],\n\"digest\":[{\"title\":\"Идея\",\"text\":\"60–90 слов\",\"example\":\"пример из жизни\",\"mistake\":\"частая ошибка\",\"apply\":\"как применить сегодня\"}],\n\"finale\":{\"questions\":[\"3–4 вопроса о том, что изменилось и что остаётся\"]}},\n\"plan\":[{\"id\":\"m01\",\"title\":\"Название практики\",\"type\":\"action\"}]}\nПравила пути:\n— узлов РОВНО days, id n01, n02, …; для 21 дня три недели по 7.\n— в узле 1–2 основные практики; бонусных 2–3 (необязательные, короткие).\n— recap: с 3-го дня 0–2 id практик прошлых дней; не повторяй практики этого же узла.\n— лёгкий день раз в неделю (для 21 дня: 4, 11, 18): \"light\":true и одна практика с id light-nNN на 60–120 секунд.\n— нагрузка узла (сумма time основных практик, не лёгкий день): неделя 1 до 360 с, неделя 2 до 600 с, неделя 3 и дальше до 780 с.\n— digest: 10–14 идей, суть книги без пересказа глав.\n— plan содержит КАЖДЫЙ id из пути (основные, лёгкие, бонусные) по порядку выдачи, с title и type.\n\nСХЕМА ПРАКТИКИ (все поля обязательны)\n{\"id\":\"m01\",\"title\":\"до 40 символов\",\"sub\":\"до 60 символов\",\"ico\":\"одно из: wind clock search zap play link layout user check-square brain book sun heart users sprout sunrise waves compass shield sparkles smile flame check-circle shield-check target crown\",\n\"type\":\"action\",\"time\":180,\n\"trigger\":\"Когда [конкретное событие], я [действие]. Не начинай со слова «Якорь»\",\n\"identity\":\"Я — человек, который …\",\n\"micro_action\":\"версия на 2 минуты для плохого дня\",\n\"journal_prompt\":\"один вопрос для записи в дневник\",\n\"why\":\"2–3 предложения: механизм простыми словами, без выдуманных исследований\",\n\"book_link\":\"Идея книги: одно предложение, без номеров страниц\",\n\"how\":[\"3–5 шагов, глаголы в повелительном наклонении\"],\n\"result\":\"что человек заметит\",\n\"mistakes\":[\"2–3 частые ошибки\"],\n\"advice\":\"один практичный совет\",\n\"voiceTimeline\":[{\"time\":2,\"text\":\"Встань и положи телефон экраном вниз.\"},{\"time\":12,\"text\":\"Сделай медленный вдох через нос.\"}],\n\"voice_settings\":{\"voice\":\"alena\",\"emotion\":\"\",\"speed\":1.0}}\nТип action: time 120–420 с (бонусные 60–180), поле voiceTimeline, без immersion_text. Фразы: время строго по возрастанию, первая на 2–4 секунде, дальше шаг 8–15 секунд, последняя не позже time−15. Фраза до 18 слов, разговорная, один шаг за раз. Последняя фраза закрывает практику и отправляет в дневник.\nТип audio (погружение): time 90–180 с, поле immersion_text, без voiceTimeline. Объём 1,5–2 слова на секунду (для 120 с это 180–240 слов). Обращение на «ты», настоящее время, сенсорные образы, короткие предложения, каждое заканчивается . ! или ? (многоточия не используй). Финал выводит в реальный день с одним конкретным шагом. Погружение — раз в 2–3 дня, тренирует внимание: замечать и выбирать.\nГолоса: alena, jane, filipp, ermil, omazh. Эмоция только \"\" или \"good\", никогда \"evil\". Скорость 0.9–1.05, для погружений 0.85–0.95.\n\nКАК СДЕЛАТЬ СИЛЬНО\n1. День = одна идея → одно действие в реальной жизни → одна запись в дневник.\n2. Неделя 1 «Заметить»: лёгкие шаги и наблюдение. Неделя 2 «Попробовать»: действие в обычных ситуациях. Неделя 3 «Встроить»: сложные ситуации, план «если–то», перенос на жизнь после курса.\n3. trigger привязывай к уже существующему событию дня (кофе, дорога, телефон, душ), а не к «в удобное время».\n4. Всегда давай минимальную версию на плохой день. Пропуск дня — без вины.\n5. Конкретика вместо абстракций: место, время, фраза, предмет. Примеры из работы, дома, телефона, отношений. Никаких «будь осознаннее».\n6. Интерес: заголовки-обещания, неожиданный угол, маленький вызов, лёгкий юмор к месту.\n7. Меняй формат: действие, погружение, наблюдение, короткий эксперимент. Не делай два дня подряд одно и то же.\n8. Ценность книги в действии, а не в пересказе. Одна идея автора не должна занимать больше двух дней.\n9. Здоровье, психика и деньги: без диагнозов, лечения и гарантий результата; при риске советуй обратиться к специалисту.\n\nОТЧЁТ ОБ ОШИБКАХ\nКогда я присылаю ошибки приложения, верни один блок {\"practices\":[…]} только с исправленными практиками (полные объекты со всеми полями) или {\"path\":{…}}, если ошибка в структуре пути. Больше 6 практик за ответ не выдавай, остальные дам по слову «дальше».";
+function jsonCopyPrompt() {
+  (navigator.clipboard ? navigator.clipboard.writeText(BOOK_PROMPT) : Promise.reject()).then(() => toast('Промпт скопирован — вставь в DeepSeek первым сообщением', 'success')).catch(() => { const ta = document.getElementById('adminJsonInput'); if (ta) { ta.value = BOOK_PROMPT; ta.select(); } toast('Скопируй текст из поля вручную', 'warm'); });
 }
 function jsonCopyReport() {
   const S = window._jStage, rep = S && validateBookJson(S); if (!rep) return toast('Сначала прими часть', 'warm');
@@ -12654,7 +12651,7 @@ function showJsonImportModal() {
   m = document.createElement('div'); m.id = 'jsonImportModal'; m.className = 'modal hidden';
   m.innerHTML = `<div class="modal-box jw">
     <div class="jw-h"><div><b>Новая книга</b><span>Собери её из частей DeepSeek</span></div><button class="jw-x" onclick="document.getElementById('jsonImportModal').classList.add('hidden')" aria-label="Закрыть">✕</button></div>
-    <div class="jw-next" id="jwNext"></div><div class="jw-steps" id="jwSteps"></div>
+    <div class="jw-next" id="jwNext"></div><button class="jw-link" onclick="jsonCopyPrompt()">Скопировать промпт для DeepSeek</button><div class="jw-steps" id="jwSteps"></div>
     <textarea id="adminJsonInput" rows="5" spellcheck="false" autocapitalize="off" placeholder="Вставь сюда часть от DeepSeek (можно с текстом вокруг)"></textarea>
     <div id="jsonReport" class="jr"></div>
     <div class="jw-opt"><span>Опубликовать сразу</span><div class="d-toggle" id="jsonPublishToggle" onclick="this.classList.toggle('on')"></div></div>
@@ -12685,4 +12682,127 @@ function showJsonImportModal() {
     setTimeout(() => t.focus(), 50);
   };
   document.addEventListener('focusin', e => { if (e.target && e.target.id === 'feedInput') { e.target.blur(); window.openFeedComposer(); } });
+})();
+
+/* ═══ v6.22 Админка: раздел «Контент» (тексты, FAQ, цитаты) + универсальная форма ═══ */
+(function () {
+  if (!window.AP) return;
+  const UI_LABELS = { splash_quote: 'Цитата на заставке', splash_author: 'Автор цитаты на заставке', onb_step: 'Шаги знакомства' };
+  Object.assign(AP, {
+    ct: 'texts',
+    form({ title, sub = '', fields, saveText = 'Сохранить', onSave, onDelete }) {
+      return new Promise(resolve => {
+        const dlg = document.createElement('dialog'); dlg.className = 'ap-dlg ap-full';
+        const fld = (f, i) => {
+          const v = this.esc(f.value ?? '');
+          const inner = f.type === 'textarea' ? `<textarea class="ap-in" id="fm_${i}" rows="${f.rows || 5}" placeholder="${this.esc(f.placeholder || '')}" style="font-size:16px">${v}</textarea>`
+            : f.type === 'select' ? `<select class="ap-in" id="fm_${i}" style="font-size:16px">${f.options.map(([k, l]) => `<option value="${this.esc(k)}"${String(k) === String(f.value) ? ' selected' : ''}>${this.esc(l)}</option>`).join('')}</select>`
+            : `<input class="ap-in" id="fm_${i}" type="${f.type || 'text'}" ${f.type === 'number' ? 'inputmode="numeric"' : ''} value="${v}" placeholder="${this.esc(f.placeholder || '')}" ${f.readonly ? 'readonly' : ''} autocapitalize="off" autocomplete="off" style="font-size:16px">`;
+          return `<div class="full" style="margin-bottom:12px"><label>${this.esc(f.label)}</label>${inner}${f.hint ? `<div class="ap-sub" style="margin-top:4px">${this.esc(f.hint)}</div>` : ''}</div>`;
+        };
+        dlg.innerHTML = `<div class="ap-ed"><div class="ap-ed-h"><div style="flex:1;min-width:0"><div style="font-weight:900;font-size:17px">${this.esc(title)}</div>${sub ? `<div class="ap-sub">${this.esc(sub)}</div>` : ''}</div><button class="ap-x" id="fmX" aria-label="Закрыть">✕</button></div><div class="ap-ed-b">${fields.map(fld).join('')}${onDelete ? '<button class="ap-btn d wide" id="fmDel">Удалить…</button>' : ''}</div><div class="ap-ed-f"><button class="ap-btn" id="fmCl">Закрыть</button><button class="ap-btn p" id="fmSv">${this.esc(saveText)}</button></div></div>`;
+        document.body.appendChild(dlg);
+        const get = () => fields.map((f, i) => { const el = dlg.querySelector('#fm_' + i); return el.value; });
+        const init = get().join('\u0001');
+        let done = false;
+        const fin = r => { if (done) return; done = true; dlg.close(); resolve(r); };
+        const close = async () => { if (get().join('\u0001') !== init && !await this.ask({ title: 'Закрыть без сохранения?', text: 'Изменения будут потеряны.', ok: 'Закрыть', danger: true })) return; fin(false); };
+        dlg.querySelector('#fmX').onclick = dlg.querySelector('#fmCl').onclick = close;
+        dlg.addEventListener('cancel', e => { e.preventDefault(); close(); });
+        dlg.addEventListener('close', () => dlg.remove());
+        const del = dlg.querySelector('#fmDel');
+        if (del) del.onclick = async () => { if (await this.ask({ title: 'Удалить?', text: 'Это действие нельзя отменить.', ok: 'Удалить', danger: true })) { if (await this.run(onDelete, 'Удалено')) fin(true); } };
+        dlg.querySelector('#fmSv').onclick = async () => {
+          const vals = Object.fromEntries(fields.map((f, i) => [f.k, f.type === 'number' ? (dlg.querySelector('#fm_' + i).value === '' ? null : Number(dlg.querySelector('#fm_' + i).value)) : dlg.querySelector('#fm_' + i).value.trim()]));
+          const miss = fields.find(f => f.req && (vals[f.k] === '' || vals[f.k] == null));
+          if (miss) { toast('Заполните: ' + miss.label, 'danger'); return; }
+          const b = dlg.querySelector('#fmSv'); b.disabled = true;
+          if (await this.run(() => onSave(vals), 'Сохранено')) fin(true); else b.disabled = false;
+        };
+        dlg.showModal();
+      });
+    },
+    async content() {
+      if (!this.area()) return;
+      this.bar(`<div class="ap-title">Контент</div><button class="ap-btn" onclick="AP.content()" aria-label="Обновить">⟳</button><div class="ap-chips"><button class="ap-chip ${this.ct === 'texts' ? 'on' : ''}" onclick="AP.ct='texts';AP.content()">Тексты</button><button class="ap-chip ${this.ct === 'faq' ? 'on' : ''}" onclick="AP.ct='faq';AP.content()">FAQ</button><button class="ap-chip ${this.ct === 'quotes' ? 'on' : ''}" onclick="AP.ct='quotes';AP.content()">Цитаты</button><button class="ap-chip" onclick="openPromoModal()">Промокоды</button></div>`);
+      return ({ texts: () => this.ctTexts(), faq: () => this.ctFaq(), quotes: () => this.ctQuotes() })[this.ct]();
+    },
+    async ctTexts() {
+      const { data, error } = await sb.from('ui_texts').select('*').order('key');
+      const v = this.area(); if (!v) return;
+      const rows = data || [];
+      const known = Object.keys(UI_LABELS).filter(k => !rows.some(r => r.key === k)).map(k => ({ key: k, value: '', _new: true }));
+      const all = rows.concat(known);
+      v.innerHTML = (error ? `<div class="ap-card"><span class="ap-tag er">Ошибка загрузки</span> <span class="ap-sub">${this.esc(error.message)}</span></div>` : '') +
+        `<div class="ap-row" style="margin-bottom:10px"><div class="ap-sub" style="flex:1">Тексты, которые приложение показывает пользователям. Нажмите на строку, чтобы изменить.</div><button class="ap-btn p s" onclick="AP.textEdit('')">+ Текст</button></div><div class="ap-cl">` +
+        (all.map(r => `<div class="ap-cr"><div class="ap-main" onclick="AP.textEdit('${this.qs(r.key)}')"><code>${this.esc(r.key)}</code>${UI_LABELS[r.key] ? `<div class="ap-sub">${this.esc(UI_LABELS[r.key])}</div>` : ''}<div class="ap-clip">${r.value ? this.esc(r.value) : '<i class="ap-dim">— не задано —</i>'}</div></div></div>`).join('') || '<div class="ap-empty">Текстов пока нет</div>') + '</div>';
+      this._texts = all;
+    },
+    textEdit(key) {
+      const r = (this._texts || []).find(x => x.key === key) || { key: '', value: '' };
+      const isNew = !key;
+      this.form({
+        title: isNew ? 'Новый текст' : (UI_LABELS[key] || 'Текст'), sub: key,
+        fields: [{ k: 'key', label: 'Ключ (латиницей)', value: r.key, readonly: !isNew, req: true, hint: isNew ? 'Например: splash_quote. Ключ должен совпадать с тем, что читает приложение.' : '' }, { k: 'value', label: 'Текст', type: 'textarea', rows: 8, value: r.value, req: true }],
+        onSave: async v => {
+          if (isNew && !/^[a-z0-9_.-]+$/i.test(v.key)) throw new Error('Ключ: только латиница, цифры, _ . -');
+          const { error } = await sb.from('ui_texts').upsert({ key: v.key, value: v.value }, { onConflict: 'key' }); if (error) throw error;
+          if (typeof appTexts !== 'undefined') appTexts[v.key] = v.value;
+        }
+      }).then(ok => { if (ok) this.content(); });
+    },
+    async ctFaq() {
+      const { data, error } = await sb.from('faq').select('*').order('sort_order');
+      const v = this.area(); if (!v) return;
+      this._faq = data || [];
+      v.innerHTML = (error ? `<div class="ap-card"><span class="ap-tag er">Ошибка загрузки</span> <span class="ap-sub">${this.esc(error.message)}</span></div>` : '') +
+        `<div class="ap-row" style="margin-bottom:10px"><div class="ap-sub" style="flex:1">Вопросы раздела «Помощь». Стрелки меняют порядок.</div><button class="ap-btn p s" onclick="AP.faqEdit(null)">+ Вопрос</button></div><div class="ap-cl">` +
+        (this._faq.map((r, i) => `<div class="ap-cr"><div class="ap-main" onclick="AP.faqEdit('${this.qs(r.id)}')"><div class="ap-name" style="font-size:14px">${this.esc(r.question)}</div><div class="ap-clip ap-sub">${this.esc(r.answer)}</div></div><div class="ap-ca"><button aria-label="Выше" onclick="AP.faqMove(${i},-1)">↑</button><button aria-label="Ниже" onclick="AP.faqMove(${i},1)">↓</button></div></div>`).join('') || '<div class="ap-empty">Вопросов пока нет</div>') + '</div>';
+    },
+    faqEdit(id) {
+      const r = id ? this._faq.find(x => String(x.id) === String(id)) : null;
+      this.form({
+        title: r ? 'Редактировать вопрос' : 'Новый вопрос',
+        fields: [{ k: 'question', label: 'Вопрос', value: r?.question, req: true }, { k: 'answer', label: 'Ответ', type: 'textarea', rows: 8, value: r?.answer, req: true }],
+        onSave: async v => { const q = r ? sb.from('faq').update(v).eq('id', r.id) : sb.from('faq').insert({ ...v, sort_order: (this._faq.length ? Math.max(...this._faq.map(x => x.sort_order || 0)) : 0) + 1 }); const { error } = await q; if (error) throw error; },
+        onDelete: r ? async () => { const { error } = await sb.from('faq').delete().eq('id', r.id); if (error) throw error; } : null
+      }).then(ok => { if (ok) this.content(); });
+    },
+    async faqMove(i, d) {
+      const a = this._faq, j = i + d; if (j < 0 || j >= a.length) return;
+      [a[i], a[j]] = [a[j], a[i]];
+      if (await this.run(async () => { const rs = await Promise.all(a.map((r, k) => sb.from('faq').update({ sort_order: k + 1 }).eq('id', r.id))); const e = rs.find(x => x.error); if (e) throw e.error; })) this.content();
+    },
+    async ctQuotes() {
+      const { data, error } = await sb.from('quotes').select('*').order('sort_order', { ascending: true });
+      const v = this.area(); if (!v) return;
+      this._quotes = data || [];
+      v.innerHTML = (error ? `<div class="ap-card"><span class="ap-tag er">Ошибка загрузки</span> <span class="ap-sub">${this.esc(error.message)}</span></div>` : '') +
+        `<div class="ap-row" style="margin-bottom:10px"><div class="ap-sub" style="flex:1">Цитаты на заставке. Выключенные не показываются.</div><button class="ap-btn p s" onclick="AP.quoteEdit(null)">+ Цитата</button></div><div class="ap-cl">` +
+        (this._quotes.map(r => `<div class="ap-cr" style="${r.active === false ? 'opacity:.55' : ''}"><div class="ap-main" onclick="AP.quoteEdit('${this.qs(r.id)}')"><div class="ap-clip">${this.esc(r.text)}</div><div class="ap-sub">— ${this.esc(r.author || '')}</div></div><div class="ap-ca"><button class="ap-sw ${r.active !== false ? 'on' : ''}" aria-label="Показывать" onclick="AP.quoteToggle('${this.qs(r.id)}')" style="margin-right:8px"></button></div></div>`).join('') || '<div class="ap-empty">Цитат пока нет</div>') + '</div>';
+    },
+    quoteEdit(id) {
+      const r = id ? this._quotes.find(x => String(x.id) === String(id)) : null;
+      this.form({
+        title: r ? 'Редактировать цитату' : 'Новая цитата',
+        fields: [{ k: 'text', label: 'Текст цитаты', type: 'textarea', rows: 6, value: r?.text, req: true }, { k: 'author', label: 'Автор', value: r?.author ?? 'Андрей Герасимов' }],
+        onSave: async v => { v.author = v.author || 'Андрей Герасимов'; const q = r ? sb.from('quotes').update(v).eq('id', r.id) : sb.from('quotes').insert({ ...v, active: true, sort_order: (this._quotes.length ? Math.max(...this._quotes.map(x => x.sort_order || 0)) : 0) + 1 }); const { error } = await q; if (error) throw error; if (typeof loadQuotes === 'function') loadQuotes(); },
+        onDelete: r ? async () => { const { error } = await sb.from('quotes').delete().eq('id', r.id); if (error) throw error; if (typeof loadQuotes === 'function') loadQuotes(); } : null
+      }).then(ok => { if (ok) this.content(); });
+    },
+    async quoteToggle(id) {
+      const r = this._quotes.find(x => String(x.id) === String(id)); if (!r) return;
+      if (await this.run(async () => { const { error } = await sb.from('quotes').update({ active: r.active === false }).eq('id', r.id); if (error) throw error; if (typeof loadQuotes === 'function') loadQuotes(); })) this.content();
+    }
+  });
+})();
+
+/* ✕ в полноэкранных формах */
+(function(){
+  const run=()=>['faqEditorModal','textEditorModal','bookQuoteEditorModal','quoteModal'].forEach(id=>{
+    const m=document.getElementById(id), box=m&&m.querySelector('.modal-box'); if(!box||box.querySelector('.ap-mx')) return;
+    const b=document.createElement('button'); b.type='button'; b.className='ap-x ap-mx'; b.setAttribute('aria-label','Закрыть'); b.textContent='✕';
+    b.onclick=()=>m.classList.add('hidden'); box.prepend(b);
+  });
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
 })();

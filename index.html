@@ -63,8 +63,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="design-system.css?v=149">
-  <link rel="stylesheet" href="styles.css?v=149">
+  <link rel="stylesheet" href="design-system.css?v=152">
+  <link rel="stylesheet" href="styles.css?v=152">
 </head>
 <body>
 
@@ -96,7 +96,7 @@
 
   <!-- SPLASH -->
   <div id="appLoader">
-    <div class="splash-ver">v11.11.149</div>
+    <div class="splash-ver">v11.11.152</div>
     <div class="splash-main">
       <div class="splash-ring-wrap">
         <!-- Светящееся кольцо -->
@@ -1143,7 +1143,11 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
           Модерация
         </div>
-        <div class="admin-pro-tab" onclick="switchAdminTab('system', this)">
+                <div class="admin-pro-tab" onclick="switchAdminTab('content', this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+          Контент
+        </div>
+<div class="admin-pro-tab" onclick="switchAdminTab('system', this)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           Система
         </div>
@@ -1831,65 +1835,80 @@
       </div>
 
       <div class="modal hidden" id="practiceEditorModal">
-        <div class="modal-box" style="text-align:left; max-height: 90vh;">
-          <h2 id="peTitle" style="margin-bottom:16px; font-size:20px;">Новая практика</h2>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="modal-box pe" style="text-align:left;">
+          <div class="pe-head">
+            <h2 id="peTitle">Новая практика</h2>
+            <button class="ap-x" onclick="closePracticeEditor()" aria-label="Закрыть">✕</button>
+          </div>
+
+          <div class="pe-seg" id="peTypeSeg">
+            <button type="button" data-t="action" onclick="peSetType('action')">⚡ Действие</button>
+            <button type="button" data-t="audio" onclick="peSetType('audio')">🎧 Погружение</button>
+          </div>
+          <input type="hidden" id="peTypeInp" value="action">
+
+          <div class="pe-card">
             <div class="field"><label>Название</label><input type="text" id="peTitleInp" placeholder="Тишина"></div>
-            <div class="field"><label>Время (мин)</label><input type="number" id="peTimeInp" placeholder="5"></div>
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <div class="field"><label>Подзаголовок</label><input type="text" id="peSubInp" placeholder="Медитация · 5 минут"></div>
-            <div class="field"><label>Иконка (ID)</label><input type="text" id="peIcoInp" placeholder="brain, book, sun..."></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div class="field">
-              <label>Голос диктора</label>
-              <select id="peVoiceInp" style="width:100%; background:var(--card); border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; color:var(--text); font-size:15px;">
-                <option value="">По умолчанию (из книги)</option>
-                <option value="alena">Алёна (Мягкий, женский)</option>
-                <option value="filipp">Филипп (Спокойный, мужской)</option>
-                <option value="omazh">Омаж (Строгий, женский)</option>
-                <option value="ermil">Ермил (Глубокий, мужской)</option>
-                <option value="jane">Джейн (Эмоциональный, женский)</option>
-              </select>
+            <div class="pe-two">
+              <div class="field"><label>Время (сек)</label><input type="number" inputmode="numeric" id="peTimeInp" placeholder="180" oninput="peTimeHint()"><div class="pe-hint" id="peTimeHint"></div></div>
+              <div class="field"><label>ID практики</label><input type="text" id="peIdInp" placeholder="m01" autocapitalize="off" autocomplete="off" spellcheck="false"></div>
             </div>
-            <div class="field">
-              <label>Эмоция / Тембр</label>
-              <select id="peEmotionInp" style="width:100%; background:var(--card); border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; color:var(--text); font-size:15px;">
-                <option value="">Нейтральный</option>
-                <option value="good">Радостный / Бодрый</option>
-                <option value="evil">Строгий / Серьезный</option>
-              </select>
-            </div>
-          </div>
-          <div class="field">
-            <label>Скорость речи (1.0 - обычная)</label>
-            <input type="number" id="peSpeedInp" step="0.1" min="0.5" max="2.0" placeholder="1.0">
-          </div>
-          </div>
-                    <div class="field">
-            <label>Якорь (К чему привязать?)</label>
-            <input type="text" id="peTriggerInp" placeholder="Например: После утреннего кофе">
-          </div>
-          <div class="field"><label>Идентичность (Я — тот, кто...)</label><input type="text" id="peIdentityInp" placeholder="Я — тот, кто управляет своим вниманием"></div>
-          <div class="field"><label>Микро-действие (Сделай прямо сейчас)</label><input type="text" id="peMicroActionInp" placeholder="Сделай 10 приседаний"></div>
-          <div class="field"><label>Вопрос в дневник</label><textarea id="peJournalPromptInp" rows="2" placeholder="Что ты почувствовал?"></textarea></div>
-
-          <div class="field"><label>Зачем это нужно (why)</label><textarea id="peWhyInp" rows="3"></textarea></div>
-          <div class="field"><label>Как делать (каждый шаг с новой строки)</label><textarea id="peHowInp" rows="4" placeholder="Шаг 1&#10;Шаг 2&#10;Шаг 3"></textarea></div>
-          <div class="field"><label>Результат (result)</label><textarea id="peResultInp" rows="2"></textarea></div>
-          <div class="field"><label>Ошибки (каждая с новой строки)</label><textarea id="peMistakesInp" rows="3"></textarea></div>
-          <div class="field"><label>Совет (advice)</label><textarea id="peAdviceInp" rows="2"></textarea></div>
-          
-          <div style="background:rgba(124,92,255,0.1); border:1px solid var(--d-accent); padding:12px; border-radius:12px; margin-bottom:16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-              <label style="margin:0; color:var(--d-accent-2);">Фоновый голос</label>
-              <button class="d-btn-secondary" onclick="addVoiceLine()" style="margin-top:0; padding:4px 8px; font-size:10px; width:auto; min-height:30px;">+ Фраза</button>
-            </div>
-            <div id="voiceTimelineContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+            <div class="field"><label>Иконка</label><input type="hidden" id="peIcoInp" value="brain"><div class="pe-ico" id="peIcoGrid"></div></div>
           </div>
 
-          <button class="d-btn-primary" onclick="savePracticeEditor()">Сохранить практику</button>
-          <button class="d-btn-secondary" onclick="document.getElementById('practiceEditorModal').classList.add('hidden')" style="margin-top:10px;">Отмена</button>
+          <div class="pe-card">
+            <div class="pe-sec">Содержание</div>
+            <div class="field"><label>Якорь (к чему привязать)</label><input type="text" id="peTriggerInp" placeholder="Когда я наливаю утренний кофе, я…"></div>
+            <div class="field"><label>Идентичность (Я — тот, кто…)</label><input type="text" id="peIdentityInp" placeholder="Я — человек, который управляет вниманием"></div>
+            <div class="field"><label>Микро-действие (версия на 2 минуты)</label><input type="text" id="peMicroActionInp" placeholder="Сделай 10 приседаний"></div>
+            <div class="field"><label>Вопрос в дневник</label><textarea id="peJournalPromptInp" rows="2" placeholder="Что ты почувствовал?"></textarea></div>
+            <div class="field"><label>Связь с книгой</label><input type="text" id="peBookLinkInp" placeholder="Идея книги: …"></div>
+            <div class="field"><label>Зачем это нужно (why)</label><textarea id="peWhyInp" rows="3"></textarea></div>
+            <div class="field"><label>Как делать (каждый шаг с новой строки)</label><textarea id="peHowInp" rows="4" placeholder="Шаг 1&#10;Шаг 2&#10;Шаг 3"></textarea></div>
+            <div class="field"><label>Результат (result)</label><textarea id="peResultInp" rows="2"></textarea></div>
+            <div class="field"><label>Ошибки (каждая с новой строки)</label><textarea id="peMistakesInp" rows="3"></textarea></div>
+            <div class="field"><label>Совет (advice)</label><textarea id="peAdviceInp" rows="2"></textarea></div>
+          </div>
+
+          <div class="pe-card pe-audio" id="peAudioBox">
+            <div class="pe-sec">Текст погружения</div>
+            <textarea id="peImmersionInp" rows="9" placeholder="Текст, который озвучит голос. Каждое предложение заканчивай . ! или ?" oninput="peTimeHint()"></textarea>
+            <div class="pe-hint" id="peWordHint"></div>
+          </div>
+
+          <div class="pe-card pe-action" id="peActionBox">
+            <div class="pe-sec" style="display:flex;justify-content:space-between;align-items:center">Голосовые фразы по времени <button type="button" class="ap-btn s" onclick="addVoiceLine()">+ Фраза</button></div>
+            <div id="voiceTimelineContainer" style="display:flex;flex-direction:column;gap:8px"></div>
+            <div class="pe-hint" id="peTlHint"></div>
+          </div>
+
+          <div class="pe-card">
+            <div class="pe-sec">Голос</div>
+            <div class="pe-two">
+              <div class="field"><label>Диктор</label>
+                <select id="peVoiceInp" class="ap-in">
+                  <option value="">По умолчанию (из книги)</option>
+                  <option value="alena">Алёна (женский)</option>
+                  <option value="filipp">Филипп (мужской)</option>
+                  <option value="omazh">Омаж (женский)</option>
+                  <option value="ermil">Ермил (мужской)</option>
+                  <option value="jane">Джейн (женский)</option>
+                </select></div>
+              <div class="field"><label>Эмоция</label>
+                <select id="peEmotionInp" class="ap-in">
+                  <option value="">Нейтральный</option>
+                  <option value="good">Бодрый</option>
+                  <option value="evil">Строгий</option>
+                </select></div>
+            </div>
+            <div class="field"><label>Скорость (0.5–2.0, обычная 1.0)</label><input type="number" inputmode="decimal" id="peSpeedInp" step="0.05" min="0.5" max="2.0" placeholder="1.0"></div>
+          </div>
+
+          <div class="pe-bar">
+            <button type="button" class="d-btn-secondary" onclick="closePracticeEditor()">Отмена</button>
+            <button type="button" class="d-btn-primary" onclick="savePracticeEditor()">Сохранить практику</button>
+          </div>
         </div>
       </div>
 
@@ -2087,7 +2106,7 @@
   <!-- Скрипты -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
-  <script src="app.js?v=149"></script>
+  <script src="app.js?v=152"></script>
 </body>
 </html>
 
