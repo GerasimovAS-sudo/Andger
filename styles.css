@@ -3103,3 +3103,8 @@ dialog.ap-sheet{max-height:min(90dvh,calc(var(--app-h,100dvh) - 24px))}
 .ap-cr .ap-ca button.d{color:#ff5d6c}
 .ap-tag.acc{color:#a78bff}
 .ap-bar .ap-chips{flex-wrap:nowrap}
+/* v6.23 Окно выбора практики: строки не сжимаются, высота по экрану */
+#practiceSelectorList>*{flex-shrink:0}
+#practiceSelectorModal .modal-box{max-height:min(78dvh,calc(var(--app-h,100dvh) - 90px))!important}
+#practiceSelectorList{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.practice-selector-item{min-height:68px}
